@@ -106,7 +106,7 @@ export default function NotificationDropdown() {
                   e.stopPropagation()
                   markAllAsRead()
                 }}
-                className="text-xs text-secondary hover:text-secondary/80 font-medium flex items-center gap-1"
+                className="text-sm text-secondary hover:text-secondary/80 font-medium flex items-center gap-1"
               >
                 <Check className="w-3 h-3" />
                 Mark all read
@@ -167,7 +167,7 @@ export default function NotificationDropdown() {
                             {notification.message}
                           </p>
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs text-gray-500">
+                            <span className="text-sm text-gray-500">
                               {formatTimeAgo(notification.timestamp)}
                             </span>
                             {!notification.isRead && (

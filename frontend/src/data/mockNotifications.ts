@@ -3,7 +3,7 @@ import { Notification } from '@/store/notificationsStore'
 // Mock notifications data for testing
 export const mockNotifications: Notification[] = [
   {
-    id: '1',
+    id: 'notif-1',
     type: 'message',
     title: 'New Message',
     message: 'Sarah Johnson sent you a message about "iPhone 14 Pro Max"',
@@ -14,7 +14,7 @@ export const mockNotifications: Notification[] = [
     adId: '1'
   },
   {
-    id: '2',
+    id: 'notif-2',
     type: 'view',
     title: 'Ad Viewed',
     message: 'Your "MacBook Pro M2" ad has been viewed 15 times today',
@@ -24,7 +24,7 @@ export const mockNotifications: Notification[] = [
     adId: '2'
   },
   {
-    id: '3',
+    id: 'notif-3',
     type: 'favorite',
     title: 'New Favorite',
     message: '3 users saved your "Samsung Galaxy S23" ad to favorites',
@@ -34,7 +34,7 @@ export const mockNotifications: Notification[] = [
     adId: '3'
   },
   {
-    id: '4',
+    id: 'notif-4',
     type: 'offer',
     title: 'Price Offer',
     message: 'Michael Chen made an offer of ₦400,000 for your PlayStation 5',
@@ -45,7 +45,7 @@ export const mockNotifications: Notification[] = [
     adId: '4'
   },
   {
-    id: '5',
+    id: 'notif-5',
     type: 'system',
     title: 'Ad Expiring Soon',
     message: 'Your ad "Dell XPS 13 Laptop" will expire in 3 days',
@@ -55,7 +55,7 @@ export const mockNotifications: Notification[] = [
     adId: '5'
   },
   {
-    id: '6',
+    id: 'notif-6',
     type: 'message',
     title: 'New Message',
     message: 'You have 2 unread messages',

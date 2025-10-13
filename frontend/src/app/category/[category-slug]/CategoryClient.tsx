@@ -80,7 +80,7 @@ export default function CategoryClient({ categorySlug }: CategoryClientProps) {
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="container py-4 sm:py-6 lg:py-8 px-4 sm:px-6 lg:px-8">
+      <div className="container py-4 sm:py-6 lg:py-8">
       <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
         {/* Filters Section */}
         <div className="lg:w-[300px] lg:flex-shrink-0">

@@ -71,7 +71,7 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
         
         {/* Category Badge */}
         {ad.category && (
-          <div className="absolute top-2 left-2 bg-secondary text-secondary-foreground px-2 py-1 text-xs font-medium">
+          <div className="absolute top-2 left-2 bg-secondary text-secondary-foreground px-2 py-1 text-sm font-medium">
             {ad.category}
           </div>
         )}

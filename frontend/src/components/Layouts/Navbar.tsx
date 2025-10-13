@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react'
 import Logo from '../General/Logo'
 import { Button } from '../ui/button'
-import SearchBox from '../ui/SearchBox'
 import AuthButton from '../ui/AuthButton'
 import UserDropdown from '../ui/UserDropdown'
 import NotificationDropdown from '../ui/NotificationDropdown'
+import LanguageSwitcher from '../ui/LanguageSwitcher'
+import SearchModal from '../modals/SearchModal'
 import { useAuthStore } from '@/store/authStore'
 import { useFavoritesStore } from '@/store/favoritesStore'
 import Link from 'next/link'
@@ -17,16 +18,33 @@ import {
   Plus, 
   Heart, 
   MessageSquare,
-  Bell,
+  Search,
   ChevronDown
 } from 'lucide-react'
 
 export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
     const { isAuthenticated, user } = useAuthStore()
     const { getFavoritesCount } = useFavoritesStore()
     const favoritesCount = getFavoritesCount()
+    
+    // Track navbar height for mobile menu positioning
+    useEffect(() => {
+        const updateNavbarHeight = () => {
+            const navbar = document.querySelector('header')
+            if (navbar) {
+                const height = navbar.offsetHeight
+                document.documentElement.style.setProperty('--navbar-height', `${height}px`)
+            }
+        }
+        
+        updateNavbarHeight()
+        window.addEventListener('resize', updateNavbarHeight)
+        
+        return () => window.removeEventListener('resize', updateNavbarHeight)
+    }, [])
 
     const categories = [
         'Electronics',
@@ -62,8 +80,8 @@ export default function Navbar() {
                         <span className='sm:hidden'>Tajma Marketplace</span>
                         <div className='flex items-center gap-1 sm:gap-2'>
                             <MapPin className='w-3 h-3 sm:w-4 sm:h-4' />
-                            <span className='hidden xs:inline sm:inline'>Lagos, Nigeria</span>
-                            <span className='xs:hidden sm:hidden'>Lagos</span>
+                            <span className='hidden xs:inline sm:inline'>Niamey, Niger</span>
+                            <span className='xs:hidden sm:hidden'>Niamey</span>
                         </div>
                     </div>
                     <div className='hidden sm:flex items-center gap-4'>
@@ -82,16 +100,25 @@ export default function Navbar() {
                         <Logo />
                     </div>
 
-                    {/* Search Bar */}
-                    <div className='hidden lg:flex flex-1 max-w-2xl mx-4'>
-                        <SearchBox 
-                            placeholder='Search for anything...'
-                            className='w-full'
-                        />
-                    </div>
+                    {/* Spacer */}
+                    <div className='flex-1'></div>
 
                     {/* User Actions */}
                     <div className='flex items-center gap-1 sm:gap-2'>
+                        {/* Search Icon */}
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => setIsSearchModalOpen(true)}
+                            className="hidden sm:flex"
+                        >
+                            <Search className='w-5 h-5' />
+                        </Button>
+
+                        {/* Language Switcher */}
+                        <div className="hidden sm:block">
+                            <LanguageSwitcher />
+                        </div>
                         {!isAuthenticated ? (
                             <div className='flex items-center gap-1 sm:gap-2'>
                                 <div className='hidden sm:block'>
@@ -105,19 +132,19 @@ export default function Navbar() {
                             </div>
                         ) : (
                             <div className='flex items-center gap-1 sm:gap-2'>
-                                <Link href='/create-ad'>
-                                    <Button variant="primary" size="sm" className='hidden sm:flex'>
+                                <Link href='/create-ad' className='hidden sm:block'>
+                                    <Button variant="primary" size="sm">
                                         <Plus className='w-4 h-4 mr-2' />
                                         Post Ad
                                     </Button>
                                 </Link>
-                                <Link href='/create-ad'>
-                                    <Button variant="primary" size="sm" className='sm:hidden'>
+                                <Link href='/create-ad' className='sm:hidden'>
+                                    <Button variant="primary" size="sm">
                                         <Plus className='w-4 h-4' />
                                     </Button>
                                 </Link>
-                                <Link href={`/profile/${user?.uid}?tab=saved`} className="relative">
-                                    <Button variant="ghost" size="icon" className="hidden lg:flex">
+                                <Link href={`/profile/${user?.uid}?tab=saved`} className="relative hidden lg:block">
+                                    <Button variant="ghost" size="icon">
                                         <Heart className='w-5 h-5' />
                                     </Button>
                                     {favoritesCount > 0 && (
@@ -126,8 +153,8 @@ export default function Navbar() {
                                         </span>
                                     )}
                                 </Link>
-                                <Link href="/chat">
-                                    <Button variant="ghost" size="icon" className="hidden lg:flex">
+                                <Link href="/chat" className="hidden lg:block">
+                                    <Button variant="ghost" size="icon">
                                         <MessageSquare className='w-5 h-5' />
                                     </Button>
                                 </Link>
@@ -138,24 +165,30 @@ export default function Navbar() {
                             </div>
                         )}
 
+                        {/* Mobile Search Icon */}
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className='sm:hidden'
+                            onClick={() => setIsSearchModalOpen(true)}
+                        >
+                            <Search className='w-5 h-5' />
+                        </Button>
+
                         {/* Mobile Menu Button */}
                         <Button 
                             variant="ghost" 
                             size="icon" 
-                            className='lg:hidden ml-1'
+                            className='lg:hidden ml-1 relative'
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         >
-                            {isMobileMenuOpen ? <X className='w-5 h-5' /> : <Menu className='w-5 h-5' />}
+                            <div className="flex flex-col gap-1 w-5 h-5 items-center justify-center">
+                                <span className={`block h-0.5 w-5 bg-current transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
+                                <span className={`block h-0.5 w-5 bg-current transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+                                <span className={`block h-0.5 w-5 bg-current transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+                            </div>
                         </Button>
                     </div>
-                </div>
-
-                {/* Mobile/Tablet Search */}
-                <div className='lg:hidden mt-3 sm:mt-4'>
-                    <SearchBox 
-                        placeholder='Search for anything...'
-                        className='w-full'
-                    />
                 </div>
             </div>
 
@@ -203,71 +236,63 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
-                <div className='lg:hidden border-t bg-white'>
-                    <div className='container py-4 space-y-4'>
-                        {!isAuthenticated && (
-                            <div className='flex flex-col gap-2'>
-                                <AuthButton />
-                            </div>
-                        )}
-                        
-                        {isAuthenticated && (
-                            <div className='space-y-3'>
-                                <div className='flex items-center justify-between'>
-                                    <h3 className='font-semibold text-gray-900 text-sm'>Account</h3>
-                                    <Link href='/create-ad'>
-                                        <Button variant="primary" size="sm" onClick={() => setIsMobileMenuOpen(false)}>
-                                            <Plus className='w-4 h-4 mr-2' />
-                                            Post Ad
-                                        </Button>
-                                    </Link>
-                                </div>
-                                <div className='space-y-1'>
-                                       <Link href={`/profile/${user?.uid}`} className='block py-2 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Profile</Link>
-                                       <Link href={`/profile/${user?.uid}?tab=ads`} className='block py-2 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>My Ads</Link>
-                                       <Link href={`/profile/${user?.uid}?tab=saved`} className='flex items-center justify-between py-2 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50' onClick={() => setIsMobileMenuOpen(false)}>
-                                           <span>Saved Ads</span>
-                                           {favoritesCount > 0 && (
-                                               <span className="bg-secondary text-white text-xs px-2 py-0.5 font-semibold">
-                                                   {favoritesCount}
-                                               </span>
-                                           )}
-                                       </Link>
-                                       <Link href='/chat' className='block py-2 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Messages</Link>
-                                       <Link href={`/profile/${user?.uid}?tab=notifications`} className='block py-2 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Notifications</Link>
-                                </div>
-                            </div>
-                        )}
+                <div 
+                    className='lg:hidden fixed inset-0 bg-black/50 animate-fadeIn'
+                    style={{ top: 'var(--navbar-height, 64px)', zIndex: 40 }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
 
-                        <div className='space-y-3'>
-                            <h3 className='font-semibold text-gray-900 text-sm'>Categories</h3>
-                            <div className='space-y-1'>
-                                {categories.map((category) => (
-                                    <Link 
-                                        key={category} 
-                                        href={`/category/${category.toLowerCase().replace(/\s+/g, '-')}`}
-                                        className='block py-2 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded'
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                    >
-                                        {category}
-                                    </Link>
-                                ))}
-                            </div>
+            {/* Mobile Menu - Slide from Right */}
+            <div 
+                className={`lg:hidden fixed right-0 top-0 bottom-0 w-[280px] bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-out ${
+                    isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+                }`}
+                style={{ 
+                    top: 'var(--navbar-height, 64px)',
+                    height: 'calc(100vh - var(--navbar-height, 64px))',
+                    zIndex: 50
+                }}
+            >
+                <div className='h-full overflow-y-auto px-4 py-6 space-y-6'>
+                    {/* Login/Register or Post Ad */}
+                    {!isAuthenticated ? (
+                        <div className='flex flex-col gap-2'>
+                            <AuthButton />
                         </div>
+                    ) : (
+                        <Link href='/create-ad' className='block'>
+                            <Button variant="primary" className='w-full' onClick={() => setIsMobileMenuOpen(false)}>
+                                <Plus className='w-4 h-4 mr-2' />
+                                Post Ad
+                            </Button>
+                        </Link>
+                    )}
 
-                        <div className='space-y-3'>
-                            <h3 className='font-semibold text-gray-900 text-sm'>Quick Links</h3>
-                            <div className='space-y-1'>
-                                <Link href='/help' className='block py-2 px-3 text-gray-600 hover:text-primary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Help</Link>
-                                <Link href='/create-ad' className='block py-2 px-3 text-gray-600 hover:text-primary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Sell</Link>
-                                <Link href='/' className='block py-2 px-3 text-gray-600 hover:text-primary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Buy</Link>
-                            </div>
+                    {/* Quick Links */}
+                    <div className='space-y-1 border-t pt-3'>
+                        <Link href='/help' className='block py-3 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Help & Support</Link>
+                        <Link href='/about' className='block py-3 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
+                        <Link href='/contact' className='block py-3 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
+                    </div>
+
+                    {/* Language Switcher */}
+                    <div className='border-t pt-3'>
+                        <div className='flex items-center justify-between px-3'>
+                            <span className='text-sm text-gray-600'>Language</span>
+                            <LanguageSwitcher />
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
+
+            {/* Search Modal */}
+            <SearchModal 
+                isOpen={isSearchModalOpen} 
+                onClose={() => setIsSearchModalOpen(false)} 
+            />
         </header>
     )
 }

@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Conversation, Message } from '@/data/mockChat'
 import MessageBubble from './MessageBubble'
 import { useAuthStore } from '@/store/authStore'
-import { Send, Image as ImageIcon, Smile, MoreVertical, Phone, Video } from 'lucide-react'
+import { Send, Image as ImageIcon, Smile, MoreVertical, Phone, Video, Paperclip } from 'lucide-react'
 
 interface ChatAreaProps {
   conversation: Conversation | null
@@ -22,12 +22,15 @@ export default function ChatArea({
 }: ChatAreaProps) {
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
   const { user } = useAuthStore()
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+    }
   }
 
   useEffect(() => {
@@ -155,7 +158,10 @@ export default function ChatArea({
       )}
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50 custom-scrollbar">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50 custom-scrollbar"
+      >
         {messages.map((message) => (
           <MessageBubble
             key={message.id}
@@ -185,28 +191,38 @@ export default function ChatArea({
             </div>
           </div>
         )}
-        
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}
       <div className="p-2 sm:p-4 border-t border-gray-200 bg-white">
-        <form onSubmit={handleSendMessage} className="flex items-end gap-2 sm:gap-3">
-          {/* Attachment Button - Hidden on small mobile */}
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3">
+          {/* File Attachment Button - Hidden on small mobile */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 hover:bg-gray-100 transition-colors hidden xs:block"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+            title="Attach file"
           >
-            <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+            <Paperclip className="w-5 h-5 text-gray-600" />
+          </button>
+
+          {/* Image Upload Button - Hidden on small mobile */}
+          <button
+            type="button"
+            onClick={() => imageInputRef.current?.click()}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+            title="Attach image"
+          >
+            <ImageIcon className="w-5 h-5 text-gray-600" />
           </button>
           
           {/* Emoji Button - Hidden on small mobile */}
           <button
             type="button"
-            className="p-2 hover:bg-gray-100 transition-colors hidden xs:block"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+            title="Add emoji"
           >
-            <Smile className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+            <Smile className="w-5 h-5 text-gray-600" />
           </button>
 
           {/* Message Input */}
@@ -215,7 +231,7 @@ export default function ChatArea({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type a message..."
-              className="w-full resize-none border border-gray-200 px-3 sm:px-4 py-2 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm"
+              className="w-full resize-none border border-gray-200 rounded-lg px-3 sm:px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm"
               rows={1}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -230,15 +246,25 @@ export default function ChatArea({
           <button
             type="submit"
             disabled={!inputValue.trim()}
-            className="p-2 sm:p-2.5 bg-secondary text-secondary-foreground hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+            className="p-2.5 sm:p-3 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+            title="Send message"
           >
-            <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Send className="w-5 h-5" />
           </button>
         </form>
 
-        {/* Hidden file input */}
+        {/* Hidden file input for documents/files */}
         <input
           ref={fileInputRef}
+          type="file"
+          accept=".pdf,.doc,.docx,.txt,.zip"
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+
+        {/* Hidden file input for images */}
+        <input
+          ref={imageInputRef}
           type="file"
           accept="image/*"
           onChange={handleImageUpload}

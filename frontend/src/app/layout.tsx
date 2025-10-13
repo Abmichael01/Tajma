@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins, Inter, DM_Sans } from "next/font/google";
 import "./globals.css";
 import AppLayout from "@/layouts/AppLayout";
+import GoogleTranslate from "@/components/GoogleTranslate";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,6 +47,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${dmSans.variable} antialiased`}
       >
+        <GoogleTranslate />
         <AppLayout>
           {children}
         </AppLayout>

@@ -72,7 +72,7 @@ export default function ContactClient() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary to-secondary text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="container py-16">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl sm:text-5xl font-bold mb-4">
               Get in Touch
@@ -85,7 +85,7 @@ export default function ContactClient() {
       </div>
 
       {/* Contact Info Cards */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 -mt-10">
+      <div className="container -mt-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           <div className="bg-white p-6 border border-gray-200 shadow-sm">
             <div className="bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
@@ -129,7 +129,7 @@ export default function ContactClient() {
       </div>
 
       {/* Contact Form */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="container py-12">
         <div className="max-w-3xl mx-auto">
           {isSuccess && (
             <div className="mb-8 bg-green-50 border border-green-200 p-6 flex items-start gap-3">
@@ -257,7 +257,7 @@ export default function ContactClient() {
 
       {/* FAQ Callout */}
       <div className="bg-gray-50 py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container">
           <div className="max-w-3xl mx-auto text-center">
             <Clock className="w-12 h-12 text-primary mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-4">

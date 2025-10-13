@@ -9,7 +9,7 @@ export default function TermsClient() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-gray-50 border-b border-gray-200">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="container py-12">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-3 mb-4">
               <FileText className="w-8 h-8 text-primary" />
@@ -23,7 +23,7 @@ export default function TermsClient() {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="container py-12">
         <div className="max-w-4xl mx-auto prose prose-gray max-w-none">
           {/* Introduction */}
           <section className="mb-8">

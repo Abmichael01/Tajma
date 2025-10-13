@@ -98,7 +98,7 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column - Image Gallery */}
           <div className="lg:col-span-2">

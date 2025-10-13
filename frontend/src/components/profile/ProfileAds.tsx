@@ -55,7 +55,7 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
           
           {/* Status Badge */}
           {isOwner && ad.status && (
-            <div className={`absolute top-2 left-2 px-2 py-1 text-xs font-semibold ${
+            <div className={`absolute top-2 left-2 px-2 py-1 text-sm font-semibold ${
               ad.status === 'active' 
                 ? 'bg-green-500 text-white' 
                 : ad.status === 'sold'
@@ -70,7 +70,7 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
 
           {/* Category Badge */}
           {!isOwner && ad.category && (
-            <div className="absolute top-2 left-2 bg-secondary text-secondary-foreground px-2 py-1 text-xs font-medium">
+            <div className="absolute top-2 left-2 bg-secondary text-secondary-foreground px-2 py-1 text-sm font-medium">
               {ad.category}
             </div>
           )}
@@ -109,25 +109,25 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1 text-gray-600">
                   <Eye className="w-3 h-3" />
-                  <span className="text-xs font-medium">{ad.views || 0}</span>
+                  <span className="text-sm font-medium">{ad.views || 0}</span>
                 </div>
-                <span className="text-xs text-gray-500 mt-0.5">Views</span>
+                <span className="text-sm text-gray-500 mt-0.5">Views</span>
               </div>
               
               <div className="flex flex-col items-center border-x border-gray-100">
                 <div className="flex items-center gap-1 text-gray-600">
                   <Heart className="w-3 h-3" />
-                  <span className="text-xs font-medium">{ad.favorites || 0}</span>
+                  <span className="text-sm font-medium">{ad.favorites || 0}</span>
                 </div>
-                <span className="text-xs text-gray-500 mt-0.5">Saved</span>
+                <span className="text-sm text-gray-500 mt-0.5">Saved</span>
               </div>
               
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1 text-gray-600">
                   <MessageSquare className="w-3 h-3" />
-                  <span className="text-xs font-medium">{ad.messages || 0}</span>
+                  <span className="text-sm font-medium">{ad.messages || 0}</span>
                 </div>
-                <span className="text-xs text-gray-500 mt-0.5">Msgs</span>
+                <span className="text-sm text-gray-500 mt-0.5">Msgs</span>
               </div>
             </div>
           )}
@@ -141,7 +141,7 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
               className="flex-1"
               onClick={(e) => e.stopPropagation()}
             >
-              <Button variant="ghost" size="sm" className="w-full text-xs">
+              <Button variant="ghost" size="sm" className="w-full text-sm">
                 <Edit className="w-3 h-3 mr-1" />
                 Edit
               </Button>
@@ -149,7 +149,7 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-xs"
+              className="text-sm"
               onClick={(e) => e.stopPropagation()}
             >
               <MoreVertical className="w-3 h-3" />

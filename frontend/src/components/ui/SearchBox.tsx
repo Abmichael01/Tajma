@@ -1,56 +1,37 @@
 "use client"
 
-import React from 'react'
-import { useRouter } from 'next/navigation'
-import { Input } from './input'
-import { Button } from './button'
+import React, { useState } from 'react'
 import { Search } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
-interface SearchBoxClientProps {
+interface SearchBoxProps {
   placeholder?: string
   className?: string
-  onSearch?: (query: string) => void
 }
 
-export default function SearchBox({ 
-  placeholder = "Search for anything...", 
-  className = "",
-  onSearch 
-}: SearchBoxClientProps) {
+export default function SearchBox({ placeholder = 'Search...', className = '' }: SearchBoxProps) {
+  const [query, setQuery] = useState('')
   const router = useRouter()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const formData = new FormData(e.target as HTMLFormElement)
-    const query = formData.get('search') as string
-    
-    if (onSearch) {
-      onSearch(query)
-    } else {
-      // Navigate to search page with query
-      if (query.trim()) {
-        router.push(`/search?q=${encodeURIComponent(query.trim())}`)
-      } else {
-        router.push('/search')
-      }
+    if (query.trim()) {
+      router.push(`/search?q=${encodeURIComponent(query)}`)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`relative ${className}`}>
-      <Input
-        name="search"
-        type="text"
-        placeholder={placeholder}
-        className="pr-12"
-      />
-      <Button 
-        type="submit"
-        className="absolute right-0 top-0 h-full px-4 bg-secondary text-secondary-foreground hover:bg-secondary/90"
-        size="icon"
-      >
-        <Search className="w-5 h-5" />
-      </Button>
+    <form onSubmit={handleSubmit} className={className}>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full pl-10 pr-4 py-3 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary transition-all"
+        />
+      </div>
     </form>
   )
 }

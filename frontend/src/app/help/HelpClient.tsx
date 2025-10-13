@@ -129,7 +129,7 @@ export default function HelpClient() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary to-secondary text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+        <div className="container py-16 sm:py-20">
           <div className="max-w-3xl mx-auto text-center">
             <HelpCircle className="w-16 h-16 mx-auto mb-6" />
             <h1 className="text-4xl sm:text-5xl font-bold mb-4">
@@ -156,7 +156,7 @@ export default function HelpClient() {
 
       {/* Category Filter */}
       <div className="border-b border-gray-200 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container">
           <div className="flex gap-2 overflow-x-auto py-4 custom-scrollbar">
             {categories.map((category) => (
               <button
@@ -176,7 +176,7 @@ export default function HelpClient() {
       </div>
 
       {/* FAQ Section */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="container py-12">
         <div className="max-w-4xl mx-auto">
           {filteredFAQs.length === 0 ? (
             <div className="text-center py-12">
@@ -234,7 +234,7 @@ export default function HelpClient() {
 
       {/* Still Need Help Section */}
       <div className="bg-gray-50 py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container">
           <div className="max-w-3xl mx-auto text-center">
             <MessageSquare className="w-12 h-12 text-primary mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">

@@ -70,7 +70,7 @@ export default function ConversationList({
           <div className="p-8 text-center text-gray-500">
             <div className="text-4xl mb-3">💬</div>
             <p className="text-sm">No conversations yet</p>
-            <p className="text-xs text-gray-400 mt-1">Start chatting with sellers or buyers</p>
+            <p className="text-sm text-gray-400 mt-1">Start chatting with sellers or buyers</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -110,11 +110,11 @@ export default function ConversationList({
                           {participant.name}
                         </h3>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className="text-xs text-gray-400">
+                          <span className="text-sm text-gray-400">
                             {formatTime(conversation.lastMessage.timestamp)}
                           </span>
                           {conversation.unreadCount > 0 && (
-                            <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full min-w-[20px] text-center">
+                            <span className="bg-primary text-primary-foreground text-sm px-2 py-1 rounded-full min-w-[20px] text-center">
                               {conversation.unreadCount}
                             </span>
                           )}
@@ -133,10 +133,10 @@ export default function ConversationList({
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          <span className="text-xs text-gray-600 truncate">
+                          <span className="text-sm text-gray-600 truncate">
                             {truncateText(conversation.productTitle, 30)}
                           </span>
-                          <span className="text-xs font-medium text-primary flex-shrink-0">
+                          <span className="text-sm font-medium text-primary flex-shrink-0">
                             {conversation.productPrice}
                           </span>
                         </div>
@@ -145,11 +145,11 @@ export default function ConversationList({
                       {/* Last Message */}
                       <div className="flex items-center gap-2">
                         {conversation.lastMessage.type === 'image' ? (
-                          <span className="text-xs text-gray-500 italic">
+                          <span className="text-sm text-gray-500 italic">
                             📷 Photo
                           </span>
                         ) : (
-                          <span className={`text-xs truncate ${
+                          <span className={`text-sm truncate ${
                             conversation.unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'
                           }`}>
                             {truncateText(conversation.lastMessage.content, 40)}

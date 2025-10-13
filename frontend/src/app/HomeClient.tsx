@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Hero from '@/components/Home/Hero'
+import CategoryGrid from '@/components/Home/CategoryGrid'
 import AdsList from '@/components/Home/AdsList'
 import CategoriesSection from '@/components/Home/CategoriesSection'
 import { mockAds } from '@/data/mockAds'
@@ -10,9 +11,13 @@ export default function HomeClient() {
   return (
     <div className="bg-white min-h-screen">
       <Hero />
-      <div className="container px-4 sm:px-6 lg:px-8">
+      
+      {/* Category Grid - Mobile Only */}
+      <CategoryGrid />
+      
+      <div className="container">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
-          {/* Categories Section */}
+          {/* Categories Section - Desktop Sidebar */}
           <CategoriesSection />
           
           {/* Ads List */}

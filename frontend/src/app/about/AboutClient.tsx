@@ -10,30 +10,30 @@ export default function AboutClient() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-primary to-secondary text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        <div className="container py-16 sm:py-24">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl sm:text-5xl font-bold mb-6">
               About Tajma Marketplace
             </h1>
             <p className="text-lg sm:text-xl text-white/90">
-              Nigeria's fastest-growing online marketplace, connecting buyers and sellers across the nation. Buy, sell, and discover amazing deals every day.
+              Niger's fastest-growing online marketplace, connecting buyers and sellers across the nation. Buy, sell, and discover amazing deals every day.
             </p>
           </div>
         </div>
       </div>
 
       {/* Story Section */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+      <div className="container py-16 sm:py-20">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 text-center">
             Our Story
           </h2>
           <div className="prose prose-lg max-w-none text-gray-600 space-y-4">
             <p>
-              Founded in 2024, Tajma Marketplace was born from a simple idea: to make buying and selling easier, safer, and more accessible for everyone in Nigeria.
+              Founded in 2024, Tajma Marketplace was born from a simple idea: to make buying and selling easier, safer, and more accessible for everyone in Niger.
             </p>
             <p>
-              We recognized that people needed a trusted platform where they could discover great deals, connect with genuine sellers, and build meaningful transactions with confidence. Today, thousands of Nigerians use Tajma Marketplace daily to buy and sell everything from electronics and vehicles to real estate and services.
+              We recognized that people needed a trusted platform where they could discover great deals, connect with genuine sellers, and build meaningful transactions with confidence. Today, thousands of Nigeriens use Tajma Marketplace daily to buy and sell everything from electronics and vehicles to real estate and services.
             </p>
             <p>
               Our mission is to empower individuals and businesses by providing a seamless, secure, and user-friendly marketplace that brings communities together.
@@ -44,7 +44,7 @@ export default function AboutClient() {
 
       {/* Values Section */}
       <div className="bg-gray-50 py-16 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center">
             Our Core Values
           </h2>
@@ -120,7 +120,7 @@ export default function AboutClient() {
 
       {/* Stats Section */}
       <div className="py-16 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-12 text-center">
             Tajma by Numbers
           </h2>
@@ -147,7 +147,7 @@ export default function AboutClient() {
 
       {/* CTA Section */}
       <div className="bg-gray-50 py-16 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
               Join Thousands of Happy Users
