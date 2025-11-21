@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Plus, MapPin, Eye, Heart, MessageSquare, Edit, MoreVertical, FileText } from 'lucide-react'
 import AdDetailsModal from './AdDetailsModal'
-import { Ad } from '@/data/mockAds'
+import type { Ad } from '@/api/types'
 
 interface ProfileAdsProps {
   ads: Ad[]
@@ -14,17 +14,41 @@ interface ProfileAdsProps {
 }
 
 export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
-  const columns = 3
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [columns, setColumns] = useState(2) // Default to 2 columns for mobile
+  
+  // Update columns based on window size
+  useEffect(() => {
+    const updateColumns = () => {
+      if (typeof window !== 'undefined') {
+        // 1 column on very small (< 420px), 2 columns on 420px-699px, 3 columns on 700px+ (< 1024px), 3 columns on large+ (>= 1024px)
+        if (window.innerWidth >= 1024) {
+          setColumns(3)
+        } else if (window.innerWidth >= 700) {
+          setColumns(3)
+        } else if (window.innerWidth >= 420) {
+          setColumns(2)
+        } else {
+          setColumns(1)
+        }
+      }
+    }
+    
+    updateColumns()
+    window.addEventListener('resize', updateColumns)
+    return () => window.removeEventListener('resize', updateColumns)
+  }, [])
   
   // Distribute ads across columns for Pinterest-style masonry layout
-  const columnArrays: Ad[][] = Array.from({ length: columns }, () => [])
-  
-  ads.forEach((ad, index) => {
-    const columnIndex = index % columns
-    columnArrays[columnIndex].push(ad)
-  })
+  const columnArrays: Ad[][] = useMemo(() => {
+    const arrays: Ad[][] = Array.from({ length: columns }, () => [])
+    ads.forEach((ad, index) => {
+      const columnIndex = index % columns
+      arrays[columnIndex].push(ad)
+    })
+    return arrays
+  }, [ads, columns])
 
   const handleViewDetails = (ad: Ad, e: React.MouseEvent) => {
     if (isOwner) {
@@ -34,68 +58,89 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
     }
   }
 
-  const renderAdCard = (ad: Ad) => (
-    <div 
-      key={ad.id} 
-      onClick={(e) => handleViewDetails(ad, e)}
-      className="block"
-    >
-      <Link href={isOwner ? '#' : `/ads/${ad.id}`}>
-        <div className="bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer group mb-6 break-inside-avoid">
+  const renderAdCard = (ad: Ad) => {
+    // Get first image or placeholder
+    const imageUrl = ad.images && ad.images.length > 0
+      ? ad.images[0]
+      : 'https://via.placeholder.com/400x300?text=No+Image'
+    
+    // Format price
+    const formattedPrice = ad.price
+      ? `${ad.currency || 'Fr'} ${parseFloat(String(ad.price)).toLocaleString()}`
+      : 'Contact for price'
+    
+    // Get location from seller
+    const location = ad.seller?.location || 'Location not specified'
+    
+    // Get category name
+    const categoryName = ad.category_details?.name || ad.category || 'Uncategorized'
+    
+    // Map backend status to display status
+    const statusDisplay = ad.status === 'published' ? 'ACTIVE' :
+                         ad.status === 'archived' ? 'ARCHIVED' :
+                         ad.status === 'draft' ? 'DRAFT' : ad.status.toUpperCase()
+    
+    const statusColor = ad.status === 'published' ? 'bg-green-500' :
+                       ad.status === 'archived' ? 'bg-gray-900' :
+                       ad.status === 'draft' ? 'bg-yellow-500' : 'bg-gray-500'
+    
+    const card = (
+      <div className="bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer group mb-6 break-inside-avoid">
         {/* Image Container */}
-        <div className="relative w-full overflow-hidden">
+        <div className="relative w-full overflow-hidden aspect-[4/3]">
           <Image
-            src={ad.imageUrl}
+            src={imageUrl}
             alt={ad.title}
             width={400}
             height={300}
-            className="w-full h-auto group-hover:scale-105 transition-transform duration-200"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
           
           {/* Status Badge */}
           {isOwner && ad.status && (
-            <div className={`absolute top-2 left-2 px-2 py-1 text-sm font-semibold ${
-              ad.status === 'active' 
-                ? 'bg-green-500 text-white' 
-                : ad.status === 'sold'
-                  ? 'bg-gray-900 text-white'
-                  : ad.status === 'expired'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-yellow-500 text-white'
-            }`}>
-              {ad.status.toUpperCase()}
+            <div className={`absolute top-2 left-2 px-1.5 py-0.5 text-xs font-semibold text-white ${statusColor}`}>
+              {statusDisplay}
             </div>
           )}
 
-          {/* Category Badge */}
-          {!isOwner && ad.category && (
-            <div className="absolute top-2 left-2 bg-secondary text-secondary-foreground px-2 py-1 text-sm font-medium">
-              {ad.category}
+          {/* Category Badge - Smaller */}
+          {!isOwner && categoryName && (
+            <div className="absolute top-2 left-2 bg-secondary/90 text-white px-1.5 py-0.5 text-xs font-medium">
+              {categoryName}
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="p-4">
+        <div className="p-3">
+          {/* Price - Before Title */}
+          <div className="mb-1.5">
+            <div className={`text-lg ${formattedPrice === 'Contact for price' ? 'text-primary' : 'text-primary'}`}>
+              {formattedPrice}
+            </div>
+          </div>
+          
           {/* Title */}
-          <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-secondary transition-colors duration-200">
+          <h3 className="font-semibold text-gray-900 mb-1.5 line-clamp-2 text-sm group-hover:text-secondary transition-colors duration-200 leading-tight">
             {ad.title}
           </h3>
           
-          {/* Price */}
-          <div className="text-lg font-bold text-primary mb-2">
-            {ad.price}
-          </div>
+          {/* Description - Truncated */}
+          {ad.description && (
+            <p className="text-xs text-gray-600 mb-2 line-clamp-2 leading-relaxed">
+              {ad.description}
+            </p>
+          )}
           
           {/* Location and Views */}
-          <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center justify-between text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
             <div className="flex items-center gap-1">
               <MapPin className="w-3 h-3" />
-              <span>{ad.location}</span>
+              <span className="truncate max-w-[120px]">{location}</span>
             </div>
             
-            {ad.views && (
+            {ad.views > 0 && (
               <div className="flex items-center gap-1">
                 <Eye className="w-3 h-3" />
                 <span>{ad.views}</span>
@@ -117,7 +162,7 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
               <div className="flex flex-col items-center border-x border-gray-100">
                 <div className="flex items-center gap-1 text-gray-600">
                   <Heart className="w-3 h-3" />
-                  <span className="text-sm font-medium">{ad.favorites || 0}</span>
+                  <span className="text-sm font-medium">{ad.saved_count || 0}</span>
                 </div>
                 <span className="text-sm text-gray-500 mt-0.5">Saved</span>
               </div>
@@ -125,7 +170,7 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1 text-gray-600">
                   <MessageSquare className="w-3 h-3" />
-                  <span className="text-sm font-medium">{ad.messages || 0}</span>
+                  <span className="text-sm font-medium">0</span>
                 </div>
                 <span className="text-sm text-gray-500 mt-0.5">Msgs</span>
               </div>
@@ -137,7 +182,7 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
         {isOwner && (
           <div className="px-4 pb-3 flex items-center gap-2 border-t border-gray-100 pt-3">
             <Link 
-              href={`/ads/${ad.id}/edit`} 
+              href={`/ads/${ad.slug}/edit`} 
               className="flex-1"
               onClick={(e) => e.stopPropagation()}
             >
@@ -157,22 +202,37 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
           </div>
         )}
       </div>
-    </Link>
+    )
 
-    {/* Ad Details Modal */}
-    {selectedAd && selectedAd.id === ad.id && (
-      <AdDetailsModal
-        ad={selectedAd}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setSelectedAd(null)
-        }}
-        isOwner={isOwner}
-      />
-    )}
-    </div>
-  )
+    return (
+      <div
+        key={ad.id}
+        className="block"
+        onClick={isOwner ? (e) => handleViewDetails(ad, e) : undefined}
+      >
+        {isOwner ? (
+          <div>{card}</div>
+        ) : (
+          <Link href={`/ads/${ad.slug || ad.id}`} className="block">
+            {card}
+          </Link>
+        )}
+
+        {/* Ad Details Modal */}
+        {selectedAd && selectedAd.id === ad.id && (
+          <AdDetailsModal
+            ad={selectedAd}
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false)
+              setSelectedAd(null)
+            }}
+            isOwner={isOwner}
+          />
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -198,7 +258,7 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
       
       {/* Ads Grid - Pinterest Style Masonry Layout */}
       {ads.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3 gap-4 sm:gap-6">
           {columnArrays.map((columnAds, columnIndex) => (
             <div key={columnIndex} className="flex flex-col">
               {columnAds.map(renderAdCard)}

@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
+import { AlertCircle, CheckCircle } from 'lucide-react'
+import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 
 interface ReportAdModalProps {
   isOpen: boolean
@@ -105,97 +106,99 @@ export default function ReportAdModal({ isOpen, onClose, adId, adTitle }: Report
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="!max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="!max-w-2xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0">
           <DialogTitle>Report This Ad</DialogTitle>
         </DialogHeader>
 
-        <div className="py-4">
-          <div className="mb-6 bg-gray-50 p-4 border border-gray-200">
-            <p className="text-sm text-gray-600 mb-1">Reporting ad:</p>
-            <p className="font-medium text-gray-900">{adTitle}</p>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="px-6 overflow-y-auto fancy-scrollbar flex-1 min-h-0">
+            <div className="mb-6 bg-gray-50 p-4 border border-gray-200 rounded-lg">
+              <p className="text-sm text-gray-600 mb-1">Reporting ad:</p>
+              <p className="font-medium text-gray-900">{adTitle}</p>
+            </div>
+
+            <div className="space-y-5 pb-4">
+              {/* Reason Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Why are you reporting this ad? *
+                </label>
+                <Select value={reason} onValueChange={setReason}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reportReasons.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>
+                        {r.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Details */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Additional Details *
+                </label>
+                <textarea
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  rows={5}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                  placeholder="Please provide specific details about the issue..."
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  {details.length} / 500 characters
+                </p>
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
+              {/* Info Box */}
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Please note:</strong> False reports may result in account suspension. Only report ads that genuinely violate our policies.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Reason Dropdown */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Why are you reporting this ad? *
-              </label>
-              <Select value={reason} onValueChange={setReason}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a reason" />
-                </SelectTrigger>
-                <SelectContent>
-                  {reportReasons.map((r) => (
-                    <SelectItem key={r.value} value={r.value}>
-                      {r.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Details */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Additional Details *
-              </label>
-              <textarea
-                value={details}
-                onChange={(e) => setDetails(e.target.value)}
-                rows={5}
-                className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Please provide specific details about the issue..."
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                {details.length} / 500 characters
-              </p>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 p-3 flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            )}
-
-            {/* Info Box */}
-            <div className="bg-blue-50 border border-blue-200 p-4">
-              <p className="text-sm text-blue-800">
-                <strong>Please note:</strong> False reports may result in account suspension. Only report ads that genuinely violate our policies.
-              </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleClose}
-                disabled={isLoading}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  'Submit Report'
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
+          {/* Actions - Fixed at bottom */}
+          <div className="px-6 pb-6 pt-4 border-t border-gray-200 flex gap-3 flex-shrink-0">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleClose}
+              disabled={isLoading}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1"
+            >
+              {isLoading ? (
+                <>
+                  <MarketplaceLoader inline size="sm" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Report'
+              )}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   )

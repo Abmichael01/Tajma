@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ import {
   ExternalLink
 } from 'lucide-react'
 import { Ad } from '@/data/mockAds'
+import ShareAdModal from '@/components/modals/ShareAdModal'
 
 interface AdDetailsModalProps {
   ad: Ad
@@ -30,6 +31,7 @@ interface AdDetailsModalProps {
 }
 
 export default function AdDetailsModal({ ad, isOpen, onClose, isOwner = false }: AdDetailsModalProps) {
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="!max-w-5xl w-[95vw] max-h-[90vh] p-0 overflow-hidden gap-0">
@@ -138,7 +140,11 @@ export default function AdDetailsModal({ ad, isOpen, onClose, isOwner = false }:
                   </Button>
                 </Link>
                 
-                <Button variant="ghost" className="sm:w-auto">
+                <Button 
+                  variant="ghost" 
+                  className="sm:w-auto"
+                  onClick={() => setIsShareModalOpen(true)}
+                >
                   <Share2 className="w-4 h-4 mr-2" />
                   Share
                 </Button>
@@ -147,6 +153,14 @@ export default function AdDetailsModal({ ad, isOpen, onClose, isOwner = false }:
           </div>
         </div>
       </DialogContent>
+      
+      {/* Share Modal */}
+      <ShareAdModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        adId={ad.id}
+        adTitle={ad.title}
+      />
     </Dialog>
   )
 }

@@ -12,9 +12,10 @@ interface Step {
 interface ProgressStepperProps {
   currentStep: number
   steps: Step[]
+  showMeta?: boolean
 }
 
-export default function ProgressStepper({ currentStep, steps }: ProgressStepperProps) {
+export default function ProgressStepper({ currentStep, steps, showMeta = true }: ProgressStepperProps) {
   return (
     <div className="mb-6 sm:mb-8">
       {/* Steps Container with background line */}
@@ -39,7 +40,7 @@ export default function ProgressStepper({ currentStep, steps }: ProgressStepperP
           {steps.map((stepItem) => (
             <div key={stepItem.num} className="flex flex-col items-center" style={{ flex: '1 1 0%' }}>
               {/* Step Circle */}
-              <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-all duration-300 bg-white ${
+              <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 border-2 transition-all duration-300 bg-white ${
                 currentStep >= stepItem.num 
                   ? 'border-secondary shadow-lg' 
                   : 'border-gray-300'
@@ -69,15 +70,16 @@ export default function ProgressStepper({ currentStep, steps }: ProgressStepperP
         </div>
       </div>
       
-      {/* Progress Percentage */}
-      <div className="mt-6 flex items-center justify-between text-sm">
-        <span className="text-gray-600">
-          Step {currentStep} of {steps.length}
-        </span>
-        <span className="text-secondary font-medium">
-          {Math.round((currentStep / steps.length) * 100)}% Complete
-        </span>
-      </div>
+      {showMeta && (
+        <div className="mt-6 flex items-center justify-between text-sm">
+          <span className="text-gray-600">
+            Step {currentStep} of {steps.length}
+          </span>
+          <span className="text-secondary font-medium">
+            {Math.round((currentStep / steps.length) * 100)}% Complete
+          </span>
+        </div>
+      )}
     </div>
   )
 }

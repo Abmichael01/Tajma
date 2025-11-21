@@ -1,0 +1,874 @@
+[
+  {
+    "id": "cvs-hire-me",
+    "name": "CVs (Hire Me)",
+    "slug": "cvs-hire-me",
+    "icon": "UserCheck",
+    "imageUrl": "",
+    "type": "cv",
+    "description": "",
+    "customFields": [],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "it-technology",
+        "name": "IT & Technology",
+        "slug": "it-technology",
+        "icon": "Code",
+        "imageUrl": "",
+        "type": "cv",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "programming",
+            "name": "Programming",
+            "slug": "programming",
+            "icon": "Terminal",
+            "imageUrl": "",
+            "type": "cv",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": [
+              {
+                "id": "web-programming",
+                "name": "Web Programming",
+                "slug": "web-programming",
+                "icon": "Globe",
+                "imageUrl": "",
+                "type": "cv",
+                "description": "",
+                "customFields": [
+                  {
+                    "name": "education_level",
+                    "label": "Education Level",
+                    "type": "array",
+                    "children": [
+                      {
+                        "name": "institution",
+                        "label": "Institution",
+                        "type": "text",
+                        "required": true
+                      },
+                      {
+                        "name": "degree",
+                        "label": "Degree",
+                        "type": "text",
+                        "required": true,
+                        "options": [
+                          {
+                            "value": "high-school",
+                            "label": "High School"
+                          },
+                          {
+                            "value": "diploma",
+                            "label": "Diploma"
+                          },
+                          {
+                            "value": "bachelor",
+                            "label": "Bachelor's Degree"
+                          },
+                          {
+                            "value": "master",
+                            "label": "Master's Degree"
+                          },
+                          {
+                            "value": "phd",
+                            "label": "PhD"
+                          },
+                          {
+                            "value": "other",
+                            "label": "Other"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "field",
+                        "label": "Field of Study",
+                        "type": "text",
+                        "required": false
+                      },
+                      {
+                        "name": "year",
+                        "label": "Year",
+                        "type": "number",
+                        "required": false
+                      }
+                    ],
+                    "required": false
+                  },
+                  {
+                    "name": "work_experience",
+                    "label": "Work Experience",
+                    "type": "array",
+                    "children": [
+                      {
+                        "name": "company",
+                        "label": "Company",
+                        "type": "text",
+                        "required": true
+                      },
+                      {
+                        "name": "position",
+                        "label": "Position",
+                        "type": "text",
+                        "required": true
+                      },
+                      {
+                        "name": "duration",
+                        "label": "Duration",
+                        "type": "text",
+                        "required": false
+                      },
+                      {
+                        "name": "description",
+                        "label": "Description",
+                        "type": "textarea",
+                        "required": false
+                      }
+                    ],
+                    "required": false
+                  },
+                  {
+                    "name": "skills",
+                    "label": "Skills",
+                    "type": "tags",
+                    "placeholder": "e.g., JavaScript, React, Node.js",
+                    "required": false
+                  },
+                  {
+                    "name": "experience_years",
+                    "label": "Years of Experience",
+                    "type": "number",
+                    "placeholder": "e.g., 5",
+                    "min": 0,
+                    "required": false
+                  }
+                ],
+                "count": 0,
+                "subcategories": []
+              },
+              {
+                "id": "desktop-app-development",
+                "name": "Desktop App Development",
+                "slug": "desktop-app-development",
+                "icon": "Monitor",
+                "imageUrl": "",
+                "type": "cv",
+                "description": "",
+                "customFields": [
+                  {
+                    "name": "education_level",
+                    "label": "Education Level",
+                    "type": "array",
+                    "children": [
+                      {
+                        "name": "institution",
+                        "label": "Institution",
+                        "type": "text",
+                        "required": true
+                      },
+                      {
+                        "name": "degree",
+                        "label": "Degree",
+                        "type": "text",
+                        "required": true,
+                        "options": [
+                          {
+                            "value": "high-school",
+                            "label": "High School"
+                          },
+                          {
+                            "value": "diploma",
+                            "label": "Diploma"
+                          },
+                          {
+                            "value": "bachelor",
+                            "label": "Bachelor's Degree"
+                          },
+                          {
+                            "value": "master",
+                            "label": "Master's Degree"
+                          },
+                          {
+                            "value": "phd",
+                            "label": "PhD"
+                          },
+                          {
+                            "value": "other",
+                            "label": "Other"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "field",
+                        "label": "Field of Study",
+                        "type": "text",
+                        "required": false
+                      },
+                      {
+                        "name": "year",
+                        "label": "Year",
+                        "type": "number",
+                        "required": false
+                      }
+                    ],
+                    "required": false
+                  },
+                  {
+                    "name": "work_experience",
+                    "label": "Work Experience",
+                    "type": "array",
+                    "children": [
+                      {
+                        "name": "company",
+                        "label": "Company",
+                        "type": "text",
+                        "required": true
+                      },
+                      {
+                        "name": "position",
+                        "label": "Position",
+                        "type": "text",
+                        "required": true
+                      },
+                      {
+                        "name": "duration",
+                        "label": "Duration",
+                        "type": "text",
+                        "required": false
+                      },
+                      {
+                        "name": "description",
+                        "label": "Description",
+                        "type": "textarea",
+                        "required": false
+                      }
+                    ],
+                    "required": false
+                  },
+                  {
+                    "name": "skills",
+                    "label": "Skills",
+                    "type": "tags",
+                    "placeholder": "e.g., C#, Java, Python",
+                    "required": false
+                  },
+                  {
+                    "name": "experience_years",
+                    "label": "Years of Experience",
+                    "type": "number",
+                    "placeholder": "e.g., 5",
+                    "min": 0,
+                    "required": false
+                  }
+                ],
+                "count": 0,
+                "subcategories": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "jobs-hire-talent",
+    "name": "Jobs (Hire Talent)",
+    "slug": "jobs-hire-talent",
+    "icon": "Briefcase",
+    "imageUrl": "",
+    "type": "job",
+    "description": "",
+    "customFields": [
+      {
+        "name": "job_type",
+        "label": "Job Type",
+        "type": "select",
+        "options": [
+          {
+            "value": "full-time",
+            "label": "Full-time"
+          },
+          {
+            "value": "part-time",
+            "label": "Part-time"
+          },
+          {
+            "value": "contract",
+            "label": "Contract"
+          },
+          {
+            "value": "internship",
+            "label": "Internship"
+          },
+          {
+            "value": "remote",
+            "label": "Remote"
+          }
+        ],
+        "required": true
+      },
+      {
+        "name": "experience_level",
+        "label": "Experience Level Required",
+        "type": "select",
+        "options": [
+          {
+            "value": "entry",
+            "label": "Entry Level"
+          },
+          {
+            "value": "mid",
+            "label": "Mid Level (2-5 years)"
+          },
+          {
+            "value": "senior",
+            "label": "Senior (5+ years)"
+          },
+          {
+            "value": "executive",
+            "label": "Executive"
+          }
+        ],
+        "required": true
+      },
+      {
+        "name": "salary_range",
+        "label": "Salary Range",
+        "type": "text",
+        "placeholder": "e.g., Fr 150,000 - Fr 250,000 monthly",
+        "required": true
+      },
+      {
+        "name": "education_required",
+        "label": "Education Required",
+        "type": "select",
+        "options": [
+          {
+            "value": "high-school",
+            "label": "High School"
+          },
+          {
+            "value": "diploma",
+            "label": "Diploma"
+          },
+          {
+            "value": "bachelor",
+            "label": "Bachelor's Degree"
+          },
+          {
+            "value": "master",
+            "label": "Master's Degree"
+          },
+          {
+            "value": "phd",
+            "label": "PhD"
+          },
+          {
+            "value": "any",
+            "label": "Any"
+          }
+        ],
+        "required": false
+      },
+      {
+        "name": "work_location",
+        "label": "Work Location",
+        "type": "text",
+        "placeholder": "e.g., Remote, Niamey, Hybrid",
+        "required": false
+      },
+      {
+        "name": "application_deadline",
+        "label": "Application Deadline",
+        "type": "text",
+        "placeholder": "e.g., 2024-12-31 or Open until filled",
+        "required": false
+      }
+    ],
+    "count": 2,
+    "subcategories": []
+  },
+  {
+    "id": "electronics-gadgets",
+    "name": "Electronics & Gadgets",
+    "slug": "electronics-gadgets",
+    "icon": "Smartphone",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "brand",
+        "label": "Brand",
+        "type": "text",
+        "placeholder": "e.g., Apple, Samsung",
+        "required": false
+      },
+      {
+        "name": "model",
+        "label": "Model",
+        "type": "text",
+        "placeholder": "e.g., iPhone 14 Pro Max",
+        "required": false
+      },
+      {
+        "name": "condition",
+        "label": "Condition",
+        "type": "select",
+        "options": [
+          {
+            "value": "new",
+            "label": "New"
+          },
+          {
+            "value": "like-new",
+            "label": "Like New"
+          },
+          {
+            "value": "excellent",
+            "label": "Excellent"
+          },
+          {
+            "value": "good",
+            "label": "Good"
+          },
+          {
+            "value": "fair",
+            "label": "Fair"
+          },
+          {
+            "value": "poor",
+            "label": "Poor"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 1,
+    "subcategories": [
+      {
+        "id": "mobile-phones",
+        "name": "Mobile Phones",
+        "slug": "mobile-phones",
+        "icon": "Phone",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 1,
+        "subcategories": [
+          {
+            "id": "android-phones",
+            "name": "Android Phones",
+            "slug": "android-phones",
+            "icon": "Phone",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 1,
+            "subcategories": [
+              {
+                "id": "flagship",
+                "name": "Flagship",
+                "slug": "flagship",
+                "icon": "Star",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 0,
+                "subcategories": []
+              },
+              {
+                "id": "mid-range",
+                "name": "Mid-range",
+                "slug": "mid-range",
+                "icon": "BadgeCheck",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 0,
+                "subcategories": []
+              },
+              {
+                "id": "budget",
+                "name": "Budget",
+                "slug": "budget",
+                "icon": "Wallet",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 1,
+                "subcategories": []
+              }
+            ]
+          },
+          {
+            "id": "iphones",
+            "name": "iPhones",
+            "slug": "iphones",
+            "icon": "Smartphone",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          }
+        ]
+      },
+      {
+        "id": "computers",
+        "name": "Computers",
+        "slug": "computers",
+        "icon": "Laptop",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "laptops",
+            "name": "Laptops",
+            "slug": "laptops",
+            "icon": "Laptop",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "desktops",
+            "name": "Desktops",
+            "slug": "desktops",
+            "icon": "Monitor",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": [
+              {
+                "id": "gaming-desktops",
+                "name": "Gaming Desktops",
+                "slug": "gaming-desktops",
+                "icon": "Gamepad",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 0,
+                "subcategories": []
+              },
+              {
+                "id": "workstations",
+                "name": "Workstations",
+                "slug": "workstations",
+                "icon": "Cpu",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 0,
+                "subcategories": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vehicles-mobility",
+    "name": "Vehicles & Mobility",
+    "slug": "vehicles-mobility",
+    "icon": "Car",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "brand",
+        "label": "Brand",
+        "type": "text",
+        "placeholder": "e.g., Toyota, Honda",
+        "required": false
+      },
+      {
+        "name": "year",
+        "label": "Year",
+        "type": "number",
+        "placeholder": "e.g., 2023",
+        "min": 1900,
+        "max": 2025,
+        "required": false
+      },
+      {
+        "name": "mileage",
+        "label": "Mileage (km)",
+        "type": "number",
+        "placeholder": "e.g., 45000",
+        "min": 0,
+        "required": false
+      },
+      {
+        "name": "transmission",
+        "label": "Transmission",
+        "type": "select",
+        "options": [
+          {
+            "value": "manual",
+            "label": "Manual"
+          },
+          {
+            "value": "automatic",
+            "label": "Automatic"
+          },
+          {
+            "value": "cvt",
+            "label": "CVT"
+          }
+        ],
+        "required": false
+      },
+      {
+        "name": "fuel_type",
+        "label": "Fuel Type",
+        "type": "select",
+        "options": [
+          {
+            "value": "petrol",
+            "label": "Petrol"
+          },
+          {
+            "value": "diesel",
+            "label": "Diesel"
+          },
+          {
+            "value": "electric",
+            "label": "Electric"
+          },
+          {
+            "value": "hybrid",
+            "label": "Hybrid"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "cars",
+        "name": "Cars",
+        "slug": "cars",
+        "icon": "Car",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "sedans",
+            "name": "Sedans",
+            "slug": "sedans",
+            "icon": "Car",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "suvs",
+            "name": "SUVs",
+            "slug": "suvs",
+            "icon": "Car",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          }
+        ]
+      },
+      {
+        "id": "motorcycles",
+        "name": "Motorcycles",
+        "slug": "motorcycles",
+        "icon": "Bike",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "sport-bikes",
+            "name": "Sport Bikes",
+            "slug": "sport-bikes",
+            "icon": "Activity",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "scooters",
+            "name": "Scooters",
+            "slug": "scooters",
+            "icon": "Bike",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "professional-services",
+    "name": "Professional Services",
+    "slug": "professional-services",
+    "icon": "Wrench",
+    "imageUrl": "",
+    "type": "service",
+    "description": "",
+    "customFields": [
+      {
+        "name": "service_type",
+        "label": "Service Type",
+        "type": "text",
+        "placeholder": "e.g., Web Development, Plumbing",
+        "required": false
+      },
+      {
+        "name": "experience_years",
+        "label": "Years of Experience",
+        "type": "number",
+        "placeholder": "e.g., 5",
+        "min": 0,
+        "required": false
+      },
+      {
+        "name": "availability",
+        "label": "Availability",
+        "type": "select",
+        "options": [
+          {
+            "value": "immediate",
+            "label": "Immediate"
+          },
+          {
+            "value": "within-week",
+            "label": "Within a Week"
+          },
+          {
+            "value": "within-month",
+            "label": "Within a Month"
+          },
+          {
+            "value": "flexible",
+            "label": "Flexible"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 1,
+    "subcategories": [
+      {
+        "id": "home-improvement",
+        "name": "Home Improvement",
+        "slug": "home-improvement",
+        "icon": "Hammer",
+        "imageUrl": "",
+        "type": "service",
+        "description": "",
+        "customFields": [],
+        "count": 1,
+        "subcategories": [
+          {
+            "id": "electricians",
+            "name": "Electricians",
+            "slug": "electricians",
+            "icon": "Zap",
+            "imageUrl": "",
+            "type": "service",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "plumbers",
+            "name": "Plumbers",
+            "slug": "plumbers",
+            "icon": "Droplet",
+            "imageUrl": "",
+            "type": "service",
+            "description": "",
+            "customFields": [],
+            "count": 1,
+            "subcategories": []
+          }
+        ]
+      },
+      {
+        "id": "tech-services",
+        "name": "Tech Services",
+        "slug": "tech-services",
+        "icon": "Laptop",
+        "imageUrl": "",
+        "type": "service",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "developers",
+            "name": "Developers",
+            "slug": "developers",
+            "icon": "Code",
+            "imageUrl": "",
+            "type": "service",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "it-support",
+            "name": "IT Support",
+            "slug": "it-support",
+            "icon": "Headphones",
+            "imageUrl": "",
+            "type": "service",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          }
+        ]
+      }
+    ]
+  }
+]

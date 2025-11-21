@@ -11,22 +11,11 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react'
-
-interface User {
-  id: string
-  uid: string
-  name: string
-  email: string
-  avatar?: string
-  location?: string
-  phone?: string
-  bio?: string
-  isVerified: boolean
-  joinedDate: string
-}
+import type { User, UserWithReviewStats } from '@/api/types'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
 interface ProfileHeaderProps {
-  user: User
+  user: UserWithReviewStats
   stats: {
     rating: number
     joinedDays: number
@@ -37,16 +26,7 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ user, stats, isOwner = false, onContactClick }: ProfileHeaderProps) {
   const [isBioExpanded, setIsBioExpanded] = useState(false)
-  
-  const getInitials = (name: string) => {
-    if (!name) return 'U'
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
+  const fullName = getUserFullName(user)
 
   // Mock bio if not provided
   const bio = user.bio || "I'm a passionate seller on Tajma Marketplace, offering quality products at great prices. With years of experience in electronics and gadgets, I ensure all my items are in excellent condition. Feel free to contact me for any questions!"
@@ -59,15 +39,15 @@ export default function ProfileHeader({ user, stats, isOwner = false, onContactC
       {/* User Info */}
       <div className="text-center mb-6">
         <Avatar className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4">
-          <AvatarImage src={user.avatar} alt={user.name} />
+          <AvatarImage src={user.avatar || undefined} alt={fullName} />
           <AvatarFallback className="bg-secondary text-secondary-foreground text-lg sm:text-xl">
-            {getInitials(user.name)}
+            {getUserInitials(user)}
           </AvatarFallback>
         </Avatar>
         
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900">{user.name}</h1>
-          {user.isVerified && (
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900">{fullName}</h1>
+          {user.is_verified && (
             <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
           )}
         </div>

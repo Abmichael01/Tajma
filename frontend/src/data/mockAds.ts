@@ -1,5 +1,6 @@
 export interface Ad {
   id: string
+  slug?: string // URL-friendly identifier
   title: string
   price: string
   location: string
@@ -485,14 +486,20 @@ export const sortAds = (ads: Ad[], sortBy: 'newest' | 'oldest' | 'price-low' | '
       })
     case 'price-low':
       return sorted.sort((a, b) => {
-        const priceA = parseInt(a.price.replace(/[₦,]/g, ''))
-        const priceB = parseInt(b.price.replace(/[₦,]/g, ''))
+        // Handle "Contact for price" and different currency formats
+        if (a.price === 'Contact for price' || !a.price) return 1
+        if (b.price === 'Contact for price' || !b.price) return -1
+        const priceA = parseInt(a.price.replace(/[₦Fr,\s]/g, '')) || 0
+        const priceB = parseInt(b.price.replace(/[₦Fr,\s]/g, '')) || 0
         return priceA - priceB
       })
     case 'price-high':
       return sorted.sort((a, b) => {
-        const priceA = parseInt(a.price.replace(/[₦,]/g, ''))
-        const priceB = parseInt(b.price.replace(/[₦,]/g, ''))
+        // Handle "Contact for price" and different currency formats
+        if (a.price === 'Contact for price' || !a.price) return 1
+        if (b.price === 'Contact for price' || !b.price) return -1
+        const priceA = parseInt(a.price.replace(/[₦Fr,\s]/g, '')) || 0
+        const priceB = parseInt(b.price.replace(/[₦Fr,\s]/g, '')) || 0
         return priceB - priceA
       })
     case 'views':

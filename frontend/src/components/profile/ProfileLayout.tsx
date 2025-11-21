@@ -1,7 +1,8 @@
 "use client"
 
-import React from 'react'
-import { useSearchParams } from 'next/navigation'
+import React, { useMemo, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
 import ProfileHeader from './ProfileHeader'
 import ProfileTabs from './ProfileTabs'
 import ProfileOverview from './ProfileOverview'
@@ -10,184 +11,162 @@ import ProfileReviews from './ProfileReviews'
 import ProfileSettings from './ProfileSettings'
 import ProfileSaved from './ProfileSaved'
 import ProfileNotifications from './ProfileNotifications'
-
-interface User {
-  id: string
-  uid: string
-  name: string
-  email: string
-  avatar?: string
-  location?: string
-  phone?: string
-  isVerified: boolean
-  joinedDate: string
-}
+import ProfileMobileNav from './ProfileMobileNav'
+import ProfileMobileView from './ProfileMobileView'
+import { Button } from '@/components/ui/button'
+import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
+import { useUserAds } from '@/hooks/useAds'
+import { useSellerReviews, useReviewStats } from '@/hooks/useReviews'
+import type { User, Ad, UserWithReviewStats } from '@/api/types'
 
 interface ProfileLayoutProps {
-  user: User
+  user: UserWithReviewStats
+  profileSlug: string
   isOwner?: boolean
   onContactClick?: () => void
   onUpdateUser?: (updates: Partial<User>) => void
 }
 
 export default function ProfileLayout({ 
-  user, 
+  user,
+  profileSlug,
   isOwner = false, 
   onContactClick,
   onUpdateUser 
 }: ProfileLayoutProps) {
   const searchParams = useSearchParams()
-  const activeTab = searchParams.get('tab') || 'overview'
+  const router = useRouter()
+  const activeTab = searchParams.get('tab') // Don't default to 'overview', use null if not present
+  const containerRef = useRef<HTMLDivElement>(null)
+  const prevTabRef = useRef<string>(activeTab || '')
 
-  // Mock data - in real app, this would come from props or API
-  const stats = {
-    totalAds: 12,
-    activeAds: 8,
-    soldItems: 4,
-    totalViews: 1247,
-    totalFavorites: 23,
-    responseRate: 95,
-    rating: 4.8,
-    joinedDays: 45
+  // Scroll to top when tab actually changes (not on initial load)
+  useEffect(() => {
+    const currentTab = activeTab || ''
+    // Only scroll if tab actually changed
+    if (prevTabRef.current !== currentTab && prevTabRef.current !== '') {
+      // Use multiple methods to ensure scroll works
+      const scrollToTop = () => {
+        // Try scrolling the window
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        // Also try scrolling the document element
+        document.documentElement.scrollTo({ top: 0, behavior: 'smooth' })
+        // Also try scrolling the body
+        document.body.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+      
+      // Scroll immediately
+      scrollToTop()
+      
+      // Scroll after delays to ensure content has updated
+      const timer1 = setTimeout(scrollToTop, 100)
+      const timer2 = setTimeout(scrollToTop, 300)
+      
+      // Update previous tab
+      prevTabRef.current = currentTab
+      
+      return () => {
+        clearTimeout(timer1)
+        clearTimeout(timer2)
+      }
+    } else {
+      // Update previous tab on initial load
+      prevTabRef.current = currentTab
+    }
+  }, [activeTab])
+
+  const getJoinedDays = (joinedDate?: string | null) => {
+    if (!joinedDate) return 0
+    const joined = new Date(joinedDate)
+    if (isNaN(joined.getTime())) return 0
+    const diff = Date.now() - joined.getTime()
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)))
   }
 
-  const ads = [
-    {
-      id: '1',
-      title: 'iPhone 14 Pro Max 256GB - Space Black',
-      price: '₦850,000',
-      location: 'Victoria Island, Lagos',
-      state: 'lagos',
-      city: 'Victoria Island',
-      imageUrl: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400',
-      views: 245,
-      favorites: 12,
-      messages: 8,
-      status: 'active' as const,
-      category: 'electronics',
-      postedDate: '2 days ago'
-    },
-    {
-      id: '2',
-      title: 'MacBook Pro M2 13-inch',
-      price: '₦1,200,000',
-      location: 'Surulere, Lagos',
-      state: 'lagos',
-      city: 'Surulere',
-      imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400',
-      views: 189,
-      favorites: 7,
-      messages: 5,
-      status: 'active' as const,
-      category: 'electronics',
-      postedDate: '5 days ago'
-    },
-    {
-      id: '3',
-      title: 'Samsung Galaxy S23 Ultra',
-      price: '₦750,000',
-      location: 'Gbagada, Lagos',
-      state: 'lagos',
-      city: 'Gbagada',
-      imageUrl: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400',
-      views: 156,
-      favorites: 9,
-      messages: 3,
-      status: 'sold' as const,
-      category: 'electronics',
-      postedDate: '1 week ago'
-    },
-    {
-      id: '4',
-      title: 'Sony PlayStation 5 - Brand New',
-      price: '₦450,000',
-      location: 'Alaba, Lagos',
-      state: 'lagos',
-      city: 'Alaba',
-      imageUrl: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=400',
-      views: 678,
-      favorites: 23,
-      messages: 15,
-      status: 'active' as const,
-      category: 'electronics',
-      postedDate: '3 days ago'
-    },
-    {
-      id: '5',
-      title: 'Dell XPS 13 Laptop - 2023 Model',
-      price: '₦780,000',
-      location: 'Yaba, Lagos',
-      state: 'lagos',
-      city: 'Yaba',
-      imageUrl: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400',
-      views: 156,
-      favorites: 4,
-      messages: 2,
-      status: 'active' as const,
-      category: 'electronics',
-      postedDate: '1 week ago'
-    },
-    {
-      id: '6',
-      title: 'AirPods Pro 2nd Generation',
-      price: '₦180,000',
-      location: 'Ikeja, Lagos',
-      state: 'lagos',
-      city: 'Ikeja',
-      imageUrl: 'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400',
-      views: 89,
-      favorites: 3,
-      messages: 1,
-      status: 'expired' as const,
-      category: 'electronics',
-      postedDate: '2 weeks ago'
-    }
-  ]
+  const joinedDays = getJoinedDays(user.date_joined)
+  const sellerProfileComplete = Boolean(user.is_seller_account_setup)
 
-  const reviews = [
-    {
-      id: '1',
-      reviewerName: 'Sarah Johnson',
-      reviewerAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      rating: 5,
-      comment: 'Great seller! Item was exactly as described and delivered quickly. Highly recommended!',
-      date: '2024-01-10',
-      helpful: 3
-    },
-    {
-      id: '2',
-      reviewerName: 'Michael Chen',
-      reviewerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      rating: 4,
-      comment: 'Good communication and fast shipping. Item was in good condition.',
-      date: '2024-01-05',
-      helpful: 1
+  // Fetch user ads from API - backend handles showing all statuses for owner, only published for others
+  const { data: backendAds, isLoading: adsLoading } = useUserAds(user.id)
+  
+  // Fetch reviews for this seller
+  const { data: reviewsData, isLoading: reviewsLoading } = useSellerReviews(user.id)
+  
+  // Ensure reviews is always an array
+  const reviews = Array.isArray(reviewsData) ? reviewsData : []
+  
+  // Get review stats from user profile or fetch separately
+  const { data: reviewStats } = useReviewStats({ seller: user.id }, !!user.id)
+  const finalReviewStats = user.review_stats || reviewStats
+
+  // Use backend ads directly
+  const ads = useMemo(() => {
+    if (backendAds && Array.isArray(backendAds) && backendAds.length > 0) {
+      return backendAds
     }
-  ]
+    return []
+  }, [backendAds])
+
+  // Calculate stats from real ads and reviews
+  const stats = useMemo(() => {
+    const totalAds = ads.length
+    const activeAds = ads.filter(ad => ad.status === 'published').length
+    const archivedAds = ads.filter(ad => ad.status === 'archived').length
+    const totalViews = ads.reduce((sum, ad) => sum + (ad.views || 0), 0)
+    
+    return {
+      totalAds,
+      activeAds,
+      soldItems: archivedAds, // Using archived as "sold" for now
+      totalViews,
+      totalFavorites: 0, // TODO: Add favorites count from backend
+      responseRate: 95, // TODO: Calculate from actual data
+      rating: finalReviewStats?.average_rating || 0,
+      joinedDays
+    }
+  }, [ads, joinedDays, finalReviewStats])
+
+  const handleMobileNavigate = (section: string) => {
+    // Update URL with tab query parameter - URL is the source of truth
+    router.push(`/profile/${profileSlug}?tab=${section}`)
+  }
+
+  const handleMobileBack = () => {
+    // Remove tab from URL to show normal profile view (header + links)
+    router.push(`/profile/${profileSlug}`)
+  }
 
   const renderTabContent = () => {
-    switch (activeTab) {
+    switch (activeTab || 'overview') {
       case 'overview':
         return (
           <ProfileOverview 
             stats={stats}
             isOwner={isOwner}
-            userUid={user.uid}
+            userUid={profileSlug}
           />
         )
       case 'ads':
         return (
-          <ProfileAds 
-            ads={ads} 
-            isOwner={isOwner} 
-          />
+          <>
+            {adsLoading ? (
+              <div className="py-12 flex items-center justify-center">
+                <MarketplaceLoader size="md" message="Loading ads..." />
+              </div>
+            ) : (
+              <ProfileAds 
+                ads={ads} 
+                isOwner={isOwner} 
+              />
+            )}
+          </>
         )
       case 'reviews':
         return (
           <ProfileReviews 
             reviews={reviews}
-            averageRating={stats.rating}
-            totalReviews={reviews.length}
+            reviewStats={finalReviewStats}
+            isLoading={reviewsLoading}
             isOwner={isOwner}
           />
         )
@@ -207,17 +186,83 @@ export default function ProfileLayout({
           <ProfileOverview 
             stats={stats}
             isOwner={isOwner}
-            userUid={user.uid}
+            userUid={profileSlug}
           />
         )
     }
   }
 
+  const renderMobileContent = () => {
+    // Determine which tabs should show full-screen mobile view
+    const mobileFullScreenTabs = ['overview', 'saved', 'reviews', 'settings']
+    
+    if (!activeTab || !mobileFullScreenTabs.includes(activeTab)) {
+      return null
+    }
+
+    if (activeTab === 'overview') {
+      return (
+        <ProfileMobileView title="Overview" onBack={handleMobileBack}>
+          <ProfileOverview 
+            stats={stats}
+            isOwner={isOwner}
+            userUid={profileSlug}
+          />
+        </ProfileMobileView>
+      )
+    }
+    if (activeTab === 'saved') {
+      return (
+        <ProfileMobileView title="Saved" onBack={handleMobileBack}>
+          <ProfileSaved />
+        </ProfileMobileView>
+      )
+    }
+    if (activeTab === 'reviews') {
+      return (
+        <ProfileMobileView title="Reviews" onBack={handleMobileBack}>
+          <ProfileReviews 
+            reviews={reviews}
+            reviewStats={finalReviewStats}
+            isLoading={reviewsLoading}
+            isOwner={isOwner}
+          />
+        </ProfileMobileView>
+      )
+    }
+    if (activeTab === 'settings') {
+      return (
+        <ProfileMobileView title="Settings" onBack={handleMobileBack}>
+          <ProfileSettings 
+            user={user}
+            onUpdateUser={onUpdateUser || (() => {})}
+          />
+        </ProfileMobileView>
+      )
+    }
+    return null
+  }
+
+  // Mobile: Show full-screen view when navigating to a section (only on mobile)
+  // Only show full-screen view if there's a tab in the URL
+  const shouldShowMobileView = typeof window !== 'undefined' && 
+    window.innerWidth < 1024 && 
+    activeTab !== null &&
+    ['overview', 'saved', 'reviews', 'settings'].includes(activeTab)
+
+  if (shouldShowMobileView) {
+    return (
+      <div className="container py-0">
+        {renderMobileContent()}
+      </div>
+    )
+  }
+
   return (
-    <div className="container py-8">
+    <div ref={containerRef} className="container py-8">
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left Sidebar */}
-        <div className="w-full lg:w-80 flex-shrink-0">
+        {/* Left Sidebar - Desktop only */}
+        <div className="hidden lg:block w-80 flex-shrink-0">
           <ProfileHeader 
             user={user}
             stats={{ rating: stats.rating, joinedDays: stats.joinedDays }}
@@ -226,13 +271,48 @@ export default function ProfileLayout({
           />
         </div>
         
-        {/* Main Content */}
-        <div className="flex-1 min-h-[400px]">
+        {/* Mobile: Right Section First */}
+        <div className="lg:hidden w-full">
+          <ProfileHeader 
+            user={user}
+            stats={{ rating: stats.rating, joinedDays: stats.joinedDays }}
+            isOwner={isOwner}
+            onContactClick={onContactClick}
+          />
+          
+          {/* Mobile Navigation Links */}
+          <div className="mt-6">
+            <ProfileMobileNav 
+              isOwner={isOwner} 
+              onNavigate={handleMobileNavigate}
+              currentView={activeTab}
+            />
+          </div>
+        </div>
+        
+        {/* Main Content - Desktop */}
+        <div className="hidden lg:flex flex-1 min-h-[400px] flex-col bg-white">
+          {isOwner && !sellerProfileComplete && (
+            <div className="border border-gray-200 bg-gray-50 px-4 py-3 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Become a seller</p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Share contact info and business details when you're ready to start selling.
+                </p>
+              </div>
+              <Link href="/seller/setup">
+                <Button variant="outline" size="sm">
+                  Set up seller profile
+                </Button>
+              </Link>
+            </div>
+          )}
+
           {/* Tabs in Main Section */}
           <ProfileTabs isOwner={isOwner} />
           
           {/* Tab Content */}
-          <div className="mt-6">
+          <div className="mt-6 bg-white">
             {renderTabContent()}
           </div>
         </div>

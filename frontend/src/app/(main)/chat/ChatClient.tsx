@@ -1,0 +1,576 @@
+"use client"
+
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import ConversationList from '@/components/chat/ConversationList'
+import ChatArea from '@/components/chat/ChatArea'
+import { useNavbarHeight } from '@/hooks/useNavbarHeight'
+import { useBottomNavHeight } from '@/hooks/useBottomNavHeight'
+import { useAuthStore } from '@/store/authStore'
+import { useChats, useChatDetail, useChatMessages, useMarkChatAsRead, useOnlineStatuses } from '@/hooks/useChat'
+import { useChatRealtime } from '@/hooks/useChatRealtime'
+import type { ChatMessage, ChatSummary, User, UserOnlineStatus } from '@/api/types'
+import { useQueryClient } from '@tanstack/react-query'
+
+function ChatClientContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const navbarHeight = useNavbarHeight()
+  const bottomNavHeight = useBottomNavHeight()
+  const { user } = useAuthStore()
+  const queryClient = useQueryClient()
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(
+    searchParams.get('id') || null
+  )
+  const [showMobileChat, setShowMobileChat] = useState(false)
+  const [isParticipantTyping, setIsParticipantTyping] = useState(false)
+  const [typingByChatId, setTypingByChatId] = useState<Record<string, boolean>>({}) // Track typing per chat
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const messageTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map()) // Track timeouts for each optimistic message
+
+  // Fetch chats list
+  const { data: chats = [], isLoading: chatsLoading } = useChats()
+  
+  // Fetch active chat details
+  const { data: activeChatDetail } = useChatDetail(activeConversationId)
+  
+  // Fetch messages for active chat with infinite scroll
+  const {
+    data: messagesData,
+    isLoading: messagesLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChatMessages(activeConversationId)
+  
+  // Flatten all pages into a single array
+  const messages: ChatMessage[] = useMemo(() => {
+    if (!messagesData?.pages || !Array.isArray(messagesData.pages)) return []
+    
+    // Combine all pages and sort by created_at (oldest first)
+    const allMessages = messagesData.pages
+      .filter((page) => page && page.results && Array.isArray(page.results))
+      .flatMap((page) => page.results || [])
+    
+    if (!Array.isArray(allMessages) || allMessages.length === 0) return []
+    
+    return allMessages.sort((a, b) => {
+      if (!a?.created_at || !b?.created_at) return 0
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    })
+  }, [messagesData])
+  
+  // Reset to page 1 when chat changes
+  useEffect(() => {
+    // This will be handled by React Query's query key change
+  }, [activeConversationId])
+  
+  // Fetch online statuses
+  const { data: onlineStatusesData = [] } = useOnlineStatuses()
+  
+  // Mark chat as read mutation (REST API - kept as fallback)
+  const markChatAsRead = useMarkChatAsRead()
+  
+  // Prefer WebSocket for marking as read (like WhatsApp/Telegram)
+  // Falls back to REST API if WebSocket not available
+
+  // Convert online statuses array to record for easier lookup
+  const onlineStatuses: Record<number, UserOnlineStatus> = useMemo(() => {
+    const statusMap: Record<number, UserOnlineStatus> = {}
+    onlineStatusesData.forEach((status) => {
+      if (status.user?.id) {
+        statusMap[status.user.id] = status
+      }
+    })
+    return statusMap
+  }, [onlineStatusesData])
+
+  // Get active chat from chats list
+  const activeChat = activeChatDetail || chats.find((chat) => chat.id === activeConversationId) || null
+
+  // Get active participant (the other user in the chat)
+  const activeParticipant: User | null = useMemo(() => {
+    if (!activeChat || !user) return null
+    return activeChat.participant1.id === user.id ? activeChat.participant2 : activeChat.participant1
+  }, [activeChat, user])
+
+  // Get participant status
+  const participantStatus = activeParticipant ? onlineStatuses[activeParticipant.id] : undefined
+
+  // Handle new message received - DON'T auto-scroll (WhatsApp style)
+  // User will see scroll-to-bottom button with unread count instead
+  const handleMessageReceived = useCallback((message: ChatMessage) => {
+    // Clear timeout for optimistic messages that match this received message
+    // This prevents false "failed" status when message is successfully received
+    if (activeConversationId && message.sender?.id === user?.id) {
+      // Check all stored timeouts for messages with matching content
+      messageTimeoutsRef.current.forEach((timeout, tempId) => {
+        // Get the optimistic message from cache to compare
+        const cacheData = queryClient.getQueryData(['messages', activeConversationId]) as any
+        if (cacheData?.pages) {
+          for (const page of cacheData.pages) {
+            const optimisticMsg = page.results?.find((m: ChatMessage) => m.id === tempId)
+            if (optimisticMsg) {
+              const sameContent = String(optimisticMsg.content).trim() === String(message.content).trim()
+              const sameSender = optimisticMsg.sender?.id === message.sender?.id
+              const messageTime = new Date(message.created_at).getTime()
+              const optimisticTime = new Date(optimisticMsg.created_at).getTime()
+              const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 30000 // 30 seconds
+              
+              if (sameContent && sameSender && withinTimeWindow) {
+                // Clear the timeout for this optimistic message
+                clearTimeout(timeout)
+                messageTimeoutsRef.current.delete(tempId)
+                break
+              }
+            }
+          }
+        }
+      })
+    }
+    
+    // Don't auto-scroll - let user decide when to scroll
+    // ChatArea component will show scroll-to-bottom button with badge
+  }, [activeConversationId, queryClient, user?.id])
+
+  // Real-time WebSocket integration
+  const { isConnected, sendMessage: sendWebSocketMessage, sendTyping, markAsRead: markAsReadWebSocket } = useChatRealtime({
+    activeConversationId,
+    onMessageReceived: handleMessageReceived,
+    onTypingChange: (isTyping, userId, chatId) => {
+      // Only track typing if it's from the OTHER user (not current user)
+      if (chatId && userId !== user?.id) {
+        setTypingByChatId((prev) => ({
+          ...prev,
+          [chatId]: isTyping,
+        }))
+      } else if (chatId && userId === user?.id) {
+        // Clear typing indicator for current user's typing
+        setTypingByChatId((prev) => {
+          const updated = { ...prev }
+          delete updated[chatId]
+          return updated
+        })
+      }
+      
+      // Only show typing indicator if it's from the participant (not current user)
+      if (activeParticipant && userId === activeParticipant.id && chatId === activeConversationId) {
+        setIsParticipantTyping(isTyping)
+      }
+    },
+  })
+
+  // WhatsApp-style: Mark as read when last unread message is visible
+  // This is handled by ChatArea component using Intersection Observer
+  const handleMarkAsRead = useCallback(() => {
+    if (!activeConversationId || !isConnected) return
+    
+    console.log(`[Mark Read] Last unread message is visible, marking as read for chat: ${activeConversationId}`)
+    
+    // Prefer WebSocket for marking as read (like WhatsApp/Telegram)
+    if (isConnected) {
+      markAsReadWebSocket()
+    } else {
+      // Fallback to REST API if WebSocket not connected
+      markChatAsRead.mutate(activeConversationId, {
+        onSuccess: () => {
+          console.log('✅ Messages marked as read via REST API for chat:', activeConversationId)
+        },
+        onError: (error) => {
+          console.error('❌ Failed to mark messages as read:', error)
+        }
+      })
+    }
+  }, [activeConversationId, isConnected, markAsReadWebSocket, markChatAsRead])
+
+  // Handle typing indicator from WebSocket
+  useEffect(() => {
+    // This will be handled by the typing indicator logic in ChatArea
+    // For now, we'll manage it locally
+  }, [])
+
+  const handleSelectConversation = (conversationId: string) => {
+    setActiveConversationId(conversationId)
+    setShowMobileChat(true)
+    router.push(`/chat?id=${conversationId}`, { scroll: false })
+  }
+
+  const handleSendMessage = useCallback(async (content: string) => {
+    if (!activeConversationId || !content.trim() || !isConnected) {
+      if (!isConnected) {
+        console.warn('Cannot send message: WebSocket not connected')
+        // Could show a toast notification here
+      }
+      return
+    }
+
+    // Create optimistic message with "sending" status
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const optimisticMessage: ChatMessage = {
+      id: tempId,
+      chat: activeConversationId,
+      sender: user!,
+      content: content.trim(),
+      is_read: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      send_failed: false,
+    }
+
+    // Optimistically add to messages cache (Infinite Query)
+    queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
+      if (!oldData?.pages || oldData.pages.length === 0) {
+        // Initialize with first page
+        return {
+          pages: [{ results: [optimisticMessage], count: 1, next: null, previous: null, page: 1 }],
+          pageParams: [1],
+        }
+      }
+      
+      // Add to the last page (newest messages)
+      const lastPageIndex = oldData.pages.length - 1
+      const lastPage = oldData.pages[lastPageIndex]
+      const updatedPages = [...oldData.pages]
+      
+      updatedPages[lastPageIndex] = {
+        ...lastPage,
+        results: [...lastPage.results, optimisticMessage].sort(
+          (a: ChatMessage, b: ChatMessage) => 
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        ),
+      }
+      
+      return {
+        ...oldData,
+        pages: updatedPages,
+      }
+    })
+
+    // Also update chat list optimistically
+    queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
+      if (!oldChats) return []
+      return oldChats.map((chat) => {
+        if (chat.id === activeConversationId) {
+          return {
+            ...chat,
+            last_message: optimisticMessage,
+            last_message_at: optimisticMessage.created_at,
+            updated_at: optimisticMessage.created_at,
+          }
+        }
+        return chat
+      }).sort((a, b) => {
+        const timeA = new Date(a.last_message_at || a.updated_at).getTime()
+        const timeB = new Date(b.last_message_at || b.updated_at).getTime()
+        return timeB - timeA
+      })
+    })
+
+    // Send via WebSocket
+    try {
+      if (!isConnected) {
+        throw new Error('WebSocket not connected')
+      }
+      
+      const sent = sendWebSocketMessage(content.trim())
+      if (sent === false) {
+        throw new Error('Failed to send message via WebSocket')
+      }
+      
+      // Set timeout to mark message as failed if not confirmed within 20 seconds
+      // Store timeout reference so we can clear it if message is successfully received
+      const timeoutId = setTimeout(() => {
+        queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
+          if (!oldData?.pages) {
+            // Remove timeout from map
+            messageTimeoutsRef.current.delete(tempId)
+            return oldData
+          }
+          
+          let messageStillExists = false
+          const updatedPages = oldData.pages.map((page: any) => {
+            const messagesArray = page.results || []
+            const messageIndex = messagesArray.findIndex((m: ChatMessage) => m.id === tempId)
+            
+            if (messageIndex !== -1) {
+              messageStillExists = true
+              // Check if message is still optimistic (not replaced by real message)
+              const message = messagesArray[messageIndex]
+              if (String(message.id).startsWith('temp-') && !message.send_failed) {
+                // Double-check: verify no message with same content exists (might have been replaced)
+                const sameContentMessage = messagesArray.find((m: ChatMessage) => {
+                  if (m.id === tempId) return false
+                  const sameContent = String(m.content).trim() === String(message.content).trim()
+                  const sameSender = m.sender?.id === message.sender?.id
+                  const messageTime = new Date(m.created_at).getTime()
+                  const optimisticTime = new Date(message.created_at).getTime()
+                  const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 30000
+                  return sameContent && sameSender && withinTimeWindow && !String(m.id).startsWith('temp-')
+                })
+                
+                // Only mark as failed if no matching real message exists
+                if (!sameContentMessage) {
+                  const updated = [...messagesArray]
+                  updated[messageIndex] = {
+                    ...message,
+                    send_failed: true,
+                  }
+                  return {
+                    ...page,
+                    results: updated,
+                  }
+                }
+              }
+            }
+            return page
+          })
+          
+          // Remove timeout from map after it fires
+          messageTimeoutsRef.current.delete(tempId)
+          
+          // Only return updated pages if message still exists and was marked as failed
+          if (messageStillExists) {
+            return {
+              ...oldData,
+              pages: updatedPages,
+            }
+          }
+          
+          return oldData
+        })
+      }, 20000) // 20 seconds timeout (increased to give more time for server response)
+      
+      // Store timeout reference
+      messageTimeoutsRef.current.set(tempId, timeoutId)
+      
+      // The WebSocket handler will replace the optimistic message with the real one
+      // when the server confirms the message was saved
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      // Mark message as failed immediately
+      queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
+        if (!oldData?.pages) return oldData
+        
+        const updatedPages = oldData.pages.map((page: any) => {
+          const messagesArray = page.results || []
+          const messageIndex = messagesArray.findIndex((m: ChatMessage) => m.id === tempId)
+          
+          if (messageIndex !== -1) {
+            const updated = [...messagesArray]
+            updated[messageIndex] = {
+              ...updated[messageIndex],
+              send_failed: true,
+            }
+            return {
+              ...page,
+              results: updated,
+            }
+          }
+          return page
+        })
+        
+        return {
+          ...oldData,
+          pages: updatedPages,
+        }
+      })
+      
+      // Revert chat list update
+      queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
+        if (!oldChats) return []
+        return oldChats.map((chat) => {
+          if (chat.id === activeConversationId && chat.last_message?.id === optimisticMessage.id) {
+            // Restore previous last message or remove if none
+            // Handle infinite query structure
+            const messagesData = queryClient.getQueryData<any>(['messages', activeConversationId])
+            let messages: ChatMessage[] = []
+            
+            if (messagesData?.pages) {
+              // Infinite query structure
+              messages = messagesData.pages.flatMap((page: any) => page.results || [])
+            } else if (Array.isArray(messagesData)) {
+              // Fallback for array structure
+              messages = messagesData
+            }
+            
+            const previousLastMessage = messages.length > 1 ? messages[messages.length - 2] : null
+            return {
+              ...chat,
+              last_message: previousLastMessage || chat.last_message,
+              last_message_at: previousLastMessage?.created_at || chat.last_message_at,
+            }
+          }
+          return chat
+        })
+      })
+    }
+  }, [activeConversationId, user, sendWebSocketMessage, queryClient, isConnected])
+  
+  // Retry failed message
+  const handleRetryMessage = useCallback((message: ChatMessage) => {
+    if (!activeConversationId || !message.content || !isConnected) return
+    
+    const oldMessageId = message.id
+    
+    // Remove the old failed message and create a new optimistic one
+    queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
+      if (!oldData?.pages) return oldData
+      
+      const updatedPages = oldData.pages.map((page: any) => {
+        const messagesArray = page.results || []
+        // Remove the old failed message
+        const filtered = messagesArray.filter((m: ChatMessage) => m.id !== oldMessageId)
+        return {
+          ...page,
+          results: filtered,
+        }
+      })
+      
+      return {
+        ...oldData,
+        pages: updatedPages,
+      }
+    })
+    
+    // Also remove from chat list if it was the last message
+    queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
+      if (!oldChats) return []
+      return oldChats.map((chat) => {
+        if (chat.id === activeConversationId && chat.last_message?.id === oldMessageId) {
+          // Get previous last message from cache
+          const messagesData = queryClient.getQueryData<any>(['messages', activeConversationId])
+          let messages: ChatMessage[] = []
+          
+          if (messagesData?.pages) {
+            messages = messagesData.pages.flatMap((page: any) => page.results || [])
+          }
+          
+          const previousLastMessage = messages.length > 0 ? messages[messages.length - 1] : null
+          return {
+            ...chat,
+            last_message: previousLastMessage || null,
+            last_message_at: previousLastMessage?.created_at || chat.last_message_at,
+          }
+        }
+        return chat
+      })
+    })
+    
+    // Resend the message (this will create a new optimistic message)
+    handleSendMessage(message.content)
+  }, [activeConversationId, handleSendMessage, queryClient, isConnected])
+
+  const handleTypingChange = useCallback((typing: boolean) => {
+    // Clear existing timeout first
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+
+    // Send typing indicator via WebSocket
+    if (typing && activeConversationId && isConnected) {
+      sendTyping(true)
+      setIsParticipantTyping(false) // Reset local state, will be set by WebSocket if participant is typing
+      
+      // Auto-stop typing after 2 seconds of inactivity
+      // Matches WhatsApp behavior: typing indicator disappears after inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        sendTyping(false)
+        typingTimeoutRef.current = null
+      }, 2000)
+    } else {
+      sendTyping(false)
+      // Don't reset setIsParticipantTyping here - that's handled by WebSocket callback
+    }
+  }, [activeConversationId, sendTyping, isConnected])
+
+  const handleBack = () => {
+    setShowMobileChat(false)
+    router.push('/chat', { scroll: false })
+  }
+
+  // Update URL when conversation changes
+  useEffect(() => {
+    if (activeConversationId) {
+      router.replace(`/chat?id=${activeConversationId}`, { scroll: false })
+    }
+  }, [activeConversationId, router])
+
+  // Cleanup typing timeout and message timeouts
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+      // Clear all message timeouts
+      messageTimeoutsRef.current.forEach((timeout) => {
+        clearTimeout(timeout)
+      })
+      messageTimeoutsRef.current.clear()
+    }
+  }, [])
+
+  // Calculate available height: viewport - navbar - bottom nav
+  // bottomNavHeight will be 0 on desktop (since bottom nav is hidden with md:hidden)
+  const availableHeight = `calc(100vh - ${navbarHeight}px - ${bottomNavHeight}px)`
+
+  return (
+    <div
+      className="bg-white fixed inset-x-0 container px-0 md:px-0 overflow-hidden"
+      style={{
+        height: availableHeight,
+        top: `${navbarHeight}px`,
+        maxHeight: availableHeight,
+      }}
+    >
+      <div className="h-full flex border-x border-gray-200 md:border-x overflow-hidden">
+        {/* Chat List */}
+        <div
+          className={`${showMobileChat ? 'hidden' : 'w-full'} md:flex md:w-80 lg:w-96 bg-white border-r border-gray-200 flex-col h-full overflow-hidden`}
+        >
+          <ConversationList
+            conversations={chats}
+            activeConversationId={activeConversationId || undefined}
+            onSelectConversation={handleSelectConversation}
+            currentUserId={user?.id}
+            onlineStatuses={onlineStatuses}
+            isLoading={chatsLoading}
+            typingByChatId={typingByChatId}
+          />
+        </div>
+
+        {/* Chat Area */}
+        <div className={`${showMobileChat ? 'w-full' : 'hidden'} md:flex md:flex-1 flex-col h-full overflow-hidden`}>
+          <ChatArea
+            chat={activeChat}
+            participant={activeParticipant}
+            participantStatus={participantStatus}
+            messages={messages}
+            isParticipantTyping={isParticipantTyping}
+            isConnected={isConnected}
+            isLoadingMessages={messagesLoading || isFetchingNextPage}
+            hasMoreMessages={hasNextPage || false}
+            onSendMessage={handleSendMessage}
+            onTypingChange={handleTypingChange}
+            onLoadMore={() => {
+              if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage()
+              }
+            }}
+            onBack={handleBack}
+            onRetryMessage={handleRetryMessage}
+            onMarkAsRead={handleMarkAsRead}
+            chatId={activeConversationId}
+          />
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function ChatClient() {
+  return <ChatClientContent />
+}

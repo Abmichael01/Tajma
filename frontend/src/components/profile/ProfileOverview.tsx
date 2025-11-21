@@ -31,134 +31,100 @@ interface ProfileOverviewProps {
   userUid?: string
 }
 
+const StatCard = ({
+  icon: Icon,
+  label,
+  value,
+  subtitle
+}: {
+  icon: typeof FileText
+  label: string
+  value: string | number
+  subtitle?: string
+}) => {
+  return (
+    <div className="border border-gray-200 bg-white p-4">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">{label}</p>
+          <p className="mt-3 text-3xl font-semibold text-gray-900">{value}</p>
+          {subtitle && <p className="mt-1 text-xs text-gray-500">{subtitle}</p>}
+        </div>
+        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-secondary/30 bg-secondary/5 text-secondary">
+          <Icon className="h-5 w-5" />
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function ProfileOverview({ stats, isOwner = false, userUid }: ProfileOverviewProps) {
+  const primaryStats = [
+    { icon: FileText, label: 'Total Ads', value: stats.totalAds.toLocaleString() },
+    { icon: TrendingUp, label: 'Active Ads', value: stats.activeAds.toLocaleString() },
+    { icon: Eye, label: 'Total Views', value: stats.totalViews.toLocaleString() },
+    { icon: Star, label: 'Seller Rating', value: stats.rating.toFixed(1), subtitle: 'Out of 5.0' }
+  ]
+
+  const secondaryStats = [
+    { icon: Heart, label: 'Favorites', value: stats.totalFavorites.toLocaleString() },
+    { icon: CheckCircle, label: 'Sold Items', value: stats.soldItems.toLocaleString() },
+    { icon: MessageSquare, label: 'Response Rate', value: `${stats.responseRate}%` },
+    { icon: Clock, label: 'Days Active', value: stats.joinedDays.toLocaleString() }
+  ]
+
   return (
     <div className="space-y-6">
       {/* Main Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white border border-gray-200 p-4">
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.totalAds}</p>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">Total Ads</p>
-          </div>
-        </div>
-        
-        <div className="bg-white border border-gray-200 p-4">
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-secondary">{stats.activeAds}</p>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">Active Ads</p>
-          </div>
-        </div>
-        
-        <div className="bg-white border border-gray-200 p-4">
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <Eye className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.totalViews.toLocaleString()}</p>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">Total Views</p>
-          </div>
-        </div>
-        
-        <div className="bg-white border border-gray-200 p-4">
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between mb-2">
-              <Star className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.rating}</p>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">Rating</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        {primaryStats.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white border border-gray-200 p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-50 flex items-center justify-center">
-              <Heart className="w-5 h-5 text-red-500" />
-            </div>
-            <div>
-              <p className="text-lg sm:text-xl font-bold text-gray-900">{stats.totalFavorites}</p>
-              <p className="text-xs text-gray-600">Favorites</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-50 flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-lg sm:text-xl font-bold text-gray-900">{stats.soldItems}</p>
-              <p className="text-xs text-gray-600">Sold Items</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-lg sm:text-xl font-bold text-gray-900">{stats.responseRate}%</p>
-              <p className="text-xs text-gray-600">Response Rate</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-50 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-lg sm:text-xl font-bold text-gray-900">{stats.joinedDays}</p>
-              <p className="text-xs text-gray-600">Days Active</p>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        {secondaryStats.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
       </div>
 
       {/* Performance Overview */}
       {isOwner && (
-        <div className="bg-white border border-gray-200 p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-secondary" />
-              Performance Overview
-            </h3>
+        <div className="border border-gray-200 bg-white p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-secondary/40 bg-secondary/10 text-secondary">
+                <BarChart3 className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-600">Performance</h3>
+                <p className="text-xs text-gray-500">Overview of your marketplace activity</p>
+              </div>
+            </div>
             <Link href={`/profile/${userUid}?tab=ads`}>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="border border-gray-300 text-gray-700 hover:border-secondary hover:text-secondary">
                 View All Ads
               </Button>
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
-            <div className="p-3 bg-gray-50">
-              <p className="text-xs text-gray-600 mb-1">Avg. Views per Ad</p>
-              <p className="text-xl font-bold text-gray-900">
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="border border-gray-200 bg-secondary/5 px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">Avg. Views per Ad</p>
+              <p className="mt-3 text-2xl font-semibold text-gray-900">
                 {Math.round(stats.totalViews / (stats.totalAds || 1))}
               </p>
             </div>
-            <div className="p-3 bg-gray-50">
-              <p className="text-xs text-gray-600 mb-1">Avg. Favorites</p>
-              <p className="text-xl font-bold text-gray-900">
+            <div className="border border-gray-200 bg-secondary/5 px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">Avg. Favorites</p>
+              <p className="mt-3 text-2xl font-semibold text-gray-900">
                 {Math.round(stats.totalFavorites / (stats.totalAds || 1))}
               </p>
             </div>
-            <div className="p-3 bg-gray-50 col-span-2 sm:col-span-1">
-              <p className="text-xs text-gray-600 mb-1">Success Rate</p>
-              <p className="text-xl font-bold text-gray-900">
+            <div className="border border-gray-200 bg-secondary/5 px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">Success Rate</p>
+              <p className="mt-3 text-2xl font-semibold text-gray-900">
                 {Math.round((stats.soldItems / (stats.totalAds || 1)) * 100)}%
               </p>
             </div>
@@ -188,11 +154,11 @@ export default function ProfileOverview({ stats, isOwner = false, userUid }: Pro
       )}
 
       {/* Activity Summary */}
-      <div className="bg-blue-50 border border-blue-200 p-4">
-        <h4 className="text-sm font-semibold text-blue-900 mb-2">
+      <div className="border border-secondary/30 bg-secondary/10 p-4">
+        <h4 className="text-sm font-semibold text-secondary mb-2">
           {isOwner ? 'Your Performance' : 'Seller Performance'}
         </h4>
-        <ul className="space-y-2 text-xs sm:text-sm text-blue-800">
+        <ul className="space-y-2 text-xs sm:text-sm text-secondary">
           <li className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4" />
             <span>{stats.responseRate}% response rate to inquiries</span>

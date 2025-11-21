@@ -1,8 +1,18 @@
-import React, { useState } from 'react'
+"use client"
+
+import React, { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { useUpdateProfile, useChangePassword } from '@/hooks/useAuth'
+import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
+import { toast } from 'sonner'
+import {
   Shield,
   Camera,
   Eye,
@@ -10,66 +20,159 @@ import {
   Lock,
   CheckCircle
 } from 'lucide-react'
-
-interface User {
-  id: string
-  uid: string
-  name: string
-  email: string
-  avatar?: string
-  location?: string
-  phone?: string
-  isVerified: boolean
-  joinedDate: string
-}
+import type { User } from '@/api/types'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
 interface ProfileSettingsProps {
   user: User
-  onUpdateUser: (updates: Partial<User>) => void
+  onUpdateUser?: (updates: Partial<User>) => void
 }
 
+const profileSchema = z.object({
+  first_name: z.string().min(1, 'First name is required'),
+  last_name: z.string().min(1, 'Last name is required'),
+  username: z.string().min(1, 'Username is required'),
+  phone: z
+    .string()
+    .max(20, 'Phone number is too long')
+    .optional()
+    .or(z.literal('')),
+  location: z.string().max(255, 'Location is too long').optional().or(z.literal('')),
+})
+
+const passwordSchema = z
+  .object({
+    old_password: z.string().min(1, 'Current password is required'),
+    new_password: z.string().min(8, 'Password must be at least 8 characters'),
+    new_password_confirm: z.string().min(1, 'Please confirm your new password'),
+  })
+  .refine((data) => data.new_password === data.new_password_confirm, {
+    path: ['new_password_confirm'],
+    message: 'Passwords do not match',
+  })
+
+type ProfileFormValues = z.infer<typeof profileSchema>
+type PasswordFormValues = z.infer<typeof passwordSchema>
+
 export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
+  const updateProfile = useUpdateProfile()
+  const changePassword = useChangePassword()
+  
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  })
   const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
 
-  const getInitials = (name: string) => {
-    if (!name) return 'U'
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
+  const profileForm = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+      username: user.username || '',
+      phone: user.phone || '',
+      location: user.location || '',
+    },
+  })
 
-  const handlePasswordChange = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // Validation
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('Passwords do not match!')
-      return
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      old_password: '',
+      new_password: '',
+      new_password_confirm: '',
+    },
+  })
+
+  useEffect(() => {
+    profileForm.reset({
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+      username: user.username || '',
+      phone: user.phone || '',
+      location: user.location || '',
+    })
+  }, [user, profileForm])
+
+  const profileFieldNames: Array<keyof ProfileFormValues> = ['first_name', 'last_name', 'username', 'phone', 'location']
+  const passwordFieldNames: Array<keyof PasswordFormValues> = ['old_password', 'new_password', 'new_password_confirm']
+
+  const handleProfileSubmit = profileForm.handleSubmit(async (values) => {
+    const payload = {
+      first_name: values.first_name.trim(),
+      last_name: values.last_name.trim(),
+      username: values.username.trim(),
+      phone: values.phone?.trim() || undefined,
+      location: values.location?.trim() || undefined,
     }
-    
-    if (passwordData.newPassword.length < 8) {
-      alert('Password must be at least 8 characters!')
-      return
-    }
 
-    // Simulate password change
-    setPasswordSuccess(true)
-    setTimeout(() => {
-      setPasswordSuccess(false)
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
-    }, 3000)
-  }
+    try {
+      await updateProfile.mutateAsync(payload)
+      toast.success('Profile updated successfully')
+      profileForm.reset({
+        first_name: payload.first_name,
+        last_name: payload.last_name,
+        username: payload.username,
+        phone: payload.phone || '',
+        location: payload.location || '',
+      })
+      const userPatch: Partial<User> = {
+        first_name: payload.first_name,
+        last_name: payload.last_name,
+        username: payload.username,
+      }
+
+      userPatch.phone = payload.phone !== undefined ? payload.phone : null
+      userPatch.location = payload.location !== undefined ? payload.location : null
+
+      onUpdateUser?.(userPatch)
+    } catch (error: any) {
+      const apiErrors = error.response?.data || {}
+      Object.entries(apiErrors).forEach(([key, value]) => {
+        if (profileFieldNames.includes(key as keyof ProfileFormValues)) {
+          profileForm.setError(key as keyof ProfileFormValues, {
+            type: 'server',
+            message: Array.isArray(value) ? value[0] : String(value),
+          })
+        }
+      })
+    }
+  })
+
+  const handlePasswordSubmit = passwordForm.handleSubmit(async (values) => {
+    setPasswordError(null)
+    setPasswordSuccess(false)
+
+    try {
+      await changePassword.mutateAsync(values)
+      setPasswordSuccess(true)
+      toast.success('Password updated successfully')
+      passwordForm.reset({
+        old_password: '',
+        new_password: '',
+        new_password_confirm: '',
+      })
+      setTimeout(() => setPasswordSuccess(false), 3000)
+    } catch (error: any) {
+      const apiErrors = error.response?.data || {}
+      const message =
+        apiErrors?.message ||
+        apiErrors?.old_password?.[0] ||
+        apiErrors?.new_password?.[0] ||
+        'Failed to change password. Please try again.'
+      setPasswordError(message)
+      Object.entries(apiErrors).forEach(([key, value]) => {
+        if (passwordFieldNames.includes(key as keyof PasswordFormValues)) {
+          passwordForm.setError(key as keyof PasswordFormValues, {
+            type: 'server',
+            message: Array.isArray(value) ? value[0] : String(value),
+          })
+        }
+      })
+    }
+  })
+
+  const fullName = getUserFullName(user)
 
   return (
     <div className="space-y-6">
@@ -79,9 +182,9 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
         <div className="flex items-center gap-4 mb-6">
           <div className="relative">
             <Avatar className="w-16 h-16">
-              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarImage src={user.avatar || undefined} alt={fullName} />
               <AvatarFallback className="bg-secondary text-secondary-foreground text-lg">
-                {getInitials(user.name)}
+                {getUserInitials(user)}
               </AvatarFallback>
             </Avatar>
             <button className="absolute bottom-0 right-0 bg-secondary text-secondary-foreground p-1 rounded-full hover:bg-secondary/90 transition-colors">
@@ -89,9 +192,9 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
             </button>
           </div>
           <div>
-            <h4 className="text-lg font-medium text-gray-900">{user.name}</h4>
+            <h4 className="text-lg font-medium text-gray-900">{fullName}</h4>
             <p className="text-gray-600">{user.email}</p>
-            {user.isVerified && (
+            {user.is_verified && (
               <span className="inline-flex items-center gap-1 text-sm text-green-600 mt-1">
                 <Shield className="w-4 h-4" />
                 Verified Account
@@ -100,49 +203,121 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-            <input 
-              type="text" 
-              value={user.name}
-              onChange={(e) => onUpdateUser({ name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 focus:border-secondary focus:ring-1 focus:ring-secondary"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input 
-              type="email" 
-              value={user.email}
-              onChange={(e) => onUpdateUser({ email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 focus:border-secondary focus:ring-1 focus:ring-secondary"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-            <input 
-              type="tel" 
-              value={user.phone || ''}
-              onChange={(e) => onUpdateUser({ phone: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 focus:border-secondary focus:ring-1 focus:ring-secondary"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-            <input 
-              type="text" 
-              value={user.location || ''}
-              onChange={(e) => onUpdateUser({ location: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 focus:border-secondary focus:ring-1 focus:ring-secondary"
-            />
-          </div>
-        </div>
-        
-        <div className="flex gap-3 mt-6">
-          <Button variant="primary">Save Changes</Button>
-          <Button variant="ghost">Cancel</Button>
-        </div>
+
+        <Form {...profileForm}>
+          <form onSubmit={handleProfileSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={profileForm.control}
+                name="first_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      First Name <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Enter first name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Last Name <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Enter last name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Username <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Choose a username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <Input type="email" value={user.email} disabled className="bg-gray-50 cursor-not-allowed" />
+                <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+              </div>
+              <FormField
+                control={profileForm.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="+234 801 234 5678" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="e.g., Lagos, Nigeria" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <Button 
+                type="submit" 
+                variant="primary"
+                disabled={updateProfile.isPending || profileForm.formState.isSubmitting}
+              >
+                {updateProfile.isPending || profileForm.formState.isSubmitting ? (
+                  <>
+                    <MarketplaceLoader inline size="sm" white />
+                    <span className="ml-2">Saving...</span>
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost"
+                onClick={() =>
+                  profileForm.reset({
+                    first_name: user.first_name || '',
+                    last_name: user.last_name || '',
+                    username: user.username || '',
+                    phone: user.phone || '',
+                    location: user.location || '',
+                  })
+                }
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Form>
       </div>
 
       {/* Change Password Section */}
@@ -162,106 +337,131 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
           </div>
         )}
 
-        <form onSubmit={handlePasswordChange} className="space-y-4">
-          {/* Current Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Current Password
-            </label>
-            <div className="relative">
-              <Input
-                type={showCurrentPassword ? 'text' : 'password'}
-                value={passwordData.currentPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                className="pr-10"
-                placeholder="Enter current password"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showCurrentPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
+        {passwordError && (
+          <div className="mb-6 bg-red-50 border border-red-200 p-4">
+            <p className="text-sm text-red-700">{passwordError}</p>
           </div>
+        )}
 
-          {/* New Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Password
-            </label>
-            <div className="relative">
-              <Input
-                type={showNewPassword ? 'text' : 'password'}
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                className="pr-10"
-                placeholder="Enter new password"
-                required
-                minLength={8}
-              />
-              <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showNewPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-            <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
-          </div>
+        <Form {...passwordForm}>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <FormField
+              control={passwordForm.control}
+              name="old_password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Current Password</FormLabel>
+                  <div className="relative">
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        className="pr-10"
+                        placeholder="Enter current password"
+                      />
+                    </FormControl>
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Confirm Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm New Password
-            </label>
-            <div className="relative">
-              <Input
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                className="pr-10"
-                placeholder="Confirm new password"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
+            <FormField
+              control={passwordForm.control}
+              name="new_password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <div className="relative">
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type={showNewPassword ? 'text' : 'password'}
+                        className="pr-10"
+                        placeholder="Enter new password"
+                      />
+                    </FormControl>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div className="flex gap-3 pt-2">
-            <Button type="submit" variant="primary">
-              Update Password
-            </Button>
-            <Button 
-              type="button" 
-              variant="ghost"
-              onClick={() => setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
+            <FormField
+              control={passwordForm.control}
+              name="new_password_confirm"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm New Password</FormLabel>
+                  <div className="relative">
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        className="pr-10"
+                        placeholder="Confirm new password"
+                      />
+                    </FormControl>
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-3 pt-2">
+              <Button 
+                type="submit" 
+                variant="primary"
+                disabled={changePassword.isPending || passwordForm.formState.isSubmitting}
+              >
+                {changePassword.isPending || passwordForm.formState.isSubmitting ? (
+                  <>
+                    <MarketplaceLoader inline size="sm" white />
+                    <span className="ml-2">Updating...</span>
+                  </>
+                ) : (
+                  'Update Password'
+                )}
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost"
+                onClick={() => {
+                  passwordForm.reset({
+                    old_password: '',
+                    new_password: '',
+                    new_password_confirm: '',
+                  })
+                  setPasswordError(null)
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Form>
       </div>
 
       {/* Preferences Section */}
@@ -274,7 +474,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
               <p className="font-medium text-gray-900">Email Notifications</p>
               <p className="text-sm text-gray-600">Receive email updates about your ads and messages</p>
             </div>
-            <input type="checkbox" defaultChecked className="w-5 h-5 text-primary" />
+            <Checkbox defaultChecked />
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t">
@@ -282,7 +482,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
               <p className="font-medium text-gray-900">SMS Notifications</p>
               <p className="text-sm text-gray-600">Get text alerts for important updates</p>
             </div>
-            <input type="checkbox" className="w-5 h-5 text-primary" />
+            <Checkbox />
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t">
@@ -290,7 +490,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
               <p className="font-medium text-gray-900">Marketing Communications</p>
               <p className="text-sm text-gray-600">Receive promotional offers and news</p>
             </div>
-            <input type="checkbox" defaultChecked className="w-5 h-5 text-primary" />
+            <Checkbox defaultChecked />
           </div>
         </div>
 

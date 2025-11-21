@@ -1,11 +1,20 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useNotificationsStore } from '@/store/notificationsStore'
 import { useAuthStore } from '@/store/authStore'
 import { useInitializeNotifications } from '@/hooks/useInitializeNotifications'
+import { useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useDeleteNotification } from '@/hooks/useNotifications'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Button } from './button'
 import { 
   Bell, 
   MessageSquare, 
@@ -14,40 +23,66 @@ import {
   DollarSign, 
   Info,
   X,
-  Check
+  Check,
+  Phone,
+  Star,
+  AlertCircle,
+  ChevronRight
 } from 'lucide-react'
-import { Button } from './button'
 
 export default function NotificationDropdown() {
-  const [isOpen, setIsOpen] = useState(false)
   const { user } = useAuthStore()
+  const profileSlug = user ? (user.username || user.email?.split('@')[0] || 'profile') : 'profile'
   const { 
     notifications, 
-    getUnreadCount, 
-    markAsRead, 
-    markAllAsRead,
-    deleteNotification 
+    getUnreadCount
   } = useNotificationsStore()
+  
+  const markAsReadMutation = useMarkNotificationAsRead()
+  const markAllAsReadMutation = useMarkAllNotificationsAsRead()
+  const deleteNotificationMutation = useDeleteNotification()
   
   const unreadCount = getUnreadCount()
   
-  // Initialize notifications
+  // Initialize notifications and WebSocket
   useInitializeNotifications()
+  
+  const handleMarkAsRead = (notificationId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    markAsReadMutation.mutate(notificationId)
+    useNotificationsStore.getState().markAsRead(notificationId)
+  }
+  
+  const handleMarkAllAsRead = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    markAllAsReadMutation.mutate()
+    useNotificationsStore.getState().markAllAsRead()
+  }
+  
+  const handleDeleteNotification = (notificationId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    deleteNotificationMutation.mutate(notificationId)
+    useNotificationsStore.getState().deleteNotification(notificationId)
+  }
 
   const getNotificationIcon = (type: string) => {
+    const iconClass = "w-4 h-4"
     switch (type) {
       case 'message':
-        return <MessageSquare className="w-4 h-4 text-blue-600" />
+        return <MessageSquare className={`${iconClass} text-blue-500`} />
       case 'view':
-        return <Eye className="w-4 h-4 text-green-600" />
+        return <Eye className={`${iconClass} text-green-500`} />
       case 'favorite':
-        return <Heart className="w-4 h-4 text-red-500" />
+        return <Heart className={`${iconClass} text-red-500`} />
       case 'offer':
-        return <DollarSign className="w-4 h-4 text-yellow-600" />
-      case 'system':
-        return <Info className="w-4 h-4 text-gray-600" />
+        return <Star className={`${iconClass} text-yellow-500`} />
+      case 'phone_view':
+        return <Phone className={`${iconClass} text-purple-500`} />
       default:
-        return <Bell className="w-4 h-4 text-gray-600" />
+        return <Bell className={`${iconClass} text-gray-500`} />
     }
   }
 
@@ -58,158 +93,163 @@ export default function NotificationDropdown() {
     const diffMins = Math.floor(diffMs / 60000)
     const diffHours = Math.floor(diffMs / 3600000)
     const diffDays = Math.floor(diffMs / 86400000)
+    const diffWeeks = Math.floor(diffDays / 7)
 
+    if (diffMins < 1) return 'Just now'
     if (diffMins < 60) return `${diffMins}m ago`
     if (diffHours < 24) return `${diffHours}h ago`
-    return `${diffDays}d ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    if (diffWeeks < 4) return `${diffWeeks}w ago`
+    return new Date(timestamp).toLocaleDateString()
   }
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (isOpen && !target.closest('.notification-dropdown')) {
-        setIsOpen(false)
-      }
-    }
-
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [isOpen])
-
-  const displayedNotifications = notifications.slice(0, 5)
+  // Sort notifications by timestamp (newest first) and take first 8
+  const displayedNotifications = [...notifications]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 8)
 
   return (
-    <div className="relative notification-dropdown">
-      {/* Bell Icon Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-gray-100 transition-colors"
-      >
-        <Bell className="w-5 h-5 text-gray-600" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center font-semibold">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
-
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-gray-200 shadow-lg z-50 max-h-[500px] overflow-hidden flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-900">Notifications</h3>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="relative"
+        >
+          <Bell className="w-5 h-5 text-gray-700 relative z-10" />
+          {unreadCount > 0 && (
+            <span className="absolute bottom-[80%] left-[70%] bg-secondary text-white text-xs min-w-[18px] h-[18px] px-1.5 flex items-center justify-center z-20">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      
+      <DropdownMenuContent align="end" className="w-96 p-0 max-h-[400px] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Bell className="w-5 h-5 text-gray-700" />
+            <DropdownMenuLabel className="p-0 font-semibold text-gray-900">
+              Notifications
+            </DropdownMenuLabel>
             {unreadCount > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  markAllAsRead()
-                }}
-                className="text-sm text-secondary hover:text-secondary/80 font-medium flex items-center gap-1"
-              >
-                <Check className="w-3 h-3" />
-                Mark all read
-              </button>
+              <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                {unreadCount} new
+              </span>
             )}
           </div>
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllAsRead}
+              disabled={markAllAsReadMutation.isPending}
+              className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
+            >
+              <Check className="w-3.5 h-3.5" />
+              Mark all read
+            </button>
+          )}
+        </div>
 
-          {/* Notifications List */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {displayedNotifications.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-12 h-12 bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                  <Bell className="w-6 h-6 text-gray-400" />
-                </div>
-                <p className="text-gray-600 text-sm">No notifications yet</p>
+        {/* Notifications List */}
+        <div className="flex-1 min-h-0 overflow-y-auto fancy-scrollbar">
+          {displayedNotifications.length === 0 ? (
+            <div className="text-center py-16 px-4">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Bell className="w-8 h-8 text-gray-400" />
               </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {displayedNotifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`p-4 hover:bg-gray-50 transition-colors ${
-                      !notification.isRead ? 'bg-blue-50/50' : ''
-                    }`}
+              <p className="text-gray-600 font-medium mb-1">No notifications</p>
+              <p className="text-gray-500 text-sm">You're all caught up!</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {displayedNotifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`group relative ${!notification.isRead ? 'bg-blue-50/30' : ''}`}
+                >
+                  <DropdownMenuItem
+                    asChild
+                    className="p-0"
                   >
                     <Link
                       href={notification.link || '#'}
                       onClick={() => {
-                        markAsRead(notification.id)
-                        setIsOpen(false)
+                        if (!notification.isRead) {
+                          markAsReadMutation.mutate(notification.id)
+                          useNotificationsStore.getState().markAsRead(notification.id)
+                        }
                       }}
-                      className="block"
+                      className="flex gap-3 p-4 hover:bg-gray-50 transition-colors w-full"
                     >
-                      <div className="flex gap-3">
-                        {/* Icon or Avatar */}
-                        <div className="flex-shrink-0">
-                          {notification.avatar ? (
-                            <Image
-                              src={notification.avatar}
-                              alt=""
-                              width={40}
-                              height={40}
-                              className="w-10 h-10 object-cover"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-100 flex items-center justify-center">
-                              {getNotificationIcon(notification.type)}
-                            </div>
-                          )}
-                        </div>
+                      {/* Icon */}
+                      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-200">
+                        {getNotificationIcon(notification.type)}
+                      </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 mb-1">
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <p className={`text-sm font-medium text-gray-900 ${!notification.isRead ? 'font-semibold' : ''}`}>
                             {notification.title}
                           </p>
-                          <p className="text-sm text-gray-600 line-clamp-2">
-                            {notification.message}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="text-sm text-gray-500">
-                              {formatTimeAgo(notification.timestamp)}
-                            </span>
-                            {!notification.isRead && (
-                              <span className="w-2 h-2 bg-secondary"></span>
-                            )}
-                          </div>
+                          {!notification.isRead && (
+                            <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1"></span>
+                          )}
                         </div>
-
-                        {/* Delete Button */}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            deleteNotification(notification.id)
-                          }}
-                          className="flex-shrink-0 p-1 hover:bg-gray-200 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-4 h-4 text-gray-500" />
-                        </button>
+                        <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                          {notification.message}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">
+                            {formatTimeAgo(notification.timestamp)}
+                          </span>
+                          {notification.adId && (
+                            <>
+                              <span className="text-gray-300">•</span>
+                              <span className="text-xs text-primary font-medium">View ad</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </Link>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          {notifications.length > 0 && (
-            <div className="p-3 border-t border-gray-200 bg-gray-50">
-              <Link
-                href={`/profile/${user?.uid}?tab=notifications`}
-                onClick={() => setIsOpen(false)}
-                className="text-sm text-secondary hover:text-secondary/80 font-medium text-center block"
-              >
-                View All Notifications
-              </Link>
+                  </DropdownMenuItem>
+                  
+                  {/* Delete Button */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      handleDeleteNotification(notification.id, e)
+                    }}
+                    disabled={deleteNotificationMutation.isPending}
+                    className="absolute top-4 right-4 p-1.5 hover:bg-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
+                    aria-label="Delete notification"
+                  >
+                    <X className="w-4 h-4 text-gray-500" />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      )}
-    </div>
+
+        {/* Footer */}
+        {notifications.length > 0 && (
+          <div className="flex-shrink-0 border-t border-gray-200">
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/profile/${profileSlug}?tab=notifications`}
+                className="flex items-center justify-center gap-2 p-3 text-sm text-primary hover:text-primary/80 font-medium"
+              >
+                View All Notifications
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </DropdownMenuItem>
+          </div>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
-

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins, Inter, DM_Sans } from "next/font/google";
 import "./globals.css";
-import AppLayout from "@/layouts/AppLayout";
 import GoogleTranslate from "@/components/GoogleTranslate";
+import QueryProvider from "@/providers/QueryProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
+ 
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -46,11 +47,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${dmSans.variable} antialiased`}
+        suppressHydrationWarning
       >
-        <GoogleTranslate />
-        <AppLayout>
+        <QueryProvider>
+          <GoogleTranslate />
           {children}
-        </AppLayout>
+          <Toaster position="top-right" />
+        </QueryProvider>
       </body>
     </html>
   );

@@ -1,27 +1,15 @@
 import { FilterGroup } from '@/components/ui/FiltersSection'
 
-// Nigerian States Data
+// Niger Regions Data
 const nigerianStates = [
-  { id: "lagos", label: "Lagos", count: 2341 },
-  { id: "abuja", label: "Abuja (FCT)", count: 892 },
-  { id: "kano", label: "Kano", count: 634 },
-  { id: "ibadan", label: "Ibadan", count: 445 },
-  { id: "port-harcourt", label: "Port Harcourt", count: 356 },
-  { id: "benin", label: "Benin", count: 278 },
-  { id: "kaduna", label: "Kaduna", count: 234 },
-  { id: "maiduguri", label: "Maiduguri", count: 189 },
-  { id: "zaria", label: "Zaria", count: 156 },
-  { id: "aba", label: "Aba", count: 145 },
-  { id: "jos", label: "Jos", count: 123 },
-  { id: "ilorin", label: "Ilorin", count: 98 },
-  { id: "oyo", label: "Oyo", count: 87 },
-  { id: "enugu", label: "Enugu", count: 76 },
-  { id: "abeokuta", label: "Abeokuta", count: 65 },
-  { id: "sokoto", label: "Sokoto", count: 54 },
-  { id: "onitsha", label: "Onitsha", count: 43 },
-  { id: "warri", label: "Warri", count: 32 },
-  { id: "calabar", label: "Calabar", count: 28 },
-  { id: "akure", label: "Akure", count: 21 }
+  { id: "niamey", label: "Niamey", count: 2341 },
+  { id: "maradi", label: "Maradi", count: 892 },
+  { id: "zinder", label: "Zinder", count: 634 },
+  { id: "agadez", label: "Agadez", count: 445 },
+  { id: "tahoua", label: "Tahoua", count: 356 },
+  { id: "dosso", label: "Dosso", count: 278 },
+  { id: "tillaberi", label: "Tillabéri", count: 234 },
+  { id: "diffa", label: "Diffa", count: 189 }
 ]
 
 // Search page filters - simplified and focused on important ones

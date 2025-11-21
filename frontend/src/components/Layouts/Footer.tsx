@@ -5,7 +5,11 @@ import Link from 'next/link'
 import Logo from '../General/Logo'
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 
-export default function Footer() {
+interface FooterProps {
+  className?: string
+}
+
+export default function Footer({ className = '' }: FooterProps) {
   const currentYear = new Date().getFullYear()
 
   const footerLinks = {
@@ -28,6 +32,7 @@ export default function Footer() {
       { label: 'Vehicles', href: '/category/vehicles' },
       { label: 'Real Estate', href: '/category/real-estate' },
       { label: 'Jobs', href: '/category/jobs' },
+      { label: 'CV / Resume', href: '/category/cv' },
     ]
   }
 
@@ -39,7 +44,7 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
+    <footer className={`bg-gray-900 text-gray-300 hidden md:block`}>
       {/* Main Footer */}
       <div className="container py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">

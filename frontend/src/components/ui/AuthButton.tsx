@@ -1,25 +1,28 @@
 "use client"
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useAuthStore, simulateAuth } from '@/store/authStore'
-import { Loader2, UserCheck } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
+import { UserCheck } from 'lucide-react'
+import MarketplaceLoader from './MarketplaceLoader'
 
 export default function AuthButton() {
+  const router = useRouter()
   const { isAuthenticated, isLoading } = useAuthStore()
 
   const handleAuthenticate = () => {
-    simulateAuth()
+    router.push('/login')
   }
 
-  if (isLoading) {
-    return (
-      <Button variant="ghost" size="sm" disabled>
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-        Authenticating...
-      </Button>
-    )
-  }
+      if (isLoading) {
+        return (
+          <Button variant="ghost" size="sm" disabled>
+            <MarketplaceLoader inline size="sm" />
+            <span className="ml-2">Authenticating...</span>
+          </Button>
+        )
+      }
 
   if (isAuthenticated) {
     return (
@@ -37,7 +40,7 @@ export default function AuthButton() {
       onClick={handleAuthenticate}
       className="hover:bg-secondary/90"
     >
-      Authenticate
+      Sign In
     </Button>
   )
 }

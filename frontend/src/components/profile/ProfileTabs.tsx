@@ -44,6 +44,23 @@ export default function ProfileTabs({ isOwner = false }: ProfileTabsProps) {
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', tabId)
     router.push(`?${params.toString()}`, { scroll: false })
+    
+    // Scroll to top with multiple attempts to ensure it works
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      document.documentElement.scrollTo({ top: 0, behavior: 'smooth' })
+      document.body.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    
+    // Scroll immediately
+    scrollToTop()
+    
+    // Scroll after navigation
+    requestAnimationFrame(() => {
+      scrollToTop()
+      setTimeout(scrollToTop, 100)
+      setTimeout(scrollToTop, 300)
+    })
   }
 
   return (

@@ -1,6 +1,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Custom animations for chat UX */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -113,6 +129,58 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar for chat textarea - fancy scrollbar that only shows when overflowing */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  overflow-y: auto;
+}
+
+/* Hide scrollbar by default */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+/* Show scrollbar only when content overflows (has-overflow class) or on hover */
+.custom-scrollbar.has-overflow:hover::-webkit-scrollbar-thumb,
+.custom-scrollbar.has-overflow:focus::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.4);
+}
+
+.custom-scrollbar.has-overflow::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.6);
+}
+
+/* Show scrollbar when actively scrolling */
+.custom-scrollbar.has-overflow:active::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+}
+
+/* For Firefox - show scrollbar when has-overflow class */
+.custom-scrollbar.has-overflow {
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -156,6 +224,86 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #9ca3af;
   }
+
+/* Custom Scrollbar for Categories Section */
+.custom-scrollbar-categories {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.55 0.20 15) oklch(0.968 0.007 247.896);
+}
+
+.custom-scrollbar-categories::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar-categories::-webkit-scrollbar-track {
+  background: oklch(0.968 0.007 247.896);
+  border-radius: 4px;
+}
+
+.custom-scrollbar-categories::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, oklch(0.55 0.20 15), oklch(0.50 0.18 15));
+  border-radius: 4px;
+  border: 2px solid oklch(0.968 0.007 247.896);
+  transition: all 0.2s ease;
+}
+
+.custom-scrollbar-categories::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, oklch(0.60 0.22 15), oklch(0.55 0.20 15));
+  border: 1px solid oklch(0.968 0.007 247.896);
+}
+
+/* Fancy Scrollbar for Modals */
+.fancy-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.55 0.20 15) transparent;
+}
+
+.fancy-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.fancy-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.fancy-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, oklch(0.55 0.20 15), oklch(0.50 0.18 15));
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.2s ease;
+}
+
+.fancy-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, oklch(0.60 0.22 15), oklch(0.55 0.20 15));
+  background-clip: padding-box;
+}
+
+/* Faint Gray Scrollbar for Share Modal */
+.faint-gray-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+.faint-gray-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.faint-gray-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.faint-gray-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.faint-gray-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
 
   /* Chat Animations */
   @keyframes messageSlideIn {
@@ -209,3 +357,41 @@
   .message-bubble:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
+
+/* Marketplace Loader Animation */
+@keyframes pulse-corner {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes draw-path {
+  0% {
+    stroke-dasharray: 0 200;
+    opacity: 0.2;
+  }
+  50% {
+    stroke-dasharray: 100 200;
+    opacity: 0.4;
+  }
+  100% {
+    stroke-dasharray: 200 200;
+    opacity: 0.2;
+  }
+}

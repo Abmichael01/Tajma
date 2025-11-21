@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import Logo from '../General/Logo'
 import { Button } from '../ui/button'
 import AuthButton from '../ui/AuthButton'
@@ -9,7 +10,8 @@ import NotificationDropdown from '../ui/NotificationDropdown'
 import LanguageSwitcher from '../ui/LanguageSwitcher'
 import SearchModal from '../modals/SearchModal'
 import { useAuthStore } from '@/store/authStore'
-import { useFavoritesStore } from '@/store/favoritesStore'
+import { useSavedAds } from '@/hooks/useSavedAds'
+import { useChats } from '@/hooks/useChat'
 import Link from 'next/link'
 import { 
   MapPin, 
@@ -18,17 +20,22 @@ import {
   Plus, 
   Heart, 
   MessageSquare,
-  Search,
-  ChevronDown
+  Search
 } from 'lucide-react'
 
 export default function Navbar() {
+    const pathname = usePathname()
+    const isChatPage = pathname === '/chat'
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-    const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
     const { isAuthenticated, user } = useAuthStore()
-    const { getFavoritesCount } = useFavoritesStore()
-    const favoritesCount = getFavoritesCount()
+    const { data: savedAdsData } = useSavedAds(undefined, undefined)
+    const { data: chats = [] } = useChats()
+    // Get count from paginated response or calculate from results
+    const favoritesCount = savedAdsData?.count ?? (savedAdsData?.results?.length || 0)
+    // Calculate total unread messages from all chats
+    const totalUnreadMessages = chats.reduce((total, chat) => total + (chat.unread_count || 0), 0)
+    const profileSlug = user ? (user.username || user.email?.split('@')[0] || 'profile') : 'profile'
     
     // Track navbar height for mobile menu positioning
     useEffect(() => {
@@ -51,24 +58,13 @@ export default function Navbar() {
         'Vehicles', 
         'Real Estate',
         'Jobs',
+        'CV / Resume',
         'Services',
         'Fashion',
         'Home & Garden',
         'Sports'
     ]
 
-    // Close categories dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            const target = e.target as HTMLElement
-            if (isCategoriesOpen && !target.closest('.categories-dropdown')) {
-                setIsCategoriesOpen(false)
-            }
-        }
-
-        document.addEventListener('click', handleClickOutside)
-        return () => document.removeEventListener('click', handleClickOutside)
-    }, [isCategoriesOpen])
 
     return (
         <header className='border-b bg-white sticky top-0 z-50'>
@@ -93,7 +89,7 @@ export default function Navbar() {
             </div>
 
             {/* Main Navbar */}
-            <div className='container py-3 sm:py-4'>
+            <div className='container py-2 sm:py-4'>
                 <div className='flex justify-between items-center gap-4'>
                     {/* Logo */}
                     <div className='flex items-center flex-shrink-0'>
@@ -138,12 +134,15 @@ export default function Navbar() {
                                         Post Ad
                                     </Button>
                                 </Link>
-                                <Link href='/create-ad' className='sm:hidden'>
-                                    <Button variant="primary" size="sm">
-                                        <Plus className='w-4 h-4' />
-                                    </Button>
-                                </Link>
-                                <Link href={`/profile/${user?.uid}?tab=saved`} className="relative hidden lg:block">
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className='sm:hidden'
+                                    onClick={() => setIsSearchModalOpen(true)}
+                                >
+                                    <Search className='w-5 h-5' />
+                                </Button>
+                                <Link href={`/profile/${profileSlug}?tab=saved`} className="relative hidden lg:block">
                                     <Button variant="ghost" size="icon">
                                         <Heart className='w-5 h-5' />
                                     </Button>
@@ -153,10 +152,15 @@ export default function Navbar() {
                                         </span>
                                     )}
                                 </Link>
-                                <Link href="/chat" className="hidden lg:block">
+                                <Link href="/chat" className="hidden lg:block relative">
                                     <Button variant="ghost" size="icon">
                                         <MessageSquare className='w-5 h-5' />
                                     </Button>
+                                    {totalUnreadMessages > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center font-semibold z-10 rounded-full">
+                                            {totalUnreadMessages > 9 ? '9+' : totalUnreadMessages}
+                                        </span>
+                                    )}
                                 </Link>
                                 <div className="hidden lg:block">
                                     <NotificationDropdown />
@@ -164,16 +168,6 @@ export default function Navbar() {
                                 <UserDropdown />
                             </div>
                         )}
-
-                        {/* Mobile Search Icon */}
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className='sm:hidden'
-                            onClick={() => setIsSearchModalOpen(true)}
-                        >
-                            <Search className='w-5 h-5' />
-                        </Button>
 
                         {/* Mobile Menu Button */}
                         <Button 
@@ -196,33 +190,6 @@ export default function Navbar() {
             <div className='border-t bg-gray-50 hidden md:block'>
                 <div className='container py-2 sm:py-3'>
                     <div className='flex items-center gap-3 sm:gap-6 overflow-x-auto overflow-y-visible pb-1'>
-                        <div className='relative categories-dropdown'>
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className='whitespace-nowrap text-xs sm:text-sm flex-shrink-0'
-                                onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                            >
-                                All Categories
-                                <ChevronDown className='w-3 h-3 sm:w-4 sm:h-4 ml-1' />
-                            </Button>
-                            
-                            {/* Categories Dropdown */}
-                            {isCategoriesOpen && (
-                                <div className='absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 shadow-lg z-50'>
-                                    {categories.map((category) => (
-                                        <Link
-                                            key={category}
-                                            href={`/category/${category.toLowerCase().replace(/\s+/g, '-')}`}
-                                            className='block px-4 py-2 text-sm text-gray-700 hover:bg-secondary/10 hover:text-secondary transition-colors'
-                                            onClick={() => setIsCategoriesOpen(false)}
-                                        >
-                                            {category}
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
                         {categories.map((category) => (
                             <Link 
                                 key={category} 
@@ -257,19 +224,12 @@ export default function Navbar() {
                 }}
             >
                 <div className='h-full overflow-y-auto px-4 py-6 space-y-6'>
-                    {/* Login/Register or Post Ad */}
+                    {/* Login/Register */}
                     {!isAuthenticated ? (
                         <div className='flex flex-col gap-2'>
                             <AuthButton />
                         </div>
-                    ) : (
-                        <Link href='/create-ad' className='block'>
-                            <Button variant="primary" className='w-full' onClick={() => setIsMobileMenuOpen(false)}>
-                                <Plus className='w-4 h-4 mr-2' />
-                                Post Ad
-                            </Button>
-                        </Link>
-                    )}
+                    ) : null}
 
                     {/* Quick Links */}
                     <div className='space-y-1 border-t pt-3'>

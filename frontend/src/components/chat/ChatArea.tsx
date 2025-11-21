@@ -1,124 +1,551 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import Image from 'next/image'
-import { Conversation, Message } from '@/data/mockChat'
-import MessageBubble from './MessageBubble'
+import Link from 'next/link'
+import { Send, Image as ImageIcon, MoreVertical, Phone, Video, Paperclip, ChevronDown } from 'lucide-react'
+import EmojiPicker from './EmojiPicker'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import type { ChatSummary, ChatMessage, User, UserOnlineStatus } from '@/api/types'
 import { useAuthStore } from '@/store/authStore'
-import { Send, Image as ImageIcon, Smile, MoreVertical, Phone, Video, Paperclip } from 'lucide-react'
+import MessageBubble from './MessageBubble'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
-interface ChatAreaProps {
-  conversation: Conversation | null
-  messages: Message[]
-  onSendMessage: (content: string, type?: 'text' | 'image') => void
-  onBack?: () => void
+// Helper function to normalize image URLs
+const normalizeImageUrl = (url: string | null | undefined): string => {
+  if (!url) return '/default-product.png'
+  
+  // If already an absolute URL, return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  
+  // If starts with /, it's already a valid relative path
+  if (url.startsWith('/')) {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    return `${apiUrl}${url}`
+  }
+  
+  // Otherwise, prepend API URL and add leading slash
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  return `${apiUrl}/${url}`
 }
 
-export default function ChatArea({ 
-  conversation, 
-  messages, 
-  onSendMessage, 
-  onBack 
+interface ChatAreaProps {
+  chat: ChatSummary | null
+  participant: User | null
+  participantStatus?: UserOnlineStatus
+  messages: ChatMessage[]
+  isParticipantTyping?: boolean
+  isConnected?: boolean
+  isLoadingMessages?: boolean
+  hasMoreMessages?: boolean
+  onSendMessage: (content: string) => Promise<void> | void
+  onTypingChange?: (typing: boolean) => void
+  onLoadMore?: () => void
+  onBack?: () => void
+  onRetryMessage?: (message: ChatMessage) => void
+  onMarkAsRead?: () => void
+  chatId?: string | null // Chat ID to detect when chat changes
+}
+
+export default function ChatArea({
+  chat,
+  participant,
+  participantStatus,
+  messages,
+  isParticipantTyping,
+  isConnected,
+  isLoadingMessages = false,
+  hasMoreMessages = false,
+  onSendMessage,
+  onTypingChange,
+  onLoadMore,
+  onBack,
+  onRetryMessage,
+  onMarkAsRead,
+  chatId,
 }: ChatAreaProps) {
   const [inputValue, setInputValue] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false)
+  const [unreadCountBelow, setUnreadCountBelow] = useState(0)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const lastUnreadMessageRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isLoadingMoreRef = useRef(false)
+  const lastMessageCountRef = useRef<number>(0)
+  const lastMessageIdRef = useRef<string | number | null>(null)
+  const wasAtBottomRef = useRef<boolean>(true) // Track if user was at bottom before new message
   const { user } = useAuthStore()
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (smooth = true) => {
     if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto'
+      })
+      // Reset unread count after scrolling
+      setUnreadCountBelow(0)
+      // Update scroll state after a brief delay to ensure scroll position is updated
+      setTimeout(() => {
+        updateScrollState()
+      }, smooth ? 500 : 100)
     }
   }
+
+  // Track scroll position and count unread messages below current view
+  const updateScrollState = useCallback(() => {
+    const container = messagesContainerRef.current
+    if (!container || !messages || !user) return
+
+    const { scrollTop, scrollHeight, clientHeight } = container
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+    const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
+    
+    // Only show button if user has scrolled up (not at bottom)
+    if (isNearBottom) {
+      // User is at bottom - hide button
+      setShowScrollToBottom(false)
+      setUnreadCountBelow(0)
+      return
+    }
+    
+    // User has scrolled up - show button
+    setShowScrollToBottom(true)
+    
+    // Count unread messages that are below current scroll position
+    let count = 0
+    const viewportBottom = scrollTop + clientHeight
+    
+    // Get all message elements
+    const messageElements = Array.from(container.querySelectorAll('[data-message-id]')) as HTMLElement[]
+    
+    messageElements.forEach((element) => {
+      const messageId = element.getAttribute('data-message-id')
+      const message = messages.find(m => String(m.id) === messageId)
+      
+      if (message && message.sender?.id !== user.id && !message.is_read) {
+        const elementTop = element.offsetTop
+        const elementBottom = elementTop + element.offsetHeight
+        
+        // Check if message is below current viewport
+        if (elementTop > viewportBottom) {
+          count++
+        }
+      }
+    })
+    
+    // Set unread count (will show badge if count > 0)
+    setUnreadCountBelow(count)
+  }, [messages, user])
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    const container = messagesContainerRef.current
+    if (!container) return
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (inputValue.trim()) {
-      onSendMessage(inputValue.trim())
+    const handleScroll = () => {
+      // Update whether user is at bottom before checking scroll state
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+      wasAtBottomRef.current = distanceFromBottom < 100 // Within 100px of bottom
+      
+      updateScrollState()
+    }
+
+    container.addEventListener('scroll', handleScroll)
+    // Check initial position
+    const { scrollTop, scrollHeight, clientHeight } = container
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+    wasAtBottomRef.current = distanceFromBottom < 100
+    updateScrollState()
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+    }
+  }, [updateScrollState])
+  
+  // Check for new messages and show scroll button if user is not at bottom
+  useEffect(() => {
+    if (!messages || messages.length === 0) {
+      lastMessageCountRef.current = 0
+      lastMessageIdRef.current = null
+      return
+    }
+    
+    // Get the last message
+    const lastMessage = messages[messages.length - 1]
+    const currentMessageCount = messages.length
+    const currentLastMessageId = lastMessage?.id
+    
+    // Check if a new message actually arrived (not just array update)
+    const isNewMessage = 
+      currentMessageCount > lastMessageCountRef.current || 
+      (currentLastMessageId && currentLastMessageId !== lastMessageIdRef.current)
+    
+    // Store if user was at bottom before new message
+    const wasAtBottom = wasAtBottomRef.current
+    
+    // Update refs
+    lastMessageCountRef.current = currentMessageCount
+    lastMessageIdRef.current = currentLastMessageId
+    
+    // Only check scroll position if a new message arrived
+    if (isNewMessage) {
+      // Use multiple requestAnimationFrame calls to ensure DOM is fully updated
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const container = messagesContainerRef.current
+            if (!container) return
+            
+            // If user was at bottom before new message, auto-scroll to bottom
+            if (wasAtBottom) {
+              scrollToBottom(false) // Instant scroll
+              setShowScrollToBottom(false)
+              setUnreadCountBelow(0)
+              // Update wasAtBottomRef after scrolling
+              wasAtBottomRef.current = true
+            } else {
+              // User was not at bottom - check current position and show button if needed
+              const { scrollTop, scrollHeight, clientHeight } = container
+              const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+              const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
+              
+              // If user is not at bottom, show scroll button
+              if (!isNearBottom) {
+                setShowScrollToBottom(true)
+                
+                // Count unread messages from other user that are below viewport
+                let count = 0
+                const viewportBottom = scrollTop + clientHeight
+                
+                // Get all message elements
+                const messageElements = Array.from(container.querySelectorAll('[data-message-id]')) as HTMLElement[]
+                
+                messageElements.forEach((element) => {
+                  const messageId = element.getAttribute('data-message-id')
+                  const message = messages.find(m => String(m.id) === messageId)
+                  
+                  if (message && message.sender?.id !== user?.id && !message.is_read) {
+                    const elementTop = element.offsetTop
+                    
+                    // Check if message is below current viewport
+                    if (elementTop > viewportBottom) {
+                      count++
+                    }
+                  }
+                })
+                
+                setUnreadCountBelow(count)
+              } else {
+                // User is at bottom - hide button
+                setShowScrollToBottom(false)
+                setUnreadCountBelow(0)
+                wasAtBottomRef.current = true
+              }
+            }
+          }, 300) // Delay to ensure messages are rendered
+        })
+      })
+    }
+  }, [messages, user])
+
+  // Scroll to bottom instantly when chat is opened (chatId changes) or messages load
+  useEffect(() => {
+    if (!chatId || !messagesContainerRef.current) return
+    
+    // Reset scroll state when chat changes
+    setShowScrollToBottom(false)
+    setUnreadCountBelow(0)
+    wasAtBottomRef.current = true
+    
+    // Scroll to bottom instantly when chat opens or messages load
+    const scrollToBottomNow = () => {
+      const container = messagesContainerRef.current
+      if (container) {
+        container.scrollTop = container.scrollHeight
+      }
+    }
+    
+    // Try multiple times to ensure it works
+    requestAnimationFrame(() => {
+      scrollToBottomNow()
+      setTimeout(() => {
+        scrollToBottomNow()
+        setTimeout(() => {
+          scrollToBottomNow()
+        }, 50)
+      }, 50)
+    })
+  }, [chatId, messages])
+
+  // Auto-scroll when typing indicator appears if user was at bottom
+  useEffect(() => {
+    if (!isParticipantTyping) return
+    
+    const container = messagesContainerRef.current
+    if (!container) return
+    
+    // Check if user was at bottom before typing indicator appeared
+    if (wasAtBottomRef.current) {
+      // Auto-scroll to bottom when typing shows
+      requestAnimationFrame(() => {
+        scrollToBottom(false) // Instant scroll
+      })
+    }
+  }, [isParticipantTyping])
+
+  // WhatsApp-style: Mark as read when last unread message is visible
+  useEffect(() => {
+    if (!onMarkAsRead || !messages || !user || !messagesContainerRef.current) return
+
+    // Find last unread message (from other user)
+    const unreadMessages = messages.filter(
+      (msg) => !msg.is_read && msg.sender?.id !== user.id
+    )
+    
+    if (unreadMessages.length === 0) return
+
+    const lastUnreadMessage = unreadMessages[unreadMessages.length - 1]
+    let observer: IntersectionObserver | null = null
+    
+    // Wait for DOM to update, then find the element
+    const timeoutId = setTimeout(() => {
+      const lastUnreadElement = document.querySelector(`[data-message-id="${lastUnreadMessage.id}"]`) as HTMLElement
+
+      if (!lastUnreadElement) {
+        console.log(`[Mark Read] Could not find element for message ${lastUnreadMessage.id}`)
+        return
+      }
+
+      // Use Intersection Observer to detect when last unread message is visible
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              // Last unread message is visible - mark all as read (WhatsApp style)
+              console.log('[Mark Read] ✅ Last unread message is visible, marking as read')
+              onMarkAsRead()
+              observer?.disconnect()
+            }
+          })
+        },
+        {
+          root: messagesContainerRef.current,
+          rootMargin: '0px',
+          threshold: 0.1, // At least 10% visible (more lenient)
+        }
+      )
+
+      observer.observe(lastUnreadElement)
+      console.log(`[Mark Read] Observing last unread message ${lastUnreadMessage.id}`)
+    }, 100) // Small delay to ensure DOM is updated
+
+    return () => {
+      clearTimeout(timeoutId)
+      if (observer) {
+        observer.disconnect()
+      }
+    }
+  }, [messages, user, onMarkAsRead])
+
+  // Infinite scroll: Load more messages when scrolling to top
+  useEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container || !hasMoreMessages || isLoadingMessages) return
+
+    const handleScroll = () => {
+      // Load more when scrolled to top (within 100px)
+      if (container.scrollTop < 100 && !isLoadingMoreRef.current && hasMoreMessages) {
+        isLoadingMoreRef.current = true
+        const previousScrollHeight = container.scrollHeight
+        onLoadMore?.()
+        
+        // Restore scroll position after loading
+        setTimeout(() => {
+          if (container) {
+            const newScrollHeight = container.scrollHeight
+            container.scrollTop = newScrollHeight - previousScrollHeight
+            isLoadingMoreRef.current = false
+          }
+        }, 100)
+      }
+    }
+
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [hasMoreMessages, isLoadingMessages, onLoadMore])
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const handleSendMessage = async (event: React.FormEvent) => {
+    event.preventDefault()
+    const trimmed = inputValue.trim()
+    if (!trimmed) return
+
+    try {
+      await onSendMessage(trimmed)
       setInputValue('')
+      onTypingChange?.(false)
+      // Auto-scroll to bottom when user sends their own message
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          scrollToBottom(false) // Use instant scroll for better UX
+          // Update scroll state after scrolling
+          setTimeout(() => {
+            updateScrollState()
+          }, 50)
+        }, 50)
+      })
+    } catch (error) {
+      console.error('Failed to send chat message', error)
     }
   }
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleTypingChange = (value: string) => {
+    setInputValue(value)
+    
+    // Only send typing indicator if there's actual content
+    if (value.trim().length > 0) {
+      onTypingChange?.(true)
+    } else {
+      onTypingChange?.(false)
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+
+    // Auto-stop typing after 2 seconds of inactivity
+    // Note: WhatsApp uses 300-500ms debounce before sending, but we use 2s timeout for stopping
+    // This prevents flickering while still being responsive
+    if (value.trim().length > 0) {
+      typingTimeoutRef.current = setTimeout(() => {
+        onTypingChange?.(false)
+        typingTimeoutRef.current = null
+      }, 2000)
+    }
+  }
+
+  const handleAttachmentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (file) {
-      // In a real app, you would upload the image and get a URL
-      // For now, we'll just simulate sending an image
-      onSendMessage('', 'image')
+      console.warn('File attachments are not supported yet', file.name)
     }
   }
 
-  if (!conversation) {
+  const formatRelativeTime = (timestamp: string) => {
+    const now = Date.now()
+    const date = new Date(timestamp).getTime()
+    const diffSeconds = Math.max(0, Math.floor((now - date) / 1000))
+    if (diffSeconds < 60) return `${diffSeconds || 1}s ago`
+    const diffMinutes = Math.floor(diffSeconds / 60)
+    if (diffMinutes < 60) return `${diffMinutes}m ago`
+    const diffHours = Math.floor(diffMinutes / 60)
+    if (diffHours < 24) return `${diffHours}h ago`
+    const diffDays = Math.floor(diffHours / 24)
+    if (diffDays < 7) return `${diffDays}d ago`
+    const diffWeeks = Math.floor(diffDays / 7)
+    if (diffWeeks < 4) return `${diffWeeks}w ago`
+    const diffMonths = Math.floor(diffDays / 30)
+    if (diffMonths < 12) return `${diffMonths}mo ago`
+    const diffYears = Math.floor(diffDays / 365)
+    return `${diffYears}y ago`
+  }
+
+  const participantStatusText = useMemo(() => {
+    if (participantStatus?.is_online) return 'Online'
+    if (participantStatus?.last_seen) {
+      return `Last seen ${formatRelativeTime(participantStatus.last_seen)}`
+    }
+    return 'Offline'
+  }, [participantStatus])
+
+  if (!chat || !participant) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center text-gray-500 max-w-md mx-auto p-6">
-          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="flex-1 flex items-center justify-center bg-gray-50 md:bg-white">
+        <div className="text-center text-gray-500 max-w-md mx-auto p-6 animate-fade-in">
+          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Start a conversation</h3>
-          <p className="text-gray-600 mb-4">
-            Your messages will appear here. Start chatting with sellers or buyers about products.
+          <p className="text-gray-600 mb-4 text-sm md:text-base">
+            Your messages will appear here. Pick a chat from the conversation list or open an ad to begin chatting.
           </p>
-          <button className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
-            Browse Products
-          </button>
         </div>
       </div>
     )
   }
 
-  const participant = conversation.participants[0]
-
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Chat Header */}
+    <div className="flex flex-col h-full bg-white relative">
       <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          {/* Back button for mobile */}
           {onBack && (
-            <button
-              onClick={onBack}
-              className="md:hidden p-2 hover:bg-gray-100 flex-shrink-0"
-            >
+            <button onClick={onBack} className="md:hidden p-2 hover:bg-gray-100 flex-shrink-0">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           )}
-                    
-          {/* User Info */}
+
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="relative flex-shrink-0">
-              <Image
-                src={participant.avatar || '/default-avatar.png'}
-                alt={participant.name}
-                width={40}
-                height={40}
-                className="w-8 h-8 sm:w-10 sm:h-10 object-cover"
-              />
-              {participant.isOnline && (
-                <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white"></div>
+              <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
+                <AvatarImage src={participant.avatar || undefined} alt={getUserFullName(participant)} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm font-medium">
+                  {getUserInitials(participant)}
+                </AvatarFallback>
+              </Avatar>
+              {participantStatus?.is_online && (
+                <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white rounded-full" />
               )}
             </div>
             <div className="min-w-0">
-              <h2 className="font-semibold text-gray-900 text-sm truncate">{participant.name}</h2>
+              <h2 className="font-semibold text-gray-900 text-sm truncate">{getUserFullName(participant)}</h2>
               <p className="text-xs text-gray-500 truncate">
-                {participant.isOnline ? 'Online' : participant.lastSeen || 'Offline'}
+                {isParticipantTyping ? (
+                  <span className="flex items-center gap-1">
+                    <span className="inline-flex gap-0.5">
+                      <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
+                      <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
+                      <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
+                    </span>
+                    is typing...
+                  </span>
+                ) : (
+                  participantStatusText
+                )}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Header Actions */}
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          {isConnected ? (
+            <span className="text-xs text-green-600 bg-green-50 border border-green-200 rounded-full px-2 py-1 hidden sm:inline-flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+              Connected
+            </span>
+          ) : (
+            <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 hidden sm:inline-flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+              Reconnecting…
+            </span>
+          )}
           <button className="p-2 hover:bg-gray-100 hidden sm:block">
             <Phone className="w-5 h-5 text-gray-600" />
           </button>
@@ -131,146 +558,230 @@ export default function ChatArea({
         </div>
       </div>
 
-      {/* Product Info Bar */}
-      {conversation.productTitle && (
+      {chat.ad_title && (
         <div className="p-2 sm:p-3 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 overflow-hidden flex-shrink-0">
-              <Image
-                src={conversation.productImage || '/default-product.png'}
-                alt={conversation.productTitle}
-                width={48}
-                height={48}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            {chat.ad_image && (
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 overflow-hidden flex-shrink-0 rounded">
+                <Image
+                  src={normalizeImageUrl(chat.ad_image)}
+                  alt={chat.ad_title || 'Ad image'}
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-gray-900 text-xs sm:text-sm truncate">
-                {conversation.productTitle}
-              </h3>
-              <p className="text-sm sm:text-lg font-bold text-primary">{conversation.productPrice}</p>
+              <h3 className="font-medium text-gray-900 text-xs sm:text-sm truncate">{chat.ad_title}</h3>
+              {chat.ad_price && (
+                <p className="text-sm sm:text-lg font-bold text-primary">
+                  {chat.ad_currency || 'Fr'} {parseFloat(chat.ad_price).toLocaleString()}
+                </p>
+              )}
             </div>
-            <button className="text-xs text-secondary hover:text-secondary/80 font-medium flex-shrink-0">
-              View
-            </button>
+            {chat.ad_slug && (
+              <Link href={`/ads/${chat.ad_slug}`} className="text-xs text-secondary hover:text-secondary/80 font-medium flex-shrink-0">
+                View
+              </Link>
+            )}
           </div>
         </div>
       )}
 
-      {/* Messages Area */}
-      <div 
+      <div className="flex-1 relative overflow-hidden">
+      <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50 custom-scrollbar"
+          className="h-full overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50 custom-scrollbar"
       >
-        {messages.map((message) => (
-          <MessageBubble
-            key={message.id}
-            message={message}
-            isOwn={message.senderId === 'current'}
-            participant={participant}
-            currentUserAvatar={user?.avatar}
-          />
-        ))}
-        
-        {/* Typing Indicator */}
-        {isTyping && (
+        {/* Loading indicator for older messages */}
+        {isLoadingMessages && messages && Array.isArray(messages) && messages.length > 0 && (
+          <div className="flex justify-center py-2">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          </div>
+        )}
+
+        {messages && Array.isArray(messages) && messages.length > 0 ? (
+          <>
+            {messages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                isOwn={message.sender?.id === user?.id}
+                participant={participant}
+                currentUserAvatar={user?.avatar ?? null}
+                currentUser={user}
+                onRetry={onRetryMessage}
+              />
+            ))}
+            
+            {/* Load more indicator */}
+            {hasMoreMessages && !isLoadingMessages && (
+              <div className="flex justify-center py-2">
+                <button
+                  onClick={() => onLoadMore?.()}
+                  className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300"
+                >
+                  Load older messages
+                </button>
+              </div>
+            )}
+          </>
+        ) : !isLoadingMessages ? (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="text-center">
+              <p className="text-sm">No messages yet</p>
+              <p className="text-xs text-gray-400 mt-1">Start the conversation</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
+
+        {isParticipantTyping && (
           <div className="flex items-center gap-2">
-            <Image
-              src={participant.avatar || '/default-avatar.png'}
-              alt={participant.name}
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-full object-cover"
-            />
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={participant.avatar || undefined} alt={getUserFullName(participant)} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                {getUserInitials(participant)}
+              </AvatarFallback>
+            </Avatar>
             <div className="bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-gray-400 rounded-full typing-dot" />
+                <div className="w-2 h-2 bg-gray-400 rounded-full typing-dot" />
+                <div className="w-2 h-2 bg-gray-400 rounded-full typing-dot" />
               </div>
             </div>
           </div>
         )}
+        </div>
+        
+        {/* Scroll to bottom button (WhatsApp style) - fixed position, only shows when user scrolls up */}
+        {showScrollToBottom && (
+          <div className="absolute bottom-4 right-4 z-20">
+            <button
+              onClick={() => scrollToBottom(true)}
+              className="bg-primary text-primary-foreground rounded-full p-2.5 shadow-lg hover:bg-primary/90 transition-all animate-fade-in flex items-center justify-center relative"
+              title={unreadCountBelow > 0 ? `${unreadCountBelow} new message${unreadCountBelow > 1 ? 's' : ''}` : "Scroll to bottom"}
+            >
+              <ChevronDown className="w-5 h-5" />
+              {unreadCountBelow > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-normal rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                  {unreadCountBelow > 99 ? '99+' : unreadCountBelow}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Message Input */}
       <div className="p-2 sm:p-4 border-t border-gray-200 bg-white">
         <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3">
-          {/* File Attachment Button - Hidden on small mobile */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:flex items-center justify-center flex-shrink-0"
             title="Attach file"
           >
             <Paperclip className="w-5 h-5 text-gray-600" />
           </button>
 
-          {/* Image Upload Button - Hidden on small mobile */}
           <button
             type="button"
             onClick={() => imageInputRef.current?.click()}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:flex items-center justify-center flex-shrink-0"
             title="Attach image"
           >
             <ImageIcon className="w-5 h-5 text-gray-600" />
           </button>
-          
-          {/* Emoji Button - Hidden on small mobile */}
-          <button
-            type="button"
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
-            title="Add emoji"
-          >
-            <Smile className="w-5 h-5 text-gray-600" />
-          </button>
 
-          {/* Message Input */}
-          <div className="flex-1 relative">
+          <EmojiPicker
+            onEmojiSelect={(emoji) => {
+              setInputValue((prev) => prev + emoji)
+              // Focus back on textarea after emoji selection
+              const textarea = document.querySelector('textarea[placeholder="Type a message..."]') as HTMLTextAreaElement
+              if (textarea) {
+                textarea.focus()
+                // Move cursor to end
+                textarea.setSelectionRange(textarea.value.length, textarea.value.length)
+              }
+            }}
+          />
+
+          <div className="flex-1 relative min-w-0">
             <textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type a message..."
-              className="w-full resize-none border border-gray-200 rounded-lg px-3 sm:px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm"
-              rows={1}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSendMessage(e)
+              ref={(textarea) => {
+                if (textarea) {
+                  // Auto-resize textarea
+                  textarea.style.height = 'auto'
+                  const newHeight = Math.min(textarea.scrollHeight, 120)
+                  textarea.style.height = `${newHeight}px`
+                  
+                  // Add/remove scrollbar class based on overflow
+                  if (textarea.scrollHeight > 120) {
+                    textarea.classList.add('has-overflow')
+                  } else {
+                    textarea.classList.remove('has-overflow')
+                  }
                 }
               }}
+              value={inputValue}
+              onChange={(event) => {
+                handleTypingChange(event.target.value)
+                // Auto-resize on change
+                const textarea = event.target as HTMLTextAreaElement
+                textarea.style.height = 'auto'
+                const newHeight = Math.min(textarea.scrollHeight, 120)
+                textarea.style.height = `${newHeight}px`
+                
+                // Add/remove scrollbar class based on overflow
+                if (textarea.scrollHeight > 120) {
+                  textarea.classList.add('has-overflow')
+                } else {
+                  textarea.classList.remove('has-overflow')
+                }
+              }}
+              placeholder="Type a message..."
+              className="w-full resize-none border border-gray-200 rounded-lg px-3 sm:px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm max-h-[120px] custom-scrollbar"
+              rows={1}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault()
+                  handleSendMessage(event)
+                }
+              }}
+              // Better mobile keyboard handling
+              inputMode="text"
+              autoComplete="off"
+              autoCorrect="on"
+              autoCapitalize="sentences"
             />
           </div>
 
-          {/* Send Button */}
           <button
             type="submit"
             disabled={!inputValue.trim()}
-            className="p-2.5 sm:p-3 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+            className="p-2.5 sm:p-3 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0 flex items-center justify-center"
             title="Send message"
           >
             <Send className="w-5 h-5" />
           </button>
         </form>
 
-        {/* Hidden file input for documents/files */}
         <input
           ref={fileInputRef}
           type="file"
           accept=".pdf,.doc,.docx,.txt,.zip"
-          onChange={handleImageUpload}
+          onChange={handleAttachmentChange}
           className="hidden"
         />
 
-        {/* Hidden file input for images */}
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          className="hidden"
-        />
+        <input ref={imageInputRef} type="file" accept="image/*" onChange={handleAttachmentChange} className="hidden" />
       </div>
     </div>
   )
 }
+
