@@ -39,22 +39,27 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         const index = chats.findIndex((c) => c.id === updatedChat.id)
         
         if (index !== -1) {
-          // Preserve ad-related fields that might not be in updatedChat
-          // This prevents ad_image, ad_title, etc. from being lost
+          // Defensive merge: Preserve ad fields from existing chat
+          // Production backend may send null for ad fields, so we always preserve existing values
           const existingChat = chats[index]
+          
           chats[index] = {
             ...existingChat,
-            ...updatedChat,
-            // Preserve ad fields if not in updatedChat
-            ad: updatedChat.ad ?? existingChat.ad,
-            ad_title: updatedChat.ad_title ?? existingChat.ad_title,
-            ad_slug: updatedChat.ad_slug ?? existingChat.ad_slug,
-            ad_image: updatedChat.ad_image ?? existingChat.ad_image,
-            ad_price: updatedChat.ad_price ?? existingChat.ad_price,
-            ad_currency: updatedChat.ad_currency ?? existingChat.ad_currency,
-            // Preserve participant info
+            // Update message-related fields
+            last_message: updatedChat.last_message ?? existingChat.last_message,
+            last_message_at: updatedChat.last_message_at ?? existingChat.last_message_at,
+            updated_at: updatedChat.updated_at ?? existingChat.updated_at,
+            unread_count: updatedChat.unread_count ?? existingChat.unread_count,
             participant1: updatedChat.participant1 ?? existingChat.participant1,
             participant2: updatedChat.participant2 ?? existingChat.participant2,
+            // CRITICAL: Always preserve ad fields from existing chat
+            // Only update if new value is explicitly provided AND not null
+            ad: (updatedChat.ad !== undefined && updatedChat.ad !== null) ? updatedChat.ad : existingChat.ad,
+            ad_title: (updatedChat.ad_title !== undefined && updatedChat.ad_title !== null) ? updatedChat.ad_title : existingChat.ad_title,
+            ad_slug: (updatedChat.ad_slug !== undefined && updatedChat.ad_slug !== null) ? updatedChat.ad_slug : existingChat.ad_slug,
+            ad_image: (updatedChat.ad_image !== undefined && updatedChat.ad_image !== null) ? updatedChat.ad_image : existingChat.ad_image,
+            ad_price: (updatedChat.ad_price !== undefined && updatedChat.ad_price !== null) ? updatedChat.ad_price : existingChat.ad_price,
+            ad_currency: (updatedChat.ad_currency !== undefined && updatedChat.ad_currency !== null) ? updatedChat.ad_currency : existingChat.ad_currency,
           }
         } else {
           chats.unshift(updatedChat)
@@ -71,16 +76,26 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
       // Update chat detail cache for this specific chat (preserve ad fields)
       queryClient.setQueryData(['chats', chat_id], (oldData: any) => {
         if (!oldData) return oldData
+        
+        // Defensive merge: Always preserve ad fields from existing data
+        // Production backend may send null for ad fields, so we always preserve existing values
         return {
           ...oldData,
-          ...updatedChat,
-          // Preserve ad fields if not in updatedChat
-          ad: updatedChat.ad ?? oldData.ad,
-          ad_title: updatedChat.ad_title ?? oldData.ad_title,
-          ad_slug: updatedChat.ad_slug ?? oldData.ad_slug,
-          ad_image: updatedChat.ad_image ?? oldData.ad_image,
-          ad_price: updatedChat.ad_price ?? oldData.ad_price,
-          ad_currency: updatedChat.ad_currency ?? oldData.ad_currency,
+          // Update message-related fields
+          last_message: updatedChat.last_message ?? oldData.last_message,
+          last_message_at: updatedChat.last_message_at ?? oldData.last_message_at,
+          updated_at: updatedChat.updated_at ?? oldData.updated_at,
+          unread_count: updatedChat.unread_count ?? oldData.unread_count,
+          participant1: updatedChat.participant1 ?? oldData.participant1,
+          participant2: updatedChat.participant2 ?? oldData.participant2,
+          // CRITICAL: Always preserve ad fields from oldData
+          // Only update if new value is explicitly provided AND not null
+          ad: (updatedChat.ad !== undefined && updatedChat.ad !== null) ? updatedChat.ad : oldData.ad,
+          ad_title: (updatedChat.ad_title !== undefined && updatedChat.ad_title !== null) ? updatedChat.ad_title : oldData.ad_title,
+          ad_slug: (updatedChat.ad_slug !== undefined && updatedChat.ad_slug !== null) ? updatedChat.ad_slug : oldData.ad_slug,
+          ad_image: (updatedChat.ad_image !== undefined && updatedChat.ad_image !== null) ? updatedChat.ad_image : oldData.ad_image,
+          ad_price: (updatedChat.ad_price !== undefined && updatedChat.ad_price !== null) ? updatedChat.ad_price : oldData.ad_price,
+          ad_currency: (updatedChat.ad_currency !== undefined && updatedChat.ad_currency !== null) ? updatedChat.ad_currency : oldData.ad_currency,
         }
       })
     },
