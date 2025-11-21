@@ -254,7 +254,7 @@ function ChatClientContent() {
       }
     })
 
-    // Also update chat list optimistically
+    // Also update chat list optimistically (preserve ad fields and reorder)
     queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
       if (!oldChats) return []
       return oldChats.map((chat) => {
@@ -264,12 +264,20 @@ function ChatClientContent() {
             last_message: optimisticMessage,
             last_message_at: optimisticMessage.created_at,
             updated_at: optimisticMessage.created_at,
+            // Preserve all ad-related fields
+            ad: chat.ad,
+            ad_title: chat.ad_title,
+            ad_slug: chat.ad_slug,
+            ad_image: chat.ad_image,
+            ad_price: chat.ad_price,
+            ad_currency: chat.ad_currency,
           }
         }
         return chat
       }).sort((a, b) => {
-        const timeA = new Date(a.last_message_at || a.updated_at).getTime()
-        const timeB = new Date(b.last_message_at || b.updated_at).getTime()
+        // Sort by most recent activity (WhatsApp/Telegram pattern)
+        const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
+        const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
         return timeB - timeA
       })
     })

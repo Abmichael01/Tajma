@@ -39,23 +39,49 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         const index = chats.findIndex((c) => c.id === updatedChat.id)
         
         if (index !== -1) {
-          chats[index] = { ...chats[index], ...updatedChat }
+          // Preserve ad-related fields that might not be in updatedChat
+          // This prevents ad_image, ad_title, etc. from being lost
+          const existingChat = chats[index]
+          chats[index] = {
+            ...existingChat,
+            ...updatedChat,
+            // Preserve ad fields if not in updatedChat
+            ad: updatedChat.ad ?? existingChat.ad,
+            ad_title: updatedChat.ad_title ?? existingChat.ad_title,
+            ad_slug: updatedChat.ad_slug ?? existingChat.ad_slug,
+            ad_image: updatedChat.ad_image ?? existingChat.ad_image,
+            ad_price: updatedChat.ad_price ?? existingChat.ad_price,
+            ad_currency: updatedChat.ad_currency ?? existingChat.ad_currency,
+            // Preserve participant info
+            participant1: updatedChat.participant1 ?? existingChat.participant1,
+            participant2: updatedChat.participant2 ?? existingChat.participant2,
+          }
         } else {
           chats.unshift(updatedChat)
         }
         
-        // Sort by most recent activity
+        // Sort by most recent activity (WhatsApp/Telegram pattern - most recent on top)
         return chats.sort((a, b) => {
-          const timeA = new Date(a.last_message_at || a.updated_at).getTime()
-          const timeB = new Date(b.last_message_at || b.updated_at).getTime()
+          const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
+          const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
           return timeB - timeA
         })
       })
 
-      // Update chat detail cache for this specific chat
+      // Update chat detail cache for this specific chat (preserve ad fields)
       queryClient.setQueryData(['chats', chat_id], (oldData: any) => {
         if (!oldData) return oldData
-        return { ...oldData, ...updatedChat }
+        return {
+          ...oldData,
+          ...updatedChat,
+          // Preserve ad fields if not in updatedChat
+          ad: updatedChat.ad ?? oldData.ad,
+          ad_title: updatedChat.ad_title ?? oldData.ad_title,
+          ad_slug: updatedChat.ad_slug ?? oldData.ad_slug,
+          ad_image: updatedChat.ad_image ?? oldData.ad_image,
+          ad_price: updatedChat.ad_price ?? oldData.ad_price,
+          ad_currency: updatedChat.ad_currency ?? oldData.ad_currency,
+        }
       })
     },
     [queryClient]
@@ -159,6 +185,34 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           }
         })
 
+        // Also update chat list to move chat to top and update last message (WhatsApp/Telegram pattern)
+        queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
+          if (!oldChats) return oldChats
+          return oldChats.map((chat) => {
+            if (chat.id === activeConversationId) {
+              return {
+                ...chat,
+                last_message: message,
+                last_message_at: message.created_at,
+                updated_at: message.created_at,
+                // Preserve all ad-related fields
+                ad: chat.ad,
+                ad_title: chat.ad_title,
+                ad_slug: chat.ad_slug,
+                ad_image: chat.ad_image,
+                ad_price: chat.ad_price,
+                ad_currency: chat.ad_currency,
+              }
+            }
+            return chat
+          }).sort((a, b) => {
+            // Sort by most recent activity (most recent on top)
+            const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
+            const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
+            return timeB - timeA
+          })
+        })
+
         // Also update chat detail cache
         queryClient.setQueryData(['chats', activeConversationId], (oldData: any) => {
           if (!oldData) return oldData
@@ -176,6 +230,13 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ),
               last_message: message,
               last_message_at: message.created_at,
+              // Preserve ad fields
+              ad: oldData.ad,
+              ad_title: oldData.ad_title,
+              ad_slug: oldData.ad_slug,
+              ad_image: oldData.ad_image,
+              ad_price: oldData.ad_price,
+              ad_currency: oldData.ad_currency,
             }
           }
           
@@ -198,6 +259,13 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ),
               last_message: message,
               last_message_at: message.created_at,
+              // Preserve ad fields
+              ad: oldData.ad,
+              ad_title: oldData.ad_title,
+              ad_slug: oldData.ad_slug,
+              ad_image: oldData.ad_image,
+              ad_price: oldData.ad_price,
+              ad_currency: oldData.ad_currency,
             }
           }
           
@@ -209,6 +277,13 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             ),
             last_message: message,
             last_message_at: message.created_at,
+            // Preserve ad fields
+            ad: oldData.ad,
+            ad_title: oldData.ad_title,
+            ad_slug: oldData.ad_slug,
+            ad_image: oldData.ad_image,
+            ad_price: oldData.ad_price,
+            ad_currency: oldData.ad_currency,
           }
         })
       }
