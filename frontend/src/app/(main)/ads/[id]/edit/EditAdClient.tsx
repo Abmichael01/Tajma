@@ -65,7 +65,42 @@ const ATTRIBUTE_FIELDS = [
   'desired_salary',
 ]
 
-const flattenCategories = (nodes: CategoryTree[], parents: CategoryTree[] = []) =>
+// Helper functions for category tree traversal
+const findNodeBySlug = (nodes: CategoryTree[], slug: string): CategoryTree | null => {
+  for (const node of nodes) {
+    if (node.slug === slug) return node
+    if (node.children && node.children.length > 0) {
+      const found = findNodeBySlug(node.children, slug)
+      if (found) return found
+    }
+  }
+  return null
+}
+
+const findPathForSlug = (
+  nodes: CategoryTree[],
+  slug: string,
+  trail: string[] = []
+): string[] | null => {
+  for (const node of nodes) {
+    const nextTrail = [...trail, node.slug]
+    if (node.slug === slug) return nextTrail
+    if (node.children && node.children.length > 0) {
+      const result = findPathForSlug(node.children, slug, nextTrail)
+      if (result) return result
+    }
+  }
+  return null
+}
+
+const flattenCategories = (nodes: CategoryTree[], parents: CategoryTree[] = []): Array<{
+  value: string
+  label: string
+  pathLabel: string
+  icon: string | null
+  adType: string | null
+  customFields: string[]
+}> =>
   nodes.flatMap((node) => {
     const lineage = [...parents, node]
     if (node.children && node.children.length > 0) {
@@ -76,9 +111,9 @@ const flattenCategories = (nodes: CategoryTree[], parents: CategoryTree[] = []) 
         value: node.slug,
         label: node.name,
         pathLabel: lineage.map((n) => n.name).join(' / '),
-        icon: node.icon,
-        adType: node.category_type,
-        customFields: node.custom_fields || [],
+        icon: node.icon ?? null,
+        adType: node.type ?? null,
+        customFields: node.custom_fields || node.customFields || [],
       },
     ]
   })
@@ -111,7 +146,7 @@ export default function EditAdClient({ adId }: EditAdClientProps) {
   const categoryLabel = useMemo(() => {
     if (!categoryPath.length) return ''
     return categoryPath
-      .map((slug) => findNodeBySlug(categoryTree, slug)?.name)
+      .map((slug: string) => findNodeBySlug(categoryTree, slug)?.name)
       .filter(Boolean)
       .join(' / ')
   }, [categoryPath, categoryTree])
@@ -331,7 +366,7 @@ export default function EditAdClient({ adId }: EditAdClientProps) {
               <ReviewStep
                 formData={formData}
                 selectedCategoryLabel={categoryLabel}
-                categoryPath={categoryPath.map((slug) => ({
+                categoryPath={categoryPath.map((slug: string) => ({
                   name: findNodeBySlug(categoryTree, slug)?.name || slug,
                   slug,
                 }))}

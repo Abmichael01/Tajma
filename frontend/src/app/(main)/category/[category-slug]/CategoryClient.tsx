@@ -5,13 +5,14 @@ import AdsList from '@/components/Home/AdsList'
 import FiltersSection from '@/components/ui/FiltersSection'
 import { getFiltersByCategory } from '@/data/filterConfigs'
 import { mockAds, filterAds } from '@/data/mockAds'
+import type { Ad } from '@/api/types'
 
 interface CategoryClientProps {
   categorySlug: string
 }
 
 export default function CategoryClient({ categorySlug }: CategoryClientProps) {
-  const [filteredAds, setFilteredAds] = useState(mockAds)
+  const [filteredAds, setFilteredAds] = useState<Ad[]>([])
   const [isLoading, setIsLoading] = useState(false)
   
   // Get category-specific filters
@@ -30,7 +31,7 @@ export default function CategoryClient({ categorySlug }: CategoryClientProps) {
     setTimeout(() => {
       const categoryFiltered = filterAds(mockAds, {
         category: categorySlug
-      })
+      }) as unknown as Ad[]
       
       setFilteredAds(categoryFiltered)
       setIsLoading(false)
@@ -72,7 +73,7 @@ export default function CategoryClient({ categorySlug }: CategoryClientProps) {
         }
       }
       
-      const filtered = filterAds(mockAds, filterOptions)
+      const filtered = filterAds(mockAds, filterOptions) as unknown as Ad[]
       setFilteredAds(filtered)
       setIsLoading(false)
     }, 300)
@@ -124,7 +125,7 @@ export default function CategoryClient({ categorySlug }: CategoryClientProps) {
                 onClick={() => setFilteredAds(mockAds.filter(ad => 
                   ad.category?.toLowerCase() === categorySlug || 
                   ad.category?.toLowerCase().includes(categorySlug.split('-')[0])
-                ))}
+                ) as unknown as Ad[])}
                 className="bg-secondary text-secondary-foreground px-4 py-2 hover:bg-secondary/90 transition-colors text-sm sm:text-base"
               >
                 Clear Filters
