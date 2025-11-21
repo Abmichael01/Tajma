@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useEffect } from 'react'
+import { useCallback, useMemo, useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { useChatWebSocketStore } from '@/store/chatWebSocketStore'
@@ -21,14 +21,17 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
     return activeConversationId ? [activeConversationId] : []
   }, [activeConversationId])
 
-  // --- Handler for Chat List Updates (Global Events) ---
+  // --- Handler for Chat List Updates (Global Events - WhatsApp/Telegram Pattern) ---
+  // This ALWAYS updates the chat list, regardless of which page you're on
+  // This ensures unread counts and last messages are updated everywhere
   const handleChatEvent = useCallback(
     (payload: { type: 'chat_event'; chat_id: string; chat?: ChatSummary; message?: ChatMessage }) => {
-      const { chat_id, chat: updatedChat, message } = payload
+      const { chat_id, chat: updatedChat } = payload
 
       if (!updatedChat) return
 
-      // Update Chat List Cache
+      // ALWAYS update Chat List Cache (global - like WhatsApp/Telegram)
+      // This ensures chat list stays updated on all pages
       queryClient.setQueryData(['chats'], (oldData: ChatSummary[] | undefined) => {
         if (!oldData) return [updatedChat]
         
@@ -49,9 +52,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         })
       })
 
-      // If this isn't the active chat, we might want to update its message cache too
-      // But usually, we only care about message cache for the *active* chat.
-      // We DO update the chat detail cache for this specific chat though.
+      // Update chat detail cache for this specific chat
       queryClient.setQueryData(['chats', chat_id], (oldData: any) => {
         if (!oldData) return oldData
         return { ...oldData, ...updatedChat }
@@ -280,79 +281,36 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
     [onTypingChange]
   )
 
-  // --- Handler for Chat Messages (with chatId) ---
+  // --- Handler for Chat Messages (with chatId) - Context-Aware ---
+  // WhatsApp/Telegram pattern: Process messages for active chat, update list for all chats
   const handleChatMessage = useCallback(
     (message: ChatMessage, chatId: string) => {
-      // Always process messages - this ensures messages are properly replaced even if
-      // subscription wasn't confirmed when message was sent (e.g., when coming back to page)
-      // The handleSocketMessage will check if it's for the active chat and process accordingly
-      handleSocketMessage(message)
+      // Always process messages for active chat (if this is the active chat)
+      if (activeConversationId === chatId) {
+        handleSocketMessage(message)
+      }
+      
+      // Note: Chat list is already updated by handleChatEvent
+      // This handler focuses on active chat message processing
     },
-    [handleSocketMessage]
+    [activeConversationId, handleSocketMessage]
   )
 
-  // --- Handler for Message Status Updates (with chatId) ---
+  // --- Handler for Message Status Updates (Global - WhatsApp/Telegram Pattern) ---
+  // Status updates work globally - you see read receipts everywhere (like WhatsApp/Telegram)
   const handleMessageStatusUpdate = useCallback(
     (message: ChatMessage, chatId: string) => {
-      // Process status updates for all chats (like WhatsApp/Telegram)
-      // This ensures sender sees read status even if they're not viewing that chat
-      
-      console.log(`[Status Update] Received status update for message ${message.id} in chat ${chatId} - is_read: ${message.is_read}, delivered_at: ${message.delivered_at}`)
-      
-      // Update messages cache for this chat (if it exists)
-      queryClient.setQueryData(['messages', chatId], (oldData: any) => {
-        if (!oldData) {
-          console.log(`[Status Update] No cache data for chat ${chatId}`)
-          return oldData
-        }
-        
-        // Handle paginated data
-        if (oldData.pages) {
-          const updated = {
-            ...oldData,
-            pages: oldData.pages.map((page: any) => ({
-              ...page,
-              results: page.results?.map((msg: ChatMessage) => {
-                if (msg.id === message.id) {
-                  console.log(`[Status Update] Updating message ${msg.id} in cache - old is_read: ${msg.is_read}, new is_read: ${message.is_read}`)
-                  return { ...msg, ...message }
-                }
-                return msg
-              }) || [],
-            })),
-          }
-          console.log(`[Status Update] Updated paginated cache for chat ${chatId}`)
-          return updated
-        }
-        
-        // Handle simple array
-        if (Array.isArray(oldData)) {
-          const updated = oldData.map((msg: ChatMessage) => {
-            if (msg.id === message.id) {
-              console.log(`[Status Update] Updating message ${msg.id} in array cache - old is_read: ${msg.is_read}, new is_read: ${message.is_read}`)
-              return { ...msg, ...message }
-            }
-            return msg
-          })
-          console.log(`[Status Update] Updated array cache for chat ${chatId}`)
-          return updated
-        }
-        
-        return oldData
-      })
-      
-      // Update chat list - update last_message status if it matches
+      // ALWAYS update chat list - update last_message status if it matches (global)
       queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
         if (!oldChats) return oldChats
         return oldChats.map((chat) => {
-          // Check if this message belongs to this chat and is the last message
+          // Update last_message status if this message is the last message
           if (chat.id === chatId && chat.last_message && chat.last_message.id === message.id) {
-            console.log(`[Status Update] Updating last_message in chat list for chat ${chatId}`)
             return {
               ...chat,
               last_message: {
                 ...chat.last_message,
-                ...message, // This will update is_read, read_at, delivered_at, etc.
+                ...message, // Updates is_read, read_at, delivered_at, etc.
               },
             }
           }
@@ -360,19 +318,53 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         })
       })
       
+      // Update messages cache for this chat (if it exists - context-aware)
+      // Only update if this is the active chat OR if cache exists (for background updates)
+      queryClient.setQueryData(['messages', chatId], (oldData: any) => {
+        if (!oldData) return oldData
+        
+        // Handle paginated data (Infinite Query)
+        if (oldData.pages) {
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => ({
+              ...page,
+              results: page.results?.map((msg: ChatMessage) => {
+                if (msg.id === message.id) {
+                  return { ...msg, ...message }
+                }
+                return msg
+              }) || [],
+            })),
+          }
+        }
+        
+        // Handle simple array
+        if (Array.isArray(oldData)) {
+          return oldData.map((msg: ChatMessage) => {
+            if (msg.id === message.id) {
+              return { ...msg, ...message }
+            }
+            return msg
+          })
+        }
+        
+        return oldData
+      })
+      
       // Also update active chat detail if this is the active chat
       if (chatId === activeConversationId) {
-        console.log(`[Status Update] This is the active chat, calling handleMessageStatusUpdateInternal`)
         handleMessageStatusUpdateInternal(message)
       }
     },
     [activeConversationId, handleMessageStatusUpdateInternal, queryClient]
   )
 
-  // --- Handler for Marked Read Event ---
+  // --- Handler for Marked Read Event (Global - WhatsApp/Telegram Pattern) ---
+  // When messages are marked as read, update chat list globally
   const handleMarkedRead = useCallback(
     (chatId: string, count: number) => {
-      // Update chat list - set unread_count to 0 when messages are marked as read
+      // ALWAYS update chat list - set unread_count to 0 (global update)
       queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
         if (!oldChats) return oldChats
         return oldChats.map((chat) => {
@@ -386,10 +378,12 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         })
       })
       
-      // Also invalidate messages query to refresh delivery status
-      queryClient.invalidateQueries({ queryKey: ['messages', chatId] })
+      // Invalidate messages query to refresh delivery status (only if active chat)
+      if (chatId === activeConversationId) {
+        queryClient.invalidateQueries({ queryKey: ['messages', chatId] })
+      }
     },
-    [queryClient]
+    [activeConversationId, queryClient]
   )
 
   // Handler for all messages delivered is not needed separately
@@ -407,19 +401,42 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
     setHandlers: setHandlersStore 
   } = useChatWebSocketStore()
 
-  // Register handlers with the global store
-  // Note: setHandlers will overwrite previous handlers, but that's okay because
-  // ChatClient handlers (via useChatRealtime) are more specific and will handle everything
-  // The GlobalChatConnection handlers are primarily for when no chat is active
+  // Store handlers in refs to prevent infinite loops
+  const handlersRef = useRef({
+    onChatMessage: handleChatMessage,
+    onChatListUpdate: handleChatEvent,
+    onTyping: handleSocketTyping,
+    onMessageStatusUpdate: handleMessageStatusUpdate,
+    onMarkedRead: handleMarkedRead,
+  })
+
+  // Update refs when handlers change
   useEffect(() => {
-    setHandlersStore({
+    handlersRef.current = {
       onChatMessage: handleChatMessage,
       onChatListUpdate: handleChatEvent,
       onTyping: handleSocketTyping,
       onMessageStatusUpdate: handleMessageStatusUpdate,
       onMarkedRead: handleMarkedRead,
+    }
+  }, [handleChatMessage, handleChatEvent, handleSocketTyping, handleMessageStatusUpdate, handleMarkedRead])
+
+  // Register context-aware handlers with the global store (Single Source of Truth)
+  // WhatsApp/Telegram pattern: Handlers are context-aware and handle all scenarios
+  // - Chat list updates: Always processed (global - works on all pages)
+  // - Messages: Only processed for active chat (context-aware)
+  // - Status updates: Always processed (global - read receipts work everywhere)
+  // - Typing: Context-aware (only shown for active chat)
+  useEffect(() => {
+    setHandlersStore({
+      onChatMessage: (message, chatId) => handlersRef.current.onChatMessage(message, chatId),
+      onChatListUpdate: (payload) => handlersRef.current.onChatListUpdate(payload),
+      onTyping: (payload) => handlersRef.current.onTyping(payload),
+      onMessageStatusUpdate: (message, chatId) => handlersRef.current.onMessageStatusUpdate(message, chatId),
+      onMarkedRead: (chatId, count) => handlersRef.current.onMarkedRead(chatId, count),
     })
-  }, [setHandlersStore, handleChatMessage, handleChatEvent, handleSocketTyping, handleMessageStatusUpdate, handleMarkedRead])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setHandlersStore]) // Only run once - handlers accessed via refs
 
   // Subscribe/unsubscribe to active chats when they change
   useEffect(() => {

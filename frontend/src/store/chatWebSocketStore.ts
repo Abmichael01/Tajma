@@ -155,8 +155,18 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
       socket.onmessage = (event) => {
         try {
+          // Skip if data is not a string (shouldn't happen, but safety check)
+          if (typeof event.data !== 'string') {
+            return
+          }
+          
           const payload = JSON.parse(event.data)
           const state = get()
+          
+          // Skip HMR-related messages (they shouldn't reach here, but just in case)
+          if (payload.event === 'ping' && !payload.type) {
+            return
+          }
 
           switch (payload.type) {
             case 'connection':
@@ -310,6 +320,14 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       }
 
       socket.onerror = (event) => {
+        // Suppress HMR-related errors in development
+        const errorMessage = event instanceof ErrorEvent ? event.message : String(event)
+        if (process.env.NODE_ENV === 'development' && 
+            (errorMessage.includes('HMR') || errorMessage.includes('unrecognized'))) {
+          // Silently ignore HMR-related errors
+          return
+        }
+        
         console.error('Unified chat WebSocket error:', event)
         const state = get()
         if (state.ws) {
@@ -522,27 +540,14 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     onMessageStatusUpdate?: (message: ChatMessage, chatId: string) => void
     onMarkedRead?: (chatId: string, count: number) => void
   }) => {
-    // Merge handlers instead of replacing - call both old and new handlers
-    const currentState = get()
+    // Replace handlers (single source of truth - WhatsApp/Telegram pattern)
+    // Context-aware handlers from useChatRealtime will handle all events appropriately
     set({
-      onChatMessage: handlers.onChatMessage || currentState.onChatMessage,
-      onChatListUpdate: handlers.onChatListUpdate ? (payload) => {
-        // Call both handlers if they exist
-        currentState.onChatListUpdate?.(payload)
-        handlers.onChatListUpdate?.(payload)
-      } : currentState.onChatListUpdate,
-      onTyping: handlers.onTyping ? (payload) => {
-        currentState.onTyping?.(payload)
-        handlers.onTyping?.(payload)
-      } : currentState.onTyping,
-      onMessageStatusUpdate: handlers.onMessageStatusUpdate ? (message, chatId) => {
-        currentState.onMessageStatusUpdate?.(message, chatId)
-        handlers.onMessageStatusUpdate?.(message, chatId)
-      } : currentState.onMessageStatusUpdate,
-      onMarkedRead: handlers.onMarkedRead ? (chatId, count) => {
-        currentState.onMarkedRead?.(chatId, count)
-        handlers.onMarkedRead?.(chatId, count)
-      } : currentState.onMarkedRead,
+      onChatMessage: handlers.onChatMessage,
+      onChatListUpdate: handlers.onChatListUpdate,
+      onTyping: handlers.onTyping,
+      onMessageStatusUpdate: handlers.onMessageStatusUpdate,
+      onMarkedRead: handlers.onMarkedRead,
     })
   }
 

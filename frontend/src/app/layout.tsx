@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Poppins, Inter, DM_Sans } from "next/font/google";
 import "./globals.css";
 import GoogleTranslate from "@/components/GoogleTranslate";
 import QueryProvider from "@/providers/QueryProvider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -49,11 +50,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${dmSans.variable} antialiased`}
         suppressHydrationWarning
       >
-        <QueryProvider>
-          <GoogleTranslate />
-          {children}
-          <Toaster position="top-right" />
-        </QueryProvider>
+        <ErrorBoundary>
+          <QueryProvider>
+            <GoogleTranslate />
+            {children}
+            <Toaster position="top-right" />
+          </QueryProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
