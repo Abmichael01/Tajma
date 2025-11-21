@@ -136,12 +136,16 @@ export default function ProfileReviews({
                 <div className="flex items-start gap-3">
                   <Avatar className="w-10 h-10 flex-shrink-0">
                     <AvatarImage 
-                      src={review.reviewer_avatar || review.reviewer?.avatar} 
-                      alt={review.reviewer_name || review.reviewer?.full_name} 
+                      src={review.reviewer_avatar || review.reviewer?.avatar || undefined} 
+                      alt={review.reviewer_name || review.reviewer?.full_name || 'User'} 
                     />
                     <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
                       {review.reviewer 
-                        ? getUserInitials(review.reviewer)
+                        ? (review.reviewer.first_name && review.reviewer.last_name
+                            ? `${review.reviewer.first_name.charAt(0)}${review.reviewer.last_name.charAt(0)}`.toUpperCase()
+                            : review.reviewer.full_name
+                              ? review.reviewer.full_name.split(' ').map((n: string) => n.charAt(0)).join('').slice(0, 2).toUpperCase()
+                              : (review.reviewer_name || 'U').charAt(0).toUpperCase())
                         : (review.reviewer_name || 'U').charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>

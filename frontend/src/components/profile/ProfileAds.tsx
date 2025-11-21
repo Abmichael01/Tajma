@@ -78,7 +78,7 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
     // Map backend status to display status
     const statusDisplay = ad.status === 'published' ? 'ACTIVE' :
                          ad.status === 'archived' ? 'ARCHIVED' :
-                         ad.status === 'draft' ? 'DRAFT' : ad.status.toUpperCase()
+                         ad.status === 'draft' ? 'DRAFT' : 'UNKNOWN'
     
     const statusColor = ad.status === 'published' ? 'bg-green-500' :
                        ad.status === 'archived' ? 'bg-gray-900' :

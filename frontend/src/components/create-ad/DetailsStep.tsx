@@ -36,7 +36,7 @@ export default function DetailsStep({
   useEffect(() => {
     const files = formData.images || []
     return () => {
-      imagePreviews.forEach((preview, idx) => {
+      imagePreviews.forEach((preview: string, idx: number) => {
         if (files[idx] instanceof File) {
           URL.revokeObjectURL(preview)
         }
@@ -210,7 +210,7 @@ export default function DetailsStep({
 
         {formData.images.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-            {formData.images.map((_, index: number) => (
+            {formData.images.map((_item: File | string, index: number) => (
               <div key={index} className="relative group">
                 <img
                   src={imagePreviews[index]}

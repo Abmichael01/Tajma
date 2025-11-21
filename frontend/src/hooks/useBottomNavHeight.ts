@@ -8,7 +8,7 @@ export function useBottomNavHeight() {
   useEffect(() => {
     const calculateBottomNavHeight = () => {
       const bottomNav = document.querySelector('#mobile-bottom-nav')
-      if (bottomNav) {
+      if (bottomNav && bottomNav instanceof HTMLElement) {
         const height = bottomNav.offsetHeight
         setBottomNavHeight(height)
       }

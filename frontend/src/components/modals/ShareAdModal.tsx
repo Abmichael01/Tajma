@@ -69,7 +69,13 @@ export default function ShareAdModal({ isOpen, onClose, adId, adTitle }: ShareAd
     },
   ]
 
-  const moreShareLinks = [
+  const moreShareLinks: Array<{
+    name: string
+    icon: typeof Linkedin
+    color: string
+    url: string
+    isCopyOnly?: boolean
+  }> = [
     {
       name: 'LinkedIn',
       icon: Linkedin,
@@ -104,7 +110,7 @@ export default function ShareAdModal({ isOpen, onClose, adId, adTitle }: ShareAd
   ]
 
   const handleSocialShare = (platform: typeof mainShareLinks[0] | typeof moreShareLinks[0]) => {
-    if (platform.isCopyOnly) {
+    if ('isCopyOnly' in platform && platform.isCopyOnly) {
       copyToClipboard()
       return
     }

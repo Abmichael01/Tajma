@@ -49,7 +49,7 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
   }, [reviewsData])
 
   // Check if user has already reviewed this ad
-  const userReview = reviews.find(r => r.reviewer?.id === user?.id)
+  const userReview = reviews.find((r: Review) => r.reviewer?.id === user?.id)
   const canReview = isAuthenticated && !isOwner && !userReview
 
   const toggleHelpful = async (reviewId: string) => {
@@ -87,13 +87,13 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
   const stats: ReviewStats = reviewStats || {
     total_reviews: reviews.length,
     average_rating: reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      ? reviews.reduce((sum: number, r: Review) => sum + r.rating, 0) / reviews.length
       : 0,
-    rating_5: reviews.filter(r => r.rating === 5).length,
-    rating_4: reviews.filter(r => r.rating === 4).length,
-    rating_3: reviews.filter(r => r.rating === 3).length,
-    rating_2: reviews.filter(r => r.rating === 2).length,
-    rating_1: reviews.filter(r => r.rating === 1).length,
+    rating_5: reviews.filter((r: Review) => r.rating === 5).length,
+    rating_4: reviews.filter((r: Review) => r.rating === 4).length,
+    rating_3: reviews.filter((r: Review) => r.rating === 3).length,
+    rating_2: reviews.filter((r: Review) => r.rating === 2).length,
+    rating_1: reviews.filter((r: Review) => r.rating === 1).length,
   }
 
   if (isLoading) {
@@ -184,18 +184,22 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
       {reviews.length > 0 ? (
         <>
           <div className="space-y-6">
-            {displayedReviews.map((review) => (
+            {displayedReviews.map((review: Review) => (
               <div key={review.id} className="border-b border-gray-100 pb-6 last:border-b-0">
                 <div className="flex items-start gap-4">
                   {/* Avatar */}
                   <Avatar className="w-10 h-10 flex-shrink-0">
                     <AvatarImage 
-                      src={review.reviewer_avatar || review.reviewer?.avatar} 
-                      alt={review.reviewer_name || review.reviewer?.full_name} 
+                      src={review.reviewer_avatar || review.reviewer?.avatar || undefined} 
+                      alt={review.reviewer_name || review.reviewer?.full_name || 'User'} 
                     />
                     <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
                       {review.reviewer 
-                        ? getUserInitials(review.reviewer)
+                        ? (review.reviewer.first_name && review.reviewer.last_name
+                            ? `${review.reviewer.first_name.charAt(0)}${review.reviewer.last_name.charAt(0)}`.toUpperCase()
+                            : review.reviewer.full_name
+                              ? review.reviewer.full_name.split(' ').map((n: string) => n.charAt(0)).join('').slice(0, 2).toUpperCase()
+                              : (review.reviewer_name || 'U').charAt(0).toUpperCase())
                         : (review.reviewer_name || 'U').charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>

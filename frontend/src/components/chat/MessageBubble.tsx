@@ -69,50 +69,55 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
     // 1. Sending: Clock icon (pulsing) - message being sent (optimistic, not yet created on server)
     if (status === 'sending') {
       return (
-        <Clock 
-          className="w-3 h-3 text-gray-400 animate-pulse" 
-          title="Sending..."
-        />
+        <span title="Sending...">
+          <Clock 
+            className="w-3 h-3 text-gray-400 animate-pulse" 
+          />
+        </span>
       )
     }
     
     // 2. Sent: Single gray check - message saved to server, not yet delivered
     if (status === 'sent') {
       return (
-        <Check 
-          className="w-3 h-3 text-gray-400" 
-          title="Sent"
-        />
+        <span title="Sent">
+          <Check 
+            className="w-3 h-3 text-gray-400" 
+          />
+        </span>
       )
     }
     
     // 3. Delivered: Double gray checks - message delivered to recipient's device
     if (status === 'delivered') {
       return (
-        <CheckCheck 
-          className="w-3 h-3 text-gray-400" 
-          title="Delivered"
-        />
+        <span title="Delivered">
+          <CheckCheck 
+            className="w-3 h-3 text-gray-400" 
+          />
+        </span>
       )
     }
     
     // 4. Read: Double blue checks - message read by recipient
     if (status === 'read') {
       return (
-        <CheckCheck 
-          className="w-3 h-3 text-blue-500" 
-          title="Read"
-        />
+        <span title="Read">
+          <CheckCheck 
+            className="w-3 h-3 text-blue-500" 
+          />
+        </span>
       )
     }
     
     // 5. Failed: Error icon - message failed to send
     if (status === 'failed') {
       return (
-        <AlertCircle 
-          className="w-3 h-3 text-red-500" 
-          title="Failed to send. Tap to retry"
-        />
+        <span title="Failed to send. Tap to retry">
+          <AlertCircle 
+            className="w-3 h-3 text-red-500" 
+          />
+        </span>
       )
     }
     

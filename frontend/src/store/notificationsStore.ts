@@ -32,8 +32,8 @@ export const useNotificationsStore = create<NotificationsState>()(
       addNotification: (notification) => {
         const newNotification: Notification = {
           ...notification,
-          id: notification.id || `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          timestamp: notification.timestamp || new Date().toISOString(),
+          id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: new Date().toISOString(),
           isRead: notification.isRead ?? false,
         }
         set((state) => {

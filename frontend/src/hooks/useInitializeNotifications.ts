@@ -74,14 +74,12 @@ export function useInitializeNotifications() {
             
             const notificationId = String(notif.id || '')
             addNotification({
-              id: notificationId,
               type: mapNotificationType(notif.type || 'other'),
               title: notif.title || '',
               message: notif.message || '',
               isRead: Boolean(notif.is_read),
               link: notif.related_ad_slug ? `/ads/${notif.related_ad_slug}` : undefined,
               adId: notif.related_ad ? String(notif.related_ad) : undefined,
-              timestamp: notif.created_at || new Date().toISOString(),
               avatar: notif.related_user_name ? undefined : undefined, // Can add avatar later if needed
             })
           })
