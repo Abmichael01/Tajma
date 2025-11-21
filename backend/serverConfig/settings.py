@@ -92,6 +92,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Force HTTPS in production
+if ENVIRONMENT == 'production':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = False  # Let nginx handle redirects
+    USE_TLS = True
+
 ROOT_URLCONF = 'serverConfig.urls'
 
 TEMPLATES = [
@@ -230,6 +236,9 @@ REST_AUTH = {
 
 # Frontend URL for OAuth redirects
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+
+# Site URL for absolute URL generation (webhooks, callbacks, etc.)
+SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 
 # Google OAuth settings (set these in .env)
 SOCIALACCOUNT_PROVIDERS = {

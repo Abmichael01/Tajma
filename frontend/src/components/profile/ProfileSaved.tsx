@@ -123,12 +123,13 @@ export default function ProfileSaved() {
           >
             <Link href={`/ads/${ad.slug || ad.id}`}>
               {/* Image Container */}
-              <div className="relative w-full h-48 bg-gray-100">
+              <div className="relative w-full overflow-hidden">
                 <Image
                   src={getImageUrl(ad)}
                   alt={ad.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-200"
+                  width={400}
+                  height={400}
+                  className="w-full h-auto group-hover:scale-105 transition-transform duration-200"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
                 

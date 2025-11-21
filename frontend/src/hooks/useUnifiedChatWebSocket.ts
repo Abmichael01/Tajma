@@ -61,7 +61,7 @@ export const useUnifiedChatWebSocket = ({
   const buildUrl = useCallback(() => {
     const base =
       process.env.NEXT_PUBLIC_WS_URL ||
-      (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(/^http/, 'ws')
+      (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(/^https?/, (match) => match === 'https' ? 'wss' : 'ws')
     return `${base.replace(/\/$/, '')}/ws/chat/`
   }, [])
 
@@ -129,11 +129,21 @@ export const useUnifiedChatWebSocket = ({
       }
 
       // If not subscribed, subscribe first and queue the message
-      if (!subscribedChatsRef.current.has(chatId)) {
+      if (!subscribedChatsRef.current.has(chatId) && !pendingSubscriptionsRef.current.has(chatId)) {
         console.log('Not subscribed to chat, subscribing first:', chatId)
         subscribeToChat(chatId)
         
         // Queue the message to send after subscription
+        if (!pendingMessagesRef.current.has(chatId)) {
+          pendingMessagesRef.current.set(chatId, [])
+        }
+        pendingMessagesRef.current.get(chatId)!.push(content)
+        return true // Return true as message is queued
+      }
+
+      // If subscription is pending, queue the message
+      if (pendingSubscriptionsRef.current.has(chatId)) {
+        console.log('Subscription pending for chat, queuing message:', chatId)
         if (!pendingMessagesRef.current.has(chatId)) {
           pendingMessagesRef.current.set(chatId, [])
         }
@@ -263,6 +273,19 @@ export const useUnifiedChatWebSocket = ({
       socket.onopen = () => {
         setIsConnected(true)
         reconnectAttemptsRef.current = 0
+
+        // Mark all unread messages as delivered when user comes online
+        // This simulates WhatsApp behavior where messages are delivered when user is online
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+          try {
+            console.log('📤 User came online, marking all messages as delivered')
+            wsRef.current.send(JSON.stringify({ 
+              type: 'mark_all_delivered'
+            }))
+          } catch (error) {
+            console.error('Failed to mark all messages as delivered:', error)
+          }
+        }
 
         // Heartbeat mechanism (like WhatsApp/Telegram)
         // Send ping every 20 seconds to keep connection alive
@@ -400,6 +423,12 @@ export const useUnifiedChatWebSocket = ({
             case 'marked_read':
               console.log(`Marked ${payload.count || 0} messages as read in chat ${payload.chat_id}`)
               onMarkedRead?.(payload.chat_id, payload.count || 0)
+              break
+
+            case 'all_messages_delivered':
+              // All messages were marked as delivered when user came online
+              // The backend will broadcast message_status_update and chat_event for each affected chat
+              console.log(`All ${payload.count || 0} messages marked as delivered - backend will broadcast updates`)
               break
 
             case 'error':

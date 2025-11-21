@@ -104,25 +104,30 @@ function ChatClientContent() {
   const handleMessageReceived = useCallback((message: ChatMessage) => {
     // Clear timeout for optimistic messages that match this received message
     // This prevents false "failed" status when message is successfully received
-    if (activeConversationId && message.sender?.id === user?.id) {
+    // Check even if chat context changed (handles case when coming back to page)
+    if (message.sender?.id === user?.id) {
+      const messageContent = String(message.content).trim()
+      const messageTime = new Date(message.created_at).getTime()
+      const messageChatId = String(message.chat)
+      
       // Check all stored timeouts for messages with matching content
       messageTimeoutsRef.current.forEach((timeout, tempId) => {
-        // Get the optimistic message from cache to compare
-        const cacheData = queryClient.getQueryData(['messages', activeConversationId]) as any
+        // Try to find optimistic message in the message's chat cache
+        const cacheData = queryClient.getQueryData(['messages', messageChatId]) as any
         if (cacheData?.pages) {
           for (const page of cacheData.pages) {
             const optimisticMsg = page.results?.find((m: ChatMessage) => m.id === tempId)
             if (optimisticMsg) {
-              const sameContent = String(optimisticMsg.content).trim() === String(message.content).trim()
+              const sameContent = String(optimisticMsg.content).trim() === messageContent
               const sameSender = optimisticMsg.sender?.id === message.sender?.id
-              const messageTime = new Date(message.created_at).getTime()
               const optimisticTime = new Date(optimisticMsg.created_at).getTime()
-              const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 30000 // 30 seconds
+              const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 90000 // 90 seconds window
               
               if (sameContent && sameSender && withinTimeWindow) {
                 // Clear the timeout for this optimistic message
                 clearTimeout(timeout)
                 messageTimeoutsRef.current.delete(tempId)
+                // The message will be replaced by handleSocketMessage in useChatRealtime
                 break
               }
             }
@@ -133,7 +138,7 @@ function ChatClientContent() {
     
     // Don't auto-scroll - let user decide when to scroll
     // ChatArea component will show scroll-to-bottom button with badge
-  }, [activeConversationId, queryClient, user?.id])
+  }, [queryClient, user?.id])
 
   // Real-time WebSocket integration
   const { isConnected, sendMessage: sendWebSocketMessage, sendTyping, markAsRead: markAsReadWebSocket } = useChatRealtime({
@@ -208,11 +213,12 @@ function ChatClientContent() {
 
     // Create optimistic message with "sending" status
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const messageContent = content.trim()
     const optimisticMessage: ChatMessage = {
       id: tempId,
       chat: activeConversationId,
       sender: user!,
-      content: content.trim(),
+      content: messageContent,
       is_read: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -274,53 +280,66 @@ function ChatClientContent() {
         throw new Error('WebSocket not connected')
       }
       
-      const sent = sendWebSocketMessage(content.trim())
+      const sent = sendWebSocketMessage(messageContent)
       if (sent === false) {
         throw new Error('Failed to send message via WebSocket')
       }
       
-      // Set timeout to mark message as failed if not confirmed within 20 seconds
+      // Set timeout to mark message as failed if not confirmed within 15 seconds
+      // Increased timeout to account for subscription delay when coming back to page
       // Store timeout reference so we can clear it if message is successfully received
       const timeoutId = setTimeout(() => {
+        // Only mark as failed if the optimistic message still exists and no real message replaced it
         queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
           if (!oldData?.pages) {
-            // Remove timeout from map
             messageTimeoutsRef.current.delete(tempId)
             return oldData
           }
           
           let messageStillExists = false
+          let hasMatchingRealMessage = false
+          
+          // First check if a real message with same content exists
+          const allMessages = oldData.pages.flatMap((page: any) => page.results || [])
+          const matchingRealMessage = allMessages.find((m: ChatMessage) => {
+            if (m.id === tempId) return false
+            const sameContent = String(m.content).trim() === messageContent
+            const sameSender = m.sender?.id === user?.id
+            const messageTime = new Date(m.created_at).getTime()
+            const optimisticTime = new Date(optimisticMessage.created_at).getTime()
+            const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 60000 // 60 seconds
+            return sameContent && sameSender && withinTimeWindow && !String(m.id).startsWith('temp-')
+          })
+          
+          if (matchingRealMessage) {
+            hasMatchingRealMessage = true
+            // Remove the optimistic message since real message exists
+            const updatedPages = oldData.pages.map((page: any) => ({
+              ...page,
+              results: page.results.filter((m: ChatMessage) => m.id !== tempId)
+            }))
+            messageTimeoutsRef.current.delete(tempId)
+            return { ...oldData, pages: updatedPages }
+          }
+          
+          // If no matching real message, check if optimistic message still exists
           const updatedPages = oldData.pages.map((page: any) => {
             const messagesArray = page.results || []
             const messageIndex = messagesArray.findIndex((m: ChatMessage) => m.id === tempId)
             
             if (messageIndex !== -1) {
               messageStillExists = true
-              // Check if message is still optimistic (not replaced by real message)
               const message = messagesArray[messageIndex]
+              // Only mark as failed if still optimistic and not already failed
               if (String(message.id).startsWith('temp-') && !message.send_failed) {
-                // Double-check: verify no message with same content exists (might have been replaced)
-                const sameContentMessage = messagesArray.find((m: ChatMessage) => {
-                  if (m.id === tempId) return false
-                  const sameContent = String(m.content).trim() === String(message.content).trim()
-                  const sameSender = m.sender?.id === message.sender?.id
-                  const messageTime = new Date(m.created_at).getTime()
-                  const optimisticTime = new Date(message.created_at).getTime()
-                  const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 30000
-                  return sameContent && sameSender && withinTimeWindow && !String(m.id).startsWith('temp-')
-                })
-                
-                // Only mark as failed if no matching real message exists
-                if (!sameContentMessage) {
-                  const updated = [...messagesArray]
-                  updated[messageIndex] = {
-                    ...message,
-                    send_failed: true,
-                  }
-                  return {
-                    ...page,
-                    results: updated,
-                  }
+                const updated = [...messagesArray]
+                updated[messageIndex] = {
+                  ...message,
+                  send_failed: true,
+                }
+                return {
+                  ...page,
+                  results: updated,
                 }
               }
             }
@@ -331,7 +350,7 @@ function ChatClientContent() {
           messageTimeoutsRef.current.delete(tempId)
           
           // Only return updated pages if message still exists and was marked as failed
-          if (messageStillExists) {
+          if (messageStillExists && !hasMatchingRealMessage) {
             return {
               ...oldData,
               pages: updatedPages,
@@ -340,7 +359,7 @@ function ChatClientContent() {
           
           return oldData
         })
-      }, 20000) // 20 seconds timeout (increased to give more time for server response)
+      }, 15000) // 15 seconds timeout - increased to account for subscription delays
       
       // Store timeout reference
       messageTimeoutsRef.current.set(tempId, timeoutId)
@@ -520,8 +539,8 @@ function ChatClientContent() {
     <div
       className="bg-white fixed inset-x-0 container px-0 md:px-0 overflow-hidden"
       style={{
-        height: availableHeight,
         top: `${navbarHeight}px`,
+        bottom: `${bottomNavHeight}px`,
         maxHeight: availableHeight,
       }}
     >

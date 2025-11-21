@@ -108,7 +108,7 @@ export default function UserDropdown() {
             <MessageSquare className="w-4 h-4 text-gray-500" />
             <span>Messages</span>
             {totalUnreadMessages > 0 && (
-              <span className="ml-auto bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full min-w-[20px] text-center">
+              <span className="ml-auto bg-secondary text-secondary-foreground text-xs px-2 py-1 min-w-[20px] text-center">
                 {totalUnreadMessages > 9 ? '9+' : totalUnreadMessages}
               </span>
             )}

@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { Bell, Home, MessageSquare, Plus, UserRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/authStore'
+import { useChats } from '@/hooks/useChat'
 
 const navBase =
   'flex flex-col items-center justify-center text-[11px] font-medium transition-colors'
@@ -14,7 +15,11 @@ export default function MobileBottomNav() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { isAuthenticated, user } = useAuthStore()
+  const { data: chats = [] } = useChats()
   const profileSlug = user ? user.username || user.email?.split('@')[0] || 'profile' : 'profile'
+
+  // Calculate total unread messages from all chats
+  const totalUnreadMessages = chats.reduce((total, chat) => total + (chat.unread_count || 0), 0)
 
   const profileHref = isAuthenticated ? `/profile/${profileSlug}` : '/login'
   const notificationsHref = isAuthenticated ? '/alerts' : '/login'
@@ -79,8 +84,15 @@ export default function MobileBottomNav() {
             </Link>
           </div>
 
-          <div className="flex justify-center">
-            <MobileNavLink item={navItems[2]} active={isActive(navItems[2].href, navItems[2].key)} />
+          <div className="flex justify-center relative">
+            <div className="relative">
+              <MobileNavLink item={navItems[2]} active={isActive(navItems[2].href, navItems[2].key)} />
+              {totalUnreadMessages > 0 && (
+                <span className="absolute -top-1 -right-1 bg-secondary text-white text-[10px] min-w-[16px] h-4 px-1 flex items-center justify-center font-semibold z-10">
+                  {totalUnreadMessages > 9 ? '9+' : totalUnreadMessages}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex justify-center">
             <MobileNavLink item={navItems[3]} active={isActive(navItems[3].href, navItems[3].key)} />

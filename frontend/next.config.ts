@@ -63,6 +63,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'tajma.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.tajma.net',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };

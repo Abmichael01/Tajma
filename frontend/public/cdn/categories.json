@@ -1,1 +1,1566 @@
-[]
+[
+  {
+    "id": "electronics-gadgets",
+    "name": "Electronics & Gadgets",
+    "slug": "electronics-gadgets",
+    "icon": "Smartphone",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "brand",
+        "type": "text",
+        "label": "Brand",
+        "required": false,
+        "placeholder": "e.g., Apple, Samsung"
+      },
+      {
+        "name": "model",
+        "type": "text",
+        "label": "Model",
+        "required": false,
+        "placeholder": "e.g., iPhone 14 Pro Max"
+      },
+      {
+        "name": "condition",
+        "type": "select",
+        "label": "Condition",
+        "options": [
+          {
+            "label": "New",
+            "value": "new"
+          },
+          {
+            "label": "Like New",
+            "value": "like-new"
+          },
+          {
+            "label": "Excellent",
+            "value": "excellent"
+          },
+          {
+            "label": "Good",
+            "value": "good"
+          },
+          {
+            "label": "Fair",
+            "value": "fair"
+          },
+          {
+            "label": "Poor",
+            "value": "poor"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "mobile-phones",
+        "name": "Mobile Phones",
+        "slug": "mobile-phones",
+        "icon": "Phone",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "android-phones",
+            "name": "Android Phones",
+            "slug": "android-phones",
+            "icon": "Phone",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": [
+              {
+                "id": "flagship",
+                "name": "Flagship",
+                "slug": "flagship",
+                "icon": "Star",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 0,
+                "subcategories": []
+              },
+              {
+                "id": "mid-range",
+                "name": "Mid-range",
+                "slug": "mid-range",
+                "icon": "BadgeCheck",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 0,
+                "subcategories": []
+              },
+              {
+                "id": "budget",
+                "name": "Budget",
+                "slug": "budget",
+                "icon": "Wallet",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 0,
+                "subcategories": []
+              }
+            ]
+          },
+          {
+            "id": "iphones",
+            "name": "iPhones",
+            "slug": "iphones",
+            "icon": "Smartphone",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          }
+        ]
+      },
+      {
+        "id": "computers",
+        "name": "Computers",
+        "slug": "computers",
+        "icon": "Laptop",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "laptops",
+            "name": "Laptops",
+            "slug": "laptops",
+            "icon": "Laptop",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "desktops",
+            "name": "Desktops",
+            "slug": "desktops",
+            "icon": "Monitor",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": [
+              {
+                "id": "gaming-desktops",
+                "name": "Gaming Desktops",
+                "slug": "gaming-desktops",
+                "icon": "Gamepad",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 0,
+                "subcategories": []
+              },
+              {
+                "id": "workstations",
+                "name": "Workstations",
+                "slug": "workstations",
+                "icon": "Cpu",
+                "imageUrl": "",
+                "type": "product",
+                "description": "",
+                "customFields": [],
+                "count": 0,
+                "subcategories": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vehicles-mobility",
+    "name": "Vehicles & Mobility",
+    "slug": "vehicles-mobility",
+    "icon": "Car",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "brand",
+        "type": "text",
+        "label": "Brand",
+        "required": false,
+        "placeholder": "e.g., Toyota, Honda"
+      },
+      {
+        "max": 2025,
+        "min": 1900,
+        "name": "year",
+        "type": "number",
+        "label": "Year",
+        "required": false,
+        "placeholder": "e.g., 2023"
+      },
+      {
+        "min": 0,
+        "name": "mileage",
+        "type": "number",
+        "label": "Mileage (km)",
+        "required": false,
+        "placeholder": "e.g., 45000"
+      },
+      {
+        "name": "transmission",
+        "type": "select",
+        "label": "Transmission",
+        "options": [
+          {
+            "label": "Manual",
+            "value": "manual"
+          },
+          {
+            "label": "Automatic",
+            "value": "automatic"
+          },
+          {
+            "label": "CVT",
+            "value": "cvt"
+          }
+        ],
+        "required": false
+      },
+      {
+        "name": "fuel_type",
+        "type": "select",
+        "label": "Fuel Type",
+        "options": [
+          {
+            "label": "Petrol",
+            "value": "petrol"
+          },
+          {
+            "label": "Diesel",
+            "value": "diesel"
+          },
+          {
+            "label": "Electric",
+            "value": "electric"
+          },
+          {
+            "label": "Hybrid",
+            "value": "hybrid"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "cars",
+        "name": "Cars",
+        "slug": "cars",
+        "icon": "Car",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "sedans",
+            "name": "Sedans",
+            "slug": "sedans",
+            "icon": "Car",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "suvs",
+            "name": "SUVs",
+            "slug": "suvs",
+            "icon": "Car",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          }
+        ]
+      },
+      {
+        "id": "motorcycles",
+        "name": "Motorcycles",
+        "slug": "motorcycles",
+        "icon": "Bike",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "sport-bikes",
+            "name": "Sport Bikes",
+            "slug": "sport-bikes",
+            "icon": "Activity",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "scooters",
+            "name": "Scooters",
+            "slug": "scooters",
+            "icon": "Bike",
+            "imageUrl": "",
+            "type": "product",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "professional-services",
+    "name": "Professional Services",
+    "slug": "professional-services",
+    "icon": "Wrench",
+    "imageUrl": "",
+    "type": "service",
+    "description": "",
+    "customFields": [
+      {
+        "name": "service_type",
+        "type": "text",
+        "label": "Service Type",
+        "required": false,
+        "placeholder": "e.g., Web Development, Plumbing"
+      },
+      {
+        "min": 0,
+        "name": "experience_years",
+        "type": "number",
+        "label": "Years of Experience",
+        "required": false,
+        "placeholder": "e.g., 5"
+      },
+      {
+        "name": "availability",
+        "type": "select",
+        "label": "Availability",
+        "options": [
+          {
+            "label": "Immediate",
+            "value": "immediate"
+          },
+          {
+            "label": "Within a Week",
+            "value": "within-week"
+          },
+          {
+            "label": "Within a Month",
+            "value": "within-month"
+          },
+          {
+            "label": "Flexible",
+            "value": "flexible"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "home-improvement",
+        "name": "Home Improvement",
+        "slug": "home-improvement",
+        "icon": "Hammer",
+        "imageUrl": "",
+        "type": "service",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "electricians",
+            "name": "Electricians",
+            "slug": "electricians",
+            "icon": "Zap",
+            "imageUrl": "",
+            "type": "service",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "plumbers",
+            "name": "Plumbers",
+            "slug": "plumbers",
+            "icon": "Droplet",
+            "imageUrl": "",
+            "type": "service",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          }
+        ]
+      },
+      {
+        "id": "tech-services",
+        "name": "Tech Services",
+        "slug": "tech-services",
+        "icon": "Laptop",
+        "imageUrl": "",
+        "type": "service",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "developers",
+            "name": "Developers",
+            "slug": "developers",
+            "icon": "Code",
+            "imageUrl": "",
+            "type": "service",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          },
+          {
+            "id": "it-support",
+            "name": "IT Support",
+            "slug": "it-support",
+            "icon": "Headphones",
+            "imageUrl": "",
+            "type": "service",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "real-estate-property",
+    "name": "Real Estate & Property",
+    "slug": "real-estate-property",
+    "icon": "Home",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "property_type",
+        "type": "select",
+        "label": "Property Type",
+        "options": [
+          {
+            "label": "Apartment",
+            "value": "apartment"
+          },
+          {
+            "label": "House",
+            "value": "house"
+          },
+          {
+            "label": "Villa",
+            "value": "villa"
+          },
+          {
+            "label": "Land",
+            "value": "land"
+          },
+          {
+            "label": "Commercial",
+            "value": "commercial"
+          }
+        ],
+        "required": true
+      },
+      {
+        "min": 0,
+        "name": "bedrooms",
+        "type": "number",
+        "label": "Bedrooms",
+        "required": false,
+        "placeholder": "e.g., 3"
+      },
+      {
+        "min": 0,
+        "name": "bathrooms",
+        "type": "number",
+        "label": "Bathrooms",
+        "required": false,
+        "placeholder": "e.g., 2"
+      },
+      {
+        "min": 0,
+        "name": "size_sqm",
+        "type": "number",
+        "label": "Size (sqm)",
+        "required": false,
+        "placeholder": "e.g., 120"
+      },
+      {
+        "name": "furnishing",
+        "type": "select",
+        "label": "Furnishing",
+        "options": [
+          {
+            "label": "Furnished",
+            "value": "furnished"
+          },
+          {
+            "label": "Semi-Furnished",
+            "value": "semi-furnished"
+          },
+          {
+            "label": "Unfurnished",
+            "value": "unfurnished"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "for-sale",
+        "name": "For Sale",
+        "slug": "for-sale",
+        "icon": "DollarSign",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "for-rent",
+        "name": "For Rent",
+        "slug": "for-rent",
+        "icon": "Key",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "land",
+        "name": "Land",
+        "slug": "land",
+        "icon": "Map",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      }
+    ]
+  },
+  {
+    "id": "fashion-clothing",
+    "name": "Fashion & Clothing",
+    "slug": "fashion-clothing",
+    "icon": "Shirt",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "brand",
+        "type": "text",
+        "label": "Brand",
+        "required": false,
+        "placeholder": "e.g., Zara, H&M"
+      },
+      {
+        "name": "size",
+        "type": "text",
+        "label": "Size",
+        "required": false,
+        "placeholder": "e.g., M, L, XL"
+      },
+      {
+        "name": "condition",
+        "type": "select",
+        "label": "Condition",
+        "options": [
+          {
+            "label": "New",
+            "value": "new"
+          },
+          {
+            "label": "Like New",
+            "value": "like-new"
+          },
+          {
+            "label": "Good",
+            "value": "good"
+          },
+          {
+            "label": "Fair",
+            "value": "fair"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "mens-clothing",
+        "name": "Men's Clothing",
+        "slug": "mens-clothing",
+        "icon": "User",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "womens-clothing",
+        "name": "Women's Clothing",
+        "slug": "womens-clothing",
+        "icon": "User",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "accessories",
+        "name": "Accessories",
+        "slug": "accessories",
+        "icon": "ShoppingBag",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "shoes",
+        "name": "Shoes",
+        "slug": "shoes",
+        "icon": "Footprints",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      }
+    ]
+  },
+  {
+    "id": "home-furniture",
+    "name": "Home & Furniture",
+    "slug": "home-furniture",
+    "icon": "Sofa",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "condition",
+        "type": "select",
+        "label": "Condition",
+        "options": [
+          {
+            "label": "New",
+            "value": "new"
+          },
+          {
+            "label": "Like New",
+            "value": "like-new"
+          },
+          {
+            "label": "Excellent",
+            "value": "excellent"
+          },
+          {
+            "label": "Good",
+            "value": "good"
+          },
+          {
+            "label": "Fair",
+            "value": "fair"
+          }
+        ],
+        "required": false
+      },
+      {
+        "name": "material",
+        "type": "text",
+        "label": "Material",
+        "required": false,
+        "placeholder": "e.g., Wood, Leather, Fabric"
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "living-room",
+        "name": "Living Room",
+        "slug": "living-room",
+        "icon": "Sofa",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "bedroom",
+        "name": "Bedroom",
+        "slug": "bedroom",
+        "icon": "Bed",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "kitchen-dining",
+        "name": "Kitchen & Dining",
+        "slug": "kitchen-dining",
+        "icon": "Utensils",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "office-furniture",
+        "name": "Office Furniture",
+        "slug": "office-furniture",
+        "icon": "Briefcase",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      }
+    ]
+  },
+  {
+    "id": "sports-fitness",
+    "name": "Sports & Fitness",
+    "slug": "sports-fitness",
+    "icon": "Dumbbell",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "brand",
+        "type": "text",
+        "label": "Brand",
+        "required": false,
+        "placeholder": "e.g., Nike, Adidas"
+      },
+      {
+        "name": "condition",
+        "type": "select",
+        "label": "Condition",
+        "options": [
+          {
+            "label": "New",
+            "value": "new"
+          },
+          {
+            "label": "Excellent",
+            "value": "excellent"
+          },
+          {
+            "label": "Good",
+            "value": "good"
+          },
+          {
+            "label": "Fair",
+            "value": "fair"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "gym-equipment",
+        "name": "Gym Equipment",
+        "slug": "gym-equipment",
+        "icon": "Dumbbell",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "sports-gear",
+        "name": "Sports Gear",
+        "slug": "sports-gear",
+        "icon": "Activity",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "outdoor-sports",
+        "name": "Outdoor Sports",
+        "slug": "outdoor-sports",
+        "icon": "TreePine",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      }
+    ]
+  },
+  {
+    "id": "books-education",
+    "name": "Books & Education",
+    "slug": "books-education",
+    "icon": "Book",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "condition",
+        "type": "select",
+        "label": "Condition",
+        "options": [
+          {
+            "label": "New",
+            "value": "new"
+          },
+          {
+            "label": "Like New",
+            "value": "like-new"
+          },
+          {
+            "label": "Good",
+            "value": "good"
+          },
+          {
+            "label": "Fair",
+            "value": "fair"
+          }
+        ],
+        "required": false
+      },
+      {
+        "name": "author",
+        "type": "text",
+        "label": "Author",
+        "required": false,
+        "placeholder": "e.g., Author name"
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "textbooks",
+        "name": "Textbooks",
+        "slug": "textbooks",
+        "icon": "BookOpen",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "fiction",
+        "name": "Fiction",
+        "slug": "fiction",
+        "icon": "BookMarked",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "non-fiction",
+        "name": "Non-Fiction",
+        "slug": "non-fiction",
+        "icon": "Library",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      }
+    ]
+  },
+  {
+    "id": "food-beverages",
+    "name": "Food & Beverages",
+    "slug": "food-beverages",
+    "icon": "Coffee",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "expiry_date",
+        "type": "text",
+        "label": "Expiry Date",
+        "required": false,
+        "placeholder": "e.g., 2025-12-31"
+      },
+      {
+        "name": "condition",
+        "type": "select",
+        "label": "Condition",
+        "options": [
+          {
+            "label": "New/Sealed",
+            "value": "new"
+          },
+          {
+            "label": "Good",
+            "value": "good"
+          },
+          {
+            "label": "Expiring Soon",
+            "value": "expiring"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "groceries",
+        "name": "Groceries",
+        "slug": "groceries",
+        "icon": "ShoppingCart",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "restaurant-supplies",
+        "name": "Restaurant Supplies",
+        "slug": "restaurant-supplies",
+        "icon": "ChefHat",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      }
+    ]
+  },
+  {
+    "id": "beauty-personal-care",
+    "name": "Beauty & Personal Care",
+    "slug": "beauty-personal-care",
+    "icon": "Sparkles",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "brand",
+        "type": "text",
+        "label": "Brand",
+        "required": false,
+        "placeholder": "e.g., L'Oreal, Maybelline"
+      },
+      {
+        "name": "condition",
+        "type": "select",
+        "label": "Condition",
+        "options": [
+          {
+            "label": "New/Sealed",
+            "value": "new"
+          },
+          {
+            "label": "Opened but Unused",
+            "value": "opened"
+          },
+          {
+            "label": "Used",
+            "value": "used"
+          }
+        ],
+        "required": false
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "skincare",
+        "name": "Skincare",
+        "slug": "skincare",
+        "icon": "Sparkles",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "makeup",
+        "name": "Makeup",
+        "slug": "makeup",
+        "icon": "Palette",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "hair-care",
+        "name": "Hair Care",
+        "slug": "hair-care",
+        "icon": "Scissors",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      }
+    ]
+  },
+  {
+    "id": "pets-animals",
+    "name": "Pets & Animals",
+    "slug": "pets-animals",
+    "icon": "Heart",
+    "imageUrl": "",
+    "type": "product",
+    "description": "",
+    "customFields": [
+      {
+        "name": "pet_type",
+        "type": "select",
+        "label": "Pet Type",
+        "options": [
+          {
+            "label": "Dog",
+            "value": "dog"
+          },
+          {
+            "label": "Cat",
+            "value": "cat"
+          },
+          {
+            "label": "Bird",
+            "value": "bird"
+          },
+          {
+            "label": "Other",
+            "value": "other"
+          }
+        ],
+        "required": true
+      },
+      {
+        "name": "age",
+        "type": "text",
+        "label": "Age",
+        "required": false,
+        "placeholder": "e.g., 2 years"
+      }
+    ],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "pets",
+        "name": "Pets",
+        "slug": "pets",
+        "icon": "Heart",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      },
+      {
+        "id": "pet-supplies",
+        "name": "Pet Supplies",
+        "slug": "pet-supplies",
+        "icon": "ShoppingBag",
+        "imageUrl": "",
+        "type": "product",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": []
+      }
+    ]
+  },
+  {
+    "id": "job",
+    "name": "Job",
+    "slug": "job",
+    "icon": "Briefcase",
+    "imageUrl": "",
+    "type": "job",
+    "description": "",
+    "customFields": [
+      {
+        "name": "job_type",
+        "type": "select",
+        "label": "Job Type",
+        "options": [
+          {
+            "label": "Full-time",
+            "value": "full-time"
+          },
+          {
+            "label": "Part-time",
+            "value": "part-time"
+          },
+          {
+            "label": "Contract",
+            "value": "contract"
+          },
+          {
+            "label": "Internship",
+            "value": "internship"
+          },
+          {
+            "label": "Remote",
+            "value": "remote"
+          }
+        ],
+        "required": true
+      },
+      {
+        "name": "experience_level",
+        "type": "select",
+        "label": "Experience Level Required",
+        "options": [
+          {
+            "label": "Entry Level",
+            "value": "entry"
+          },
+          {
+            "label": "Mid Level (2-5 years)",
+            "value": "mid"
+          },
+          {
+            "label": "Senior (5+ years)",
+            "value": "senior"
+          },
+          {
+            "label": "Executive",
+            "value": "executive"
+          }
+        ],
+        "required": true
+      },
+      {
+        "name": "salary_range",
+        "type": "text",
+        "label": "Salary Range",
+        "required": true,
+        "placeholder": "e.g., Fr 150,000 - Fr 250,000 monthly"
+      },
+      {
+        "name": "education_required",
+        "type": "select",
+        "label": "Education Required",
+        "options": [
+          {
+            "label": "High School",
+            "value": "high-school"
+          },
+          {
+            "label": "Diploma",
+            "value": "diploma"
+          },
+          {
+            "label": "Bachelor's Degree",
+            "value": "bachelor"
+          },
+          {
+            "label": "Master's Degree",
+            "value": "master"
+          },
+          {
+            "label": "PhD",
+            "value": "phd"
+          },
+          {
+            "label": "Any",
+            "value": "any"
+          }
+        ],
+        "required": false
+      },
+      {
+        "name": "work_location",
+        "type": "text",
+        "label": "Work Location",
+        "required": false,
+        "placeholder": "e.g., Remote, Niamey, Hybrid"
+      },
+      {
+        "name": "application_deadline",
+        "type": "text",
+        "label": "Application Deadline",
+        "required": false,
+        "placeholder": "e.g., 2024-12-31 or Open until filled"
+      }
+    ],
+    "count": 1,
+    "subcategories": []
+  },
+  {
+    "id": "cv",
+    "name": "CV",
+    "slug": "cv",
+    "icon": "UserCheck",
+    "imageUrl": "",
+    "type": "cv",
+    "description": "",
+    "customFields": [],
+    "count": 0,
+    "subcategories": [
+      {
+        "id": "it-technology",
+        "name": "IT & Technology",
+        "slug": "it-technology",
+        "icon": "Code",
+        "imageUrl": "",
+        "type": "cv",
+        "description": "",
+        "customFields": [],
+        "count": 0,
+        "subcategories": [
+          {
+            "id": "programming",
+            "name": "Programming",
+            "slug": "programming",
+            "icon": "Terminal",
+            "imageUrl": "",
+            "type": "cv",
+            "description": "",
+            "customFields": [],
+            "count": 0,
+            "subcategories": [
+              {
+                "id": "web-programming",
+                "name": "Web Programming",
+                "slug": "web-programming",
+                "icon": "Globe",
+                "imageUrl": "",
+                "type": "cv",
+                "description": "",
+                "customFields": [
+                  {
+                    "name": "education_level",
+                    "type": "array",
+                    "label": "Education Level",
+                    "children": [
+                      {
+                        "name": "institution",
+                        "type": "text",
+                        "label": "Institution",
+                        "required": true
+                      },
+                      {
+                        "name": "degree",
+                        "type": "text",
+                        "label": "Degree",
+                        "options": [
+                          {
+                            "label": "High School",
+                            "value": "high-school"
+                          },
+                          {
+                            "label": "Diploma",
+                            "value": "diploma"
+                          },
+                          {
+                            "label": "Bachelor's Degree",
+                            "value": "bachelor"
+                          },
+                          {
+                            "label": "Master's Degree",
+                            "value": "master"
+                          },
+                          {
+                            "label": "PhD",
+                            "value": "phd"
+                          },
+                          {
+                            "label": "Other",
+                            "value": "other"
+                          }
+                        ],
+                        "required": true
+                      },
+                      {
+                        "name": "field",
+                        "type": "text",
+                        "label": "Field of Study",
+                        "required": false
+                      },
+                      {
+                        "name": "year",
+                        "type": "number",
+                        "label": "Year",
+                        "required": false
+                      }
+                    ],
+                    "required": false
+                  },
+                  {
+                    "name": "work_experience",
+                    "type": "array",
+                    "label": "Work Experience",
+                    "children": [
+                      {
+                        "name": "company",
+                        "type": "text",
+                        "label": "Company",
+                        "required": true
+                      },
+                      {
+                        "name": "position",
+                        "type": "text",
+                        "label": "Position",
+                        "required": true
+                      },
+                      {
+                        "name": "duration",
+                        "type": "text",
+                        "label": "Duration",
+                        "required": false
+                      },
+                      {
+                        "name": "description",
+                        "type": "textarea",
+                        "label": "Description",
+                        "required": false
+                      }
+                    ],
+                    "required": false
+                  },
+                  {
+                    "name": "skills",
+                    "type": "tags",
+                    "label": "Skills",
+                    "required": false,
+                    "placeholder": "e.g., JavaScript, React, Node.js"
+                  },
+                  {
+                    "min": 0,
+                    "name": "experience_years",
+                    "type": "number",
+                    "label": "Years of Experience",
+                    "required": false,
+                    "placeholder": "e.g., 5"
+                  }
+                ],
+                "count": 0,
+                "subcategories": []
+              },
+              {
+                "id": "desktop-app-development",
+                "name": "Desktop App Development",
+                "slug": "desktop-app-development",
+                "icon": "Monitor",
+                "imageUrl": "",
+                "type": "cv",
+                "description": "",
+                "customFields": [
+                  {
+                    "name": "education_level",
+                    "type": "array",
+                    "label": "Education Level",
+                    "children": [
+                      {
+                        "name": "institution",
+                        "type": "text",
+                        "label": "Institution",
+                        "required": true
+                      },
+                      {
+                        "name": "degree",
+                        "type": "text",
+                        "label": "Degree",
+                        "options": [
+                          {
+                            "label": "High School",
+                            "value": "high-school"
+                          },
+                          {
+                            "label": "Diploma",
+                            "value": "diploma"
+                          },
+                          {
+                            "label": "Bachelor's Degree",
+                            "value": "bachelor"
+                          },
+                          {
+                            "label": "Master's Degree",
+                            "value": "master"
+                          },
+                          {
+                            "label": "PhD",
+                            "value": "phd"
+                          },
+                          {
+                            "label": "Other",
+                            "value": "other"
+                          }
+                        ],
+                        "required": true
+                      },
+                      {
+                        "name": "field",
+                        "type": "text",
+                        "label": "Field of Study",
+                        "required": false
+                      },
+                      {
+                        "name": "year",
+                        "type": "number",
+                        "label": "Year",
+                        "required": false
+                      }
+                    ],
+                    "required": false
+                  },
+                  {
+                    "name": "work_experience",
+                    "type": "array",
+                    "label": "Work Experience",
+                    "children": [
+                      {
+                        "name": "company",
+                        "type": "text",
+                        "label": "Company",
+                        "required": true
+                      },
+                      {
+                        "name": "position",
+                        "type": "text",
+                        "label": "Position",
+                        "required": true
+                      },
+                      {
+                        "name": "duration",
+                        "type": "text",
+                        "label": "Duration",
+                        "required": false
+                      },
+                      {
+                        "name": "description",
+                        "type": "textarea",
+                        "label": "Description",
+                        "required": false
+                      }
+                    ],
+                    "required": false
+                  },
+                  {
+                    "name": "skills",
+                    "type": "tags",
+                    "label": "Skills",
+                    "required": false,
+                    "placeholder": "e.g., C#, Java, Python"
+                  },
+                  {
+                    "min": 0,
+                    "name": "experience_years",
+                    "type": "number",
+                    "label": "Years of Experience",
+                    "required": false,
+                    "placeholder": "e.g., 5"
+                  }
+                ],
+                "count": 0,
+                "subcategories": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -8,209 +8,6 @@ from api.utils.category_exporter import export_categories_to_json
 
 CATEGORY_TREE = [
     {
-        "name": "CVs (Hire Me)",
-        "icon": "UserCheck",
-        "type": "cv",
-        "children": [
-            {
-                "name": "IT & Technology",
-                "icon": "Code",
-                "children": [
-                    {
-                        "name": "Programming",
-                        "icon": "Terminal",
-                        "children": [
-                            {
-                                "name": "Web Programming",
-                                "icon": "Globe",
-                                "custom_fields": [
-                                    {
-                                        "name": "education_level",
-                                        "label": "Education Level",
-                                        "type": "array",
-                                        "children": [
-                                            {"name": "institution", "label": "Institution", "type": "text", "required": True},
-                                            {
-                                                "name": "degree",
-                                                "label": "Degree",
-                                                "type": "text",
-                                                "required": True,
-                                                "options": [
-                                                    {"value": "high-school", "label": "High School"},
-                                                    {"value": "diploma", "label": "Diploma"},
-                                                    {"value": "bachelor", "label": "Bachelor's Degree"},
-                                                    {"value": "master", "label": "Master's Degree"},
-                                                    {"value": "phd", "label": "PhD"},
-                                                    {"value": "other", "label": "Other"}
-                                                ]
-                                            },
-                                            {"name": "field", "label": "Field of Study", "type": "text", "required": False},
-                                            {"name": "year", "label": "Year", "type": "number", "required": False}
-                                        ],
-                                        "required": False
-                                    },
-                                    {
-                                        "name": "work_experience",
-                                        "label": "Work Experience",
-                                        "type": "array",
-                                        "children": [
-                                            {"name": "company", "label": "Company", "type": "text", "required": True},
-                                            {"name": "position", "label": "Position", "type": "text", "required": True},
-                                            {"name": "duration", "label": "Duration", "type": "text", "required": False},
-                                            {"name": "description", "label": "Description", "type": "textarea", "required": False}
-                                        ],
-                                        "required": False
-                                    },
-                                    {
-                                        "name": "skills",
-                                        "label": "Skills",
-                                        "type": "tags",
-                                        "placeholder": "e.g., JavaScript, React, Node.js",
-                                        "required": False
-                                    },
-                                    {
-                                        "name": "experience_years",
-                                        "label": "Years of Experience",
-                                        "type": "number",
-                                        "placeholder": "e.g., 5",
-                                        "min": 0,
-                                        "required": False
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "Desktop App Development",
-                                "icon": "Monitor",
-                                "custom_fields": [
-                                    {
-                                        "name": "education_level",
-                                        "label": "Education Level",
-                                        "type": "array",
-                                        "children": [
-                                            {"name": "institution", "label": "Institution", "type": "text", "required": True},
-                                            {
-                                                "name": "degree",
-                                                "label": "Degree",
-                                                "type": "text",
-                                                "required": True,
-                                                "options": [
-                                                    {"value": "high-school", "label": "High School"},
-                                                    {"value": "diploma", "label": "Diploma"},
-                                                    {"value": "bachelor", "label": "Bachelor's Degree"},
-                                                    {"value": "master", "label": "Master's Degree"},
-                                                    {"value": "phd", "label": "PhD"},
-                                                    {"value": "other", "label": "Other"}
-                                                ]
-                                            },
-                                            {"name": "field", "label": "Field of Study", "type": "text", "required": False},
-                                            {"name": "year", "label": "Year", "type": "number", "required": False}
-                                        ],
-                                        "required": False
-                                    },
-                                    {
-                                        "name": "work_experience",
-                                        "label": "Work Experience",
-                                        "type": "array",
-                                        "children": [
-                                            {"name": "company", "label": "Company", "type": "text", "required": True},
-                                            {"name": "position", "label": "Position", "type": "text", "required": True},
-                                            {"name": "duration", "label": "Duration", "type": "text", "required": False},
-                                            {"name": "description", "label": "Description", "type": "textarea", "required": False}
-                                        ],
-                                        "required": False
-                                    },
-                                    {
-                                        "name": "skills",
-                                        "label": "Skills",
-                                        "type": "tags",
-                                        "placeholder": "e.g., C#, Java, Python",
-                                        "required": False
-                                    },
-                                    {
-                                        "name": "experience_years",
-                                        "label": "Years of Experience",
-                                        "type": "number",
-                                        "placeholder": "e.g., 5",
-                                        "min": 0,
-                                        "required": False
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        "name": "Jobs (Hire Talent)",
-        "icon": "Briefcase",
-        "type": "job",
-        "custom_fields": [
-            {
-                "name": "job_type",
-                "label": "Job Type",
-                "type": "select",
-                "options": [
-                    {"value": "full-time", "label": "Full-time"},
-                    {"value": "part-time", "label": "Part-time"},
-                    {"value": "contract", "label": "Contract"},
-                    {"value": "internship", "label": "Internship"},
-                    {"value": "remote", "label": "Remote"}
-                ],
-                "required": True
-            },
-            {
-                "name": "experience_level",
-                "label": "Experience Level Required",
-                "type": "select",
-                "options": [
-                    {"value": "entry", "label": "Entry Level"},
-                    {"value": "mid", "label": "Mid Level (2-5 years)"},
-                    {"value": "senior", "label": "Senior (5+ years)"},
-                    {"value": "executive", "label": "Executive"}
-                ],
-                "required": True
-            },
-            {
-                "name": "salary_range",
-                "label": "Salary Range",
-                "type": "text",
-                "placeholder": "e.g., Fr 150,000 - Fr 250,000 monthly",
-                "required": True
-            },
-            {
-                "name": "education_required",
-                "label": "Education Required",
-                "type": "select",
-                "options": [
-                    {"value": "high-school", "label": "High School"},
-                    {"value": "diploma", "label": "Diploma"},
-                    {"value": "bachelor", "label": "Bachelor's Degree"},
-                    {"value": "master", "label": "Master's Degree"},
-                    {"value": "phd", "label": "PhD"},
-                    {"value": "any", "label": "Any"}
-                ],
-                "required": False
-            },
-            {
-                "name": "work_location",
-                "label": "Work Location",
-                "type": "text",
-                "placeholder": "e.g., Remote, Niamey, Hybrid",
-                "required": False
-            },
-            {
-                "name": "application_deadline",
-                "label": "Application Deadline",
-                "type": "text",
-                "placeholder": "e.g., 2024-12-31 or Open until filled",
-                "required": False
-            }
-        ],
-        "children": []
-    },
-    {
         "name": "Electronics & Gadgets",
         "icon": "Smartphone",
         "type": "product",
@@ -393,6 +190,492 @@ CATEGORY_TREE = [
                 ],
             },
         ],
+    },
+    {
+        "name": "Real Estate & Property",
+        "icon": "Home",
+        "type": "product",
+        "custom_fields": [
+            {
+                "name": "property_type",
+                "label": "Property Type",
+                "type": "select",
+                "options": [
+                    {"value": "apartment", "label": "Apartment"},
+                    {"value": "house", "label": "House"},
+                    {"value": "villa", "label": "Villa"},
+                    {"value": "land", "label": "Land"},
+                    {"value": "commercial", "label": "Commercial"}
+                ],
+                "required": True
+            },
+            {
+                "name": "bedrooms",
+                "label": "Bedrooms",
+                "type": "number",
+                "placeholder": "e.g., 3",
+                "min": 0,
+                "required": False
+            },
+            {
+                "name": "bathrooms",
+                "label": "Bathrooms",
+                "type": "number",
+                "placeholder": "e.g., 2",
+                "min": 0,
+                "required": False
+            },
+            {
+                "name": "size_sqm",
+                "label": "Size (sqm)",
+                "type": "number",
+                "placeholder": "e.g., 120",
+                "min": 0,
+                "required": False
+            },
+            {
+                "name": "furnishing",
+                "label": "Furnishing",
+                "type": "select",
+                "options": [
+                    {"value": "furnished", "label": "Furnished"},
+                    {"value": "semi-furnished", "label": "Semi-Furnished"},
+                    {"value": "unfurnished", "label": "Unfurnished"}
+                ],
+                "required": False
+            }
+        ],
+        "children": [
+            {"name": "For Sale", "icon": "DollarSign"},
+            {"name": "For Rent", "icon": "Key"},
+            {"name": "Land", "icon": "Map"},
+        ],
+    },
+    {
+        "name": "Fashion & Clothing",
+        "icon": "Shirt",
+        "type": "product",
+        "custom_fields": [
+            {
+                "name": "brand",
+                "label": "Brand",
+                "type": "text",
+                "placeholder": "e.g., Zara, H&M",
+                "required": False
+            },
+            {
+                "name": "size",
+                "label": "Size",
+                "type": "text",
+                "placeholder": "e.g., M, L, XL",
+                "required": False
+            },
+            {
+                "name": "condition",
+                "label": "Condition",
+                "type": "select",
+                "options": [
+                    {"value": "new", "label": "New"},
+                    {"value": "like-new", "label": "Like New"},
+                    {"value": "good", "label": "Good"},
+                    {"value": "fair", "label": "Fair"}
+                ],
+                "required": False
+            }
+        ],
+        "children": [
+            {"name": "Men's Clothing", "icon": "User"},
+            {"name": "Women's Clothing", "icon": "User"},
+            {"name": "Accessories", "icon": "ShoppingBag"},
+            {"name": "Shoes", "icon": "Footprints"},
+        ],
+    },
+    {
+        "name": "Home & Furniture",
+        "icon": "Sofa",
+        "type": "product",
+        "custom_fields": [
+            {
+                "name": "condition",
+                "label": "Condition",
+                "type": "select",
+                "options": [
+                    {"value": "new", "label": "New"},
+                    {"value": "like-new", "label": "Like New"},
+                    {"value": "excellent", "label": "Excellent"},
+                    {"value": "good", "label": "Good"},
+                    {"value": "fair", "label": "Fair"}
+                ],
+                "required": False
+            },
+            {
+                "name": "material",
+                "label": "Material",
+                "type": "text",
+                "placeholder": "e.g., Wood, Leather, Fabric",
+                "required": False
+            }
+        ],
+        "children": [
+            {"name": "Living Room", "icon": "Sofa"},
+            {"name": "Bedroom", "icon": "Bed"},
+            {"name": "Kitchen & Dining", "icon": "Utensils"},
+            {"name": "Office Furniture", "icon": "Briefcase"},
+        ],
+    },
+    {
+        "name": "Sports & Fitness",
+        "icon": "Dumbbell",
+        "type": "product",
+        "custom_fields": [
+            {
+                "name": "brand",
+                "label": "Brand",
+                "type": "text",
+                "placeholder": "e.g., Nike, Adidas",
+                "required": False
+            },
+            {
+                "name": "condition",
+                "label": "Condition",
+                "type": "select",
+                "options": [
+                    {"value": "new", "label": "New"},
+                    {"value": "excellent", "label": "Excellent"},
+                    {"value": "good", "label": "Good"},
+                    {"value": "fair", "label": "Fair"}
+                ],
+                "required": False
+            }
+        ],
+        "children": [
+            {"name": "Gym Equipment", "icon": "Dumbbell"},
+            {"name": "Sports Gear", "icon": "Activity"},
+            {"name": "Outdoor Sports", "icon": "TreePine"},
+        ],
+    },
+    {
+        "name": "Books & Education",
+        "icon": "Book",
+        "type": "product",
+        "custom_fields": [
+            {
+                "name": "condition",
+                "label": "Condition",
+                "type": "select",
+                "options": [
+                    {"value": "new", "label": "New"},
+                    {"value": "like-new", "label": "Like New"},
+                    {"value": "good", "label": "Good"},
+                    {"value": "fair", "label": "Fair"}
+                ],
+                "required": False
+            },
+            {
+                "name": "author",
+                "label": "Author",
+                "type": "text",
+                "placeholder": "e.g., Author name",
+                "required": False
+            }
+        ],
+        "children": [
+            {"name": "Textbooks", "icon": "BookOpen"},
+            {"name": "Fiction", "icon": "BookMarked"},
+            {"name": "Non-Fiction", "icon": "Library"},
+        ],
+    },
+    {
+        "name": "Food & Beverages",
+        "icon": "Coffee",
+        "type": "product",
+        "custom_fields": [
+            {
+                "name": "expiry_date",
+                "label": "Expiry Date",
+                "type": "text",
+                "placeholder": "e.g., 2025-12-31",
+                "required": False
+            },
+            {
+                "name": "condition",
+                "label": "Condition",
+                "type": "select",
+                "options": [
+                    {"value": "new", "label": "New/Sealed"},
+                    {"value": "good", "label": "Good"},
+                    {"value": "expiring", "label": "Expiring Soon"}
+                ],
+                "required": False
+            }
+        ],
+        "children": [
+            {"name": "Groceries", "icon": "ShoppingCart"},
+            {"name": "Restaurant Supplies", "icon": "ChefHat"},
+        ],
+    },
+    {
+        "name": "Beauty & Personal Care",
+        "icon": "Sparkles",
+        "type": "product",
+        "custom_fields": [
+            {
+                "name": "brand",
+                "label": "Brand",
+                "type": "text",
+                "placeholder": "e.g., L'Oreal, Maybelline",
+                "required": False
+            },
+            {
+                "name": "condition",
+                "label": "Condition",
+                "type": "select",
+                "options": [
+                    {"value": "new", "label": "New/Sealed"},
+                    {"value": "opened", "label": "Opened but Unused"},
+                    {"value": "used", "label": "Used"}
+                ],
+                "required": False
+            }
+        ],
+        "children": [
+            {"name": "Skincare", "icon": "Sparkles"},
+            {"name": "Makeup", "icon": "Palette"},
+            {"name": "Hair Care", "icon": "Scissors"},
+        ],
+    },
+    {
+        "name": "Pets & Animals",
+        "icon": "Heart",
+        "type": "product",
+        "custom_fields": [
+            {
+                "name": "pet_type",
+                "label": "Pet Type",
+                "type": "select",
+                "options": [
+                    {"value": "dog", "label": "Dog"},
+                    {"value": "cat", "label": "Cat"},
+                    {"value": "bird", "label": "Bird"},
+                    {"value": "other", "label": "Other"}
+                ],
+                "required": True
+            },
+            {
+                "name": "age",
+                "label": "Age",
+                "type": "text",
+                "placeholder": "e.g., 2 years",
+                "required": False
+            }
+        ],
+        "children": [
+            {"name": "Pets", "icon": "Heart"},
+            {"name": "Pet Supplies", "icon": "ShoppingBag"},
+        ],
+    },
+    {
+        "name": "Job",
+        "icon": "Briefcase",
+        "type": "job",
+        "custom_fields": [
+            {
+                "name": "job_type",
+                "label": "Job Type",
+                "type": "select",
+                "options": [
+                    {"value": "full-time", "label": "Full-time"},
+                    {"value": "part-time", "label": "Part-time"},
+                    {"value": "contract", "label": "Contract"},
+                    {"value": "internship", "label": "Internship"},
+                    {"value": "remote", "label": "Remote"}
+                ],
+                "required": True
+            },
+            {
+                "name": "experience_level",
+                "label": "Experience Level Required",
+                "type": "select",
+                "options": [
+                    {"value": "entry", "label": "Entry Level"},
+                    {"value": "mid", "label": "Mid Level (2-5 years)"},
+                    {"value": "senior", "label": "Senior (5+ years)"},
+                    {"value": "executive", "label": "Executive"}
+                ],
+                "required": True
+            },
+            {
+                "name": "salary_range",
+                "label": "Salary Range",
+                "type": "text",
+                "placeholder": "e.g., Fr 150,000 - Fr 250,000 monthly",
+                "required": True
+            },
+            {
+                "name": "education_required",
+                "label": "Education Required",
+                "type": "select",
+                "options": [
+                    {"value": "high-school", "label": "High School"},
+                    {"value": "diploma", "label": "Diploma"},
+                    {"value": "bachelor", "label": "Bachelor's Degree"},
+                    {"value": "master", "label": "Master's Degree"},
+                    {"value": "phd", "label": "PhD"},
+                    {"value": "any", "label": "Any"}
+                ],
+                "required": False
+            },
+            {
+                "name": "work_location",
+                "label": "Work Location",
+                "type": "text",
+                "placeholder": "e.g., Remote, Niamey, Hybrid",
+                "required": False
+            },
+            {
+                "name": "application_deadline",
+                "label": "Application Deadline",
+                "type": "text",
+                "placeholder": "e.g., 2024-12-31 or Open until filled",
+                "required": False
+            }
+        ],
+        "children": []
+    },
+    {
+        "name": "CV",
+        "icon": "UserCheck",
+        "type": "cv",
+        "children": [
+            {
+                "name": "IT & Technology",
+                "icon": "Code",
+                "children": [
+                    {
+                        "name": "Programming",
+                        "icon": "Terminal",
+                        "children": [
+                            {
+                                "name": "Web Programming",
+                                "icon": "Globe",
+                                "custom_fields": [
+                                    {
+                                        "name": "education_level",
+                                        "label": "Education Level",
+                                        "type": "array",
+                                        "children": [
+                                            {"name": "institution", "label": "Institution", "type": "text", "required": True},
+                                            {
+                                                "name": "degree",
+                                                "label": "Degree",
+                                                "type": "text",
+                                                "required": True,
+                                                "options": [
+                                                    {"value": "high-school", "label": "High School"},
+                                                    {"value": "diploma", "label": "Diploma"},
+                                                    {"value": "bachelor", "label": "Bachelor's Degree"},
+                                                    {"value": "master", "label": "Master's Degree"},
+                                                    {"value": "phd", "label": "PhD"},
+                                                    {"value": "other", "label": "Other"}
+                                                ]
+                                            },
+                                            {"name": "field", "label": "Field of Study", "type": "text", "required": False},
+                                            {"name": "year", "label": "Year", "type": "number", "required": False}
+                                        ],
+                                        "required": False
+                                    },
+                                    {
+                                        "name": "work_experience",
+                                        "label": "Work Experience",
+                                        "type": "array",
+                                        "children": [
+                                            {"name": "company", "label": "Company", "type": "text", "required": True},
+                                            {"name": "position", "label": "Position", "type": "text", "required": True},
+                                            {"name": "duration", "label": "Duration", "type": "text", "required": False},
+                                            {"name": "description", "label": "Description", "type": "textarea", "required": False}
+                                        ],
+                                        "required": False
+                                    },
+                                    {
+                                        "name": "skills",
+                                        "label": "Skills",
+                                        "type": "tags",
+                                        "placeholder": "e.g., JavaScript, React, Node.js",
+                                        "required": False
+                                    },
+                                    {
+                                        "name": "experience_years",
+                                        "label": "Years of Experience",
+                                        "type": "number",
+                                        "placeholder": "e.g., 5",
+                                        "min": 0,
+                                        "required": False
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Desktop App Development",
+                                "icon": "Monitor",
+                                "custom_fields": [
+                                    {
+                                        "name": "education_level",
+                                        "label": "Education Level",
+                                        "type": "array",
+                                        "children": [
+                                            {"name": "institution", "label": "Institution", "type": "text", "required": True},
+                                            {
+                                                "name": "degree",
+                                                "label": "Degree",
+                                                "type": "text",
+                                                "required": True,
+                                                "options": [
+                                                    {"value": "high-school", "label": "High School"},
+                                                    {"value": "diploma", "label": "Diploma"},
+                                                    {"value": "bachelor", "label": "Bachelor's Degree"},
+                                                    {"value": "master", "label": "Master's Degree"},
+                                                    {"value": "phd", "label": "PhD"},
+                                                    {"value": "other", "label": "Other"}
+                                                ]
+                                            },
+                                            {"name": "field", "label": "Field of Study", "type": "text", "required": False},
+                                            {"name": "year", "label": "Year", "type": "number", "required": False}
+                                        ],
+                                        "required": False
+                                    },
+                                    {
+                                        "name": "work_experience",
+                                        "label": "Work Experience",
+                                        "type": "array",
+                                        "children": [
+                                            {"name": "company", "label": "Company", "type": "text", "required": True},
+                                            {"name": "position", "label": "Position", "type": "text", "required": True},
+                                            {"name": "duration", "label": "Duration", "type": "text", "required": False},
+                                            {"name": "description", "label": "Description", "type": "textarea", "required": False}
+                                        ],
+                                        "required": False
+                                    },
+                                    {
+                                        "name": "skills",
+                                        "label": "Skills",
+                                        "type": "tags",
+                                        "placeholder": "e.g., C#, Java, Python",
+                                        "required": False
+                                    },
+                                    {
+                                        "name": "experience_years",
+                                        "label": "Years of Experience",
+                                        "type": "number",
+                                        "placeholder": "e.g., 5",
+                                        "min": 0,
+                                        "required": False
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
     },
 ]
 

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
-import { useUnifiedChatWebSocket } from '@/hooks/useUnifiedChatWebSocket'
+import { useChatWebSocketStore } from '@/store/chatWebSocketStore'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ChatMessage, ChatSummary } from '@/api/types'
 
@@ -14,6 +14,7 @@ import type { ChatMessage, ChatSummary } from '@/api/types'
 export default function GlobalChatConnection() {
   const { isAuthenticated } = useAuthStore()
   const queryClient = useQueryClient()
+  const { connect, disconnect, setHandlers, isConnected } = useChatWebSocketStore()
 
   // Handler for chat list updates (new messages, read receipts, etc.)
   const handleChatEvent = (payload: { type: 'chat_event'; chat_id: string; chat?: ChatSummary; message?: ChatMessage }) => {
@@ -67,6 +68,37 @@ export default function GlobalChatConnection() {
         return chat
       })
     })
+    
+    // Also update messages cache for this chat
+    queryClient.setQueryData(['messages', chatId], (oldData: any) => {
+      if (!oldData) return oldData
+      
+      if (oldData.pages) {
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            results: page.results?.map((msg: ChatMessage) => {
+              if (msg.id === message.id) {
+                return { ...msg, ...message }
+              }
+              return msg
+            }) || [],
+          })),
+        }
+      }
+      
+      if (Array.isArray(oldData)) {
+        return oldData.map((msg: ChatMessage) => {
+          if (msg.id === message.id) {
+            return { ...msg, ...message }
+          }
+          return msg
+        })
+      }
+      
+      return oldData
+    })
   }
 
   // Handler for marked read event
@@ -84,17 +116,54 @@ export default function GlobalChatConnection() {
         return chat
       })
     })
+    
+    // Invalidate messages query to refresh delivery status
+    queryClient.invalidateQueries({ queryKey: ['messages', chatId] })
   }
 
-  // Connect to chat WebSocket globally (no active chat subscriptions)
-  // This maintains connection for receiving chat list updates
-  useUnifiedChatWebSocket({
-    enabled: isAuthenticated,
-    activeChatIds: [], // No active chats - just maintain connection for list updates
-    onChatListUpdate: handleChatEvent,
-    onMessageStatusUpdate: handleMessageStatusUpdate,
-    onMarkedRead: handleMarkedRead,
-  })
+  // Set handlers in store
+  useEffect(() => {
+    setHandlers({
+      onChatListUpdate: handleChatEvent,
+      onMessageStatusUpdate: handleMessageStatusUpdate,
+      onMarkedRead: handleMarkedRead,
+    })
+  }, [setHandlers])
+
+  // Connect/disconnect based on authentication
+  useEffect(() => {
+    if (isAuthenticated) {
+      connect()
+    } else {
+      disconnect()
+    }
+
+    // Cleanup on unmount
+    return () => {
+      // Don't disconnect on unmount - keep connection alive across page navigation
+      // Only disconnect on logout
+    }
+  }, [isAuthenticated, connect, disconnect])
+
+  // Handle visibility change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const { ws } = useChatWebSocketStore.getState()
+      if (document.visibilityState === 'visible' && ws?.readyState === WebSocket.OPEN) {
+        try {
+          ws.send(JSON.stringify({ type: 'ping' }))
+          useChatWebSocketStore.setState({ lastPongTime: Date.now() })
+        } catch (error) {
+          console.error('Failed to send ping on visibility change:', error)
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
 
   return null // This component doesn't render anything
 }

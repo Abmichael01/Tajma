@@ -87,13 +87,13 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
     const card = (
       <div className="bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer group mb-6 break-inside-avoid">
         {/* Image Container */}
-        <div className="relative w-full overflow-hidden aspect-[4/3]">
+        <div className="relative w-full overflow-hidden">
           <Image
             src={imageUrl}
             alt={ad.title}
             width={400}
-            height={300}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+            height={400}
+            className="w-full h-auto group-hover:scale-105 transition-transform duration-200"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
           

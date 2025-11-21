@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.utils import timezone
 
 from api.models import Chat, Message, UserOnlineStatus
@@ -157,6 +158,9 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
             elif message_type == 'mark_read':
                 # Handle mark as read (requires subscription to chat)
                 await self.handle_mark_read(data)
+            elif message_type == 'mark_all_delivered':
+                # Handle mark all messages as delivered when user comes online
+                await self.handle_mark_all_delivered()
             else:
                 logger.warning(f"Unknown message type: {message_type}")
                 await self.send(text_data=json.dumps({
@@ -632,6 +636,47 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         serializer = ChatSerializer(chat, context={'request': fake_request})
         return serializer.data
     
+    async def handle_mark_all_delivered(self):
+        """Mark all unread messages as delivered when user comes online"""
+        try:
+            count, chat_ids, message_ids = await self.mark_all_messages_delivered(self.user.id)
+            logger.info(f"✅ User {self.user.id} came online, marked {count} messages as delivered")
+            
+            # Broadcast message status updates for all affected messages
+            # This will notify senders that their messages were delivered
+            for message_id in message_ids:
+                message = await self.get_message_data(message_id)
+                if message:
+                    message_data = await self.serialize_message(message)
+                    chat_id = str(message.chat_id)
+                    chat_group_name = f'chat_{chat_id}'
+                    
+                    # Broadcast status update to all chat participants
+                    await self.channel_layer.group_send(
+                        chat_group_name,
+                        {
+                            'type': 'message_status_update',
+                            'message': message_data,
+                            'chat_id': chat_id
+                        }
+                    )
+            
+            # Broadcast chat events to update chat list for all affected chats
+            for chat_id in chat_ids:
+                await self.broadcast_chat_event({}, str(chat_id))
+            
+            # Notify the user that messages were marked as delivered
+            await self.send(text_data=json.dumps({
+                'type': 'all_messages_delivered',
+                'count': count
+            }))
+        except Exception as e:
+            logger.error(f"Error marking all messages as delivered: {e}", exc_info=True)
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'Failed to mark messages as delivered'
+            }))
+    
     @database_sync_to_async
     def mark_message_delivered(self, message_id):
         """Mark message as delivered when recipient receives it"""
@@ -648,6 +693,34 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             logger.error(f"Error marking message as delivered: {e}", exc_info=True)
         return False
+    
+    @database_sync_to_async
+    def mark_all_messages_delivered(self, user_id):
+        """Mark all unread messages sent to this user as delivered"""
+        try:
+            # Get all chats where this user is a participant
+            user_chats = Chat.objects.filter(
+                models.Q(participant1_id=user_id) | models.Q(participant2_id=user_id)
+            )
+            
+            # Get all messages sent to this user that are not yet delivered
+            messages = Message.objects.filter(
+                chat__in=user_chats,
+                delivered_at__isnull=True
+            ).exclude(
+                sender_id=user_id  # Exclude messages sent by this user
+            )
+            
+            # Get message IDs before updating
+            message_ids = list(messages.values_list('id', flat=True))
+            
+            # Mark all as delivered
+            count = messages.update(delivered_at=timezone.now())
+            
+            return count, list(user_chats.values_list('id', flat=True)), message_ids
+        except Exception as e:
+            logger.error(f"Error marking all messages as delivered: {e}", exc_info=True)
+            return 0, [], []
     
     @database_sync_to_async
     def get_message_data(self, message_id):

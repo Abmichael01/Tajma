@@ -32,7 +32,7 @@ export const useNotificationWebSocket = () => {
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 
-      apiUrl.replace(/^http/, 'ws') + '/ws/notifications/'
+      apiUrl.replace(/^https?/, (match) => match === 'https' ? 'wss' : 'ws') + '/ws/notifications/'
     
     try {
       // WebSocket will use cookies for authentication (session-based)

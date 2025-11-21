@@ -1,9 +1,9 @@
 "use client"
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
-import { useUnifiedChatWebSocket } from './useUnifiedChatWebSocket'
+import { useChatWebSocketStore } from '@/store/chatWebSocketStore'
 import type { ChatMessage, ChatSummary } from '@/api/types'
 
 interface UseChatRealtimeOptions {
@@ -96,6 +96,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             
             // Check for optimistic message to replace
             // Also check for failed messages with same content (for retry case)
+            // Extended time window to handle subscription delays when coming back to page
             const messageTime = new Date(message.created_at).getTime()
             const optimisticIndex = messagesArray.findIndex((m: ChatMessage) => {
               const isTemp = String(m.id).startsWith('temp-')
@@ -103,7 +104,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               const sameContent = String(m.content).trim() === String(message.content).trim()
               const sameSender = m.sender?.id === message.sender?.id
               const optimisticTime = new Date(m.created_at).getTime()
-              const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 30000 // 30 seconds window for retries
+              const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 90000 // 90 seconds window to handle subscription delays
               return (isTemp || isFailed) && sameContent && sameSender && withinTimeWindow
             })
             
@@ -127,14 +128,15 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           if (updatedPages.length > 0) {
             const lastPage = updatedPages[updatedPages.length - 1]
             if (lastPage && lastPage.results) {
-              // Check if we already have a message with same content from same sender within 30 seconds
+              // Check if we already have a message with same content from same sender within 90 seconds
+              // Extended window to handle subscription delays
               const messageTime = new Date(message.created_at).getTime()
               const hasDuplicate = lastPage.results.some((m: ChatMessage) => {
                 if (m.id === message.id) return true // Same ID
                 const sameContent = String(m.content).trim() === String(message.content).trim()
                 const sameSender = m.sender?.id === message.sender?.id
                 const mTime = new Date(m.created_at).getTime()
-                const withinTimeWindow = Math.abs(messageTime - mTime) < 30000 // 30 seconds
+                const withinTimeWindow = Math.abs(messageTime - mTime) < 90000 // 90 seconds to handle subscription delays
                 return sameContent && sameSender && withinTimeWindow
               })
               
@@ -281,12 +283,12 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
   // --- Handler for Chat Messages (with chatId) ---
   const handleChatMessage = useCallback(
     (message: ChatMessage, chatId: string) => {
-      // Only process messages for active chat
-      if (chatId === activeConversationId) {
-        handleSocketMessage(message)
-      }
+      // Always process messages - this ensures messages are properly replaced even if
+      // subscription wasn't confirmed when message was sent (e.g., when coming back to page)
+      // The handleSocketMessage will check if it's for the active chat and process accordingly
+      handleSocketMessage(message)
     },
-    [activeConversationId]
+    [handleSocketMessage]
   )
 
   // --- Handler for Message Status Updates (with chatId) ---
@@ -383,20 +385,58 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           return chat
         })
       })
+      
+      // Also invalidate messages query to refresh delivery status
+      queryClient.invalidateQueries({ queryKey: ['messages', chatId] })
     },
     [queryClient]
   )
 
-  // --- Unified WebSocket Connection (Single Connection) ---
-  const { isConnected, sendMessage: sendMessageRaw, sendTyping: sendTypingRaw, markAsRead: markAsReadRaw } = useUnifiedChatWebSocket({
-    enabled: isAuthenticated,
-    activeChatIds,
-    onChatMessage: handleChatMessage,
-    onChatListUpdate: handleChatEvent,
-    onTyping: handleSocketTyping,
-    onMessageStatusUpdate: handleMessageStatusUpdate,
-    onMarkedRead: handleMarkedRead,
-  })
+  // Handler for all messages delivered is not needed separately
+  // The backend broadcasts message_status_update events for each message
+  // which will be handled by handleMessageStatusUpdate above
+
+  // --- Use Global WebSocket Connection from Zustand Store ---
+  const { 
+    isConnected, 
+    subscribeToChat: subscribeToChatStore, 
+    unsubscribeFromChat: unsubscribeFromChatStore, 
+    sendMessage: sendMessageRaw, 
+    sendTyping: sendTypingRaw, 
+    markAsRead: markAsReadRaw, 
+    setHandlers: setHandlersStore 
+  } = useChatWebSocketStore()
+
+  // Register handlers with the global store
+  // Note: setHandlers will overwrite previous handlers, but that's okay because
+  // ChatClient handlers (via useChatRealtime) are more specific and will handle everything
+  // The GlobalChatConnection handlers are primarily for when no chat is active
+  useEffect(() => {
+    setHandlersStore({
+      onChatMessage: handleChatMessage,
+      onChatListUpdate: handleChatEvent,
+      onTyping: handleSocketTyping,
+      onMessageStatusUpdate: handleMessageStatusUpdate,
+      onMarkedRead: handleMarkedRead,
+    })
+  }, [setHandlersStore, handleChatMessage, handleChatEvent, handleSocketTyping, handleMessageStatusUpdate, handleMarkedRead])
+
+  // Subscribe/unsubscribe to active chats when they change
+  useEffect(() => {
+    if (!isConnected) return
+
+    // Subscribe to active chat
+    activeChatIds.forEach((chatId) => {
+      subscribeToChatStore(chatId)
+    })
+
+    // Cleanup: unsubscribe when component unmounts or chat changes
+    return () => {
+      activeChatIds.forEach((chatId) => {
+        unsubscribeFromChatStore(chatId)
+      })
+    }
+  }, [isConnected, activeChatIds, subscribeToChatStore, unsubscribeFromChatStore])
 
   // Wrapper functions to match the expected API
   const sendMessage = useCallback(

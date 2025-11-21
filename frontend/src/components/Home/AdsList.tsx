@@ -139,13 +139,13 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
       <Link key={ad.id} href={`/ads/${ad.slug}`} className="block">
         <div className="bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer group mb-6 break-inside-avoid">
         {/* Image Container */}
-        <div className="relative w-full overflow-hidden aspect-[4/3]">
+        <div className="relative w-full overflow-hidden">
           <Image
             src={imageUrl}
             alt={ad.title}
             width={400}
-            height={300}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+            height={400}
+            className="w-full h-auto group-hover:scale-105 transition-transform duration-200"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           />
           
