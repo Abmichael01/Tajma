@@ -10,6 +10,7 @@ import type { ChatSummary, ChatMessage, User, UserOnlineStatus } from '@/api/typ
 import { useAuthStore } from '@/store/authStore'
 import MessageBubble from './MessageBubble'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { useChatSounds } from '@/hooks/useChatSounds'
 
 // Helper function to normalize image URLs
 const normalizeImageUrl = (url: string | null | undefined): string => {
@@ -46,6 +47,8 @@ interface ChatAreaProps {
   onBack?: () => void
   onRetryMessage?: (message: ChatMessage) => void
   onMarkAsRead?: () => void
+  onScrollStateChange?: (isAtBottom: boolean) => void // Callback to notify parent of scroll position
+  onGetScrollState?: (getState: () => boolean) => void // Callback to expose scroll check function to parent
   chatId?: string | null // Chat ID to detect when chat changes
 }
 
@@ -64,6 +67,8 @@ export default function ChatArea({
   onBack,
   onRetryMessage,
   onMarkAsRead,
+  onScrollStateChange,
+  onGetScrollState,
   chatId,
 }: ChatAreaProps) {
   const [inputValue, setInputValue] = useState('')
@@ -79,6 +84,17 @@ export default function ChatArea({
   const lastMessageIdRef = useRef<string | number | null>(null)
   const wasAtBottomRef = useRef<boolean>(true) // Track if user was at bottom before new message
   const { user } = useAuthStore()
+  const { playTypingSound } = useChatSounds()
+
+  // Function to check if user is currently at bottom
+  const checkIsAtBottom = useCallback((): boolean => {
+    const container = messagesContainerRef.current
+    if (!container) return true // Default to true if container not available
+    
+    const { scrollTop, scrollHeight, clientHeight } = container
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+    return distanceFromBottom < 100 // Within 100px of bottom
+  }, [])
 
   const scrollToBottom = (smooth = true) => {
     if (messagesContainerRef.current) {
@@ -95,6 +111,13 @@ export default function ChatArea({
     }
   }
 
+  // Expose scroll check function to parent via callback
+  useEffect(() => {
+    if (onGetScrollState) {
+      onGetScrollState(checkIsAtBottom)
+    }
+  }, [onGetScrollState, checkIsAtBottom])
+
   // Track scroll position and count unread messages below current view
   const updateScrollState = useCallback(() => {
     const container = messagesContainerRef.current
@@ -103,6 +126,9 @@ export default function ChatArea({
     const { scrollTop, scrollHeight, clientHeight } = container
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight
     const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
+    
+    // Notify parent component of scroll state
+    onScrollStateChange?.(isNearBottom)
     
     // Only show button if user has scrolled up (not at bottom)
     if (isNearBottom) {
@@ -139,7 +165,7 @@ export default function ChatArea({
     
     // Set unread count (will show badge if count > 0)
     setUnreadCountBelow(count)
-  }, [messages, user])
+  }, [messages, user, onScrollStateChange])
 
   useEffect(() => {
     const container = messagesContainerRef.current
@@ -179,123 +205,179 @@ export default function ChatArea({
     const currentMessageCount = messages.length
     const currentLastMessageId = lastMessage?.id
     
-    // Check if a new message actually arrived (not just array update)
+    // Check if a new message actually arrived (not just status update or array reference change)
+    // Only treat as new message if:
+    // 1. Message count increased, OR
+    // 2. Last message ID changed (new message added)
+    // Do NOT treat status updates (delivered_at, read_at changes) as new messages
     const isNewMessage = 
       currentMessageCount > lastMessageCountRef.current || 
       (currentLastMessageId && currentLastMessageId !== lastMessageIdRef.current)
     
+    // If this is just a status update (same message count, same last message ID),
+    // don't trigger scroll logic - just return early
+    if (!isNewMessage) {
+      return
+    }
+    
     // Store if user was at bottom before new message
     const wasAtBottom = wasAtBottomRef.current
     
-    // Update refs
+    // Update refs only if it's actually a new message
     lastMessageCountRef.current = currentMessageCount
     lastMessageIdRef.current = currentLastMessageId
     
-    // Only check scroll position if a new message arrived
-    if (isNewMessage) {
-      // Use multiple requestAnimationFrame calls to ensure DOM is fully updated
+    // Only check scroll position if a new message arrived (already checked above)
+    // Use multiple requestAnimationFrame calls to ensure DOM is fully updated
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            const container = messagesContainerRef.current
-            if (!container) return
+        setTimeout(() => {
+          const container = messagesContainerRef.current
+          if (!container) return
+          
+          // CRITICAL: Verify actual scroll position RIGHT BEFORE deciding to scroll
+          // Don't rely solely on wasAtBottomRef - check the actual DOM position
+          const { scrollTop, scrollHeight, clientHeight } = container
+          const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+          const isActuallyAtBottom = distanceFromBottom < 100 // Within 100px of bottom
+          
+          // Only auto-scroll if user was at bottom BEFORE message AND is still at bottom NOW
+          // This prevents scrolling when user scrolled up during message processing
+          if (wasAtBottom && isActuallyAtBottom) {
+            scrollToBottom(false) // Instant scroll
+            setShowScrollToBottom(false)
+            setUnreadCountBelow(0)
+            // Update wasAtBottomRef after scrolling
+            wasAtBottomRef.current = true
+          } else {
+            // User was not at bottom or scrolled up - check current position and show button if needed
+            const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
             
-            // If user was at bottom before new message, auto-scroll to bottom
-            if (wasAtBottom) {
-              scrollToBottom(false) // Instant scroll
+            // If user is not at bottom, show scroll button
+            if (!isNearBottom) {
+              setShowScrollToBottom(true)
+              
+              // Count unread messages from other user that are below viewport
+              let count = 0
+              const viewportBottom = scrollTop + clientHeight
+              
+              // Get all message elements
+              const messageElements = Array.from(container.querySelectorAll('[data-message-id]')) as HTMLElement[]
+              
+              messageElements.forEach((element) => {
+                const messageId = element.getAttribute('data-message-id')
+                const message = messages.find(m => String(m.id) === messageId)
+                
+                if (message && message.sender?.id !== user?.id && !message.is_read) {
+                  const elementTop = element.offsetTop
+                  
+                  // Check if message is below current viewport
+                  if (elementTop > viewportBottom) {
+                    count++
+                  }
+                }
+              })
+              
+              setUnreadCountBelow(count)
+            } else {
+              // User is at bottom - hide button
               setShowScrollToBottom(false)
               setUnreadCountBelow(0)
-              // Update wasAtBottomRef after scrolling
               wasAtBottomRef.current = true
-            } else {
-              // User was not at bottom - check current position and show button if needed
-              const { scrollTop, scrollHeight, clientHeight } = container
-              const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-              const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
-              
-              // If user is not at bottom, show scroll button
-              if (!isNearBottom) {
-                setShowScrollToBottom(true)
-                
-                // Count unread messages from other user that are below viewport
-                let count = 0
-                const viewportBottom = scrollTop + clientHeight
-                
-                // Get all message elements
-                const messageElements = Array.from(container.querySelectorAll('[data-message-id]')) as HTMLElement[]
-                
-                messageElements.forEach((element) => {
-                  const messageId = element.getAttribute('data-message-id')
-                  const message = messages.find(m => String(m.id) === messageId)
-                  
-                  if (message && message.sender?.id !== user?.id && !message.is_read) {
-                    const elementTop = element.offsetTop
-                    
-                    // Check if message is below current viewport
-                    if (elementTop > viewportBottom) {
-                      count++
-                    }
-                  }
-                })
-                
-                setUnreadCountBelow(count)
-              } else {
-                // User is at bottom - hide button
-                setShowScrollToBottom(false)
-                setUnreadCountBelow(0)
-                wasAtBottomRef.current = true
-              }
             }
-          }, 300) // Delay to ensure messages are rendered
-        })
+          }
+        }, 300) // Delay to ensure messages are rendered
       })
-    }
+    })
   }, [messages, user])
 
-  // Scroll to bottom instantly when chat is opened (chatId changes) or messages load
+  // Track which chat we've scrolled for to prevent duplicate scrolls
+  const scrolledForChatRef = useRef<string | null>(null)
+  const lastMessageCountForChatRef = useRef<Record<string, number>>({})
+  
+  // Scroll to bottom when chat is opened (chatId changes)
+  // This effect only handles chatId changes, not message updates
   useEffect(() => {
-    if (!chatId || !messagesContainerRef.current) return
+    if (!chatId) {
+      scrolledForChatRef.current = null
+      return
+    }
     
     // Reset scroll state when chat changes
     setShowScrollToBottom(false)
     setUnreadCountBelow(0)
     wasAtBottomRef.current = true
     
-    // Scroll to bottom instantly when chat opens or messages load
-    const scrollToBottomNow = () => {
-      const container = messagesContainerRef.current
-      if (container) {
-        container.scrollTop = container.scrollHeight
-      }
+    // Reset scroll tracking for new chat (allow scroll when messages load)
+    if (scrolledForChatRef.current !== chatId) {
+      scrolledForChatRef.current = null
     }
+  }, [chatId])
+  
+  // Scroll to bottom when messages first load for a new chat
+  // This ensures we scroll after messages are actually loaded, not just when chatId changes
+  // Only scrolls when: chatId changed AND messages exist AND we haven't scrolled for this chat yet
+  useEffect(() => {
+    if (!chatId || !messagesContainerRef.current) return
+    if (!messages || messages.length === 0) return // Wait for messages to load
+    if (scrolledForChatRef.current === chatId) return // Already scrolled for this chat
     
-    // Try multiple times to ensure it works
-    requestAnimationFrame(() => {
-      scrollToBottomNow()
-      setTimeout(() => {
+    // Check if message count changed from 0 (new chat) or if this is first time seeing messages for this chat
+    const previousCount = lastMessageCountForChatRef.current[chatId] || 0
+    const currentCount = messages.length
+    
+    // Only scroll if:
+    // 1. This is a new chat (previousCount was 0 and now we have messages), OR
+    // 2. We haven't scrolled for this chat yet and messages exist
+    if (previousCount === 0 && currentCount > 0) {
+      // Mark that we've scrolled for this chat
+      scrolledForChatRef.current = chatId
+      lastMessageCountForChatRef.current[chatId] = currentCount
+      
+      // Scroll to bottom instantly when messages load for new chat
+      const scrollToBottomNow = () => {
+        const container = messagesContainerRef.current
+        if (container) {
+          container.scrollTop = container.scrollHeight
+        }
+      }
+      
+      // Try multiple times to ensure it works (messages might still be rendering)
+      requestAnimationFrame(() => {
         scrollToBottomNow()
         setTimeout(() => {
           scrollToBottomNow()
-        }, 50)
-      }, 50)
-    })
-  }, [chatId, messages])
+          setTimeout(() => {
+            scrollToBottomNow()
+          }, 100)
+        }, 100)
+      })
+    } else if (currentCount > 0) {
+      // Update message count tracking (but don't scroll if we already scrolled)
+      lastMessageCountForChatRef.current[chatId] = currentCount
+    }
+  }, [chatId, messages?.length]) // Only depend on chatId and message count, not message content
 
-  // Auto-scroll when typing indicator appears if user was at bottom
+  // Play typing sound and scroll to show typing indicator if user is at bottom
   useEffect(() => {
     if (!isParticipantTyping) return
+    
+    // Play typing sound when participant starts typing
+    playTypingSound()
     
     const container = messagesContainerRef.current
     if (!container) return
     
-    // Check if user was at bottom before typing indicator appeared
+    // Only scroll if user is at bottom - this shows the typing indicator
+    // If user is not at bottom, just show the indicator without scrolling
     if (wasAtBottomRef.current) {
-      // Auto-scroll to bottom when typing shows
+      // User is at bottom - scroll to show typing indicator
       requestAnimationFrame(() => {
         scrollToBottom(false) // Instant scroll
       })
     }
-  }, [isParticipantTyping])
+    // If user is not at bottom, don't scroll - just show the typing indicator
+  }, [isParticipantTyping, playTypingSound])
 
   // WhatsApp-style: Mark as read when last unread message is visible
   useEffect(() => {
@@ -601,6 +683,18 @@ export default function ChatArea({
           </div>
         )}
 
+        {/* Load older messages button - at top before messages */}
+        {hasMoreMessages && !isLoadingMessages && (
+          <div className="flex justify-center py-2">
+            <button
+              onClick={() => onLoadMore?.()}
+              className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300"
+            >
+              Load older messages
+            </button>
+          </div>
+        )}
+
         {messages && Array.isArray(messages) && messages.length > 0 ? (
           <>
             {messages.map((message) => (
@@ -614,18 +708,6 @@ export default function ChatArea({
                 onRetry={onRetryMessage}
               />
             ))}
-            
-            {/* Load more indicator */}
-            {hasMoreMessages && !isLoadingMessages && (
-              <div className="flex justify-center py-2">
-                <button
-                  onClick={() => onLoadMore?.()}
-                  className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300"
-                >
-                  Load older messages
-                </button>
-              </div>
-            )}
           </>
         ) : !isLoadingMessages ? (
           <div className="flex items-center justify-center h-full text-gray-500">

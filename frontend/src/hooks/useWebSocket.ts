@@ -174,13 +174,33 @@ export const useNotificationWebSocket = () => {
           console.log('Notification WebSocket disconnected', closeInfo)
         }
         
-        // Handle authentication errors (4001 = Unauthorized, 403 = Forbidden)
-        if (event.code === 4001 || event.code === 403) {
-          console.warn('Notification WebSocket closed due to auth error, logging out')
+        // Handle authentication errors
+        // Check for 403 close code, or if reason contains "403" or "Forbidden"
+        const isAuthError = 
+          event.code === 4001 || 
+          event.code === 403 ||
+          (event.reason && (
+            event.reason.includes('403') || 
+            event.reason.toLowerCase().includes('forbidden') ||
+            event.reason.toLowerCase().includes('authentication') ||
+            event.reason.toLowerCase().includes('unauthorized')
+          )) ||
+          // 1006 = Abnormal Closure (often happens with HTTP 403)
+          // 1002 = Protocol Error (might indicate auth failure)
+          (event.code === 1006 && !event.wasClean && wsRef.current?.readyState === WebSocket.CLOSED)
+        
+        if (isAuthError) {
+          console.warn('Notification WebSocket closed due to auth error (403 Forbidden), logging out', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean
+          })
           import('@/store/authStore').then(({ useAuthStore }) => {
             useAuthStore.getState().logout()
             if (typeof window !== 'undefined') {
-              window.location.href = '/login'
+              // Redirect to login with auth_required parameter to show toast
+              const currentPath = window.location.pathname
+              window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
             }
           })
           return // Don't reconnect on auth errors

@@ -284,13 +284,36 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
         }
 
         // Handle authentication errors
-        if (event.code === 4001 || event.code === 403) {
-          console.warn('Unified chat WebSocket closed due to auth error, logging out')
+        // Check for 403 close code, or if reason contains "403" or "Forbidden"
+        const isAuthError = 
+          event.code === 4001 || 
+          event.code === 403 ||
+          (event.reason && (
+            event.reason.includes('403') || 
+            event.reason.toLowerCase().includes('forbidden') ||
+            event.reason.toLowerCase().includes('authentication') ||
+            event.reason.toLowerCase().includes('unauthorized')
+          )) ||
+          // 1006 = Abnormal Closure (often happens with HTTP 403)
+          // 1002 = Protocol Error (might indicate auth failure)
+          (event.code === 1006 && !event.wasClean && !get().isConnected) ||
+          (event.code === 1002 && !event.wasClean)
+
+        if (isAuthError) {
+          console.warn('Unified chat WebSocket closed due to auth error (403 Forbidden), logging out', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean
+          })
           set({ reconnectAttempts: 0 })
+          
+          // Logout user and redirect to login with parameter
           import('@/store/authStore').then(({ useAuthStore }) => {
             useAuthStore.getState().logout()
             if (typeof window !== 'undefined') {
-              window.location.href = '/login'
+              // Redirect to login with auth_required parameter to show toast
+              const currentPath = window.location.pathname
+              window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
             }
           })
           return
@@ -329,9 +352,39 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
         }
         
         console.error('Unified chat WebSocket error:', event)
+        
+        // Check if connection failed immediately (likely auth error)
         const state = get()
         if (state.ws) {
-          state.ws.close()
+          const ws = state.ws
+          
+          // If WebSocket fails before opening, it might be a 403 error
+          // Wait a bit to see if onclose fires with error code
+          // If it's already CLOSED, check if we should handle auth error
+          if (ws.readyState === WebSocket.CLOSED && !state.isConnected) {
+            // Connection failed immediately, likely auth error
+            // The onclose handler will handle it, but we can help trigger logout
+            // Wait a short moment for onclose to fire, then check
+            setTimeout(() => {
+              const currentState = get()
+              // If still not connected and no reconnect attempt, it was likely auth error
+              if (!currentState.isConnected && currentState.reconnectAttempts === 0) {
+                // Check if close code was 403 or similar
+                // onclose should have handled it, but just in case
+                console.warn('WebSocket connection failed immediately, may be auth error')
+              }
+            }, 100)
+          } else if (ws.readyState === WebSocket.CLOSING || ws.readyState === WebSocket.CLOSED) {
+            // Wait for onclose to handle 403 properly
+            return
+          } else {
+            // Try to close cleanly to trigger onclose handler
+            try {
+              ws.close()
+            } catch (e) {
+              // Already closed or closing
+            }
+          }
         }
       }
 

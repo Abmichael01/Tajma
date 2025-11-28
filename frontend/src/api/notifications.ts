@@ -6,6 +6,16 @@ export const notificationsApi = {
    * Create a new notification (admin/system use)
    */
   async create(payload: CreateNotificationRequest) {
+    // Check if user is authenticated before making request
+    if (typeof window !== 'undefined') {
+      const { useAuthStore } = await import('@/store/authStore')
+      const { isAuthenticated } = useAuthStore.getState()
+      if (!isAuthenticated) {
+        console.warn('⚠️ API: Cannot create notification - user not authenticated')
+        return Promise.reject(new Error('User not authenticated'))
+      }
+    }
+    
     console.log('📤 API: Creating notification with payload:', payload)
     try {
       const response = await apiClient.post<Notification>('/notifications/', payload)

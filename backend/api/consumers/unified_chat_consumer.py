@@ -627,7 +627,8 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         from api.serializers import ChatSerializer
         
         try:
-            chat = Chat.objects.select_related('participant1', 'participant2').get(id=chat_id)
+            # Ensure ad relationship is loaded to prevent N+1 queries and ensure ad data is available
+            chat = Chat.objects.select_related('participant1', 'participant2', 'ad').get(id=chat_id)
             user = User.objects.get(id=user_id)
         except (Chat.DoesNotExist, User.DoesNotExist):
             return {}

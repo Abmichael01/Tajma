@@ -11,6 +11,7 @@ import { useChats, useChatDetail, useChatMessages, useMarkChatAsRead, useOnlineS
 import { useChatRealtime } from '@/hooks/useChatRealtime'
 import type { ChatMessage, ChatSummary, User, UserOnlineStatus } from '@/api/types'
 import { useQueryClient } from '@tanstack/react-query'
+import { useChatSounds } from '@/hooks/useChatSounds'
 
 function ChatClientContent() {
   const router = useRouter()
@@ -29,6 +30,9 @@ function ChatClientContent() {
   const [typingByChatId, setTypingByChatId] = useState<Record<string, boolean>>({}) // Track typing per chat
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const messageTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map()) // Track timeouts for each optimistic message
+  const [isUserAtBottom, setIsUserAtBottom] = useState(true) // Track if user is at bottom of chat
+  const checkScrollPositionRef = useRef<(() => boolean) | null>(null) // Ref to store scroll check function from ChatArea
+  const { playSentSound, playReceivedSound } = useChatSounds()
 
   // Fetch chats list
   const { data: chats = [], isLoading: chatsLoading } = useChats()
@@ -102,6 +106,22 @@ function ChatClientContent() {
   // Handle new message received - DON'T auto-scroll (WhatsApp style)
   // User will see scroll-to-bottom button with unread count instead
   const handleMessageReceived = useCallback((message: ChatMessage) => {
+    // Play received sound only when:
+    // 1. Message is from other user (not our own)
+    // 2. User is in active chat
+    // 3. User is NOT at bottom (check directly using scroll check function for accurate timing)
+    if (
+      message.sender?.id !== user?.id && 
+      activeConversationId === String(message.chat)
+    ) {
+      // Check scroll position directly using the function from ChatArea
+      // This ensures we get the current scroll state, not stale state
+      const isAtBottom = checkScrollPositionRef.current?.() ?? true
+      if (!isAtBottom) {
+        playReceivedSound()
+      }
+    }
+    
     // Clear timeout for optimistic messages that match this received message
     // This prevents false "failed" status when message is successfully received
     // Check even if chat context changed (handles case when coming back to page)
@@ -138,7 +158,7 @@ function ChatClientContent() {
     
     // Don't auto-scroll - let user decide when to scroll
     // ChatArea component will show scroll-to-bottom button with badge
-  }, [queryClient, user?.id])
+  }, [queryClient, user?.id, activeConversationId, playReceivedSound])
 
   // Real-time WebSocket integration
   const { isConnected, sendMessage: sendWebSocketMessage, sendTyping, markAsRead: markAsReadWebSocket } = useChatRealtime({
@@ -257,9 +277,20 @@ function ChatClientContent() {
     // Also update chat list optimistically (preserve ad fields and reorder)
     queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
       if (!oldChats) return []
-      return oldChats.map((chat) => {
+      
+      // Debug logging before optimistic update
+      const existingChat = oldChats.find((c) => c.id === activeConversationId)
+      if (existingChat) {
+        console.log('📤 [Optimistic] Before optimistic chat list update:', {
+          chat_id: activeConversationId,
+          existing_ad_image: existingChat.ad_image,
+          temp_message_id: optimisticMessage.id,
+        })
+      }
+      
+      const updated = oldChats.map((chat) => {
         if (chat.id === activeConversationId) {
-          return {
+          const updatedChat = {
             ...chat,
             last_message: optimisticMessage,
             last_message_at: optimisticMessage.created_at,
@@ -272,14 +303,33 @@ function ChatClientContent() {
             ad_price: chat.ad_price,
             ad_currency: chat.ad_currency,
           }
+          
+          console.log('✅ [Optimistic] After optimistic chat list update:', {
+            chat_id: updatedChat.id,
+            ad_image: updatedChat.ad_image,
+            ad_image_preserved: updatedChat.ad_image === chat.ad_image,
+            last_message_at: updatedChat.last_message_at,
+          })
+          
+          return updatedChat
         }
         return chat
-      }).sort((a, b) => {
+      })
+      
+      const sorted = updated.sort((a, b) => {
         // Sort by most recent activity (WhatsApp/Telegram pattern)
         const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
         const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
         return timeB - timeA
       })
+      
+      console.log('📋 [Optimistic] Chat list sorted. Top chat:', {
+        id: sorted[0]?.id,
+        ad_image: sorted[0]?.ad_image,
+        last_message_at: sorted[0]?.last_message_at,
+      })
+      
+      return sorted
     })
 
     // Send via WebSocket
@@ -292,6 +342,9 @@ function ChatClientContent() {
       if (sent === false) {
         throw new Error('Failed to send message via WebSocket')
       }
+      
+      // Play sent sound when message is successfully sent
+      playSentSound()
       
       // Set timeout to mark message as failed if not confirmed within 15 seconds
       // Increased timeout to account for subscription delay when coming back to page
@@ -433,7 +486,7 @@ function ChatClientContent() {
         })
       })
     }
-  }, [activeConversationId, user, sendWebSocketMessage, queryClient, isConnected])
+  }, [activeConversationId, user, sendWebSocketMessage, queryClient, isConnected, playSentSound])
   
   // Retry failed message
   const handleRetryMessage = useCallback((message: ChatMessage) => {
@@ -589,6 +642,10 @@ function ChatClientContent() {
             onBack={handleBack}
             onRetryMessage={handleRetryMessage}
             onMarkAsRead={handleMarkAsRead}
+            onScrollStateChange={setIsUserAtBottom}
+            onGetScrollState={(getState) => {
+              checkScrollPositionRef.current = getState
+            }}
             chatId={activeConversationId}
           />
           <div ref={messagesEndRef} />

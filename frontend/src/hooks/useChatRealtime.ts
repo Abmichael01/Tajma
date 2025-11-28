@@ -21,6 +21,12 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
     return activeConversationId ? [activeConversationId] : []
   }, [activeConversationId])
 
+  // Helper function to check if an ad field value is valid (not undefined, null, or empty string)
+  // This ensures we preserve existing values when backend sends invalid/null data
+  const isValidAdField = useCallback((value: any): boolean => {
+    return value !== undefined && value !== null && value !== ''
+  }, [])
+
   // --- Handler for Chat List Updates (Global Events - WhatsApp/Telegram Pattern) ---
   // This ALWAYS updates the chat list, regardless of which page you're on
   // This ensures unread counts and last messages are updated everywhere
@@ -29,6 +35,21 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
       const { chat_id, chat: updatedChat } = payload
 
       if (!updatedChat) return
+
+      // Debug logging for production issue
+      console.log('🔔 [ChatEvent] Received chat_event:', {
+        chat_id,
+        updatedChat: {
+          id: updatedChat.id,
+          ad: updatedChat.ad,
+          ad_title: updatedChat.ad_title,
+          ad_image: updatedChat.ad_image,
+          ad_slug: updatedChat.ad_slug,
+          ad_price: updatedChat.ad_price,
+          ad_currency: updatedChat.ad_currency,
+          last_message_at: updatedChat.last_message_at,
+        }
+      })
 
       // ALWAYS update Chat List Cache (global - like WhatsApp/Telegram)
       // This ensures chat list stays updated on all pages
@@ -43,7 +64,45 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           // Production backend may send null for ad fields, so we always preserve existing values
           const existingChat = chats[index]
           
-          chats[index] = {
+          // Debug logging before merge
+          console.log('🔍 [ChatEvent] Before merge:', {
+            chat_id: existingChat.id,
+            existing: {
+              ad: existingChat.ad,
+              ad_title: existingChat.ad_title,
+              ad_image: existingChat.ad_image,
+              ad_slug: existingChat.ad_slug,
+              ad_price: existingChat.ad_price,
+              ad_currency: existingChat.ad_currency,
+            },
+            incoming: {
+              ad: updatedChat.ad,
+              ad_title: updatedChat.ad_title,
+              ad_image: updatedChat.ad_image,
+              ad_slug: updatedChat.ad_slug,
+              ad_price: updatedChat.ad_price,
+              ad_currency: updatedChat.ad_currency,
+            }
+          })
+          
+          // Determine which ad fields to use - use helper to check for valid values (not undefined, null, or empty string)
+          // This ensures we preserve existing values when backend sends invalid/null/empty data
+          const finalAd = isValidAdField(updatedChat.ad) ? updatedChat.ad : existingChat.ad
+          const finalAdTitle = isValidAdField(updatedChat.ad_title) ? updatedChat.ad_title : existingChat.ad_title
+          const finalAdSlug = isValidAdField(updatedChat.ad_slug) ? updatedChat.ad_slug : existingChat.ad_slug
+          const finalAdImage = isValidAdField(updatedChat.ad_image) ? updatedChat.ad_image : existingChat.ad_image
+          const finalAdPrice = isValidAdField(updatedChat.ad_price) ? updatedChat.ad_price : existingChat.ad_price
+          const finalAdCurrency = isValidAdField(updatedChat.ad_currency) ? updatedChat.ad_currency : existingChat.ad_currency
+          
+          // Warn if we're preserving existing values due to invalid incoming data
+          if (!isValidAdField(updatedChat.ad_image) && existingChat.ad_image) {
+            console.warn(`⚠️ [ChatEvent] Preserving existing ad_image for chat ${chat_id} because incoming value is invalid:`, {
+              incoming: updatedChat.ad_image,
+              preserved: existingChat.ad_image
+            })
+          }
+          
+          const mergedChat = {
             ...existingChat,
             // Update message-related fields
             last_message: updatedChat.last_message ?? existingChat.last_message,
@@ -53,33 +112,87 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             participant1: updatedChat.participant1 ?? existingChat.participant1,
             participant2: updatedChat.participant2 ?? existingChat.participant2,
             // CRITICAL: Always preserve ad fields from existing chat
-            // Only update if new value is explicitly provided AND not null
-            ad: (updatedChat.ad !== undefined && updatedChat.ad !== null) ? updatedChat.ad : existingChat.ad,
-            ad_title: (updatedChat.ad_title !== undefined && updatedChat.ad_title !== null) ? updatedChat.ad_title : existingChat.ad_title,
-            ad_slug: (updatedChat.ad_slug !== undefined && updatedChat.ad_slug !== null) ? updatedChat.ad_slug : existingChat.ad_slug,
-            ad_image: (updatedChat.ad_image !== undefined && updatedChat.ad_image !== null) ? updatedChat.ad_image : existingChat.ad_image,
-            ad_price: (updatedChat.ad_price !== undefined && updatedChat.ad_price !== null) ? updatedChat.ad_price : existingChat.ad_price,
-            ad_currency: (updatedChat.ad_currency !== undefined && updatedChat.ad_currency !== null) ? updatedChat.ad_currency : existingChat.ad_currency,
+            ad: finalAd,
+            ad_title: finalAdTitle,
+            ad_slug: finalAdSlug,
+            ad_image: finalAdImage,
+            ad_price: finalAdPrice,
+            ad_currency: finalAdCurrency,
           }
+          
+          // Debug logging after merge
+          console.log('✅ [ChatEvent] After merge:', {
+            chat_id: mergedChat.id,
+            final: {
+              ad: mergedChat.ad,
+              ad_title: mergedChat.ad_title,
+              ad_image: mergedChat.ad_image,
+              ad_slug: mergedChat.ad_slug,
+              ad_price: mergedChat.ad_price,
+              ad_currency: mergedChat.ad_currency,
+            },
+            adImagePreserved: mergedChat.ad_image === existingChat.ad_image,
+            adImageChanged: mergedChat.ad_image !== existingChat.ad_image,
+          })
+          
+          chats[index] = mergedChat
         } else {
+          console.log('➕ [ChatEvent] New chat added:', {
+            chat_id: updatedChat.id,
+            ad_image: updatedChat.ad_image,
+          })
           chats.unshift(updatedChat)
         }
         
         // Sort by most recent activity (WhatsApp/Telegram pattern - most recent on top)
-        return chats.sort((a, b) => {
+        const sorted = chats.sort((a, b) => {
           const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
           const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
           return timeB - timeA
         })
+        
+        console.log('📋 [ChatEvent] Chat list sorted. Top chat:', {
+          id: sorted[0]?.id,
+          ad_image: sorted[0]?.ad_image,
+          last_message_at: sorted[0]?.last_message_at,
+        })
+        
+        return sorted
       })
 
       // Update chat detail cache for this specific chat (preserve ad fields)
       queryClient.setQueryData(['chats', chat_id], (oldData: any) => {
         if (!oldData) return oldData
         
+        // Debug logging before chat detail update
+        console.log('🔍 [ChatEvent] Updating chat detail cache:', {
+          chat_id,
+          existing_ad_image: oldData.ad_image,
+          incoming_ad_image: updatedChat.ad_image,
+          incoming_ad_image_type: typeof updatedChat.ad_image,
+          incoming_ad_image_is_null: updatedChat.ad_image === null,
+          incoming_ad_image_is_undefined: updatedChat.ad_image === undefined,
+        })
+        
         // Defensive merge: Always preserve ad fields from existing data
-        // Production backend may send null for ad fields, so we always preserve existing values
-        return {
+        // Production backend may send null/empty for ad fields, so we always preserve existing values
+        // Use helper function to check for valid values (not undefined, null, or empty string)
+        const finalAd = isValidAdField(updatedChat.ad) ? updatedChat.ad : oldData.ad
+        const finalAdTitle = isValidAdField(updatedChat.ad_title) ? updatedChat.ad_title : oldData.ad_title
+        const finalAdSlug = isValidAdField(updatedChat.ad_slug) ? updatedChat.ad_slug : oldData.ad_slug
+        const finalAdImage = isValidAdField(updatedChat.ad_image) ? updatedChat.ad_image : oldData.ad_image
+        const finalAdPrice = isValidAdField(updatedChat.ad_price) ? updatedChat.ad_price : oldData.ad_price
+        const finalAdCurrency = isValidAdField(updatedChat.ad_currency) ? updatedChat.ad_currency : oldData.ad_currency
+        
+        // Warn if we're preserving existing values due to invalid incoming data
+        if (!isValidAdField(updatedChat.ad_image) && oldData.ad_image) {
+          console.warn(`⚠️ [ChatEvent] Preserving existing ad_image in chat detail cache for chat ${chat_id} because incoming value is invalid:`, {
+            incoming: updatedChat.ad_image,
+            preserved: oldData.ad_image
+          })
+        }
+        
+        const merged = {
           ...oldData,
           // Update message-related fields
           last_message: updatedChat.last_message ?? oldData.last_message,
@@ -89,17 +202,27 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           participant1: updatedChat.participant1 ?? oldData.participant1,
           participant2: updatedChat.participant2 ?? oldData.participant2,
           // CRITICAL: Always preserve ad fields from oldData
-          // Only update if new value is explicitly provided AND not null
-          ad: (updatedChat.ad !== undefined && updatedChat.ad !== null) ? updatedChat.ad : oldData.ad,
-          ad_title: (updatedChat.ad_title !== undefined && updatedChat.ad_title !== null) ? updatedChat.ad_title : oldData.ad_title,
-          ad_slug: (updatedChat.ad_slug !== undefined && updatedChat.ad_slug !== null) ? updatedChat.ad_slug : oldData.ad_slug,
-          ad_image: (updatedChat.ad_image !== undefined && updatedChat.ad_image !== null) ? updatedChat.ad_image : oldData.ad_image,
-          ad_price: (updatedChat.ad_price !== undefined && updatedChat.ad_price !== null) ? updatedChat.ad_price : oldData.ad_price,
-          ad_currency: (updatedChat.ad_currency !== undefined && updatedChat.ad_currency !== null) ? updatedChat.ad_currency : oldData.ad_currency,
+          // Only update if new value is explicitly provided AND valid (not null/undefined/empty)
+          ad: finalAd,
+          ad_title: finalAdTitle,
+          ad_slug: finalAdSlug,
+          ad_image: finalAdImage,
+          ad_price: finalAdPrice,
+          ad_currency: finalAdCurrency,
         }
+        
+        console.log('✅ [ChatEvent] Chat detail cache updated:', {
+          chat_id: merged.id,
+          final_ad_image: merged.ad_image,
+          ad_image_preserved: merged.ad_image === oldData.ad_image,
+          ad_image_changed: merged.ad_image !== oldData.ad_image,
+          decision: isValidAdField(updatedChat.ad_image) ? 'USED_INCOMING' : 'PRESERVED_EXISTING',
+        })
+        
+        return merged
       })
     },
-    [queryClient]
+    [queryClient, isValidAdField]
   )
 
   // --- Handler for Active Chat Messages ---
@@ -203,9 +326,21 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         // Also update chat list to move chat to top and update last message (WhatsApp/Telegram pattern)
         queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
           if (!oldChats) return oldChats
-          return oldChats.map((chat) => {
+          
+          // Debug logging before update
+          const existingChat = oldChats.find((c) => c.id === activeConversationId)
+          if (existingChat) {
+            console.log('💬 [SocketMessage] Updating chat list for message:', {
+              chat_id: activeConversationId,
+              existing_ad_image: existingChat.ad_image,
+              message_id: message.id,
+              message_created_at: message.created_at,
+            })
+          }
+          
+          const updated = oldChats.map((chat) => {
             if (chat.id === activeConversationId) {
-              return {
+              const updatedChat = {
                 ...chat,
                 last_message: message,
                 last_message_at: message.created_at,
@@ -218,14 +353,33 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
                 ad_price: chat.ad_price,
                 ad_currency: chat.ad_currency,
               }
+              
+              console.log('✅ [SocketMessage] Chat list updated:', {
+                chat_id: updatedChat.id,
+                ad_image: updatedChat.ad_image,
+                ad_image_preserved: updatedChat.ad_image === chat.ad_image,
+                last_message_at: updatedChat.last_message_at,
+              })
+              
+              return updatedChat
             }
             return chat
-          }).sort((a, b) => {
+          })
+          
+          const sorted = updated.sort((a, b) => {
             // Sort by most recent activity (most recent on top)
             const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
             const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
             return timeB - timeA
           })
+          
+          console.log('📋 [SocketMessage] Chat list sorted. Top chat:', {
+            id: sorted[0]?.id,
+            ad_image: sorted[0]?.ad_image,
+            last_message_at: sorted[0]?.last_message_at,
+          })
+          
+          return sorted
         })
 
         // Also update chat detail cache

@@ -11,6 +11,7 @@ import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { Checkbox } from '@/components/ui/checkbox'
 import Logo from '@/components/General/Logo'
+import { toast } from 'sonner'
 
 export default function LoginClient() {
   const router = useRouter()
@@ -25,6 +26,16 @@ export default function LoginClient() {
     rememberMe: false
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Check for auth_required parameter and show toast
+  useEffect(() => {
+    const authRequired = searchParams.get('auth_required')
+    if (authRequired === 'true') {
+      toast.info('Please login to continue', {
+        duration: 5000,
+      })
+    }
+  }, [searchParams])
 
   // Fetch CSRF token on mount
   useEffect(() => {

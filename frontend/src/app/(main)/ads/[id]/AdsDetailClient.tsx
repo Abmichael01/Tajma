@@ -172,10 +172,15 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
   const handleCallSeller = async () => {
     if (!ad || !ad.seller) return
     
+    // Only send notification if user is authenticated
+    if (!isAuthenticated || !user) {
+      return
+    }
+    
     // Send notification in background when button is clicked
     console.log('🔔 Call Seller button clicked - creating notification...')
     try {
-      const viewerName = user ? getUserFullName(user) : 'Someone'
+      const viewerName = getUserFullName(user)
       console.log('📤 Sending notification:', {
         recipient: ad.seller.id,
         type: 'phone_view',
@@ -189,7 +194,7 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
         title: 'Phone Number Viewed',
         message: `${viewerName} viewed your phone number for the ad "${ad.title}"`,
         related_ad: ad.id,
-        related_user: user?.id,
+        related_user: user.id,
       })
       
       console.log('✅ Notification created successfully:', notification)

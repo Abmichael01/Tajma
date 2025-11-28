@@ -96,7 +96,8 @@ def broadcast_chat_event_for_message(message_instance, message_data):
         if not channel_layer:
             return
         
-        chat = message_instance.chat
+        # Ensure ad relationship is loaded to prevent N+1 queries and ensure ad data is available
+        chat = Chat.objects.select_related('ad', 'participant1', 'participant2').get(id=message_instance.chat.id)
         participant_ids = [chat.participant1_id, chat.participant2_id]
         
         for user_id in participant_ids:
