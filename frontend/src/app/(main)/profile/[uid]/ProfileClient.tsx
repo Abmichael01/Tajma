@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { UserX } from 'lucide-react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { notificationsApi } from '@/api/notifications'
+import CallSellerModal from '@/components/modals/CallSellerModal'
 import type { User } from '@/api/types'
 import { getUserFullName } from '@/utils/user'
 
@@ -34,6 +35,7 @@ export default function ProfileClient({ uid }: ProfileClientProps) {
   } = useUserProfile(uid)
 
   const [currentProfile, setCurrentProfile] = useState<User | null>(null)
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false)
 
   useEffect(() => {
     if (profileData) {
@@ -81,7 +83,44 @@ export default function ProfileClient({ uid }: ProfileClientProps) {
 
   const handleContactClick = () => {
     if (!currentProfile) return
-    alert(`Contacting ${getUserFullName(currentProfile)}...`)
+    // Navigate to chat page with user
+    // For now, just show an alert - can be enhanced to create chat
+    window.location.href = `/chat?user=${currentProfile.id}`
+  }
+
+  const handleCallSeller = async () => {
+    if (!currentProfile || !currentProfile.phone) return
+    
+    // Send notification in background when button is clicked
+    console.log('🔔 Call Seller button clicked - creating notification...')
+    try {
+      const viewerName = user ? getUserFullName(user) : 'Someone'
+      console.log('📤 Sending notification:', {
+        recipient: currentProfile.id,
+        type: 'phone_view',
+        viewer: viewerName,
+      })
+      
+      const notification = await notificationsApi.create({
+        recipient: currentProfile.id,
+        type: 'phone_view',
+        title: 'Phone Number Viewed',
+        message: `${viewerName} viewed your phone number on your profile`,
+        related_user: user?.id,
+      })
+      
+      console.log('✅ Notification created successfully:', notification)
+    } catch (error: any) {
+      // Silently handle "already sent today" errors
+      const errorMessage = error?.response?.data?.detail || error?.message || ''
+      if (errorMessage.includes('already sent today')) {
+        console.log('⏭️ Notification already sent today, skipping')
+      } else {
+        console.error('❌ Failed to notify seller:', error)
+      }
+      // Continue anyway - don't block user from seeing phone number
+    }
+    setIsCallModalOpen(true)
   }
 
   const handleLocalUpdate = (updates: Partial<User>) => {
@@ -118,8 +157,22 @@ export default function ProfileClient({ uid }: ProfileClientProps) {
         profileSlug={getProfileSlug(currentProfile)}
         isOwner={isOwner}
         onContactClick={isOwner ? undefined : handleContactClick}
+        onCallClick={isOwner ? undefined : handleCallSeller}
         onUpdateUser={isOwner ? handleLocalUpdate : undefined}
       />
+      
+      {/* Call Seller Modal */}
+      {currentProfile?.phone && (
+        <CallSellerModal
+          isOpen={isCallModalOpen}
+          onClose={() => setIsCallModalOpen(false)}
+          phoneNumber={currentProfile.phone}
+          sellerName={getUserFullName(currentProfile)}
+          sellerId={currentProfile.id}
+          adId=""
+          adTitle=""
+        />
+      )}
     </div>
   )
 }

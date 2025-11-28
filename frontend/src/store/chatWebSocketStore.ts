@@ -78,6 +78,22 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
   const connect = () => {
     const state = get()
     
+    // Simple check: Don't connect if not authenticated
+    if (typeof window !== 'undefined') {
+      try {
+        const { useAuthStore } = require('@/store/authStore')
+        if (!useAuthStore.getState().isAuthenticated) {
+          console.warn('⚠️ Cannot connect WebSocket: user is not authenticated')
+          return
+        }
+      } catch {
+        // If auth store unavailable, don't connect
+        return
+      }
+    } else {
+      return // Server-side
+    }
+    
     // Don't connect if already connected or connecting
     if (state.ws && (state.ws.readyState === WebSocket.CONNECTING || state.ws.readyState === WebSocket.OPEN)) {
       return

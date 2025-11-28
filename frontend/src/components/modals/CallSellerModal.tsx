@@ -17,8 +17,8 @@ interface CallSellerModalProps {
   phoneNumber: string
   sellerName: string
   sellerId: number
-  adId: string
-  adTitle: string
+  adId?: string
+  adTitle?: string
 }
 
 export default function CallSellerModal({ 
@@ -57,7 +57,7 @@ export default function CallSellerModal({
         <DialogHeader>
           <DialogTitle>Contact Number</DialogTitle>
           <DialogDescription>
-            Contact the seller directly using the phone number below
+            Contact {sellerName} directly using the phone number below
           </DialogDescription>
         </DialogHeader>
 

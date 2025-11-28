@@ -86,7 +86,7 @@ export default function MobileBottomNav() {
 
           <div className="flex justify-center relative">
             <div className="relative">
-              <MobileNavLink item={navItems[2]} active={isActive(navItems[2].href, navItems[2].key)} />
+            <MobileNavLink item={navItems[2]} active={isActive(navItems[2].href, navItems[2].key)} />
               {totalUnreadMessages > 0 && (
                 <span className="absolute -top-1 -right-1 bg-secondary text-white text-[10px] min-w-[16px] h-4 px-1 flex items-center justify-center font-semibold z-10">
                   {totalUnreadMessages > 9 ? '9+' : totalUnreadMessages}

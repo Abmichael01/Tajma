@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { 
   MapPin,
   Calendar,
@@ -9,7 +10,10 @@ import {
   Star,
   MessageSquare,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Phone,
+  Globe,
+  Mail
 } from 'lucide-react'
 import type { User, UserWithReviewStats } from '@/api/types'
 import { getUserFullName, getUserInitials } from '@/utils/user'
@@ -22,9 +26,10 @@ interface ProfileHeaderProps {
   }
   isOwner?: boolean
   onContactClick?: () => void
+  onCallClick?: () => void
 }
 
-export default function ProfileHeader({ user, stats, isOwner = false, onContactClick }: ProfileHeaderProps) {
+export default function ProfileHeader({ user, stats, isOwner = false, onContactClick, onCallClick }: ProfileHeaderProps) {
   const [isBioExpanded, setIsBioExpanded] = useState(false)
   const fullName = getUserFullName(user)
 
@@ -33,6 +38,17 @@ export default function ProfileHeader({ user, stats, isOwner = false, onContactC
   
   const shouldTruncate = bio.length > 120
   const displayBio = shouldTruncate && !isBioExpanded ? bio.slice(0, 120) + '...' : bio
+
+  // Format website URL
+  const formatWebsite = (url: string | null | undefined) => {
+    if (!url) return null
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url
+    }
+    return `https://${url}`
+  }
+
+  const websiteUrl = formatWebsite(user.website)
 
   return (
     <div className="bg-white border border-gray-200 p-4 sm:p-6 mb-6">
@@ -98,16 +114,65 @@ export default function ProfileHeader({ user, stats, isOwner = false, onContactC
         </div>
       </div>
 
-      {/* Contact Button */}
+      {/* Additional User Info */}
+      <div className="border-t border-gray-200 pt-4 mt-4 space-y-3">
+        {/* Location */}
+        {user.location && (
+          <div className="flex items-start gap-2 text-xs sm:text-sm text-gray-600">
+            <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+            <span>{user.location}</span>
+          </div>
+        )}
+
+        {/* Website */}
+        {websiteUrl && (
+          <div className="flex items-start gap-2">
+            <Globe className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+            <a
+              href={websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs sm:text-sm text-secondary hover:text-secondary/80 hover:underline truncate"
+            >
+              {user.website}
+            </a>
+          </div>
+        )}
+
+        {/* Email (only show if owner) */}
+        {user.email && isOwner && (
+          <div className="flex items-start gap-2 text-xs sm:text-sm text-gray-600">
+            <Mail className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+            <span className="truncate">{user.email}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Contact Buttons */}
       {!isOwner && (
-        <div className="border-t border-gray-200 pt-4 mt-4">
-          <button
+        <div className="border-t border-gray-200 pt-4 mt-4 space-y-2">
+          {onContactClick && (
+            <Button
             onClick={onContactClick}
-            className="w-full bg-secondary text-secondary-foreground px-3 sm:px-4 py-2 hover:bg-secondary/90 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
+              variant="secondary"
+              className="w-full flex items-center justify-center gap-2 text-xs sm:text-sm"
+              size="sm"
           >
             <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
             Contact Seller
-          </button>
+            </Button>
+          )}
+          {user.phone && onCallClick && (
+            <Button
+              onClick={onCallClick}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2 text-xs sm:text-sm"
+              size="sm"
+            >
+              <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
+              Call Seller
+            </Button>
+          )}
         </div>
       )}
     </div>

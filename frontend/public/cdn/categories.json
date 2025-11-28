@@ -648,7 +648,7 @@
         "required": false
       }
     ],
-    "count": 0,
+    "count": 1,
     "subcategories": [
       {
         "id": "mens-clothing",
@@ -695,7 +695,7 @@
         "type": "product",
         "description": "",
         "customFields": [],
-        "count": 0,
+        "count": 1,
         "subcategories": []
       }
     ]

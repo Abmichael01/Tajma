@@ -117,14 +117,16 @@ export default function Navbar() {
                         </div>
                         {!isAuthenticated ? (
                             <div className='flex items-center gap-1 sm:gap-2'>
-                                <div className='hidden sm:block'>
-                                    <AuthButton />
-                                </div>
-                                <div className='sm:hidden'>
+                                <Link href="/login" className="hidden sm:block">
+                                    <Button variant="secondary" size="sm" className="hover:bg-secondary/90">
+                                        Login
+                                    </Button>
+                                </Link>
+                                <Link href="/login" className="sm:hidden">
                                     <Button variant="primary" size="sm">
                                         Login
                                     </Button>
-                                </div>
+                                </Link>
                             </div>
                         ) : (
                             <div className='flex items-center gap-1 sm:gap-2'>
@@ -206,21 +208,20 @@ export default function Navbar() {
             {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
                 <div 
-                    className='lg:hidden fixed inset-0 bg-black/50 animate-fadeIn'
-                    style={{ top: 'var(--navbar-height, 64px)', zIndex: 40 }}
+                    className='lg:hidden fixed inset-0 bg-black/50 animate-fadeIn z-[60]'
+                    style={{ top: 'var(--navbar-height, 64px)' }}
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
             {/* Mobile Menu - Slide from Right */}
             <div 
-                className={`lg:hidden fixed right-0 top-0 bottom-0 w-[280px] bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-out ${
+                className={`lg:hidden fixed right-0 top-0 bottom-0 w-[280px] bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-out z-[70] ${
                     isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
                 }`}
                 style={{ 
                     top: 'var(--navbar-height, 64px)',
                     height: 'calc(100vh - var(--navbar-height, 64px))',
-                    zIndex: 50
                 }}
             >
                 <div className='h-full overflow-y-auto px-4 py-6 space-y-6'>

@@ -24,6 +24,7 @@ interface ProfileLayoutProps {
   profileSlug: string
   isOwner?: boolean
   onContactClick?: () => void
+  onCallClick?: () => void
   onUpdateUser?: (updates: Partial<User>) => void
 }
 
@@ -32,6 +33,7 @@ export default function ProfileLayout({
   profileSlug,
   isOwner = false, 
   onContactClick,
+  onCallClick,
   onUpdateUser 
 }: ProfileLayoutProps) {
   const searchParams = useSearchParams()
@@ -268,6 +270,7 @@ export default function ProfileLayout({
             stats={{ rating: stats.rating, joinedDays: stats.joinedDays }}
             isOwner={isOwner}
             onContactClick={onContactClick}
+            onCallClick={onCallClick}
           />
         </div>
         
@@ -278,6 +281,7 @@ export default function ProfileLayout({
             stats={{ rating: stats.rating, joinedDays: stats.joinedDays }}
             isOwner={isOwner}
             onContactClick={onContactClick}
+            onCallClick={onCallClick}
           />
           
           {/* Mobile Navigation Links */}
