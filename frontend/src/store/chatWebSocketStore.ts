@@ -323,13 +323,21 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
           })
           set({ reconnectAttempts: 0 })
           
-          // Logout user and redirect to login with parameter
+          // Logout user
           import('@/store/authStore').then(({ useAuthStore }) => {
             useAuthStore.getState().logout()
             if (typeof window !== 'undefined') {
-              // Redirect to login with auth_required parameter to show toast
+              // Only redirect to login if current page requires authentication
+              // For public pages (like home), just log out silently
               const currentPath = window.location.pathname
-              window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
+              const authRequiredPaths = ['/create-ad', '/profile', '/alerts', '/chat']
+              const requiresAuth = authRequiredPaths.some(path => currentPath.startsWith(path))
+              
+              if (requiresAuth) {
+                // Redirect to login with auth_required parameter to show toast
+                window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
+              }
+              // Otherwise, just log out silently - user can continue browsing public pages
             }
           })
           return

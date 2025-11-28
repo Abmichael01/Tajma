@@ -31,14 +31,6 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         self.ping_task = None  # Server-side ping task
         self.last_pong_time = None  # Track last pong received
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.user = None
-        self.user_group_name = None
-        self.subscribed_chats = set()  # Track which chats this connection is subscribed to
-        self.ping_task = None  # Server-side ping task
-        self.last_pong_time = None  # Track last pong received
-    
     async def connect(self):
         """Handle WebSocket connection"""
         self.user = self.scope.get('user')
@@ -598,16 +590,32 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         if not participant_ids:
             return
         
+        # Helper function to ensure all UUIDs are converted to strings
+        def make_serializable(obj):
+            """Recursively convert UUIDs, datetimes, etc. to strings"""
+            if isinstance(obj, uuid.UUID):
+                return str(obj)
+            elif isinstance(obj, dict):
+                return {key: make_serializable(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [make_serializable(item) for item in obj]
+            elif hasattr(obj, 'isoformat'):  # datetime objects
+                return obj.isoformat()
+            return obj
+        
         for user_id in participant_ids:
             chat_data = await self.serialize_chat_for_user(chat_id, user_id)
+            # Ensure message_data is also fully serializable
+            serialized_message = make_serializable(message_data) if message_data else {}
+            
             payload = {
                 'type': 'chat_event',
-                'payload': {
+                'payload': make_serializable({
                     'type': 'chat_event',
                     'chat_id': str(chat_id),
                     'chat': chat_data,
-                    'message': message_data,
-                }
+                    'message': serialized_message,
+                })
             }
             await self.channel_layer.group_send(
                 f'chat_events_{user_id}',
@@ -635,7 +643,22 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         
         fake_request = SimpleNamespace(user=user)
         serializer = ChatSerializer(chat, context={'request': fake_request})
-        return serializer.data
+        data = serializer.data
+        
+        # Convert UUIDs and other non-serializable types to strings
+        def make_serializable(obj):
+            """Recursively convert UUIDs, datetimes, etc. to strings"""
+            if isinstance(obj, uuid.UUID):
+                return str(obj)
+            elif isinstance(obj, dict):
+                return {key: make_serializable(value) for key, value in obj.items()}
+            elif isinstance(obj, list):
+                return [make_serializable(item) for item in obj]
+            elif hasattr(obj, 'isoformat'):  # datetime objects
+                return obj.isoformat()
+            return obj
+        
+        return make_serializable(data)
     
     async def handle_mark_all_delivered(self):
         """Mark all unread messages as delivered when user comes online"""

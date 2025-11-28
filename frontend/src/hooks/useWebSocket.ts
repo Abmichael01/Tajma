@@ -30,9 +30,17 @@ export const useNotificationWebSocket = () => {
       return
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 
-      apiUrl.replace(/^https?/, (match) => match === 'https' ? 'wss' : 'ws') + '/ws/notifications/'
+    // Build WebSocket URL - extract base URL and convert to WebSocket protocol
+    const buildWebSocketUrl = (): string => {
+      const base = process.env.NEXT_PUBLIC_WS_URL || 
+        (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
+          .replace(/^https?/, (match) => match === 'https' ? 'wss' : 'ws')
+          .replace(/\/api\/?$/, '') // Remove /api suffix if present
+      return `${base.replace(/\/$/, '')}/ws/notifications/`
+    }
+    
+    const wsUrl = buildWebSocketUrl()
+    console.log('🔌 Connecting notification WebSocket to:', wsUrl)
     
     try {
       // WebSocket will use cookies for authentication (session-based)
@@ -198,9 +206,17 @@ export const useNotificationWebSocket = () => {
           import('@/store/authStore').then(({ useAuthStore }) => {
             useAuthStore.getState().logout()
             if (typeof window !== 'undefined') {
-              // Redirect to login with auth_required parameter to show toast
+              // Only redirect to login if current page requires authentication
+              // For public pages (like home), just log out silently
               const currentPath = window.location.pathname
-              window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
+              const authRequiredPaths = ['/create-ad', '/profile', '/alerts', '/chat']
+              const requiresAuth = authRequiredPaths.some(path => currentPath.startsWith(path))
+              
+              if (requiresAuth) {
+                // Redirect to login with auth_required parameter to show toast
+                window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
+              }
+              // Otherwise, just log out silently - user can continue browsing public pages
             }
           })
           return // Don't reconnect on auth errors

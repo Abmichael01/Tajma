@@ -41,13 +41,20 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
       
-      // Clear auth state and redirect to login
+      // Clear auth state
       if (typeof window !== 'undefined') {
         // Import auth store dynamically to avoid circular dependencies
         import('@/store/authStore').then(({ useAuthStore }) => {
           useAuthStore.getState().logout()
         })
-        window.location.href = '/login'
+        
+        // Only redirect to login if current page requires authentication
+        // For public pages (like home), just log out silently
+        const currentPath = window.location.pathname
+        if (requiresAuth(currentPath)) {
+          window.location.href = '/login'
+        }
+        // Otherwise, just log out silently - user can continue browsing public pages
       }
     }
     
@@ -93,9 +100,16 @@ apiClient.interceptors.response.use(
         if (errorDetail.includes('Authentication') || 
             errorDetail.includes('credentials') ||
             errorDetail.includes('not authenticated')) {
-          // Redirect to login if authentication failed
+          // Only redirect to login if current page requires authentication
           if (typeof window !== 'undefined') {
-            window.location.href = '/login'
+            const currentPath = window.location.pathname
+            if (requiresAuth(currentPath)) {
+              window.location.href = '/login'
+            }
+            // Otherwise, just log out silently - user can continue browsing public pages
+            import('@/store/authStore').then(({ useAuthStore }) => {
+              useAuthStore.getState().logout()
+            })
           }
         } else {
           // For CSRF errors, show a user-friendly message
@@ -120,6 +134,19 @@ function getCookie(name: string): string | null {
   }
   
   return null
+}
+
+// Helper function to check if current page requires authentication
+function requiresAuth(pathname: string): boolean {
+  const authRequiredPaths = [
+    '/create-ad',
+    '/profile',
+    '/alerts',
+    '/chat',
+  ]
+  
+  // Check if pathname starts with any auth-required path
+  return authRequiredPaths.some(path => pathname.startsWith(path))
 }
 
 export default apiClient

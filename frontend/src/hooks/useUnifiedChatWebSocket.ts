@@ -466,7 +466,16 @@ export const useUnifiedChatWebSocket = ({
           import('@/store/authStore').then(({ useAuthStore }) => {
             useAuthStore.getState().logout()
             if (typeof window !== 'undefined') {
-              window.location.href = '/login'
+              // Only redirect to login if current page requires authentication
+              // For public pages (like home), just log out silently
+              const currentPath = window.location.pathname
+              const authRequiredPaths = ['/create-ad', '/profile', '/alerts', '/chat']
+              const requiresAuth = authRequiredPaths.some(path => currentPath.startsWith(path))
+              
+              if (requiresAuth) {
+                window.location.href = '/login'
+              }
+              // Otherwise, just log out silently - user can continue browsing public pages
             }
           })
           return
