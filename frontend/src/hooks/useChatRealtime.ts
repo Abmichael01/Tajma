@@ -441,7 +441,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           if (!oldData) return oldData
           const existingMessages = oldData.messages || []
           const existingIndex = existingMessages.findIndex((m: ChatMessage) => m.id === message.id)
-          
+           
           if (existingIndex !== -1) {
             const updated = [...existingMessages]
             updated[existingIndex] = message
