@@ -527,17 +527,135 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
 
   // --- Handler for Chat Messages (with chatId) - Context-Aware ---
   // WhatsApp/Telegram pattern: Process messages for active chat, update list for all chats
+  // IMPORTANT: Store messages globally so they're available when user opens chat later
   const handleChatMessage = useCallback(
     (message: ChatMessage, chatId: string) => {
-      // Always process messages for active chat (if this is the active chat)
-      if (activeConversationId === chatId) {
+      // Check if user is on chat page and this is the active chat
+      const isActiveChat = activeConversationId === chatId
+      const isOnChatPage = typeof window !== 'undefined' && window.location.pathname === '/chat'
+      
+      // Always store message in cache globally (even if not on chat page)
+      // This ensures messages are available when user opens the chat later
+      queryClient.setQueryData(['messages', chatId], (oldData: any) => {
+        if (!oldData?.pages) {
+          // Initialize with first page if no data exists
+          return {
+            pages: [{ results: [message], count: 1, next: null, previous: null, page: 1 }],
+            pageParams: [1],
+          }
+        }
+        
+        // Update all pages to check for the message
+        const updatedPages = oldData.pages.map((page: any) => {
+          const messagesArray = page.results || []
+          
+          // Check if message already exists (update it)
+          const existingIndex = messagesArray.findIndex((m: ChatMessage) => m.id === message.id)
+          if (existingIndex !== -1) {
+            const updated = [...messagesArray]
+            updated[existingIndex] = { ...updated[existingIndex], ...message }
+            return {
+              ...page,
+              results: updated.sort((a: ChatMessage, b: ChatMessage) => 
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              ),
+            }
+          }
+          
+          // Check for optimistic message to replace
+          const messageTime = new Date(message.created_at).getTime()
+          const optimisticIndex = messagesArray.findIndex((m: ChatMessage) => {
+            const isTemp = String(m.id).startsWith('temp-')
+            const isFailed = m.send_failed === true
+            const sameContent = String(m.content).trim() === String(message.content).trim()
+            const sameSender = m.sender?.id === message.sender?.id
+            const optimisticTime = new Date(m.created_at).getTime()
+            const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 90000
+            return (isTemp || isFailed) && sameContent && sameSender && withinTimeWindow
+          })
+          
+          if (optimisticIndex !== -1) {
+            const updated = [...messagesArray]
+            updated[optimisticIndex] = message
+            return {
+              ...page,
+              results: updated.sort((a: ChatMessage, b: ChatMessage) => 
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              ),
+            }
+          }
+          
+          return page
+        })
+        
+        // If message not found in any page, add it to the last page
+        if (updatedPages.length > 0) {
+          const lastPage = updatedPages[updatedPages.length - 1]
+          if (lastPage && lastPage.results) {
+            const messageTime = new Date(message.created_at).getTime()
+            const hasDuplicate = lastPage.results.some((m: ChatMessage) => {
+              if (m.id === message.id) return true
+              const sameContent = String(m.content).trim() === String(message.content).trim()
+              const sameSender = m.sender?.id === message.sender?.id
+              const mTime = new Date(m.created_at).getTime()
+              const withinTimeWindow = Math.abs(messageTime - mTime) < 90000
+              return sameContent && sameSender && withinTimeWindow
+            })
+            
+            if (!hasDuplicate) {
+              const lastPageUpdated = {
+                ...lastPage,
+                results: [...(lastPage.results || []), message].sort((a: ChatMessage, b: ChatMessage) => 
+                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                ),
+              }
+              updatedPages[updatedPages.length - 1] = lastPageUpdated
+            }
+          }
+        }
+        
+        return {
+          ...oldData,
+          pages: updatedPages,
+        }
+      })
+      
+      // Process message for active chat (if this is the active chat)
+      if (isActiveChat) {
         handleSocketMessage(message)
+      } else {
+        // Message received for a chat that's not currently active
+        // Play sound notification if user is not on chat page
+        if (!isOnChatPage) {
+          // Check if message is from another user (not from current user)
+          const { useAuthStore } = require('@/store/authStore')
+          const currentUser = useAuthStore.getState().user
+          if (currentUser && message.sender?.id !== currentUser.id) {
+            // Play sound notification
+            import('@/hooks/useChatSounds').then(({ useChatSounds }) => {
+              // Create a temporary instance to play sound
+              // Note: This is a workaround since hooks can't be called conditionally
+              // In production, you might want to create a global sound player
+              const audio = new Audio('/sounds/received.mp3')
+              audio.volume = 0.5
+              audio.play().catch(() => {
+                // Silently fail if user hasn't interacted with page
+              })
+            }).catch(() => {
+              // Fallback: try to play sound directly
+              try {
+                const audio = new Audio('/sounds/received.mp3')
+                audio.volume = 0.5
+                audio.play().catch(() => {})
+              } catch {}
+            })
+          }
+        }
       }
       
       // Note: Chat list is already updated by handleChatEvent
-      // This handler focuses on active chat message processing
     },
-    [activeConversationId, handleSocketMessage]
+    [activeConversationId, handleSocketMessage, queryClient]
   )
 
   // --- Handler for Message Status Updates (Global - WhatsApp/Telegram Pattern) ---
@@ -668,13 +786,22 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
   // Register context-aware handlers with the global store (Single Source of Truth)
   // WhatsApp/Telegram pattern: Handlers are context-aware and handle all scenarios
   // - Chat list updates: Always processed (global - works on all pages)
-  // - Messages: Only processed for active chat (context-aware)
+  // - Messages: Always stored globally, processed for active chat (context-aware)
   // - Status updates: Always processed (global - read receipts work everywhere)
   // - Typing: Context-aware (only shown for active chat)
+  // NOTE: Global handlers from GlobalChatConnection ensure messages are stored even when not on chat page
+  // These handlers add context-aware processing on top of global handlers
   useEffect(() => {
     setHandlersStore({
-      onChatMessage: (message, chatId) => handlersRef.current.onChatMessage(message, chatId),
-      onChatListUpdate: (payload) => handlersRef.current.onChatListUpdate(payload),
+      onChatMessage: (message, chatId) => {
+        // First call global handler (if exists) to ensure message is stored
+        // Then call context-aware handler for active chat processing
+        handlersRef.current.onChatMessage(message, chatId)
+      },
+      onChatListUpdate: (payload) => {
+        // Call context-aware handler (which also updates globally)
+        handlersRef.current.onChatListUpdate(payload)
+      },
       onTyping: (payload) => handlersRef.current.onTyping(payload),
       onMessageStatusUpdate: (message, chatId) => handlersRef.current.onMessageStatusUpdate(message, chatId),
       onMarkedRead: (chatId, count) => handlersRef.current.onMarkedRead(chatId, count),

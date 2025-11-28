@@ -232,12 +232,14 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
             case 'message':
               if (payload.message && payload.chat_id) {
+                // Call all registered message handlers (global + context-aware)
                 state.onChatMessage?.(payload.message, payload.chat_id)
               }
               break
 
             case 'chat_event':
               if (payload.type === 'chat_event') {
+                // Call all registered chat event handlers (global + context-aware)
                 state.onChatListUpdate?.(payload)
               }
               break
@@ -617,14 +619,33 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     onMessageStatusUpdate?: (message: ChatMessage, chatId: string) => void
     onMarkedRead?: (chatId: string, count: number) => void
   }) => {
-    // Replace handlers (single source of truth - WhatsApp/Telegram pattern)
-    // Context-aware handlers from useChatRealtime will handle all events appropriately
+    // Get existing handlers (may be global handlers from GlobalChatConnection)
+    const existingState = get()
+    
+    // Chain handlers: call existing handler first, then new handler
+    // This allows global handlers and context-aware handlers to work together
     set({
-      onChatMessage: handlers.onChatMessage,
-      onChatListUpdate: handlers.onChatListUpdate,
-      onTyping: handlers.onTyping,
-      onMessageStatusUpdate: handlers.onMessageStatusUpdate,
-      onMarkedRead: handlers.onMarkedRead,
+      onChatMessage: handlers.onChatMessage ? (message, chatId) => {
+        // Call existing handler first (global handler)
+        existingState.onChatMessage?.(message, chatId)
+        // Then call new handler (context-aware handler)
+        if (handlers.onChatMessage) {
+          handlers.onChatMessage(message, chatId)
+        }
+      } : existingState.onChatMessage,
+      
+      onChatListUpdate: handlers.onChatListUpdate ? (payload) => {
+        // Call existing handler first (global handler)
+        existingState.onChatListUpdate?.(payload)
+        // Then call new handler (context-aware handler)
+        if (handlers.onChatListUpdate) {
+          handlers.onChatListUpdate(payload)
+        }
+      } : existingState.onChatListUpdate,
+      
+      onTyping: handlers.onTyping || existingState.onTyping,
+      onMessageStatusUpdate: handlers.onMessageStatusUpdate || existingState.onMessageStatusUpdate,
+      onMarkedRead: handlers.onMarkedRead || existingState.onMarkedRead,
     })
   }
 
