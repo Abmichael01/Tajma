@@ -66,10 +66,8 @@ function ChatClientContent() {
     })
   }, [messagesData])
   
-  // Reset to page 1 when chat changes
-  useEffect(() => {
-    // This will be handled by React Query's query key change
-  }, [activeConversationId])
+  // Note: No refetch needed - WebSocket updates messages cache for ALL chats (WhatsApp pattern)
+  // Messages are always cached when received, so opening a chat shows cached data instantly
   
   // Fetch online statuses
   const { data: onlineStatusesData = [] } = useOnlineStatuses()
@@ -234,15 +232,25 @@ function ChatClientContent() {
     // Create optimistic message with "sending" status
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     const messageContent = content.trim()
+    
+    // Check if recipient is online - if so, mark as delivered immediately (WhatsApp pattern)
+    const isRecipientOnline = activeParticipant && participantStatus?.is_online
+    const deliveredAt = isRecipientOnline ? new Date().toISOString() : undefined
+    
     const optimisticMessage: ChatMessage = {
       id: tempId,
       chat: activeConversationId,
       sender: user!,
       content: messageContent,
       is_read: false,
+      delivered_at: deliveredAt, // Mark as delivered if recipient is online
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       send_failed: false,
+    }
+    
+    if (isRecipientOnline) {
+      console.log('✅ [Send] Recipient is online, marking message as delivered immediately:', tempId)
     }
 
     // Optimistically add to messages cache (Infinite Query)

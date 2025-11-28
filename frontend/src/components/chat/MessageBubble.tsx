@@ -70,9 +70,9 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
     if (status === 'sending') {
       return (
         <span title="Sending...">
-          <Clock 
-            className="w-3 h-3 text-gray-400 animate-pulse" 
-          />
+        <Clock 
+          className="w-3 h-3 text-gray-400 animate-pulse" 
+        />
         </span>
       )
     }
@@ -81,9 +81,9 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
     if (status === 'sent') {
       return (
         <span title="Sent">
-          <Check 
-            className="w-3 h-3 text-gray-400" 
-          />
+        <Check 
+          className="w-3 h-3 text-gray-400" 
+        />
         </span>
       )
     }
@@ -92,9 +92,9 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
     if (status === 'delivered') {
       return (
         <span title="Delivered">
-          <CheckCheck 
-            className="w-3 h-3 text-gray-400" 
-          />
+        <CheckCheck 
+          className="w-3 h-3 text-gray-400" 
+        />
         </span>
       )
     }
@@ -103,9 +103,9 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
     if (status === 'read') {
       return (
         <span title="Read">
-          <CheckCheck 
-            className="w-3 h-3 text-blue-500" 
-          />
+        <CheckCheck 
+          className="w-3 h-3 text-blue-500" 
+        />
         </span>
       )
     }
@@ -114,9 +114,9 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
     if (status === 'failed') {
       return (
         <span title="Failed to send. Tap to retry">
-          <AlertCircle 
-            className="w-3 h-3 text-red-500" 
-          />
+        <AlertCircle 
+          className="w-3 h-3 text-red-500" 
+        />
         </span>
       )
     }

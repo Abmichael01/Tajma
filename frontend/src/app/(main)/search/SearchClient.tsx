@@ -23,9 +23,9 @@ export default function SearchClient() {
               <p className="text-sm text-gray-500">
                 Location: {location}
               </p>
-            )}
-          </div>
+          )}
         </div>
+      </div>
       </div>
     </div>
   )

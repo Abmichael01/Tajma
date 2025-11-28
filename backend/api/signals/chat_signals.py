@@ -12,9 +12,10 @@ from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from api.models import Message, Chat
+from api.models import Message, Chat, UserOnlineStatus
 from api.serializers import MessageSerializer, ChatSerializer
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -54,7 +55,27 @@ def broadcast_message_on_create(sender, instance, created, **kwargs):
         chat_group_name = f'chat_{chat_id}'
         
         if created:
-            # New message - broadcast to chat room
+            # Check if recipient is online and mark as delivered immediately (WhatsApp/Telegram pattern)
+            chat = instance.chat
+            recipient = chat.participant2 if chat.participant1_id == instance.sender_id else chat.participant1
+            
+            is_recipient_online = False
+            try:
+                recipient_status = UserOnlineStatus.objects.get(user=recipient)
+                is_recipient_online = recipient_status.is_online
+            except UserOnlineStatus.DoesNotExist:
+                pass
+            
+            # If recipient is online, mark as delivered immediately
+            if is_recipient_online and not instance.delivered_at:
+                instance.delivered_at = timezone.now()
+                instance.save(update_fields=['delivered_at'])
+                # Re-serialize to include delivered_at
+                serializer = MessageSerializer(instance)
+                message_data = make_serializable(serializer.data)
+                logger.info(f"✅ Message {instance.id} marked as delivered immediately (recipient {recipient.id} is online)")
+            
+            # New message - broadcast to chat room (for active subscribers)
             async_to_sync(channel_layer.group_send)(
                 chat_group_name,
                 {
@@ -64,7 +85,45 @@ def broadcast_message_on_create(sender, instance, created, **kwargs):
                 }
             )
             
-            logger.info(f"✅ Broadcasted new message {instance.id} to chat {chat_id}")
+            # ALSO broadcast to user-level groups (WhatsApp/Telegram pattern)
+            # This ensures ALL participants receive the message, regardless of subscription
+            participant_ids = [chat.participant1_id, chat.participant2_id]
+            for user_id in participant_ids:
+                user_messages_group = f'user_{user_id}'
+                async_to_sync(channel_layer.group_send)(
+                    user_messages_group,
+                    {
+                        'type': 'user_message',
+                        'message': message_data,
+                        'chat_id': chat_id
+                    }
+                )
+                logger.debug(f"✅ Broadcasted message {instance.id} to user-level group: {user_messages_group}")
+            
+            logger.info(f"✅ Broadcasted new message {instance.id} to chat {chat_id} and user groups")
+            
+            # If message was delivered immediately, broadcast delivery status update
+            if is_recipient_online and instance.delivered_at:
+                async_to_sync(channel_layer.group_send)(
+                    chat_group_name,
+                    {
+                        'type': 'message_status_update',
+                        'message': message_data,
+                        'chat_id': chat_id
+                    }
+                )
+                # Also broadcast to user groups
+                for user_id in participant_ids:
+                    user_messages_group = f'user_{user_id}'
+                    async_to_sync(channel_layer.group_send)(
+                        user_messages_group,
+                        {
+                            'type': 'message_status_update',
+                            'message': message_data,
+                            'chat_id': chat_id
+                        }
+                    )
+                logger.info(f"✅ Broadcasted instant delivery status for message {instance.id}")
             
             # Also broadcast chat event to update chat list
             broadcast_chat_event_for_message(instance, message_data)

@@ -72,7 +72,7 @@ export default function AdDetailsModal({ ad, isOpen, onClose, isOwner = false }:
                   ? 'bg-green-500 text-white' 
                   : ad.status === 'archived'
                     ? 'bg-gray-900 text-white'
-                    : 'bg-yellow-500 text-white'
+                      : 'bg-yellow-500 text-white'
               }`}>
                 {ad.status === 'published' ? 'ACTIVE' : ad.status === 'archived' ? 'ARCHIVED' : 'DRAFT'}
               </div>

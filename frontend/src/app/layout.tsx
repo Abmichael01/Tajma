@@ -51,11 +51,11 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ErrorBoundary>
-          <QueryProvider>
-            <GoogleTranslate />
-            {children}
-            <Toaster position="top-right" />
-          </QueryProvider>
+        <QueryProvider>
+          <GoogleTranslate />
+          {children}
+          <Toaster position="top-right" />
+        </QueryProvider>
         </ErrorBoundary>
       </body>
     </html>

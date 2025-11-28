@@ -24,8 +24,8 @@ export default function CategoryClient({ categorySlug }: CategoryClientProps) {
             <p className="text-base sm:text-lg text-gray-600">
               This feature will be done soon~
             </p>
-          </div>
         </div>
+      </div>
       </div>
     </div>
   )

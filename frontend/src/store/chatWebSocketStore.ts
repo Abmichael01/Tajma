@@ -231,15 +231,20 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
               break
 
             case 'message':
+              // Handle messages from both chat groups and user-level groups
+              // User-level messages ensure ALL messages are received, regardless of subscription
               if (payload.message && payload.chat_id) {
-                // Call all registered message handlers (global + context-aware)
+                console.log('📨 [WebSocket] Received message event:', {
+                  chatId: payload.chat_id,
+                  messageId: payload.message.id,
+                  type: 'message'
+                })
                 state.onChatMessage?.(payload.message, payload.chat_id)
               }
               break
 
             case 'chat_event':
               if (payload.type === 'chat_event') {
-                // Call all registered chat event handlers (global + context-aware)
                 state.onChatListUpdate?.(payload)
               }
               break
@@ -325,21 +330,13 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
           })
           set({ reconnectAttempts: 0 })
           
-          // Logout user
+          // Logout user and redirect to login with parameter
           import('@/store/authStore').then(({ useAuthStore }) => {
             useAuthStore.getState().logout()
             if (typeof window !== 'undefined') {
-              // Only redirect to login if current page requires authentication
-              // For public pages (like home), just log out silently
+              // Redirect to login with auth_required parameter to show toast
               const currentPath = window.location.pathname
-              const authRequiredPaths = ['/create-ad', '/profile', '/alerts', '/chat']
-              const requiresAuth = authRequiredPaths.some(path => currentPath.startsWith(path))
-              
-              if (requiresAuth) {
-                // Redirect to login with auth_required parameter to show toast
-                window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
-              }
-              // Otherwise, just log out silently - user can continue browsing public pages
+              window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
             }
           })
           return
@@ -619,33 +616,14 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     onMessageStatusUpdate?: (message: ChatMessage, chatId: string) => void
     onMarkedRead?: (chatId: string, count: number) => void
   }) => {
-    // Get existing handlers (may be global handlers from GlobalChatConnection)
-    const existingState = get()
-    
-    // Chain handlers: call existing handler first, then new handler
-    // This allows global handlers and context-aware handlers to work together
+    // Replace handlers (single source of truth - WhatsApp/Telegram pattern)
+    // Context-aware handlers from useChatRealtime will handle all events appropriately
     set({
-      onChatMessage: handlers.onChatMessage ? (message, chatId) => {
-        // Call existing handler first (global handler)
-        existingState.onChatMessage?.(message, chatId)
-        // Then call new handler (context-aware handler)
-        if (handlers.onChatMessage) {
-          handlers.onChatMessage(message, chatId)
-        }
-      } : existingState.onChatMessage,
-      
-      onChatListUpdate: handlers.onChatListUpdate ? (payload) => {
-        // Call existing handler first (global handler)
-        existingState.onChatListUpdate?.(payload)
-        // Then call new handler (context-aware handler)
-        if (handlers.onChatListUpdate) {
-          handlers.onChatListUpdate(payload)
-        }
-      } : existingState.onChatListUpdate,
-      
-      onTyping: handlers.onTyping || existingState.onTyping,
-      onMessageStatusUpdate: handlers.onMessageStatusUpdate || existingState.onMessageStatusUpdate,
-      onMarkedRead: handlers.onMarkedRead || existingState.onMarkedRead,
+      onChatMessage: handlers.onChatMessage,
+      onChatListUpdate: handlers.onChatListUpdate,
+      onTyping: handlers.onTyping,
+      onMessageStatusUpdate: handlers.onMessageStatusUpdate,
+      onMarkedRead: handlers.onMarkedRead,
     })
   }
 

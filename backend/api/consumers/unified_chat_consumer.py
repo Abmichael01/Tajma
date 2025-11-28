@@ -26,7 +26,8 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = None
-        self.user_group_name = None
+        self.user_group_name = None  # For chat events: chat_events_{user_id}
+        self.user_messages_group_name = None  # For messages: user_{user_id}
         self.subscribed_chats = set()  # Track which chats this connection is subscribed to
         self.ping_task = None  # Server-side ping task
         self.last_pong_time = None  # Track last pong received
@@ -44,6 +45,12 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         # Always join user-level group for chat list updates
         self.user_group_name = f'chat_events_{self.user.id}'
         await self.channel_layer.group_add(self.user_group_name, self.channel_name)
+        
+        # Always join user-level group for receiving ALL messages (WhatsApp/Telegram pattern)
+        # This ensures user receives messages for all chats, not just subscribed ones
+        self.user_messages_group_name = f'user_{self.user.id}'
+        await self.channel_layer.group_add(self.user_messages_group_name, self.channel_name)
+        logger.info(f"User {self.user.id} joined user-level message group: {self.user_messages_group_name}")
         
         # Set user as online
         await self.set_user_online(self.user.id)
@@ -110,9 +117,11 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         for chat_id in list(self.subscribed_chats):
             await self.unsubscribe_from_chat(chat_id)
         
-        # Leave user-level group
+        # Leave user-level groups
         if self.user_group_name:
             await self.channel_layer.group_discard(self.user_group_name, self.channel_name)
+        if self.user_messages_group_name:
+            await self.channel_layer.group_discard(self.user_messages_group_name, self.channel_name)
         
         # Set user as offline
         if self.user and not self.user.is_anonymous:
@@ -312,7 +321,10 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         # Serialize message
         message_data = await self.serialize_message(message)
         
-        # Send to chat group (all subscribers will receive)
+        # Check if message was delivered immediately (recipient was online)
+        was_delivered_immediately = bool(message_data.get('delivered_at'))
+        
+        # Send to chat group (all subscribers will receive - for active chats)
         chat_group_name = f'chat_{chat_id}'
         await self.channel_layer.group_send(
             chat_group_name,
@@ -322,6 +334,45 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
                 'chat_id': chat_id
             }
         )
+        
+        # ALSO send to user-level groups (WhatsApp/Telegram pattern)
+        # This ensures ALL participants receive the message, regardless of subscription
+        participant_ids = await self.get_chat_participant_ids(chat_id)
+        for user_id in participant_ids:
+            user_messages_group = f'user_{user_id}'
+            await self.channel_layer.group_send(
+                user_messages_group,
+                {
+                    'type': 'user_message',
+                    'message': message_data,
+                    'chat_id': chat_id
+                }
+            )
+            logger.debug(f"📤 Sent message {message.id} to user-level group: {user_messages_group}")
+        
+        # If message was delivered immediately, broadcast delivery status update to sender
+        if was_delivered_immediately:
+            # Broadcast to both chat group and user groups
+            await self.channel_layer.group_send(
+                chat_group_name,
+                {
+                    'type': 'message_status_update',
+                    'message': message_data,
+                    'chat_id': chat_id
+                }
+            )
+            # Also broadcast to user groups so sender sees delivery status
+            for user_id in participant_ids:
+                user_messages_group = f'user_{user_id}'
+                await self.channel_layer.group_send(
+                    user_messages_group,
+                    {
+                        'type': 'message_status_update',
+                        'message': message_data,
+                        'chat_id': chat_id
+                    }
+                )
+            logger.info(f"✅ Broadcasted instant delivery status for message {message.id}")
         
         # Broadcast chat event to each participant so chat list can update
         await self.broadcast_chat_event(message_data, chat_id)
@@ -428,7 +479,7 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
     # ========== Channel Layer Event Handlers ==========
     
     async def chat_message(self, event):
-        """Send message to WebSocket (called by channel layer)"""
+        """Send message to WebSocket (called by channel layer for chat group)"""
         message = event['message']
         chat_id = event.get('chat_id')
         
@@ -463,6 +514,72 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
                 'message': message,
                 'chat_id': chat_id
             }))
+        else:
+            # Fallback: try to get chat_id from message data
+            message_chat_id = message.get('chat') if isinstance(message.get('chat'), str) else None
+            if message_chat_id:
+                await self.send(text_data=json.dumps({
+                    'type': 'message',
+                    'message': message,
+                    'chat_id': message_chat_id
+                }))
+            else:
+                logger.warning(f"Could not send message to WebSocket - missing chat_id for message {message.get('id')}")
+    
+    async def user_message(self, event):
+        """Send message to WebSocket (called by channel layer for user-level group - WhatsApp/Telegram pattern)"""
+        # This handler receives messages from user-level groups
+        # It ensures ALL messages for this user are received, regardless of chat subscription
+        message = event['message']
+        chat_id = event.get('chat_id')
+        
+        # Mark message as delivered when recipient receives it
+        message_id = message.get('id')
+        sender_data = message.get('sender', {})
+        sender_id = sender_data.get('id') if isinstance(sender_data, dict) else None
+        
+        if message_id and sender_id and sender_id != self.user.id:
+            # This user is receiving the message, mark as delivered
+            was_delivered = await self.mark_message_delivered(message_id)
+            
+            # If message was just marked as delivered, broadcast update to both chat and user groups
+            if was_delivered:
+                updated_message = await self.get_message_data(message_id)
+                if updated_message:
+                    updated_message_data = await self.serialize_message(updated_message)
+                    chat_group_name = f'chat_{chat_id}'
+                    
+                    # Broadcast to chat group (for active subscribers)
+                    await self.channel_layer.group_send(
+                        chat_group_name,
+                        {
+                            'type': 'message_status_update',
+                            'message': updated_message_data,
+                            'chat_id': chat_id
+                        }
+                    )
+                    
+                    # Also broadcast to user groups (for all participants)
+                    participant_ids = await self.get_chat_participant_ids(chat_id)
+                    for user_id in participant_ids:
+                        user_messages_group = f'user_{user_id}'
+                        await self.channel_layer.group_send(
+                            user_messages_group,
+                            {
+                                'type': 'message_status_update',
+                                'message': updated_message_data,
+                                'chat_id': chat_id
+                            }
+                        )
+        
+        # Send message to WebSocket - always send, regardless of subscription
+        if chat_id:
+            await self.send(text_data=json.dumps({
+                'type': 'message',
+                'message': message,
+                'chat_id': chat_id
+            }))
+            logger.debug(f"📨 Sent message {message_id} to user {self.user.id} via user-level group")
         else:
             # Fallback: try to get chat_id from message data
             message_chat_id = message.get('chat') if isinstance(message.get('chat'), str) else None
@@ -521,12 +638,32 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
     def create_message(self, chat_id, sender, content):
         """Create a new message in the database"""
         try:
-            chat = Chat.objects.get(id=chat_id)
+            chat = Chat.objects.select_related('participant1', 'participant2').get(id=chat_id)
+            
+            # Determine recipient (the other participant)
+            recipient = chat.participant2 if chat.participant1.id == sender.id else chat.participant1
+            
+            # Check if recipient is online (WhatsApp/Telegram pattern: instant delivery)
+            is_recipient_online = False
+            try:
+                recipient_status = UserOnlineStatus.objects.get(user=recipient)
+                is_recipient_online = recipient_status.is_online
+            except UserOnlineStatus.DoesNotExist:
+                pass
+            
+            # Create message
             message = Message.objects.create(
                 chat=chat,
                 sender=sender,
                 content=content
             )
+            
+            # If recipient is online, mark as delivered immediately
+            if is_recipient_online:
+                message.delivered_at = timezone.now()
+                message.save(update_fields=['delivered_at'])
+                logger.info(f"✅ Message {message.id} marked as delivered immediately (recipient {recipient.id} is online)")
+            
             # Update chat's last_message_at
             chat.update_last_message_time()
             return message
@@ -590,32 +727,16 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         if not participant_ids:
             return
         
-        # Helper function to ensure all UUIDs are converted to strings
-        def make_serializable(obj):
-            """Recursively convert UUIDs, datetimes, etc. to strings"""
-            if isinstance(obj, uuid.UUID):
-                return str(obj)
-            elif isinstance(obj, dict):
-                return {key: make_serializable(value) for key, value in obj.items()}
-            elif isinstance(obj, list):
-                return [make_serializable(item) for item in obj]
-            elif hasattr(obj, 'isoformat'):  # datetime objects
-                return obj.isoformat()
-            return obj
-        
         for user_id in participant_ids:
             chat_data = await self.serialize_chat_for_user(chat_id, user_id)
-            # Ensure message_data is also fully serializable
-            serialized_message = make_serializable(message_data) if message_data else {}
-            
             payload = {
                 'type': 'chat_event',
-                'payload': make_serializable({
+                'payload': {
                     'type': 'chat_event',
                     'chat_id': str(chat_id),
                     'chat': chat_data,
-                    'message': serialized_message,
-                })
+                    'message': message_data,
+                }
             }
             await self.channel_layer.group_send(
                 f'chat_events_{user_id}',
@@ -643,22 +764,7 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         
         fake_request = SimpleNamespace(user=user)
         serializer = ChatSerializer(chat, context={'request': fake_request})
-        data = serializer.data
-        
-        # Convert UUIDs and other non-serializable types to strings
-        def make_serializable(obj):
-            """Recursively convert UUIDs, datetimes, etc. to strings"""
-            if isinstance(obj, uuid.UUID):
-                return str(obj)
-            elif isinstance(obj, dict):
-                return {key: make_serializable(value) for key, value in obj.items()}
-            elif isinstance(obj, list):
-                return [make_serializable(item) for item in obj]
-            elif hasattr(obj, 'isoformat'):  # datetime objects
-                return obj.isoformat()
-            return obj
-        
-        return make_serializable(data)
+        return serializer.data
     
     async def handle_mark_all_delivered(self):
         """Mark all unread messages as delivered when user comes online"""
