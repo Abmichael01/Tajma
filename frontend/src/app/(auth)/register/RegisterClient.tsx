@@ -215,7 +215,7 @@ export default function RegisterClient() {
   const passwordStrength = getPasswordStrength()
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <Logo />
@@ -232,7 +232,7 @@ export default function RegisterClient() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow border border-gray-200 sm:px-10 rounded-lg overflow-hidden">
+        <div className="bg-white py-8 px-4 shadow border border-gray-200 sm:px-10 overflow-hidden">
           {/* Signup Method Selection */}
           {!signupMethod && (
             <div className="space-y-4">
@@ -243,8 +243,7 @@ export default function RegisterClient() {
               
               <Button
                 type="button"
-                variant="outline"
-                className="w-full h-14"
+                className="w-full h-14 bg-secondary hover:bg-secondary/90 text-white"
                 onClick={() => handleSignupMethodSelect('google')}
               >
                 <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">

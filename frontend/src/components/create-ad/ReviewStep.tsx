@@ -2,17 +2,22 @@
 
 import React, { useMemo, useEffect } from 'react'
 import { CheckCircle, Info } from 'lucide-react'
+import type { CustomFieldConfig } from './DynamicFormFields'
 
 interface ReviewStepProps {
   formData: any
   selectedCategoryLabel?: string
   categoryPath?: { name: string; slug: string }[]
+  attributes?: Record<string, any>
+  customFields?: CustomFieldConfig[] | string[]
 }
 
 export default function ReviewStep({
   formData,
   selectedCategoryLabel,
   categoryPath = [],
+  attributes = {},
+  customFields = [],
 }: ReviewStepProps) {
   const imagePreviews = useMemo(() => {
     return (formData.images || []).map((img: File | string) => {
@@ -106,6 +111,68 @@ export default function ReviewStep({
             <div className="border border-gray-200 p-4 sm:col-span-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Description</p>
               <p className="text-sm text-gray-900 whitespace-pre-wrap">{formData.description}</p>
+            </div>
+          )}
+
+          {/* Attributes Section */}
+          {Object.keys(attributes).length > 0 && (
+            <div className="border border-gray-200 p-4 sm:col-span-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Attributes</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {Object.entries(attributes).map(([key, value]) => {
+                  // Skip cv_file_name as it's already shown in CV File section
+                  if (key === 'cv_file_name') return null
+                  
+                  // Find field config to get label
+                  const fieldConfig = Array.isArray(customFields) && customFields.length > 0
+                    ? (typeof customFields[0] === 'object' 
+                        ? (customFields as CustomFieldConfig[]).find(f => f.name === key)
+                        : null)
+                    : null
+                  
+                  const label = fieldConfig?.label || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                  
+                  // Format value based on type
+                  let displayValue: string | React.ReactNode = ''
+                  if (Array.isArray(value)) {
+                    if (value.length === 0) return null
+                    // Handle array of objects (for array type fields)
+                    if (value.length > 0 && typeof value[0] === 'object') {
+                      displayValue = (
+                        <div className="space-y-2">
+                          {value.map((item: any, idx: number) => (
+                            <div key={idx} className="text-sm text-gray-700 border-l-2 border-secondary/30 pl-2">
+                              {Object.entries(item).map(([k, v]) => {
+                                const childField = fieldConfig?.children?.find(f => f.name === k)
+                                const childLabel = childField?.label || k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                                return (
+                                  <div key={k} className="text-xs">
+                                    <span className="font-medium">{childLabel}:</span> {String(v || 'N/A')}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    } else {
+                      // Handle simple array (e.g., tags)
+                      displayValue = value.join(', ')
+                    }
+                  } else if (typeof value === 'boolean') {
+                    displayValue = value ? 'Yes' : 'No'
+                  } else {
+                    displayValue = String(value)
+                  }
+                  
+                  return (
+                    <div key={key} className="border-l-2 border-secondary/20 pl-3 py-1">
+                      <p className="text-xs font-medium text-gray-600 mb-1">{label}</p>
+                      <p className="text-sm text-gray-900">{displayValue}</p>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>

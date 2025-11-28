@@ -204,7 +204,7 @@ export default function DetailsStep({
           <label htmlFor="image-upload" className="cursor-pointer block">
             <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
             <p className="text-gray-600 text-sm mb-1">Click to upload images</p>
-            <p className="text-xs text-gray-500">PNG, JPG up to 10MB each (max 10 images)</p>
+            <p className="text-xs text-gray-500">PNG, JPG up to 5MB each (max 10 images)</p>
           </label>
         </div>
 

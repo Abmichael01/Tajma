@@ -262,12 +262,19 @@ export default function CreateAdClient() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (!files.length) return
+    
+    const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
+    
     setFormData((prev) => {
       const nextImages = [...prev.images]
       for (const file of files) {
         if (nextImages.length >= 10) {
           toast.error('Maximum of 10 images allowed')
           break
+        }
+        if (file.size > MAX_FILE_SIZE) {
+          toast.error(`Image "${file.name}" is too large. Maximum file size is 5MB.`)
+          continue
         }
         nextImages.push(file)
       }
@@ -515,6 +522,8 @@ export default function CreateAdClient() {
                   name: findNodeBySlug(categoryTree, slug)?.name || slug,
                   slug,
                 }))}
+                attributes={buildAttributes()}
+                customFields={customFields}
               />
             )}
 
