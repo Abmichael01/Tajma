@@ -51,7 +51,7 @@ export default function CategoryGrid() {
               <Link
                 key={category.id}
                 href={`/category/${category.slug}`}
-                className="flex flex-col items-center justify-center p-4 bg-white border border-gray-200 hover:border-secondary/50 hover:shadow-md transition-all text-secondary"
+                className="flex flex-col items-center justify-center p-4 bg-white border rounded-xl border-gray-200 hover:border-secondary/50 hover:shadow-md transition-all text-secondary"
               >
                 <div className="mb-2 text-secondary">
                   {getCategoryIcon(category.icon || 'Package', 'w-6 h-6', 24)}

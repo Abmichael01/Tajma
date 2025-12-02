@@ -170,10 +170,10 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
   // Distribute sorted ads across columns for Pinterest-style masonry layout
   const columnArrays: Ad[][] = useMemo(() => {
     const arrays: Ad[][] = Array.from({ length: responsiveColumns }, () => [])
-    sortedAds.forEach((ad, index) => {
+  sortedAds.forEach((ad, index) => {
       const columnIndex = index % responsiveColumns
       arrays[columnIndex].push(ad)
-    })
+  })
     return arrays
   }, [sortedAds, responsiveColumns])
 
