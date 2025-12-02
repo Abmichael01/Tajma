@@ -12,7 +12,7 @@ export default function Hero() {
 
     return (
         <>
-            <section className="relative bg-white py-12 sm:py-16 lg:py-20 overflow-hidden min-h-[500px]">
+            <section className="relative bg-white py-12 sm:py-16 lg:py-20 overflow-hidden ">
                 <div className="container relative z-10">
                     <div className="text-center max-w-4xl mx-auto">
                         {/* Hero Text */}

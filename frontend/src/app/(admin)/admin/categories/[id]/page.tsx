@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Package, CheckCircle, XCircle } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import type { AdminAd } from '@/api/admin'
+import { getUserFullName } from '@/utils/user'
 
 export default function AdminCategoryDetailPage() {
   const params = useParams()
@@ -64,7 +65,7 @@ export default function AdminCategoryDetailPage() {
     {
       key: 'seller',
       header: 'Seller',
-      render: (ad) => ad.seller.email,
+      render: (ad) => getUserFullName(ad.seller),
       sortable: true,
     },
     {

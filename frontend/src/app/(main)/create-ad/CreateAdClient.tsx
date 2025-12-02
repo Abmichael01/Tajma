@@ -97,6 +97,7 @@ export default function CreateAdClient() {
   const [categoryPath, setCategoryPath] = useState<string[]>([])
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [showProfileDialog, setShowProfileDialog] = useState(false)
+  const [hasShownDialogForCategory, setHasShownDialogForCategory] = useState<string | null>(null)
 
   // All hooks must be called before any conditional returns
   const findNodeBySlug = React.useCallback((nodes: CategoryTree[], slug: string): CategoryTree | null => {
@@ -178,6 +179,26 @@ export default function CreateAdClient() {
     if (!categoryTree.length) return
     const node = getNodeByPath(categoryTree, categoryPath)
     if (node) {
+      // Check if this is a main category (level 0) that is not job type
+      const isMainCategory = categoryPath.length === 1
+      const isNotJobType = node.type !== 'job'
+      
+      // If main category selected and not job type, check if profile is set up
+      if (isMainCategory && isNotJobType && user) {
+        const hasBusinessProfile = user.is_seller_account_setup || 
+          (user.phone && user.phone.trim() !== '' && user.location && user.location.trim() !== '')
+        
+        // Only show dialog once per category selection
+        const categoryKey = categoryPath[0]
+        if (!hasBusinessProfile && hasShownDialogForCategory !== categoryKey) {
+          setShowProfileDialog(true)
+          setHasShownDialogForCategory(categoryKey)
+        } else if (hasBusinessProfile) {
+          // Reset the flag if profile is now set up
+          setHasShownDialogForCategory(null)
+        }
+      }
+      
       // Get customFields from the leaf node (last in path) - only leaf categories have customFields
       const isLeaf = !node.children || node.children.length === 0
       const customFieldsToUse = isLeaf 
@@ -543,12 +564,16 @@ export default function CreateAdClient() {
                   type="button" 
                   onClick={(e) => {
                     e.preventDefault()
-                    handleNext()
+                    if (requiresSellerProfile) {
+                      setShowProfileDialog(true)
+                    } else {
+                      handleNext()
+                    }
                   }}
-                  disabled={categoriesLoading || requiresSellerProfile}
+                  disabled={categoriesLoading}
                   className="order-1 sm:order-2"
                 >
-                  Next Step
+                  {requiresSellerProfile ? 'Setup Profile' : 'Next Step'}
                 </Button>
               ) : (
                 <Button 
@@ -584,7 +609,9 @@ export default function CreateAdClient() {
 
       <CompleteProfileDialog
         isOpen={showProfileDialog}
-        onClose={() => setShowProfileDialog(false)}
+        onClose={() => {
+          setShowProfileDialog(false)
+        }}
       />
     </div>
   )

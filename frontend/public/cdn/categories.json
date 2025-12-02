@@ -8,7 +8,7 @@
     "type": "cv",
     "description": "",
     "customFields": [],
-    "count": 0,
+    "count": 1,
     "subcategories": [
       {
         "id": "it-technology",
@@ -19,7 +19,7 @@
         "type": "cv",
         "description": "",
         "customFields": [],
-        "count": 0,
+        "count": 1,
         "subcategories": [
           {
             "id": "programming",
@@ -30,7 +30,7 @@
             "type": "cv",
             "description": "",
             "customFields": [],
-            "count": 0,
+            "count": 1,
             "subcategories": [
               {
                 "id": "web-programming",
@@ -147,7 +147,7 @@
                     "required": false
                   }
                 ],
-                "count": 0,
+                "count": 1,
                 "subcategories": []
               },
               {

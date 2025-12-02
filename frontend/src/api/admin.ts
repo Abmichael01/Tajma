@@ -196,7 +196,8 @@ export const adminApi = {
   },
 
   updateAd: async (id: string, data: Partial<AdminAd>): Promise<AdminAd> => {
-    const response = await apiClient.put(`/admin/ads/${id}/`, data)
+    // Use PATCH for partial updates (only send changed fields)
+    const response = await apiClient.patch(`/admin/ads/${id}/`, data)
     return response.data
   },
 

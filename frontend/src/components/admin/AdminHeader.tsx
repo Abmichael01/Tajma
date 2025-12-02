@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { LogOut, ChevronDown } from 'lucide-react'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
 interface AdminHeaderProps {
   isCollapsed: boolean
@@ -26,15 +27,8 @@ export default function AdminHeader({ isCollapsed, onToggle }: AdminHeaderProps)
   const { user, logout } = useAuthStore()
   const router = useRouter()
   
-  const userInitials = user
-    ? `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase() || user.email[0].toUpperCase()
-    : 'A'
-
-  const displayName = user
-    ? (user.first_name && user.last_name
-        ? `${user.first_name} ${user.last_name}`
-        : user.email)
-    : 'Admin'
+  const displayName = user ? getUserFullName(user) : 'Admin'
+  const userInitials = user ? getUserInitials(user) : 'A'
 
   const handleLogout = () => {
     logout()

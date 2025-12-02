@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { MessageSquare, CheckCircle, Circle } from 'lucide-react'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
 export default function AdminMessagesPage() {
   const searchParams = useSearchParams()
@@ -53,10 +54,6 @@ export default function AdminMessagesPage() {
     }
   }
 
-  // Helper function to get user initials
-  const getUserInitials = (user: { email: string; username?: string | null }) => {
-    return user.email[0].toUpperCase()
-  }
 
   const columns: Column<AdminMessage>[] = [
     {
@@ -70,12 +67,15 @@ export default function AdminMessagesPage() {
       render: (message) => (
         <div className="flex items-center gap-2">
           <Avatar className="w-6 h-6">
-            <AvatarImage src={message.sender.avatar || undefined} alt={message.sender.email} />
+            <AvatarImage src={message.sender.avatar || undefined} alt={getUserFullName(message.sender)} />
             <AvatarFallback className="text-xs bg-primary/10 text-primary">
               {getUserInitials(message.sender)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm">{message.sender.email}</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">{getUserFullName(message.sender)}</span>
+            <span className="text-xs text-gray-500">{message.sender.email}</span>
+          </div>
         </div>
       ),
       sortable: true,

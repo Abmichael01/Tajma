@@ -40,7 +40,7 @@ export default function ProgressStepper({ currentStep, steps, showMeta = true }:
           {steps.map((stepItem) => (
             <div key={stepItem.num} className="flex flex-col items-center" style={{ flex: '1 1 0%' }}>
               {/* Step Circle */}
-              <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 border-2 transition-all duration-300 bg-white ${
+              <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 border-2 transition-all duration-300 bg-white rounded-lg ${
                 currentStep >= stepItem.num 
                   ? 'border-secondary shadow-lg' 
                   : 'border-gray-300'

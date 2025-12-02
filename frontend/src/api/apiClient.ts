@@ -41,34 +41,55 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
       
-      // Only clear auth and redirect if this is an auth-related endpoint
-      // Don't logout on 401 from public endpoints
-      const isAuthEndpoint = originalRequest.url?.includes('/auth/')
-      const isPublicEndpoint = originalRequest.url?.includes('/auth/csrf/') || 
-                               originalRequest.url?.includes('/auth/login/') ||
-                               originalRequest.url?.includes('/auth/register/') ||
-                               originalRequest.url?.includes('/auth/current-user/')
-      
       // Don't logout on 401 from getCurrentUser - let useCurrentUser hook handle it
       // This prevents double-logout and race conditions
-      if (!isPublicEndpoint && !originalRequest.url?.includes('/auth/current-user/') && typeof window !== 'undefined') {
+      if (originalRequest.url?.includes('/auth/current-user/')) {
+        return Promise.reject(error)
+      }
+      
+      // Check if it's a real auth error (not a network timeout or connection error)
+      const isNetworkError = !error.response || error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK'
+      
+      // Only logout on real auth errors, not network errors
+      if (!isNetworkError && typeof window !== 'undefined') {
         // Import auth store dynamically to avoid circular dependencies
         import('@/store/authStore').then(({ useAuthStore }) => {
           const authState = useAuthStore.getState()
           // Only logout if user is actually authenticated in store
           // This prevents logging out on stale/expired sessions that are already cleared
           if (authState.isAuthenticated && authState.user) {
-            const currentPath = window.location.pathname
-            // Only logout if we're on a protected page
-            if (requiresAuth(currentPath)) {
-              authState.logout()
-              window.location.href = '/login'
+            // Check error message to see if it's actually an authentication error
+            const errorData = error.response?.data as { detail?: string; message?: string } | undefined
+            const errorDetail = errorData?.detail || errorData?.message || ''
+            
+            // Only logout if error message indicates authentication issue
+            const isAuthError = errorDetail.includes('Authentication') || 
+                               errorDetail.includes('credentials') ||
+                               errorDetail.includes('not authenticated') ||
+                               errorDetail.includes('Unauthorized') ||
+                               errorDetail === '' // Empty detail usually means session expired
+            
+            if (isAuthError) {
+              const currentPath = window.location.pathname
+              // Only logout if we're on a protected page
+              if (requiresAuth(currentPath)) {
+                console.log('Authentication error detected, logging out:', errorDetail || '401 Unauthorized')
+                authState.logout()
+                window.location.href = '/login'
+              } else {
+                // For public pages, just clear auth silently without redirect
+                console.log('Authentication error on public page, clearing auth silently')
+                authState.logout()
+              }
             } else {
-              // For public pages, just clear auth silently without redirect
-              authState.logout()
+              // Not an auth error - might be permission denied for specific resource
+              console.warn('401 error but not authentication-related:', errorDetail)
             }
           }
         })
+      } else if (isNetworkError) {
+        // Network error - don't logout, just log
+        console.warn('Network error (401), keeping auth state:', error.message)
       }
     }
     

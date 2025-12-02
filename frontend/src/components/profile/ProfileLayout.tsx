@@ -106,6 +106,9 @@ export default function ProfileLayout({
   const { data: reviewStats } = useReviewStats({ seller: user.id }, !!user.id)
   const finalReviewStats = user.review_stats || reviewStats
 
+  // Use response stats from profile when available (fallback to 0)
+  const responseRate = user.response_stats?.response_rate_1h ?? 0
+
   // Use backend ads directly
   const ads = useMemo(() => {
     if (backendAds && Array.isArray(backendAds) && backendAds.length > 0) {
@@ -127,11 +130,11 @@ export default function ProfileLayout({
       soldItems: archivedAds, // Using archived as "sold" for now
       totalViews,
       totalFavorites: isOwner ? savedAdsCount : 0, // Use saved ads count for owner, 0 for others
-      responseRate: 95, // TODO: Calculate from actual data (can be improved later with message data)
+      responseRate,
       rating: finalReviewStats?.average_rating || 0,
       joinedDays
     }
-  }, [ads, joinedDays, finalReviewStats, savedAdsCount, isOwner])
+  }, [ads, joinedDays, finalReviewStats, savedAdsCount, isOwner, responseRate])
 
   const handleMobileNavigate = (section: string) => {
     // Update URL with tab query parameter - URL is the source of truth

@@ -1,8 +1,9 @@
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import PermissionDenied
-from django.db.models import Q
+from rest_framework.response import Response
+from django.db.models import Q, F
 
-from api.models import Ad
+from api.models import Ad, AdView
 from api.serializers import AdSerializer
 
 
@@ -120,5 +121,63 @@ class AdViewSet(viewsets.ModelViewSet):
         if instance.seller_id != self.request.user.id:
             raise PermissionDenied('You can only delete your own ads.')
         instance.delete()
+
+    def get_client_ip(self, request):
+        """
+        Get the client's IP address from the request.
+        Handles proxies and load balancers.
+        """
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', '127.0.0.1')
+        return ip
+
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve a single ad and increment view count for unique views.
+        Views are tracked by IP address (for anonymous users) or by user (for authenticated users).
+        Views are not counted if the viewer is the ad owner.
+        """
+        instance = self.get_object()
+        
+        # Don't count views if the viewer is the ad owner
+        if not (request.user.is_authenticated and request.user.id == instance.seller_id):
+            # Get client IP address
+            ip_address = self.get_client_ip(request)
+            
+            # Determine if this is a unique view
+            is_unique_view = False
+            
+            if request.user.is_authenticated:
+                # For authenticated users, track by user (one view per user per ad)
+                # Use get_or_create to handle race conditions atomically
+                view, created = AdView.objects.get_or_create(
+                    ad=instance,
+                    user=request.user,
+                    defaults={'ip_address': ip_address}
+                )
+                is_unique_view = created
+            else:
+                # For anonymous users, track by IP (one view per IP per ad)
+                # Use get_or_create to handle race conditions atomically
+                view, created = AdView.objects.get_or_create(
+                    ad=instance,
+                    ip_address=ip_address,
+                    user=None,
+                    defaults={'ip_address': ip_address}
+                )
+                is_unique_view = created
+            
+            # Only increment the view count if this is a unique view
+            if is_unique_view:
+                # Use F() expression for atomic increment to avoid race conditions
+                Ad.objects.filter(pk=instance.pk).update(views=F('views') + 1)
+                # Refresh the instance to get updated views count
+                instance.refresh_from_db()
+        
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 

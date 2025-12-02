@@ -4,6 +4,7 @@ from django.conf import settings
 from api.models import Ad, Category
 from api.serializers.user import UserSerializer
 from api.utils.image_upload import process_images_list
+from api.services.response_stats import calculate_response_stats_for_seller
 
 
 class CategorySummarySerializer(serializers.ModelSerializer):
@@ -155,7 +156,7 @@ class AdSerializer(serializers.ModelSerializer):
         return False
     
     def to_representation(self, instance):
-        """Override to convert image paths to full URLs in response"""
+        """Override to convert image paths to full URLs in response and add response_stats to seller"""
         data = super().to_representation(instance)
         
         if 'images' in data and data['images']:
@@ -185,6 +186,15 @@ class AdSerializer(serializers.ModelSerializer):
                         image_urls.append(f"{base_url}{media_url}/{image_path}")
             
             data['images'] = image_urls
+        
+        # Add response_stats to seller if seller exists
+        if 'seller' in data and instance.seller:
+            try:
+                response_stats = calculate_response_stats_for_seller(instance.seller)
+                data['seller']['response_stats'] = response_stats
+            except Exception:
+                # If calculation fails, just don't include response_stats
+                pass
         
         return data
 

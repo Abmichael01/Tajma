@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 import { 
   User, 
   Bell, 
@@ -47,20 +48,8 @@ export default function UserDropdown() {
     logout()
   }
   const profileSlug = user.username || user.email?.split('@')[0] || 'profile'
-  const displayName =
-    user.full_name ||
-    `${user.first_name || ''} ${user.last_name || ''}`.replace(/\s+/g, ' ').trim() ||
-    user.email
-
-  const getInitials = (name: string | undefined) => {
-    if (!name) return 'U'
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-  }
+  const displayName = getUserFullName(user)
+  const userInitials = getUserInitials(user)
 
   return (
     <DropdownMenu>
@@ -72,7 +61,7 @@ export default function UserDropdown() {
           <Avatar className="w-8 h-8">
             <AvatarImage src={user.avatar || undefined} alt={displayName} />
             <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
-              {getInitials(displayName)}
+              {userInitials}
             </AvatarFallback>
           </Avatar>
           <span className="hidden md:block text-sm font-medium text-gray-700">
@@ -87,7 +76,7 @@ export default function UserDropdown() {
           <Avatar className="w-10 h-10">
             <AvatarImage src={user.avatar || undefined} alt={displayName} />
             <AvatarFallback className="bg-secondary text-secondary-foreground">
-              {getInitials(displayName)}
+              {userInitials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">

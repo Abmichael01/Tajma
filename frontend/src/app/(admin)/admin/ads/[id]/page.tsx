@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ArrowLeft, Eye, MessageSquare, Star } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
 export default function AdminAdDetailPage() {
   const params = useParams()
@@ -54,13 +55,6 @@ export default function AdminAdDetailPage() {
     return `${apiUrl}/api/media/${image}`
   }
 
-  // Helper function to get user initials
-  const getUserInitials = (user: { first_name: string; last_name: string; email: string }) => {
-    if (user.first_name && user.last_name) {
-      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
-    }
-    return user.email[0].toUpperCase()
-  }
 
   if (isLoading) {
     return (
@@ -249,19 +243,16 @@ export default function AdminAdDetailPage() {
           <div className="border border-gray-200 rounded-lg p-4">
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12">
-                <AvatarImage src={ad.seller.avatar || undefined} alt={ad.seller.email} />
+                <AvatarImage src={ad.seller.avatar || undefined} alt={getUserFullName(ad.seller)} />
                 <AvatarFallback className="bg-primary/10 text-primary">
                   {getUserInitials(ad.seller)}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  {ad.seller.first_name} {ad.seller.last_name}
+                  {getUserFullName(ad.seller)}
                 </p>
                 <p className="text-sm text-gray-500">{ad.seller.email}</p>
-                {ad.seller.username && (
-                  <p className="text-sm text-gray-500">@{ad.seller.username}</p>
-                )}
               </div>
             </div>
           </div>

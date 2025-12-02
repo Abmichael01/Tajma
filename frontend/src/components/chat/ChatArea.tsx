@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Send, Image as ImageIcon, MoreVertical, Phone, Video, Paperclip, ChevronDown } from 'lucide-react'
+import { Send, Image as ImageIcon, Paperclip, ChevronDown } from 'lucide-react'
 import EmojiPicker from './EmojiPicker'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import type { ChatSummary, ChatMessage, User, UserOnlineStatus } from '@/api/types'
@@ -628,15 +628,6 @@ export default function ChatArea({
               Reconnecting…
             </span>
           )}
-          <button className="p-2 hover:bg-gray-100 hidden sm:block">
-            <Phone className="w-5 h-5 text-gray-600" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 hidden sm:block">
-            <Video className="w-5 h-5 text-gray-600" />
-          </button>
-          <button className="p-2 hover:bg-gray-100">
-            <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-          </button>
         </div>
       </div>
 

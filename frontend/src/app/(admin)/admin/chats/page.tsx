@@ -8,6 +8,7 @@ import type { AdminChat } from '@/api/admin'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { MessageSquare } from 'lucide-react'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
 export default function AdminChatsPage() {
   const searchParams = useSearchParams()
@@ -42,10 +43,6 @@ export default function AdminChatsPage() {
     }
   }
 
-  // Helper function to get user initials
-  const getUserInitials = (user: { email: string; username?: string | null }) => {
-    return user.email[0].toUpperCase()
-  }
 
   const columns: Column<AdminChat>[] = [
     {
@@ -54,12 +51,15 @@ export default function AdminChatsPage() {
       render: (chat) => (
         <div className="flex items-center gap-2">
           <Avatar className="w-6 h-6">
-            <AvatarImage src={chat.participant1.avatar || undefined} alt={chat.participant1.email} />
+            <AvatarImage src={chat.participant1.avatar || undefined} alt={getUserFullName(chat.participant1)} />
             <AvatarFallback className="text-xs bg-primary/10 text-primary">
               {getUserInitials(chat.participant1)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm">{chat.participant1.email}</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">{getUserFullName(chat.participant1)}</span>
+            <span className="text-xs text-gray-500">{chat.participant1.email}</span>
+          </div>
         </div>
       ),
     },
@@ -69,12 +69,15 @@ export default function AdminChatsPage() {
       render: (chat) => (
         <div className="flex items-center gap-2">
           <Avatar className="w-6 h-6">
-            <AvatarImage src={chat.participant2.avatar || undefined} alt={chat.participant2.email} />
+            <AvatarImage src={chat.participant2.avatar || undefined} alt={getUserFullName(chat.participant2)} />
             <AvatarFallback className="text-xs bg-primary/10 text-primary">
               {getUserInitials(chat.participant2)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm">{chat.participant2.email}</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">{getUserFullName(chat.participant2)}</span>
+            <span className="text-xs text-gray-500">{chat.participant2.email}</span>
+          </div>
         </div>
       ),
     },

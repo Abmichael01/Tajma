@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { Bell, BellRing, CheckCircle, XCircle } from 'lucide-react'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
 export default function AdminNotificationsPage() {
   const searchParams = useSearchParams()
@@ -69,17 +70,6 @@ export default function AdminNotificationsPage() {
     }
   }
 
-  // Helper function to get user initials safely
-  const getUserInitials = (user?: { email?: string | null; username?: string | null }) => {
-    if (user?.email && user.email.length > 0) {
-      return user.email[0].toUpperCase()
-    }
-    if (user?.username && user.username.length > 0) {
-      return user.username[0].toUpperCase()
-    }
-    return '?'
-  }
-
   const columns: Column<AdminNotification>[] = [
     {
       key: 'recipient',
@@ -89,10 +79,10 @@ export default function AdminNotificationsPage() {
           <Avatar className="w-6 h-6">
             <AvatarImage
               src={notification.recipient?.avatar || undefined}
-              alt={notification.recipient?.email || 'User'}
+              alt={notification.recipient ? getUserFullName(notification.recipient) : 'User'}
             />
             <AvatarFallback className="text-xs bg-primary/10 text-primary">
-              {getUserInitials(notification.recipient)}
+              {notification.recipient ? getUserInitials(notification.recipient) : '?'}
             </AvatarFallback>
           </Avatar>
           <span className="text-sm">{notification.recipient?.email || 'Unknown user'}</span>

@@ -14,6 +14,7 @@ import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { Package, FileText, Archive, CheckCircle, Eye } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import Link from 'next/link'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
 export default function AdminAdsPage() {
   const searchParams = useSearchParams()
@@ -51,12 +52,21 @@ export default function AdminAdsPage() {
 
   const handleStatusChange = async (ad: AdminAd, newStatus: string) => {
     try {
+      // Validate status value
+      const validStatuses = ['draft', 'published', 'archived']
+      if (!validStatuses.includes(newStatus)) {
+        toast.error(`Invalid status: ${newStatus}`)
+        return
+      }
+
       await updateAd.mutateAsync({
         id: ad.id,
-        data: { status: newStatus as any },
+        data: { status: newStatus as 'draft' | 'published' | 'archived' },
       })
-    } catch (error) {
-      // Error handled by mutation
+    } catch (error: any) {
+      // Error is already handled by mutation's onError, but log for debugging
+      console.error('Failed to update ad status:', error)
+      // The mutation's onError will show the toast
     }
   }
 
@@ -114,14 +124,6 @@ export default function AdminAdsPage() {
     return `${apiUrl}/api/media/${image}`
   }
 
-  // Helper function to get user initials
-  const getUserInitials = (user: { first_name: string; last_name: string; email: string }) => {
-    if (user.first_name && user.last_name) {
-      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
-    }
-    return user.email[0].toUpperCase()
-  }
-
   const columns: Column<AdminAd>[] = [
     {
       key: 'image',
@@ -176,17 +178,23 @@ export default function AdminAdsPage() {
     {
       key: 'seller',
       header: 'Seller',
-      render: (ad) => (
-        <div className="flex items-center gap-2">
-          <Avatar className="w-6 h-6">
-            <AvatarImage src={ad.seller.avatar || undefined} alt={ad.seller.email} />
-            <AvatarFallback className="text-xs bg-primary/10 text-primary">
-              {getUserInitials(ad.seller)}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm">{ad.seller.email}</span>
-        </div>
-      ),
+      render: (ad) => {
+        const sellerName = getUserFullName(ad.seller)
+        return (
+          <div className="flex items-center gap-2">
+            <Avatar className="w-6 h-6">
+              <AvatarImage src={ad.seller.avatar || undefined} alt={sellerName} />
+              <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                {getUserInitials(ad.seller)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{sellerName}</span>
+              <span className="text-xs text-gray-500">{ad.seller.email}</span>
+            </div>
+          </div>
+        )
+      },
       sortable: true,
     },
     {

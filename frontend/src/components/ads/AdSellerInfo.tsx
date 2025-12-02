@@ -5,11 +5,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Star, Shield } from 'lucide-react'
-import type { User, ReviewStats } from '@/api/types'
+import type { User, ReviewStats, ResponseStats } from '@/api/types'
 import { getUserFullName } from '@/utils/user'
 
 interface AdSellerInfoProps {
-  seller: User
+  seller: User & { response_stats?: ResponseStats }
   sellerName: string
   sellerProfileSlug: string
   reviewStats?: ReviewStats
@@ -23,6 +23,26 @@ export default function AdSellerInfo({
   reviewStats,
   className = ''
 }: AdSellerInfoProps) {
+  const fullName = getUserFullName(seller)
+  const stats = seller.response_stats
+
+  const responseRate = stats?.response_rate_1h ?? stats?.response_rate_2h ?? 0
+
+  let responseTimeText = 'Response time varies'
+  if (stats?.response_rate_1h && stats.response_rate_1h >= 80) {
+    responseTimeText = 'Usually responds within 1 hour'
+  } else if (stats?.response_rate_2h && stats.response_rate_2h >= 80) {
+    responseTimeText = 'Usually responds within 2 hours'
+  } else if (stats?.avg_response_minutes != null) {
+    if (stats.avg_response_minutes <= 60) {
+      responseTimeText = 'Usually responds within about 1 hour'
+    } else if (stats.avg_response_minutes <= 120) {
+      responseTimeText = 'Usually responds within about 2 hours'
+    } else {
+      responseTimeText = `Usually responds in about ${Math.round(stats.avg_response_minutes)} minutes`
+    }
+  }
+
   return (
     <div className={`bg-white border border-gray-200 p-4 sm:p-6 ${className}`}>
       <h3 className="font-semibold text-gray-900 mb-4">Seller Information</h3>
@@ -65,8 +85,8 @@ export default function AdSellerInfo({
         {seller.date_joined && (
           <div>Member since {new Date(seller.date_joined).getFullYear()}</div>
         )}
-        <div>Response rate: 95%</div>
-        <div>Usually responds within 1 hour</div>
+        <div>Response rate: {responseRate}%</div>
+        <div>{responseTimeText}</div>
       </div>
 
       <Link href={`/profile/${sellerProfileSlug}`}>

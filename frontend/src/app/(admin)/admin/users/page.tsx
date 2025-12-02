@@ -14,6 +14,7 @@ import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { Users, UserCheck, Store, Shield, Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuthStore } from '@/store/authStore'
+import { getUserFullName, getUserInitials } from '@/utils/user'
 
 export default function AdminUsersPage() {
   const searchParams = useSearchParams()
@@ -111,7 +112,8 @@ export default function AdminUsersPage() {
   }
 
   const handleDelete = async (user: AdminUser) => {
-    if (!confirm(`Are you sure you want to delete user ${user.email}?`)) {
+    const userName = getUserFullName(user)
+    if (!confirm(`Are you sure you want to delete user ${userName}?`)) {
       return
     }
     try {
@@ -121,34 +123,30 @@ export default function AdminUsersPage() {
     }
   }
 
-  // Helper function to get user initials
-  const getUserInitials = (user: AdminUser) => {
-    if (user.first_name && user.last_name) {
-      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
-    }
-    return user.email[0].toUpperCase()
-  }
-
   const columns: Column<AdminUser>[] = [
     {
       key: 'avatar',
       header: '',
-      render: (user) => (
-        <Avatar className="w-8 h-8">
-          <AvatarImage src={user.avatar || undefined} alt={user.email} />
-          <AvatarFallback className="text-xs bg-primary/10 text-primary">
-            {getUserInitials(user)}
-          </AvatarFallback>
-        </Avatar>
-      ),
+      render: (user) => {
+        const userName = getUserFullName(user)
+        return (
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={user.avatar || undefined} alt={userName} />
+            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+              {getUserInitials(user)}
+            </AvatarFallback>
+          </Avatar>
+        )
+      },
       width: '60px',
     },
     {
-      key: 'email',
-      header: 'Email',
+      key: 'name',
+      header: 'Name',
       render: (user) => (
-        <div className="flex items-center gap-2">
-          <span className="text-sm">{user.email}</span>
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-medium">{getUserFullName(user)}</span>
+          <span className="text-xs text-gray-500">{user.email}</span>
         </div>
       ),
       sortable: true,

@@ -20,7 +20,9 @@ import {
   Plus, 
   Heart, 
   MessageSquare,
-  Search
+  Search,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { useCategories } from '@/hooks/useCategories'
 
@@ -43,6 +45,8 @@ export default function Navbar() {
     const categoriesScrollRef = useRef<HTMLDivElement | null>(null)
     const [canScrollLeft, setCanScrollLeft] = useState(false)
     const [canScrollRight, setCanScrollRight] = useState(false)
+    const [isHovered, setIsHovered] = useState(false)
+    const marqueeIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
     const updateCategoryScrollShadows = () => {
         const el = categoriesScrollRef.current
@@ -51,6 +55,53 @@ export default function Navbar() {
         setCanScrollLeft(scrollLeft > 4)
         setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 4)
     }
+
+    const scrollCategories = (direction: 'left' | 'right') => {
+        const el = categoriesScrollRef.current
+        if (!el) return
+        const scrollAmount = 200 // pixels to scroll
+        const newScrollLeft = direction === 'left' 
+            ? el.scrollLeft - scrollAmount 
+            : el.scrollLeft + scrollAmount
+        el.scrollTo({ left: newScrollLeft, behavior: 'smooth' })
+    }
+
+    // Auto-scroll marquee effect
+    useEffect(() => {
+        const el = categoriesScrollRef.current
+        if (!el || isHovered) return
+
+        // Check if content overflows
+        const checkOverflow = () => {
+            return el.scrollWidth > el.clientWidth
+        }
+
+        if (!checkOverflow()) return
+
+        // Auto-scroll function
+        const autoScroll = () => {
+            if (!el || isHovered) return
+            
+            const { scrollLeft, scrollWidth, clientWidth } = el
+            
+            // If reached the end, reset to beginning
+            if (scrollLeft + clientWidth >= scrollWidth - 1) {
+                el.scrollTo({ left: 0, behavior: 'auto' })
+            } else {
+                // Scroll 1px to the right
+                el.scrollBy({ left: 1, behavior: 'auto' })
+            }
+        }
+
+        // Start auto-scrolling
+        marqueeIntervalRef.current = setInterval(autoScroll, 20) // Smooth scroll every 20ms
+
+        return () => {
+            if (marqueeIntervalRef.current) {
+                clearInterval(marqueeIntervalRef.current)
+            }
+        }
+    }, [rootCategories.length, isHovered])
     
     // Track navbar height for mobile menu positioning
     useEffect(() => {
@@ -68,7 +119,7 @@ export default function Navbar() {
         return () => window.removeEventListener('resize', updateNavbarHeight)
     }, [])
     
-    // Update scroll shadows when categories change
+    // Update scroll shadows when categories change or scroll happens
     useEffect(() => {
         updateCategoryScrollShadows()
         const el = categoriesScrollRef.current
@@ -81,6 +132,16 @@ export default function Navbar() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rootCategories.length])
+
+    // Update shadows during auto-scroll
+    useEffect(() => {
+        if (!isHovered && marqueeIntervalRef.current) {
+            const interval = setInterval(() => {
+                updateCategoryScrollShadows()
+            }, 100) // Update shadows every 100ms during auto-scroll
+            return () => clearInterval(interval)
+        }
+    }, [isHovered])
 
 
     return (
@@ -207,19 +268,52 @@ export default function Navbar() {
 
             {/* Categories Bar - Hidden on Mobile */}
             <div className='border-t bg-gray-50 hidden md:block'>
-                <div className='container py-2 sm:py-3 relative'>
-                    {/* Gradient masks for scroll edges */}
-                    {canScrollLeft && (
-                        <div className="pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-gray-50 via-gray-50 to-transparent" />
-                    )}
-                    {canScrollRight && (
-                        <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-gray-50 via-gray-50 to-transparent" />
-                    )}
-
-                    <div
-                        ref={categoriesScrollRef}
-                        className='flex items-center gap-3 sm:gap-6 overflow-x-auto overflow-y-visible pb-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent'
+                <div className='container py-2 sm:py-3 relative h-full'>
+                    <div 
+                        className="relative flex items-center h-full"
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}
                     >
+                        {/* Left Fade Gradient */}
+                        {canScrollLeft && (
+                            <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-gray-50 to-transparent z-[5]" />
+                        )}
+
+                        {/* Right Fade Gradient */}
+                        {canScrollRight && (
+                            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-50 to-transparent z-[5]" />
+                        )}
+
+                        {/* Left Scroll Button */}
+                        {canScrollLeft && (
+                            <button
+                                onClick={() => scrollCategories('left')}
+                                className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center bg-transparent hover:bg-gray-100/50 z-10 transition-colors rounded-r"
+                                aria-label="Scroll categories left"
+                            >
+                                <ChevronLeft className="w-5 h-5 text-gray-600" />
+                            </button>
+                        )}
+
+                        {/* Right Scroll Button */}
+                        {canScrollRight && (
+                            <button
+                                onClick={() => scrollCategories('right')}
+                                className="absolute right-0 top-0 bottom-0 w-10 flex items-center justify-center bg-transparent hover:bg-gray-100/50 z-10 transition-colors rounded-l"
+                                aria-label="Scroll categories right"
+                            >
+                                <ChevronRight className="w-5 h-5 text-gray-600" />
+                            </button>
+                        )}
+
+                        <div
+                            ref={categoriesScrollRef}
+                            className='flex items-center gap-3 sm:gap-6 overflow-x-auto overflow-y-visible pb-1 [&::-webkit-scrollbar]:hidden px-10 h-full'
+                            style={{ 
+                                scrollbarWidth: 'none', 
+                                msOverflowStyle: 'none'
+                            }}
+                        >
                         {categoriesLoading && (
                             <span className="text-xs sm:text-sm text-gray-400">
                                 Loading categories...
@@ -239,6 +333,7 @@ export default function Navbar() {
                                 {category.name}
                             </Link>
                         ))}
+                        </div>
                     </div>
                 </div>
             </div>

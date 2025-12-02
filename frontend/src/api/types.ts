@@ -132,7 +132,7 @@ export interface Ad {
   published_at?: string | null
   created_at: string
   updated_at: string
-  seller: User
+  seller: User & { response_stats?: ResponseStats }
 }
 
 export interface CreateAdRequest {
@@ -194,6 +194,15 @@ export interface ReviewStats {
   rating_1: number
 }
 
+export interface ResponseStats {
+  total_chats_with_inquiry: number
+  answered_chats: number
+  response_rate_1h: number
+  response_rate_2h: number
+  avg_response_minutes: number | null
+  median_response_minutes: number | null
+}
+
 export interface CreateReviewRequest {
   ad: string
   rating: 1 | 2 | 3 | 4 | 5
@@ -202,6 +211,7 @@ export interface CreateReviewRequest {
 
 export interface UserWithReviewStats extends User {
   review_stats?: ReviewStats
+  response_stats?: ResponseStats
 }
 
 // Notification types

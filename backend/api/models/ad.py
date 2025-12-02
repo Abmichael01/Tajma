@@ -66,3 +66,41 @@ class Ad(models.Model):
         super().save(*args, **kwargs)
 
 
+class AdView(models.Model):
+    """
+    Track unique views of ads by IP address and optionally by user.
+    This ensures each IP/user combination only counts as one view per ad.
+    """
+    ad = models.ForeignKey(
+        Ad,
+        on_delete=models.CASCADE,
+        related_name='ad_views',
+    )
+    ip_address = models.GenericIPAddressField()
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ad_views',
+        help_text='User who viewed the ad (if authenticated)',
+    )
+    viewed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-viewed_at']
+        indexes = [
+            models.Index(fields=['ad', 'ip_address']),
+            models.Index(fields=['ad', 'user']),
+            models.Index(fields=['ad', 'ip_address', 'user']),
+        ]
+        # Uniqueness is enforced by application logic:
+        # - For authenticated users: one view per (ad, user)
+        # - For anonymous users: one view per (ad, ip_address)
+        # get_or_create in the view handles this atomically
+
+    def __str__(self):
+        user_str = f" by {self.user.email}" if self.user else ""
+        return f"View of {self.ad.title} from {self.ip_address}{user_str}"
+
+

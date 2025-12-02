@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from api.serializers.user import UserDetailsSerializer
 from api.models import Review, Notification
+from api.services.response_stats import calculate_response_stats_for_seller
 
 logger = logging.getLogger(__name__)
 
@@ -75,5 +76,9 @@ class UserProfileView(APIView):
             review_stats['average_rating'] = 0.0
         
         data['review_stats'] = review_stats
+
+        # Calculate response statistics based on chats and messages
+        response_stats = calculate_response_stats_for_seller(user)
+        data['response_stats'] = response_stats
         return Response(data, status=status.HTTP_200_OK)
 
