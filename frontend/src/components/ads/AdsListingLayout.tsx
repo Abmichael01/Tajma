@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import FiltersSection, { FilterGroup } from '@/components/ui/FiltersSection'
 import AdsList from '@/components/Home/AdsList'
 import AdsListSkeleton from '@/components/ui/AdsListSkeleton'
@@ -31,15 +32,17 @@ export default function AdsListingLayout({
   const router = useRouter()
   const searchParams = useSearchParams()
   const { categoryTree } = useCategories()
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
   // Filter state - map categorySlug to category for internal use
   const [filters, setFilters] = useState<Record<string, any>>(() => {
-    const categorySlug = initialFilters.categorySlug || searchParams.get('category') || ''
+    // Priority: initialFilters.categorySlug > URL category param > initialFilters.category
+    const categorySlug = initialFilters.categorySlug || searchParams.get('category') || initialFilters.category || ''
     return {
       search: initialFilters.search || searchParams.get('q') || '',
       ...initialFilters,
       // Override category with categorySlug if provided
-      category: categorySlug || initialFilters.category || '',
+      category: categorySlug,
     }
   })
 
@@ -66,7 +69,7 @@ export default function AdsListingLayout({
       params.search = filters.search
     }
 
-    // Add category filter
+    // Add category filter - ensure it's always included if set
     if (filters.category) {
       params.category = filters.category
     }
@@ -128,14 +131,39 @@ export default function AdsListingLayout({
     const categoryFromUrl = searchParams.get('category')
     const searchFromUrl = searchParams.get('q')
     
-    if (categoryFromUrl !== filters.category || searchFromUrl !== filters.search) {
+    // Priority: URL param > initialFilters > current filter
+    const newCategory = categoryFromUrl || initialFilters.categorySlug || filters.category || ''
+    const newSearch = searchFromUrl || initialFilters.search || filters.search || ''
+    
+    // Only update if values actually changed
+    if (newCategory !== filters.category || newSearch !== filters.search) {
       setFilters((prev) => ({
         ...prev,
-        category: categoryFromUrl || prev.category,
-        search: searchFromUrl || prev.search,
+        category: newCategory,
+        search: newSearch,
       }))
     }
-  }, [searchParams, filters.category, filters.search])
+  }, [searchParams])
+  
+  // Sync with initialFilters when they change (for category page navigation)
+  // This ensures that when navigating to a category page, the filter is set immediately
+  useEffect(() => {
+    const categorySlug = initialFilters.categorySlug || ''
+    const search = initialFilters.search || ''
+    
+    if (categorySlug && categorySlug !== filters.category) {
+      setFilters((prev) => ({
+        ...prev,
+        category: categorySlug,
+      }))
+    }
+    if (search && search !== filters.search) {
+      setFilters((prev) => ({
+        ...prev,
+        search: search,
+      }))
+    }
+  }, [initialFilters])
 
   // Get category name for display
   const categoryName = useMemo(() => {
@@ -180,10 +208,25 @@ export default function AdsListingLayout({
           </div>
         )}
 
+        {/* Mobile Filter Toggle */}
+        <div className="lg:hidden mb-4">
+          <button
+            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <span className="text-sm font-medium text-gray-900">Filters</span>
+            {isFiltersOpen ? (
+              <ChevronUp className="w-4 h-4 text-gray-600" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-600" />
+            )}
+          </button>
+        </div>
+
         {/* Main Layout: Filters + Ads */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* Left Sidebar: Filters */}
-          <div className="lg:w-[300px] flex-shrink-0">
+          {/* Left Sidebar: Filters - Hidden on mobile, shown on desktop */}
+          <div className={`lg:w-[300px] flex-shrink-0 ${isFiltersOpen ? 'block' : 'hidden lg:block'}`}>
             <FiltersSection
               filters={filterGroups}
               onFilterChange={handleFilterChange}

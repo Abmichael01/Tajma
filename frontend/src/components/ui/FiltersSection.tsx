@@ -70,9 +70,9 @@ export default function FiltersSection({ filters, className = "", onFilterChange
       <div key={group.id} className="border border-gray-200 bg-white">
         <button
           onClick={() => toggleGroup(group.id)}
-          className="w-full flex items-center justify-between text-left font-medium text-gray-900 p-4 hover:text-secondary transition-colors border-b border-gray-200"
+          className="w-full flex items-center justify-between text-left font-medium text-gray-900 p-3 hover:text-secondary transition-colors border-b border-gray-200"
         >
-          <span>{group.title}</span>
+          <span className="text-xs sm:text-sm">{group.title}</span>
           {isExpanded ? (
             <ChevronUp className="w-4 h-4" />
           ) : (
@@ -83,7 +83,7 @@ export default function FiltersSection({ filters, className = "", onFilterChange
         <AnimatePresence>
           {isExpanded && (
             <motion.div 
-              className="p-4 space-y-2 max-h-64 overflow-y-auto custom-scrollbar"
+              className="p-3 space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -99,13 +99,13 @@ export default function FiltersSection({ filters, className = "", onFilterChange
                   <Link
                     key={option.id}
                     href={option.action || '#'}
-                    className="flex items-center justify-between p-2 hover:bg-gray-50 hover:text-secondary transition-colors group"
+                    className="flex items-center justify-between p-1.5 hover:bg-gray-50 hover:text-secondary transition-colors group"
                   >
-                    <span className="text-sm text-gray-600 group-hover:text-secondary">
+                    <span className="text-[11px] sm:text-xs text-gray-600 group-hover:text-secondary">
                       {option.label}
                     </span>
                     {option.count !== undefined && (
-                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                      <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
                         {option.count.toLocaleString()}
                       </span>
                     )}
@@ -115,20 +115,20 @@ export default function FiltersSection({ filters, className = "", onFilterChange
 
               if (group.type === 'nested' && option.children) {
                 return (
-                  <div key={option.id} className="ml-4">
-                    <div className="font-medium text-sm text-gray-700 mb-2">{option.label}</div>
+                  <div key={option.id} className="ml-2">
+                    <div className="font-medium text-[11px] sm:text-xs text-gray-700 mb-1.5">{option.label}</div>
                     <div className="space-y-1">
                       {option.children.map((child) => (
                         <Link
                           key={child.id}
                           href={child.action || '#'}
-                          className="flex items-center justify-between p-2 hover:bg-gray-50 hover:text-secondary transition-colors group ml-2"
+                          className="flex items-center justify-between p-1.5 hover:bg-gray-50 hover:text-secondary transition-colors group ml-2"
                         >
-                          <span className="text-xs text-gray-600 group-hover:text-secondary">
+                          <span className="text-[10px] sm:text-[11px] text-gray-600 group-hover:text-secondary">
                             {child.label}
                           </span>
                           {child.count !== undefined && (
-                            <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] text-gray-400 bg-gray-100 px-1 py-0.5 rounded">
                               {child.count}
                             </span>
                           )}
@@ -143,7 +143,7 @@ export default function FiltersSection({ filters, className = "", onFilterChange
                 <label
                   key={option.id}
                   className={cn(
-                    "flex items-center gap-3 p-2 cursor-pointer hover:bg-gray-50 transition-colors group",
+                    "flex items-center gap-2 p-1.5 cursor-pointer hover:bg-gray-50 transition-colors group",
                     isSelected && "bg-secondary/5"
                   )}
                 >
@@ -175,14 +175,14 @@ export default function FiltersSection({ filters, className = "", onFilterChange
                   )}
 
                   <span className={cn(
-                    "text-sm transition-colors",
+                    "text-[11px] sm:text-xs transition-colors",
                     isSelected ? "text-secondary font-medium" : "text-gray-600 group-hover:text-secondary"
                   )}>
                     {option.label}
                   </span>
 
                   {option.count !== undefined && (
-                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded ml-auto">
+                    <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded ml-auto">
                       {option.count.toLocaleString()}
                     </span>
                   )}
@@ -198,17 +198,17 @@ export default function FiltersSection({ filters, className = "", onFilterChange
 
   return (
     <div className={cn("w-full sm:w-[300px] bg-white h-fit", className)}>
-      <div className="flex items-center justify-between mb-3 px-4 pt-3">
-        <h3 className="font-medium text-gray-900 text-xs sm:text-sm">Filters</h3>
+      <div className="flex items-center justify-between mb-2 px-3 pt-2">
+        <h3 className="font-medium text-gray-900 text-[11px] sm:text-xs">Filters</h3>
         <button 
           onClick={() => setSelectedValues({})}
-          className="text-[11px] sm:text-xs text-secondary hover:text-secondary/80 transition-colors"
+          className="text-[10px] sm:text-[11px] text-secondary hover:text-secondary/80 transition-colors"
         >
           Clear All
         </button>
       </div>
       
-      <div className="space-y-2.5 sm:space-y-3 px-4 pb-3">
+      <div className="space-y-2 px-3 pb-2">
         {filters.map(renderFilterGroup)}
       </div>
     </div>
