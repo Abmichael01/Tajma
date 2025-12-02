@@ -3,8 +3,8 @@
 import React, { useState } from 'react'
 import SearchBox from '../ui/SearchBox'
 import StateSelectorModal from '../modals/StateSelectorModal'
-import { Button } from '../ui/button'
 import { MapPin } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export default function Hero() {
     const [isStateModalOpen, setIsStateModalOpen] = useState(false)
@@ -12,22 +12,33 @@ export default function Hero() {
 
     return (
         <>
-            <section className="bg-white py-8 sm:py-12 lg:py-16">
-                <div className="container">
+            <section className="relative bg-white py-12 sm:py-16 lg:py-20 overflow-hidden min-h-[500px]">
+                <div className="container relative z-10">
                     <div className="text-center max-w-4xl mx-auto">
                         {/* Hero Text */}
-                        <h1 className="text-5xl sm:text-5xl md:text-6xl lg:text-6xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight font-dmSans">
-                            Let's find the{' '}
-                            <span className="text-secondary">right seller</span>{' '}
-                            for what you want
-                        </h1>
+                        <motion.h1 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6 }}
+                            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight"
+                            style={{ fontFamily: 'var(--font-inter)' }}
+                        >
+                            Find Everything You{' '}
+                            <span className="text-secondary">Need</span>{' '}
+                            Right Here
+                        </motion.h1>
 
                         {/* Search Box with State Selector */}
-                        <div className="max-w-lg sm:max-w-3xl mx-auto flex flex-col sm:flex-row gap-2 sm:gap-2">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="max-w-lg sm:max-w-3xl mx-auto flex flex-col sm:flex-row gap-2 sm:gap-2"
+                        >
                             <button
                                 type="button"
                                 onClick={() => setIsStateModalOpen(true)}
-                                className="flex items-center justify-between gap-2 px-3 sm:px-4 py-3 bg-white border border-gray-300 hover:border-secondary/50 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary transition-all w-full sm:w-[140px] md:w-[200px]"
+                                className="flex items-center justify-between gap-2 px-3 sm:px-4 py-3 bg-white border border-gray-300 hover:border-secondary/50 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary transition-all w-full sm:w-[140px] md:w-[200px] shadow-sm rounded-full"
                             >
                                 <div className="flex items-center gap-2 min-w-0">
                                     <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
@@ -43,7 +54,7 @@ export default function Hero() {
                                     className="w-full"
                                 />
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </section>

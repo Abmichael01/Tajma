@@ -47,13 +47,13 @@ export default function ForgotPasswordClient() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="flex justify-center">
+      <div className="w-full flex flex-col justify-center py-12 px-6 lg:px-12 xl:px-16">
+        <div className="mx-auto w-full max-w-md">
+          <div className="flex justify-center lg:justify-start">
             <Logo />
           </div>
           
-          <div className="mt-8 bg-white py-8 px-4 shadow border border-gray-200 sm:px-10 overflow-hidden">
+          <div className="mt-8">
             <div className="text-center">
               <div className="flex justify-center mb-4">
                 <div className="bg-green-100 p-3">
@@ -102,22 +102,21 @@ export default function ForgotPasswordClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
+    <div className="w-full flex flex-col justify-center py-12 px-6 lg:px-12 xl:px-16">
+      <div className="mx-auto w-full max-w-md">
+        <div className="flex justify-center lg:justify-start">
           <Logo />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-semibold text-gray-900">
+        <h2 className="mt-6 text-center lg:text-left text-3xl font-semibold text-gray-900">
           Forgot your password?
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center lg:text-left text-sm text-gray-600">
           No worries! Enter your email and we'll send you reset instructions.
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow border border-gray-200 sm:px-10 overflow-hidden">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="mt-8 mx-auto w-full max-w-md">
+        <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Email Input */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -172,7 +171,6 @@ export default function ForgotPasswordClient() {
               Back to Login
             </Link>
           </div>
-        </div>
       </div>
     </div>
   )

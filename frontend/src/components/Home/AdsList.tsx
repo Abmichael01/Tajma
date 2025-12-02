@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Eye, Heart, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
@@ -75,6 +75,7 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [isSortOpen, setIsSortOpen] = useState(false)
   const { mutate: toggleSaveAd } = useToggleSaveAd()
+  const [responsiveColumns, setResponsiveColumns] = useState<1 | 2 | 3 | 4 | 5>(columns)
   
   // Handle favorite toggle using API
   const handleToggleFavorite = (adId: string) => {
@@ -92,6 +93,62 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
     return ad?.is_saved === true
   }
 
+  // Calculate responsive columns based on screen size (Pinterest-style)
+  useEffect(() => {
+    const updateColumns = () => {
+      if (typeof window !== 'undefined') {
+        // For 4 columns: 1 on mobile, 2 on 420px+, 3 on 700px+, 4 on 1024px+
+        if (columns === 4) {
+          if (window.innerWidth >= 1024) {
+            setResponsiveColumns(4)
+          } else if (window.innerWidth >= 700) {
+            setResponsiveColumns(3)
+          } else if (window.innerWidth >= 420) {
+            setResponsiveColumns(2)
+          } else {
+            setResponsiveColumns(1)
+          }
+        }
+        // For 3 columns: 1 on mobile, 2 on 420px+, 3 on 700px+
+        else if (columns === 3) {
+          if (window.innerWidth >= 700) {
+            setResponsiveColumns(3)
+          } else if (window.innerWidth >= 420) {
+            setResponsiveColumns(2)
+          } else {
+            setResponsiveColumns(1)
+          }
+        }
+        // For 2 columns: 1 on mobile, 2 on 420px+
+        else if (columns === 2) {
+          if (window.innerWidth >= 420) {
+            setResponsiveColumns(2)
+          } else {
+            setResponsiveColumns(1)
+          }
+        }
+        // For 5 columns: use same as 4 but add xl breakpoint
+        else if (columns === 5) {
+          if (window.innerWidth >= 1280) {
+            setResponsiveColumns(5)
+          } else if (window.innerWidth >= 1024) {
+            setResponsiveColumns(4)
+          } else if (window.innerWidth >= 700) {
+            setResponsiveColumns(3)
+          } else if (window.innerWidth >= 420) {
+            setResponsiveColumns(2)
+          } else {
+            setResponsiveColumns(1)
+          }
+        }
+      }
+    }
+    
+    updateColumns()
+    window.addEventListener('resize', updateColumns)
+    return () => window.removeEventListener('resize', updateColumns)
+  }, [columns])
+
   const getColumnClasses = () => {
     switch (columns) {
       case 2:
@@ -103,20 +160,22 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
       case 5:
         return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5"
       default:
-        return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-3"
+        return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3"
     }
   }
 
   // Sort ads
   const sortedAds = useMemo(() => sortAds(ads, sortBy), [ads, sortBy])
 
-  // Distribute sorted ads across columns based on index
-  const columnArrays: Ad[][] = Array.from({ length: columns }, () => [])
-  
-  sortedAds.forEach((ad, index) => {
-    const columnIndex = index % columns
-    columnArrays[columnIndex].push(ad)
-  })
+  // Distribute sorted ads across columns for Pinterest-style masonry layout
+  const columnArrays: Ad[][] = useMemo(() => {
+    const arrays: Ad[][] = Array.from({ length: responsiveColumns }, () => [])
+    sortedAds.forEach((ad, index) => {
+      const columnIndex = index % responsiveColumns
+      arrays[columnIndex].push(ad)
+    })
+    return arrays
+  }, [sortedAds, responsiveColumns])
 
   const renderAdCard = (ad: Ad) => {
     // Get first image or placeholder
@@ -256,7 +315,8 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
         </div>
       </div>
 
-      <div className={`grid ${getColumnClasses()} gap-6`}>
+      {/* Pinterest-style masonry grid */}
+      <div className={`grid ${getColumnClasses()} gap-4 sm:gap-6`}>
         {columnArrays.map((columnAds, columnIndex) => (
           <div key={columnIndex} className="flex flex-col">
             {columnAds.map(renderAdCard)}

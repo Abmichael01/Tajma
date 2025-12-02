@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { Heart, Star, TrendingUp, Settings } from 'lucide-react'
+import { Heart, Star, TrendingUp, Settings, FileText } from 'lucide-react'
 
 interface ProfileMobileNavProps {
   isOwner: boolean
@@ -14,6 +14,7 @@ export default function ProfileMobileNav({ isOwner, onNavigate, currentView }: P
   const navItems = isOwner
     ? [
         { id: 'overview', label: 'Overview', icon: TrendingUp },
+        { id: 'ads', label: 'My Ads', icon: FileText },
         { id: 'saved', label: 'Saved', icon: Heart },
         { id: 'reviews', label: 'Reviews', icon: Star },
         { id: 'settings', label: 'Settings', icon: Settings },

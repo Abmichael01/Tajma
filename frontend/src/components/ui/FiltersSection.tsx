@@ -198,17 +198,17 @@ export default function FiltersSection({ filters, className = "", onFilterChange
 
   return (
     <div className={cn("w-full sm:w-[300px] bg-white h-fit", className)}>
-      <div className="flex items-center justify-between mb-4 px-4 pt-4">
-        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Filters</h3>
+      <div className="flex items-center justify-between mb-3 px-4 pt-3">
+        <h3 className="font-medium text-gray-900 text-xs sm:text-sm">Filters</h3>
         <button 
           onClick={() => setSelectedValues({})}
-          className="text-xs sm:text-sm text-secondary hover:text-secondary/80 transition-colors"
+          className="text-[11px] sm:text-xs text-secondary hover:text-secondary/80 transition-colors"
         >
           Clear All
         </button>
       </div>
       
-      <div className="space-y-3 sm:space-y-4 px-4 pb-4">
+      <div className="space-y-2.5 sm:space-y-3 px-4 pb-3">
         {filters.map(renderFilterGroup)}
       </div>
     </div>

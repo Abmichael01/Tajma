@@ -6,6 +6,7 @@ interface AuthState {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  hasHydrated: boolean
   
   // Actions
   login: (user: User) => void
@@ -13,6 +14,7 @@ interface AuthState {
   updateUser: (updates: Partial<User>) => void
   setLoading: (loading: boolean) => void
   completeSellerSetup: () => void
+  setHasHydrated: (hydrated: boolean) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -21,6 +23,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      hasHydrated: false,
 
       login: (userData) => {
         set({
@@ -58,6 +61,10 @@ export const useAuthStore = create<AuthState>()(
             user: { ...currentUser, is_seller_account_setup: true }
           })
         }
+      },
+
+      setHasHydrated: (hydrated) => {
+        set({ hasHydrated: hydrated })
       }
     }),
     {
@@ -65,7 +72,13 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated
-      })
+      }),
+      onRehydrateStorage: () => (state) => {
+        // Mark as hydrated after rehydration
+        if (state) {
+          state.setHasHydrated(true)
+        }
+      }
     }
   )
 )

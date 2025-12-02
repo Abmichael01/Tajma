@@ -43,7 +43,7 @@ const StatCard = ({
   subtitle?: string
 }) => {
   return (
-    <div className="border border-gray-200 bg-white p-4">
+    <div className="border border-gray-200 bg-white p-4 rounded-md">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">{label}</p>

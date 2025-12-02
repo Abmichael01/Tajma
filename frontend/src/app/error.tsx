@@ -17,6 +17,35 @@ export default function Error({
     console.error(error)
   }, [error])
 
+  // Extract file information from stack trace
+  const getErrorSource = () => {
+    if (!error.stack) return null
+    
+    const stackLines = error.stack.split('\n')
+    // Look for the first stack frame that contains a file path
+    for (const line of stackLines) {
+      // Match patterns like: at ComponentName (file:///path/to/file.tsx:123:45)
+      // or: at /path/to/file.tsx:123:45
+      const match = line.match(/\(?([^:]+\.(tsx?|jsx?)):(\d+):(\d+)\)?/)
+      if (match) {
+        const filePath = match[1]
+        const lineNumber = match[3]
+        const columnNumber = match[4]
+        // Extract just the filename from the full path
+        const fileName = filePath.split('/').pop() || filePath
+        return {
+          file: fileName,
+          fullPath: filePath,
+          line: lineNumber,
+          column: columnNumber,
+        }
+      }
+    }
+    return null
+  }
+
+  const errorSource = getErrorSource()
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-lg mx-auto text-center">
@@ -37,10 +66,38 @@ export default function Error({
 
         {/* Error Details (Development Only) */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded text-left overflow-auto">
-            <p className="text-xs font-mono text-red-800 break-all">
-              {error.message}
-            </p>
+          <div className="mb-6 space-y-3">
+            <div className="p-3 bg-red-50 border border-red-200 rounded text-left overflow-auto">
+              <p className="text-xs font-semibold text-red-900 mb-1">Error Message:</p>
+              <p className="text-xs font-mono text-red-800 break-all">
+                {error.message}
+              </p>
+            </div>
+            
+            {errorSource && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded text-left overflow-auto">
+                <p className="text-xs font-semibold text-blue-900 mb-1">Error Source:</p>
+                <p className="text-xs font-mono text-blue-800">
+                  <span className="font-semibold">File:</span> {errorSource.file}
+                </p>
+                <p className="text-xs font-mono text-blue-800">
+                  <span className="font-semibold">Line:</span> {errorSource.line}
+                  {errorSource.column && `, Column: ${errorSource.column}`}
+                </p>
+                <p className="text-xs font-mono text-blue-700 mt-1 break-all opacity-75">
+                  {errorSource.fullPath}
+                </p>
+              </div>
+            )}
+
+            {error.stack && (
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded text-left overflow-auto max-h-48">
+                <p className="text-xs font-semibold text-gray-900 mb-1">Stack Trace:</p>
+                <pre className="text-xs font-mono text-gray-700 whitespace-pre-wrap break-all">
+                  {error.stack}
+                </pre>
+              </div>
+            )}
           </div>
         )}
 

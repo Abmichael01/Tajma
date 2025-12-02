@@ -88,6 +88,7 @@ class ChatSerializer(serializers.ModelSerializer):
             logger.debug(f"Chat {obj.id}: Ad {obj.ad.id} has no images")
             return None
         
+        # Initialize image_path and extract from images
         image_path = None
         # Handle both list and string formats
         if isinstance(obj.ad.images, list) and len(obj.ad.images) > 0:
@@ -110,8 +111,8 @@ class ChatSerializer(serializers.ModelSerializer):
             else:
                 # Fallback: try SITE_URL setting or default to localhost
                 base_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
-                if not base_url or base_url == 'http://localhost:8000':
-                    logger.warning(f"Chat {obj.id}: SITE_URL not configured, using fallback localhost URL")
+            if not base_url or base_url == 'http://localhost:8000':
+                logger.warning(f"Chat {obj.id}: SITE_URL not configured, using fallback localhost URL")
             
             # If it's already a full URL, return as is
             if image_path.startswith('http://') or image_path.startswith('https://'):
@@ -131,7 +132,7 @@ class ChatSerializer(serializers.ModelSerializer):
                 return f"{base_url}{media_url}/{image_path}"
         except Exception as e:
             logger.error(f"Chat {obj.id}: Error processing ad image for ad {obj.ad.id}: {e}", exc_info=True)
-            return None
+        return None
     
     def get_ad_price(self, obj):
         """Get formatted price from the ad"""

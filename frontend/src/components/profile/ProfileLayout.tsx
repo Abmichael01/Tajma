@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { useUserAds } from '@/hooks/useAds'
 import { useSellerReviews, useReviewStats } from '@/hooks/useReviews'
+import { useSavedAds } from '@/hooks/useSavedAds'
 import type { User, Ad, UserWithReviewStats } from '@/api/types'
 
 interface ProfileLayoutProps {
@@ -94,6 +95,10 @@ export default function ProfileLayout({
   // Fetch reviews for this seller
   const { data: reviewsData, isLoading: reviewsLoading } = useSellerReviews(user.id)
   
+  // Fetch saved ads count for favorites (only if owner)
+  const { data: savedAdsData } = useSavedAds(1, 1) // Just get first page to get count
+  const savedAdsCount = savedAdsData?.count || 0
+  
   // Ensure reviews is always an array
   const reviews = Array.isArray(reviewsData) ? reviewsData : []
   
@@ -121,12 +126,12 @@ export default function ProfileLayout({
       activeAds,
       soldItems: archivedAds, // Using archived as "sold" for now
       totalViews,
-      totalFavorites: 0, // TODO: Add favorites count from backend
-      responseRate: 95, // TODO: Calculate from actual data
+      totalFavorites: isOwner ? savedAdsCount : 0, // Use saved ads count for owner, 0 for others
+      responseRate: 95, // TODO: Calculate from actual data (can be improved later with message data)
       rating: finalReviewStats?.average_rating || 0,
       joinedDays
     }
-  }, [ads, joinedDays, finalReviewStats])
+  }, [ads, joinedDays, finalReviewStats, savedAdsCount, isOwner])
 
   const handleMobileNavigate = (section: string) => {
     // Update URL with tab query parameter - URL is the source of truth
@@ -196,7 +201,7 @@ export default function ProfileLayout({
 
   const renderMobileContent = () => {
     // Determine which tabs should show full-screen mobile view
-    const mobileFullScreenTabs = ['overview', 'saved', 'reviews', 'settings']
+    const mobileFullScreenTabs = ['overview', 'ads', 'saved', 'reviews', 'settings']
     
     if (!activeTab || !mobileFullScreenTabs.includes(activeTab)) {
       return null
@@ -210,6 +215,22 @@ export default function ProfileLayout({
             isOwner={isOwner}
             userUid={profileSlug}
           />
+        </ProfileMobileView>
+      )
+    }
+    if (activeTab === 'ads') {
+      return (
+        <ProfileMobileView title={isOwner ? 'My Ads' : 'Ads'} onBack={handleMobileBack}>
+          {adsLoading ? (
+            <div className="py-12 flex items-center justify-center">
+              <MarketplaceLoader size="md" message="Loading ads..." />
+            </div>
+          ) : (
+            <ProfileAds 
+              ads={ads} 
+              isOwner={isOwner} 
+            />
+          )}
         </ProfileMobileView>
       )
     }
@@ -250,7 +271,7 @@ export default function ProfileLayout({
   const shouldShowMobileView = typeof window !== 'undefined' && 
     window.innerWidth < 1024 && 
     activeTab !== null &&
-    ['overview', 'saved', 'reviews', 'settings'].includes(activeTab)
+    ['overview', 'ads', 'saved', 'reviews', 'settings'].includes(activeTab)
 
   if (shouldShowMobileView) {
     return (

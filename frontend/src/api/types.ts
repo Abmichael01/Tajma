@@ -17,6 +17,8 @@ export interface User {
   website?: string | null
   bio?: string | null
   is_verified: boolean
+  is_staff?: boolean
+  is_superuser?: boolean
   date_joined: string
   last_login?: string | null
 }

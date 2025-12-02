@@ -7,6 +7,7 @@ from api.views.review import ReviewViewSet
 from api.views.notification import NotificationViewSet
 from api.views.chat import ChatViewSet, MessageViewSet, UserOnlineStatusViewSet
 from api.views.saved_ad import SavedAdViewSet
+from api.views.media import serve_media
 
 router = DefaultRouter()
 router.register(r'categories', CategoryViewSet, basename='category')
@@ -20,6 +21,8 @@ router.register(r'saved-ads', SavedAdViewSet, basename='saved-ad')
 
 urlpatterns = [
     path('auth/', include('api.urls.auth')),
+    path('admin/', include('api.urls.admin')),
+    path('media/<path:path>', serve_media, name='serve_media'),  # API endpoint for media files
     path('', include(router.urls)),
 ]
 

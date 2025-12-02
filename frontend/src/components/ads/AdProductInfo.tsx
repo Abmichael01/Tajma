@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { 
   MapPin, 
@@ -19,6 +20,8 @@ import {
   Trash2,
   BarChart3
 } from 'lucide-react'
+import { toast } from 'sonner'
+import { useUpdateAd, useDeleteAd } from '@/hooks/useAds'
 import type { Ad, User, ReviewStats } from '@/api/types'
 import { getUserFullName } from '@/utils/user'
 
@@ -67,6 +70,10 @@ export default function AdProductInfo({
   onReport,
   className = ''
 }: AdProductInfoProps) {
+  const router = useRouter()
+  const updateAd = useUpdateAd(ad.slug)
+  const deleteAd = useDeleteAd(ad.slug)
+
   const defaultMessages = [
     "Is this still available?",
     "What's the best price you can offer?",
@@ -74,6 +81,34 @@ export default function AdProductInfo({
     "Where are you located?",
     "When can I pick it up?",
   ]
+
+  const handleArchive = async () => {
+    try {
+      const newStatus = ad.status === 'archived' ? 'published' : 'archived'
+      await updateAd.mutateAsync({ status: newStatus })
+      toast.success(newStatus === 'archived' ? 'Ad archived successfully' : 'Ad unarchived successfully')
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Failed to update ad status')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this ad? This action cannot be undone.')) {
+      return
+    }
+    try {
+      await deleteAd.mutateAsync()
+      toast.success('Ad deleted successfully')
+      // Redirect to user's ads page
+      if (user?.id) {
+        router.push(`/profile/${user.id}/ads`)
+      } else {
+        router.push('/')
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Failed to delete ad')
+    }
+  }
 
   return (
     <div className={`bg-white border border-gray-200 p-4 sm:p-6 ${className}`}>
@@ -169,27 +204,21 @@ export default function AdProductInfo({
               variant="outline" 
               className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground" 
               size="sm"
-              onClick={() => {
-                // TODO: Implement archive functionality
-                alert('Archive functionality coming soon')
-              }}
+              onClick={handleArchive}
+              disabled={updateAd.isPending}
             >
               <Archive className="w-4 h-4 mr-2" />
-              {ad.status === 'archived' ? 'Unarchive' : 'Archive'}
+              {updateAd.isPending ? 'Updating...' : ad.status === 'archived' ? 'Unarchive' : 'Archive'}
             </Button>
             <Button 
               variant="outline" 
               className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground" 
               size="sm"
-              onClick={() => {
-                if (confirm('Are you sure you want to delete this ad? This action cannot be undone.')) {
-                  // TODO: Implement delete functionality
-                  alert('Delete functionality coming soon')
-                }
-              }}
+              onClick={handleDelete}
+              disabled={deleteAd.isPending}
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              Delete Ad
+              {deleteAd.isPending ? 'Deleting...' : 'Delete Ad'}
             </Button>
           </div>
 

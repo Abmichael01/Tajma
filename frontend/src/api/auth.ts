@@ -38,8 +38,8 @@ export const authApi = {
 
   // Get current user
   getCurrentUser: async (): Promise<User> => {
-    const response = await apiClient.get<User>('/auth/user/')
-    return response.data
+    const response = await apiClient.get<{ user: User }>('/auth/user/')
+    return response.data.user
   },
 
   // Change password

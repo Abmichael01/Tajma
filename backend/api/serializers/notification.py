@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from api.models import Notification
+from api.serializers.user import UserSummarySerializer
 
 
 class NotificationSerializer(serializers.ModelSerializer):
@@ -7,7 +8,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     
     # Ensure IDs are serialized as strings (UUIDs)
     id = serializers.UUIDField(read_only=True)
-    recipient = serializers.PrimaryKeyRelatedField(read_only=True)
+    recipient = UserSummarySerializer(read_only=True, allow_null=True)
     related_ad = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
     related_user = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
     
@@ -46,8 +47,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             data['related_ad'] = str(data['related_ad'])
         if data.get('related_user'):
             data['related_user'] = str(data['related_user']) if isinstance(data['related_user'], (int, str)) else data['related_user']
-        if data.get('recipient'):
-            data['recipient'] = str(data['recipient']) if isinstance(data['recipient'], (int, str)) else data['recipient']
+        # recipient is now a nested object, so we don't need to convert it
         
         # Ensure datetime fields are ISO format strings
         if data.get('created_at'):

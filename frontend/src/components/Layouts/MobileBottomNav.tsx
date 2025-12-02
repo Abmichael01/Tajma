@@ -64,7 +64,7 @@ export default function MobileBottomNav() {
   }
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 border-t border-gray-200 bg-white shadow-2xl shadow-black/5 md:hidden z-50" id="mobile-bottom-nav">
+    <nav className="fixed inset-x-0 bottom-0 bg-white shadow-2xl shadow-black/5 md:hidden z-50" id="mobile-bottom-nav">
       <div className="max-w-md mx-auto px-3">
         <div className="grid grid-cols-5 items-center h-16">
           <div className="flex justify-center">

@@ -35,7 +35,7 @@ export default function StateSelectorModal({
           {/* All States Option */}
           <div
             onClick={() => handleSelectState('All States')}
-            className={`flex items-center justify-between p-3 sm:p-4 md:p-5 border border-gray-200 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer transition-all mb-4 sm:mb-6 ${
+            className={`flex items-center justify-between p-3 sm:p-4 md:p-5 border border-gray-200 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer transition-all mb-4 sm:mb-6 rounded-xl ${
               selectedState === 'All States' ? 'bg-secondary/10 border-secondary' : 'bg-white'
             }`}
           >
@@ -57,7 +57,7 @@ export default function StateSelectorModal({
               <div
                 key={state.name}
                 onClick={() => handleSelectState(state.name)}
-                className={`flex items-center justify-between p-3 sm:p-4 md:p-5 border border-gray-200 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer transition-all ${
+                className={`flex items-center justify-between p-3 sm:p-4 md:p-5 border border-gray-200 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer transition-all rounded-xl ${
                   selectedState === state.name ? 'bg-secondary/10 border-secondary' : 'bg-white'
                 }`}
               >

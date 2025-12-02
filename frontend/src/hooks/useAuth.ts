@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/authStore'
 import type { LoginRequest, RegisterRequest, PasswordChangeRequest, ProfileUpdateRequest } from '@/api/types'
+import { AxiosError } from 'axios'
 
 // Get CSRF token hook
 export const useCSRFToken = () => {
@@ -93,13 +94,27 @@ export const useLogout = () => {
 
 // Get current user hook
 export const useCurrentUser = () => {
-  const { isAuthenticated, login: setAuthUser, logout: clearAuthUser } = useAuthStore()
+  const { isAuthenticated, user, hasHydrated, login: setAuthUser, logout: clearAuthUser } = useAuthStore()
+
+  // Enable query if authenticated OR if there's a persisted user (to handle hydration)
+  // This allows fetching user data even during the hydration period
+  // Only fetch if store has hydrated to avoid premature fetches
+  const shouldFetch = hasHydrated && (isAuthenticated || user !== null)
 
   const query = useQuery({
     queryKey: ['user'],
     queryFn: () => authApi.getCurrentUser(),
-    enabled: isAuthenticated, // Only fetch if authenticated
-    retry: false,
+    enabled: shouldFetch, // Fetch if authenticated or if we have persisted user data
+    retry: (failureCount, error) => {
+      // Only retry on network errors, not on 401/403
+      if (error instanceof AxiosError) {
+        const status = error.response?.status
+        if (status === 401 || status === 403) {
+          return false // Don't retry auth errors
+        }
+      }
+      return failureCount < 2 // Retry up to 2 times for other errors
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
@@ -110,10 +125,37 @@ export const useCurrentUser = () => {
   }, [query.data, setAuthUser])
 
   useEffect(() => {
+    // Only logout on authentication errors (401, 403), not on all errors
     if (query.error) {
-      clearAuthUser()
+      const error = query.error as AxiosError
+      const status = error.response?.status
+      
+      // Only clear auth on authentication/authorization errors AND if user is actually authenticated
+      // This prevents logging out on temporary network issues or when user is already logged out
+      if ((status === 401 || status === 403) && isAuthenticated && user) {
+        // Check if it's a real auth error (not a network timeout or connection error)
+        const isNetworkError = !error.response || error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK'
+        
+        if (!isNetworkError) {
+          console.log('Authentication error detected, logging out:', status)
+          clearAuthUser()
+        } else {
+          // Network error - don't logout, just log
+          console.warn('Network error fetching user, keeping auth state:', error.message)
+        }
+      } else if (status === 401 || status === 403) {
+        // Auth error but user not authenticated in store - just clear silently
+        // This handles the case where persisted state is stale
+        if (user) {
+          console.log('Stale auth state detected, clearing:', status)
+          clearAuthUser()
+        }
+      } else {
+        // For other errors (network, 500, etc.), just log but don't logout
+        console.warn('Error fetching current user (non-auth):', error.message)
+      }
     }
-  }, [query.error, clearAuthUser])
+  }, [query.error, clearAuthUser, isAuthenticated, user])
 
   return query
 }
@@ -174,4 +216,3 @@ export const useUpdateProfile = () => {
     },
   })
 }
-

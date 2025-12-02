@@ -114,15 +114,15 @@ export default function LoginClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
+    <div className="w-full flex flex-col justify-center py-12 px-6 lg:px-12 xl:px-16">
+      <div className="mx-auto w-full max-w-md">
+        <div className="flex justify-center lg:justify-start">
           <Logo />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-semibold text-gray-900">
+        <h2 className="mt-6 text-center lg:text-left text-3xl font-semibold text-gray-900">
           Welcome back
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center lg:text-left text-sm text-gray-600">
           Don't have an account?{' '}
           <Link href="/register" className="font-medium text-primary hover:text-primary/80">
             Sign up for free
@@ -130,10 +130,9 @@ export default function LoginClient() {
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow border border-gray-200 sm:px-10 overflow-hidden">
-          {/* Social Login - Moved to top */}
-          <div className="mb-6">
+      <div className="mt-8 mx-auto w-full max-w-md">
+        {/* Social Login - Moved to top */}
+        <div className="mb-6">
             <div className="grid grid-cols-1 gap-3">
               <Button
                 type="button"
@@ -288,7 +287,6 @@ export default function LoginClient() {
               </Button>
             </div>
           </form>
-        </div>
       </div>
     </div>
   )

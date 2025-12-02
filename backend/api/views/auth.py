@@ -99,6 +99,21 @@ class PasswordChangeView(APIView):
 
 
 @method_decorator(csrf_protect, name='dispatch')
+class CurrentUserView(APIView):
+    """Get current authenticated user"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Return current user details"""
+        return Response(
+            {
+                'user': UserDetailsSerializer(request.user).data
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+@method_decorator(csrf_protect, name='dispatch')
 class ProfileUpdateView(APIView):
     """User profile update view"""
     permission_classes = [IsAuthenticated]

@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import { useChats } from '@/hooks/useChat'
+import { useUnreadNotificationCount } from '@/hooks/useNotifications'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,17 +24,24 @@ import {
   Settings, 
   LogOut,
   ChevronDown,
-  MessageSquare
+  MessageSquare,
+  Shield
 } from 'lucide-react'
 
 export default function UserDropdown() {
   const { user, logout } = useAuthStore()
   const { data: chats = [] } = useChats()
+  const { data: unreadNotificationData } = useUnreadNotificationCount()
   
   // Calculate total unread messages from all chats
   const totalUnreadMessages = chats.reduce((total, chat) => total + (chat.unread_count || 0), 0)
+  
+  // Get unread notification count
+  const unreadNotificationCount = unreadNotificationData?.count || 0
 
   if (!user) return null
+
+  const isAdmin = user.is_staff === true || user.is_superuser === true
 
   const handleLogout = () => {
     logout()
@@ -108,7 +116,7 @@ export default function UserDropdown() {
             <MessageSquare className="w-4 h-4 text-gray-500" />
             <span>Messages</span>
             {totalUnreadMessages > 0 && (
-              <span className="ml-auto bg-secondary text-secondary-foreground text-xs px-2 py-1 min-w-[20px] text-center">
+              <span className="ml-auto bg-secondary text-secondary-foreground text-xs min-w-5 h-5 px-1 flex items-center justify-center font-semibold rounded-full">
                 {totalUnreadMessages > 9 ? '9+' : totalUnreadMessages}
               </span>
             )}
@@ -119,9 +127,11 @@ export default function UserDropdown() {
           <Link href={`/profile/${profileSlug}?tab=notifications`} className="flex items-center gap-3 p-3 cursor-pointer">
             <Bell className="w-4 h-4 text-gray-500" />
             <span>Notifications</span>
-            <span className="ml-auto bg-secondary text-secondary-foreground text-xs px-2 py-1">
-              3
-            </span>
+            {unreadNotificationCount > 0 && (
+              <span className="ml-auto bg-secondary text-secondary-foreground text-xs min-w-5 h-5 px-1 flex items-center justify-center font-semibold rounded-full">
+                {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+              </span>
+            )}
           </Link>
         </DropdownMenuItem>
         
@@ -145,6 +155,18 @@ export default function UserDropdown() {
             <span className="text-primary font-medium">Premium Services</span>
           </Link>
         </DropdownMenuItem>
+        
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/admin" className="flex items-center gap-3 p-3 cursor-pointer">
+                <Shield className="w-4 h-4 text-primary" />
+                <span className="text-primary font-medium">Admin Panel</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
         
         <DropdownMenuSeparator />
         

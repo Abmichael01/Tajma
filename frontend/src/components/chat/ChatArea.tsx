@@ -228,13 +228,13 @@ export default function ChatArea({
     lastMessageIdRef.current = currentLastMessageId
     
     // Only check scroll position if a new message arrived (already checked above)
-    // Use multiple requestAnimationFrame calls to ensure DOM is fully updated
-    requestAnimationFrame(() => {
+      // Use multiple requestAnimationFrame calls to ensure DOM is fully updated
       requestAnimationFrame(() => {
-        setTimeout(() => {
-          const container = messagesContainerRef.current
-          if (!container) return
-          
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const container = messagesContainerRef.current
+            if (!container) return
+            
           // CRITICAL: Verify actual scroll position RIGHT BEFORE deciding to scroll
           // Don't rely solely on wasAtBottomRef - check the actual DOM position
           const { scrollTop, scrollHeight, clientHeight } = container
@@ -244,51 +244,51 @@ export default function ChatArea({
           // Only auto-scroll if user was at bottom BEFORE message AND is still at bottom NOW
           // This prevents scrolling when user scrolled up during message processing
           if (wasAtBottom && isActuallyAtBottom) {
-            scrollToBottom(false) // Instant scroll
-            setShowScrollToBottom(false)
-            setUnreadCountBelow(0)
-            // Update wasAtBottomRef after scrolling
-            wasAtBottomRef.current = true
-          } else {
-            // User was not at bottom or scrolled up - check current position and show button if needed
-            const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
-            
-            // If user is not at bottom, show scroll button
-            if (!isNearBottom) {
-              setShowScrollToBottom(true)
-              
-              // Count unread messages from other user that are below viewport
-              let count = 0
-              const viewportBottom = scrollTop + clientHeight
-              
-              // Get all message elements
-              const messageElements = Array.from(container.querySelectorAll('[data-message-id]')) as HTMLElement[]
-              
-              messageElements.forEach((element) => {
-                const messageId = element.getAttribute('data-message-id')
-                const message = messages.find(m => String(m.id) === messageId)
-                
-                if (message && message.sender?.id !== user?.id && !message.is_read) {
-                  const elementTop = element.offsetTop
-                  
-                  // Check if message is below current viewport
-                  if (elementTop > viewportBottom) {
-                    count++
-                  }
-                }
-              })
-              
-              setUnreadCountBelow(count)
-            } else {
-              // User is at bottom - hide button
+              scrollToBottom(false) // Instant scroll
               setShowScrollToBottom(false)
               setUnreadCountBelow(0)
+              // Update wasAtBottomRef after scrolling
               wasAtBottomRef.current = true
+            } else {
+            // User was not at bottom or scrolled up - check current position and show button if needed
+              const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
+              
+              // If user is not at bottom, show scroll button
+              if (!isNearBottom) {
+                setShowScrollToBottom(true)
+                
+                // Count unread messages from other user that are below viewport
+                let count = 0
+                const viewportBottom = scrollTop + clientHeight
+                
+                // Get all message elements
+                const messageElements = Array.from(container.querySelectorAll('[data-message-id]')) as HTMLElement[]
+                
+                messageElements.forEach((element) => {
+                  const messageId = element.getAttribute('data-message-id')
+                  const message = messages.find(m => String(m.id) === messageId)
+                  
+                  if (message && message.sender?.id !== user?.id && !message.is_read) {
+                    const elementTop = element.offsetTop
+                    
+                    // Check if message is below current viewport
+                    if (elementTop > viewportBottom) {
+                      count++
+                    }
+                  }
+                })
+                
+                setUnreadCountBelow(count)
+              } else {
+                // User is at bottom - hide button
+                setShowScrollToBottom(false)
+                setUnreadCountBelow(0)
+                wasAtBottomRef.current = true
+              }
             }
-          }
-        }, 300) // Delay to ensure messages are rendered
+          }, 300) // Delay to ensure messages are rendered
+        })
       })
-    })
   }, [messages, user])
 
   // Track which chat we've scrolled for to prevent duplicate scrolls
@@ -335,23 +335,23 @@ export default function ChatArea({
       lastMessageCountForChatRef.current[chatId] = currentCount
       
       // Scroll to bottom instantly when messages load for new chat
-      const scrollToBottomNow = () => {
-        const container = messagesContainerRef.current
-        if (container) {
-          container.scrollTop = container.scrollHeight
-        }
+    const scrollToBottomNow = () => {
+      const container = messagesContainerRef.current
+      if (container) {
+        container.scrollTop = container.scrollHeight
       }
-      
+    }
+    
       // Try multiple times to ensure it works (messages might still be rendering)
-      requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      scrollToBottomNow()
+      setTimeout(() => {
         scrollToBottomNow()
         setTimeout(() => {
           scrollToBottomNow()
-          setTimeout(() => {
-            scrollToBottomNow()
           }, 100)
         }, 100)
-      })
+    })
     } else if (currentCount > 0) {
       // Update message count tracking (but don't scroll if we already scrolled)
       lastMessageCountForChatRef.current[chatId] = currentCount

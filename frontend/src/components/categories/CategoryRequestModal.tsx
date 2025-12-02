@@ -23,6 +23,7 @@ import { requestCategory } from '@/services/categoryService'
 import { CategoryType } from '@/types/category'
 import { useCategories } from '@/hooks/useCategories'
 import { getCategoryIcon } from '@/utils/categoryIcons'
+import { useAuthStore } from '@/store/authStore'
 
 interface CategoryRequestModalProps {
   isOpen: boolean
@@ -36,6 +37,7 @@ export default function CategoryRequestModal({
   suggestedParentId = null
 }: CategoryRequestModalProps) {
   const { rootCategories } = useCategories()
+  const { user } = useAuthStore()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -71,13 +73,18 @@ export default function CategoryRequestModal({
     setErrors({})
     
     try {
-      // TODO: When backend is ready, this will use actual API
+      if (!user?.id) {
+        setErrors({ submit: 'You must be logged in to request a category' })
+        setIsSubmitting(false)
+        return
+      }
+
       await requestCategory({
         name: formData.name.trim(),
         description: formData.description.trim(),
         parentId: formData.parentId || null,
         type: formData.type,
-        requestedBy: 'current-user-id', // Will come from auth context
+        requestedBy: String(user.id),
         requestReason: formData.requestReason.trim()
       })
       

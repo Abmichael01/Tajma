@@ -215,15 +215,15 @@ export default function RegisterClient() {
   const passwordStrength = getPasswordStrength()
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
+    <div className="w-full flex flex-col justify-center py-12 px-6 lg:px-12 xl:px-16">
+      <div className="mx-auto w-full max-w-md">
+        <div className="flex justify-center lg:justify-start">
           <Logo />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-semibold text-gray-900">
+        <h2 className="mt-6 text-center lg:text-left text-3xl font-semibold text-gray-900">
           Create your account
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center lg:text-left text-sm text-gray-600">
           Already have an account?{' '}
           <Link href="/login" className="font-medium text-primary hover:text-primary/80">
             Sign in
@@ -231,9 +231,8 @@ export default function RegisterClient() {
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow border border-gray-200 sm:px-10 overflow-hidden">
-          {/* Signup Method Selection */}
+      <div className="mt-8 mx-auto w-full max-w-md">
+        {/* Signup Method Selection */}
           {!signupMethod && (
             <div className="space-y-4">
               <div className="text-center mb-6">
@@ -577,7 +576,6 @@ export default function RegisterClient() {
           </form>
             </>
           )}
-        </div>
       </div>
     </div>
   )

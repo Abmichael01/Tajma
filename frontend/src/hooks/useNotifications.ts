@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { notificationsApi } from '@/api/notifications'
+import { useAuthStore } from '@/store/authStore'
 import type { CreateNotificationRequest } from '@/api/types'
 
 // ============================================================================
@@ -29,9 +30,12 @@ export const useNotifications = (params?: { is_read?: boolean }) => {
  * Fetch unread notification count
  */
 export const useUnreadNotificationCount = () => {
+  const { isAuthenticated } = useAuthStore()
+  
   return useQuery({
     queryKey: ['notifications', 'unread_count'],
     queryFn: () => notificationsApi.getUnreadCount(),
+    enabled: isAuthenticated, // Only fetch if user is authenticated
     refetchInterval: 60 * 1000, // Refetch every minute
   })
 }

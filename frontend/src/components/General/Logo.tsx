@@ -10,7 +10,7 @@ export default function Logo() {
           alt="Logo" 
           width={100} 
           height={100} 
-          className='w-auto h-10 sm:h-14 md:h-16' 
+          className='w-auto h-8 sm:h-10' 
         />
     </Link>
   )

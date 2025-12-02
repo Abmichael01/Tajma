@@ -41,20 +41,34 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
       
-      // Clear auth state
-      if (typeof window !== 'undefined') {
+      // Only clear auth and redirect if this is an auth-related endpoint
+      // Don't logout on 401 from public endpoints
+      const isAuthEndpoint = originalRequest.url?.includes('/auth/')
+      const isPublicEndpoint = originalRequest.url?.includes('/auth/csrf/') || 
+                               originalRequest.url?.includes('/auth/login/') ||
+                               originalRequest.url?.includes('/auth/register/') ||
+                               originalRequest.url?.includes('/auth/current-user/')
+      
+      // Don't logout on 401 from getCurrentUser - let useCurrentUser hook handle it
+      // This prevents double-logout and race conditions
+      if (!isPublicEndpoint && !originalRequest.url?.includes('/auth/current-user/') && typeof window !== 'undefined') {
         // Import auth store dynamically to avoid circular dependencies
         import('@/store/authStore').then(({ useAuthStore }) => {
-          useAuthStore.getState().logout()
+          const authState = useAuthStore.getState()
+          // Only logout if user is actually authenticated in store
+          // This prevents logging out on stale/expired sessions that are already cleared
+          if (authState.isAuthenticated && authState.user) {
+            const currentPath = window.location.pathname
+            // Only logout if we're on a protected page
+            if (requiresAuth(currentPath)) {
+              authState.logout()
+              window.location.href = '/login'
+            } else {
+              // For public pages, just clear auth silently without redirect
+              authState.logout()
+            }
+          }
         })
-        
-        // Only redirect to login if current page requires authentication
-        // For public pages (like home), just log out silently
-        const currentPath = window.location.pathname
-        if (requiresAuth(currentPath)) {
-          window.location.href = '/login'
-        }
-        // Otherwise, just log out silently - user can continue browsing public pages
       }
     }
     
@@ -143,6 +157,7 @@ function requiresAuth(pathname: string): boolean {
     '/profile',
     '/alerts',
     '/chat',
+    '/admin',
   ]
   
   // Check if pathname starts with any auth-required path
@@ -150,4 +165,3 @@ function requiresAuth(pathname: string): boolean {
 }
 
 export default apiClient
-

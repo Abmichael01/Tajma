@@ -7,6 +7,7 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model"""
+    full_name = serializers.SerializerMethodField()
     
     class Meta:
         model = User
@@ -16,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
+            'full_name',
             'avatar',
             'phone',
             'location',
@@ -27,6 +29,9 @@ class UserSerializer(serializers.ModelSerializer):
             'website',
             'bio',
             'is_verified',
+            'is_staff',
+            'is_superuser',
+            'is_active',
             'date_joined',
             'last_login',
         ]
@@ -37,6 +42,10 @@ class UserSerializer(serializers.ModelSerializer):
             'date_joined',
             'last_login',
         ]
+    
+    def get_full_name(self, obj):
+        """Return the full name of the user"""
+        return obj.get_full_name()
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -97,6 +106,9 @@ class UserDetailsSerializer(serializers.ModelSerializer):
             'website',
             'bio',
             'is_verified',
+            'is_staff',
+            'is_superuser',
+            'is_active',
             'date_joined',
             'last_login',
         ]
