@@ -7,6 +7,7 @@ import Footer from '@/components/Layouts/Footer'
 import MobileBottomNav from '@/components/Layouts/MobileBottomNav'
 import AccountSetupChecker from '@/components/auth/AccountSetupChecker'
 import GlobalChatConnection from '@/components/chat/GlobalChatConnection'
+// import CursorBag from '@/components/ui/CursorBag'
 
 export default function MainLayout({
   children,
@@ -27,6 +28,7 @@ export default function MainLayout({
       {!isChatPage && <Footer />}
       <AccountSetupChecker />
       <MobileBottomNav />
+      {/* <CursorBag /> */}
     </div>
   )
 }

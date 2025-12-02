@@ -69,8 +69,8 @@ export default function AdminStatsCard({
           />
         )}
         <p className={`relative text-3xl md:text-4xl leading-tight ${textClass}`}>
-          {value}
-        </p>
+        {value}
+      </p>
       </div>
       
       {percentage !== undefined && (

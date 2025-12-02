@@ -76,6 +76,7 @@ export function useAdminAds(params?: {
   status?: string
   ad_type?: string
   category?: string
+  seller?: number
 }) {
   return useQuery({
     queryKey: ['admin', 'ads', params],

@@ -432,7 +432,14 @@ export const useUnifiedChatWebSocket = ({
               break
 
             case 'error':
-              console.error('WebSocket error:', payload.message)
+              // Handle non-critical WebSocket errors gracefully
+              // Errors like "Failed to mark messages as delivered" are informational
+              // and don't break functionality, so we log them as warnings
+              if (payload.message?.includes('mark') || payload.message?.includes('delivered')) {
+                console.warn('WebSocket warning:', payload.message)
+              } else {
+                console.error('WebSocket error:', payload.message)
+              }
               break
 
             default:

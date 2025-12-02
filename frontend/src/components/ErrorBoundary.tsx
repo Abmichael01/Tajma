@@ -55,9 +55,12 @@ export default function ErrorBoundary({ children }: { children: React.ReactNode 
       const errorStr = args.join(' ')
       if (
         errorStr.includes('unrecognized HMR message') ||
-        errorStr.includes('HMR') && errorStr.includes('ping')
+        errorStr.includes('HMR') && errorStr.includes('ping') ||
+        errorStr.includes('Failed to mark messages as delivered') ||
+        (errorStr.includes('WebSocket error') && errorStr.includes('mark'))
       ) {
-        // Suppress HMR errors
+        // Suppress HMR errors and non-critical WebSocket errors
+        // These are informational errors that don't break functionality
         return
       }
       originalConsoleError.apply(console, args)

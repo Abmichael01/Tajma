@@ -148,7 +148,7 @@ export const useCurrentUser = () => {
         // This handles the case where persisted state is stale
         if (user) {
           console.log('Stale auth state detected, clearing:', status)
-          clearAuthUser()
+        clearAuthUser()
         }
       } else {
         // For other errors (network, 500, etc.), just log but don't logout

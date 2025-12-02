@@ -123,6 +123,14 @@ class AdminAdViewSet(viewsets.ModelViewSet):
         if category:
             queryset = queryset.filter(category__slug=category)
         
+        # Filter by seller/user
+        seller_id = self.request.query_params.get('seller')
+        if seller_id:
+            try:
+                queryset = queryset.filter(seller_id=int(seller_id))
+            except (ValueError, TypeError):
+                pass
+        
         # Search
         search = self.request.query_params.get('search')
         if search:

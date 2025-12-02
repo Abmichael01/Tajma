@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { Users, UserCheck, Store, Shield, Loader2 } from 'lucide-react'
+import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuthStore } from '@/store/authStore'
 import { getUserFullName, getUserInitials } from '@/utils/user'
@@ -292,6 +293,9 @@ export default function AdminUsersPage() {
         searchable
         searchPlaceholder="Search by email, username, or name..."
         onSearch={setSearch}
+        onRowClick={(user) => {
+          window.location.href = `/admin/users/${user.id}`
+        }}
         onEdit={(user) => {
           toast.info('Edit functionality coming soon')
         }}
@@ -309,24 +313,31 @@ export default function AdminUsersPage() {
         actions={(user) => {
           const isUpdating = updatingUserId === user.id
           return (
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={isUpdating}
-              onClick={(e) => {
-                e.stopPropagation()
-                handleToggleActive(user)
-              }}
-            >
-              {isUpdating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {user.is_active ? 'Deactivating...' : 'Activating...'}
-                </>
-              ) : (
-                user.is_active ? 'Deactivate' : 'Activate'
-              )}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Link href={`/admin/users/${user.id}`}>
+                <Button variant="outline" size="sm" className="h-8">
+                  View Details
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isUpdating}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleToggleActive(user)
+                }}
+              >
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {user.is_active ? 'Deactivating...' : 'Activating...'}
+                  </>
+                ) : (
+                  user.is_active ? 'Deactivate' : 'Activate'
+                )}
+              </Button>
+            </div>
           )
         }}
       />

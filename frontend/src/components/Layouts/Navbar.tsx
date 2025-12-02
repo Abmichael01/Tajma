@@ -25,6 +25,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { useCategories } from '@/hooks/useCategories'
+import { getCategoryIcon } from '@/utils/categoryIcons'
 
 export default function Navbar() {
     const pathname = usePathname()
@@ -83,10 +84,12 @@ export default function Navbar() {
             if (!el || isHovered) return
             
             const { scrollLeft, scrollWidth, clientWidth } = el
+            const halfWidth = scrollWidth / 2 // Half of total width (since we duplicate categories)
             
-            // If reached the end, reset to beginning
-            if (scrollLeft + clientWidth >= scrollWidth - 1) {
-                el.scrollTo({ left: 0, behavior: 'auto' })
+            // If reached the end of the duplicated content, reset to beginning seamlessly
+            // This creates an infinite loop effect
+            if (scrollLeft >= halfWidth - 1) {
+                el.scrollTo({ left: scrollLeft - halfWidth, behavior: 'auto' })
             } else {
                 // Scroll 1px to the right
                 el.scrollBy({ left: 1, behavior: 'auto' })
@@ -324,15 +327,36 @@ export default function Navbar() {
                                 Categories unavailable
                             </span>
                         )}
-                        {!categoriesLoading && !categoriesError && rootCategories.map((category) => (
-                            <Link 
-                                key={category.id} 
-                                href={`/category/${category.slug}`}
-                                className='whitespace-nowrap text-xs sm:text-sm text-gray-600 hover:text-secondary hover:font-medium flex-shrink-0 px-1'
-                            >
-                                {category.name}
-                            </Link>
-                        ))}
+                        {!categoriesLoading && !categoriesError && (
+                            <>
+                                {/* First set of categories */}
+                                {rootCategories.map((category) => (
+                                    <Link 
+                                        key={category.id} 
+                                        href={`/category/${category.slug}`}
+                                        className='whitespace-nowrap text-xs sm:text-sm text-gray-600 hover:text-secondary hover:font-medium flex-shrink-0 px-1 flex items-center gap-1.5 sm:gap-2'
+                                    >
+                                        <span className="text-primary flex-shrink-0">
+                                            {getCategoryIcon(category.icon || 'Package', 'w-3.5 h-3.5 sm:w-4 sm:h-4', 16)}
+                                        </span>
+                                        <span>{category.name}</span>
+                                    </Link>
+                                ))}
+                                {/* Second set of categories for seamless loop */}
+                                {rootCategories.map((category) => (
+                                    <Link 
+                                        key={`${category.id}-duplicate`} 
+                                        href={`/category/${category.slug}`}
+                                        className='whitespace-nowrap text-xs sm:text-sm text-gray-600 hover:text-secondary hover:font-medium flex-shrink-0 px-1 flex items-center gap-1.5 sm:gap-2'
+                                    >
+                                        <span className="text-primary flex-shrink-0">
+                                            {getCategoryIcon(category.icon || 'Package', 'w-3.5 h-3.5 sm:w-4 sm:h-4', 16)}
+                                        </span>
+                                        <span>{category.name}</span>
+                                    </Link>
+                                ))}
+                            </>
+                        )}
                         </div>
                     </div>
                 </div>

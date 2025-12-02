@@ -83,11 +83,18 @@ export interface AdminCategory {
   id: number
   name: string
   slug: string
+  description?: string
+  icon?: string
+  image_url?: string
+  custom_fields?: any[]
   parent?: number | null
+  parent_id?: number | null
   parent_name?: string | null
   category_type: 'product' | 'service' | 'job' | 'cv'
   is_active: boolean
   sort_order: number
+  created_at?: string
+  updated_at?: string
 }
 
 export interface AdminNotification {
@@ -185,6 +192,7 @@ export const adminApi = {
     status?: string
     ad_type?: string
     category?: string
+    seller?: number
   }): Promise<PaginatedResponse<AdminAd>> => {
     const response = await apiClient.get('/admin/ads/', { params })
     return response.data

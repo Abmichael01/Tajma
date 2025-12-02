@@ -89,47 +89,47 @@ class ChatSerializer(serializers.ModelSerializer):
             return None
         
         # Initialize image_path and extract from images
-        image_path = None
-        # Handle both list and string formats
-        if isinstance(obj.ad.images, list) and len(obj.ad.images) > 0:
-            image_path = obj.ad.images[0]
-        elif isinstance(obj.ad.images, str):
-            image_path = obj.ad.images
-        
+            image_path = None
+            # Handle both list and string formats
+            if isinstance(obj.ad.images, list) and len(obj.ad.images) > 0:
+                image_path = obj.ad.images[0]
+            elif isinstance(obj.ad.images, str):
+                image_path = obj.ad.images
+            
         if not image_path:
             logger.debug(f"Chat {obj.id}: Ad {obj.ad.id} images field is empty or invalid")
             return None
         
         try:
-            # Convert to absolute URL
-            request = self.context.get('request')
-            base_url = ''
-            
-            # Check if request has build_absolute_uri method (real Django request)
-            if request and hasattr(request, 'build_absolute_uri'):
-                base_url = request.build_absolute_uri('/')[:-1]  # Remove trailing slash
-            else:
-                # Fallback: try SITE_URL setting or default to localhost
-                base_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
-            if not base_url or base_url == 'http://localhost:8000':
-                logger.warning(f"Chat {obj.id}: SITE_URL not configured, using fallback localhost URL")
-            
-            # If it's already a full URL, return as is
-            if image_path.startswith('http://') or image_path.startswith('https://'):
-                return image_path
-            
-            # If it's an absolute path starting with /media/, convert to full URL
-            elif image_path.startswith('/media/'):
-                return f"{base_url}{image_path}"
-            
-            # If it's an absolute path starting with /, convert to full URL
-            elif image_path.startswith('/'):
-                return f"{base_url}{image_path}"
-            
-            else:
-                # Relative path (e.g., 'ads/uuid.jpg'), prepend MEDIA_URL
-                media_url = settings.MEDIA_URL.rstrip('/')
-                return f"{base_url}{media_url}/{image_path}"
+                # Convert to absolute URL
+                request = self.context.get('request')
+                base_url = ''
+                
+                # Check if request has build_absolute_uri method (real Django request)
+                if request and hasattr(request, 'build_absolute_uri'):
+                    base_url = request.build_absolute_uri('/')[:-1]  # Remove trailing slash
+                else:
+                    # Fallback: try SITE_URL setting or default to localhost
+                    base_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
+                if not base_url or base_url == 'http://localhost:8000':
+                    logger.warning(f"Chat {obj.id}: SITE_URL not configured, using fallback localhost URL")
+                
+                # If it's already a full URL, return as is
+                if image_path.startswith('http://') or image_path.startswith('https://'):
+                    return image_path
+                
+                # If it's an absolute path starting with /media/, convert to full URL
+                elif image_path.startswith('/media/'):
+                    return f"{base_url}{image_path}"
+                
+                # If it's an absolute path starting with /, convert to full URL
+                elif image_path.startswith('/'):
+                    return f"{base_url}{image_path}"
+                
+                else:
+                    # Relative path (e.g., 'ads/uuid.jpg'), prepend MEDIA_URL
+                    media_url = settings.MEDIA_URL.rstrip('/')
+                    return f"{base_url}{media_url}/{image_path}"
         except Exception as e:
             logger.error(f"Chat {obj.id}: Error processing ad image for ad {obj.ad.id}: {e}", exc_info=True)
         return None
