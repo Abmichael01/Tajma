@@ -80,7 +80,7 @@ export default function AdsListingLayout({
           options: subcategories.map((sub: any) => ({
             id: sub.slug,
             label: sub.name,
-            count: sub.adsCount || sub.count || 0,
+            count: sub.adsCount || 0,
             action: `/category/${sub.slug}`,
           })),
         })
@@ -104,7 +104,7 @@ export default function AdsListingLayout({
             options: categoryTree.map((cat) => ({
               id: cat.slug,
               label: cat.name,
-              count: cat.adsCount || cat.count || 0,
+              count: cat.adsCount || 0,
             })),
           }
         }

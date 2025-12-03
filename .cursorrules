@@ -1,0 +1,16 @@
+# Cursor Rules for Tajma Project
+
+## Package Manager
+- Use `pnpm` instead of `npm` for all package management commands
+- When checking for TypeScript errors, use: `pnpm tsc --noEmit`
+- When building the project, use: `pnpm build`
+
+## Project Structure
+- Frontend: Next.js application in `/frontend` directory
+- Backend: Django application in `/backend` directory
+
+## Code Style
+- Follow existing code patterns and conventions
+- Use TypeScript for type safety
+- Prefer functional components with hooks
+
