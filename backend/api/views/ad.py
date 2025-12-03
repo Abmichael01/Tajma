@@ -88,12 +88,40 @@ class AdViewSet(viewsets.ModelViewSet):
         # Search filter
         search = self.request.query_params.get('search')
         if search:
-            qs = qs.filter(
-                Q(title__icontains=search) |
-                Q(description__icontains=search) |
-                Q(seller__email__icontains=search) |
-                Q(seller__username__icontains=search)
+            # Build base search query for title, description, seller info
+            search_q = Q(title__icontains=search) | Q(description__icontains=search) | Q(seller__email__icontains=search) | Q(seller__username__icontains=search)
+            
+            # Also search by category slugs (including all parent categories up to root)
+            # Find all categories whose slug or name contains the search term
+            matching_categories = Category.objects.filter(
+                Q(slug__icontains=search) | Q(name__icontains=search),
+                is_active=True
             )
+            
+            if matching_categories.exists():
+                # Get all category IDs to search
+                category_ids_to_search = set()
+                
+                def get_all_descendant_ids(cat):
+                    """Get category ID and all descendant category IDs (children, grandchildren, etc.)"""
+                    ids = [cat.id]
+                    children = Category.objects.filter(parent=cat, is_active=True)
+                    for child in children:
+                        ids.extend(get_all_descendant_ids(child))
+                    return ids
+                
+                # For each matching category:
+                # 1. Include the category itself and all its descendants
+                # 2. This way, if searching for "electronics", we get all ads in "electronics" and subcategories
+                for category in matching_categories:
+                    category_ids_to_search.update(get_all_descendant_ids(category))
+                
+                if category_ids_to_search:
+                    # Add category filter to search query
+                    # This will match ads whose category (or any parent in the path) matches the search
+                    search_q |= Q(category_id__in=list(category_ids_to_search))
+            
+            qs = qs.filter(search_q)
         
         # Filter by status
         status = self.request.query_params.get('status')
