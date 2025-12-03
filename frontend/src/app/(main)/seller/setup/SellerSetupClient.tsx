@@ -16,7 +16,7 @@ import ProgressStepper from '@/components/create-ad/ProgressStepper'
 import { useAuthStore } from '@/store/authStore'
 import { useUpdateProfile, useCSRFToken } from '@/hooks/useAuth'
 import { toast } from 'sonner'
-import { nigerianStates } from '@/data/categoriesData'
+import { nigerRegions } from '@/data/categoriesData'
 import { Phone, MapPin, Check, Building2, Globe, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 
@@ -41,7 +41,7 @@ export default function SellerSetupClient() {
 
   const [formData, setFormData] = useState({
     phone: user?.phone || '',
-    state: '',
+    region: '',
     city: '',
     address: '',
     businessName: user?.business_name || '',
@@ -84,8 +84,8 @@ export default function SellerSetupClient() {
       newErrors.phone = 'Phone number is invalid'
     }
 
-    if (!formData.state) {
-      newErrors.state = 'State is required'
+    if (!formData.region) {
+      newErrors.region = 'Region is required'
     }
 
     if (!formData.city.trim()) {
@@ -111,10 +111,10 @@ export default function SellerSetupClient() {
     }
   }
 
-  const handleStateChange = (value: string) => {
-    setFormData(prev => ({ ...prev, state: value }))
-    if (errors.state) {
-      setErrors(prev => ({ ...prev, state: '' }))
+  const handleRegionChange = (value: string) => {
+    setFormData(prev => ({ ...prev, region: value }))
+    if (errors.region) {
+      setErrors(prev => ({ ...prev, region: '' }))
     }
   }
 
@@ -162,8 +162,8 @@ export default function SellerSetupClient() {
 
     try {
       // Build location string
-      const location = formData.state ? 
-        `${formData.city ? formData.city + ', ' : ''}${formData.state}` : 
+      const location = formData.region ? 
+        `${formData.city ? formData.city + ', ' : ''}${formData.region}` : 
         formData.city || ''
 
       // Update profile with seller information
@@ -256,22 +256,22 @@ export default function SellerSetupClient() {
         </div>
 
         <div>
-          <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-            State <span className="text-red-500">*</span>
+          <label htmlFor="region" className="block text-sm font-medium text-gray-700">
+            Region <span className="text-red-500">*</span>
           </label>
-          <Select value={formData.state} onValueChange={handleStateChange}>
-            <SelectTrigger className={errors.state ? 'border-red-500' : ''}>
-              <SelectValue placeholder="Select your state" />
+          <Select value={formData.region} onValueChange={handleRegionChange}>
+            <SelectTrigger className={errors.region ? 'border-red-500' : ''}>
+              <SelectValue placeholder="Select your region" />
             </SelectTrigger>
             <SelectContent>
-              {nigerianStates.map((state) => (
-                <SelectItem key={state.value} value={state.value}>
-                  {state.label}
+              {nigerRegions.map((region) => (
+                <SelectItem key={region.value} value={region.value}>
+                  {region.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state}</p>}
+          {errors.region && <p className="mt-1 text-sm text-red-600">{errors.region}</p>}
         </div>
       </div>
 
@@ -420,8 +420,8 @@ export default function SellerSetupClient() {
               <dd className="text-gray-900 font-medium">{formData.phone || '—'}</dd>
             </div>
             <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <dt className="font-medium text-gray-600 mb-1 sm:mb-0">State</dt>
-              <dd className="text-gray-900 font-medium capitalize">{formData.state || '—'}</dd>
+              <dt className="font-medium text-gray-600 mb-1 sm:mb-0">Region</dt>
+              <dd className="text-gray-900 font-medium capitalize">{formData.region || '—'}</dd>
             </div>
             <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <dt className="font-medium text-gray-600 mb-1 sm:mb-0">City / Area</dt>

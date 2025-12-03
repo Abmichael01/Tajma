@@ -1,9 +1,9 @@
-export interface NigerState {
+export interface NigerRegion {
   name: string
   adsCount: number
 }
 
-export const nigerStates: NigerState[] = [
+export const nigerRegions: NigerRegion[] = [
   { name: 'Niamey', adsCount: 1247 }, // Capital
   { name: 'Agadez', adsCount: 342 },
   { name: 'Diffa', adsCount: 189 },

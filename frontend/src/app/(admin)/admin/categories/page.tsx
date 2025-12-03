@@ -430,15 +430,15 @@ export default function AdminCategoriesPage() {
                     className="h-8 w-8 border border-gray-200 hover:border-gray-300"
                   >
                     <Eye className="w-4 h-4" />
-                  </Button>
-                </Link>
+              </Button>
+            </Link>
               </TooltipTrigger>
               <TooltipContent side="top">View details</TooltipContent>
             </Tooltip>
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
+            <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 border border-gray-200 hover:border-gray-300"
@@ -459,17 +459,17 @@ export default function AdminCategoriesPage() {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 border border-gray-200 hover:border-gray-300"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleToggleActive(category)
-                  }}
-                >
+              onClick={(e) => {
+                e.stopPropagation()
+                handleToggleActive(category)
+              }}
+            >
                   {category.is_active ? (
                     <XCircle className="w-4 h-4" />
                   ) : (
                     <CheckCircle className="w-4 h-4" />
                   )}
-                </Button>
+            </Button>
               </TooltipTrigger>
               <TooltipContent side="top">
                 {category.is_active ? 'Deactivate category' : 'Activate category'}

@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.db.models import Count, Q
 
-from api.models import Ad, Category, User, Notification, Chat, Message, UserOnlineStatus, SavedAd, SavedAd
+from api.models import Ad, Category, User, Notification, Chat, Message, UserOnlineStatus, SavedAd, Region
 
 
 @admin.register(Category)
@@ -443,4 +444,54 @@ class SavedAdAdmin(admin.ModelAdmin):
         """Optimize queryset with select_related"""
         qs = super().get_queryset(request)
         return qs.select_related('user', 'ad', 'ad__seller', 'ad__category')
+
+
+@admin.register(Region)
+class RegionAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'slug',
+        'ad_count',
+        'is_active',
+        'sort_order',
+        'created_at',
+    )
+    list_filter = (
+        'is_active',
+        'created_at',
+    )
+    search_fields = (
+        'name',
+        'slug',
+    )
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+    )
+    prepopulated_fields = {'slug': ('name',)}
+    ordering = ('sort_order', 'name')
+    list_per_page = 50
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug', 'is_active', 'sort_order')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_queryset(self, request):
+        """Optimize queryset with ad count annotation"""
+        qs = super().get_queryset(request)
+        return qs.annotate(
+            ad_count=Count('users__ads', filter=models.Q(users__ads__status='published'))
+        )
+    
+    def ad_count(self, obj):
+        """Display count of published ads in this region"""
+        return getattr(obj, 'ad_count', 0)
+    ad_count.short_description = 'Ads Count'
+    ad_count.admin_order_field = 'ad_count'
 

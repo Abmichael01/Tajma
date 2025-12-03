@@ -17,7 +17,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useUpdateProfile, useCSRFToken, useCurrentUser } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { nigerianStates } from '@/data/categoriesData'
+import { nigerRegions } from '@/data/categoriesData'
 import { UserCircle, Phone, MapPin } from 'lucide-react'
 
 interface CompleteProfileDialogProps {
@@ -37,7 +37,7 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
   const [showInlineForm, setShowInlineForm] = useState(showForm)
   const [formData, setFormData] = useState({
     phone: user?.phone || '',
-    state: '',
+    region: '',
     city: '',
     address: '',
     businessName: user?.business_name || '',
@@ -67,10 +67,10 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
     }
   }
 
-  const handleStateChange = (value: string) => {
-    setFormData(prev => ({ ...prev, state: value }))
-    if (errors.state) {
-      setErrors(prev => ({ ...prev, state: '' }))
+  const handleRegionChange = (value: string) => {
+    setFormData(prev => ({ ...prev, region: value }))
+    if (errors.region) {
+      setErrors(prev => ({ ...prev, region: '' }))
     }
   }
 
@@ -83,8 +83,8 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
       newErrors.phone = 'Phone number is invalid'
     }
 
-    if (!formData.state) {
-      newErrors.state = 'State is required'
+    if (!formData.region) {
+      newErrors.region = 'Region is required'
     }
 
     if (!formData.city.trim()) {
@@ -112,8 +112,8 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
     }
 
     try {
-      const location = formData.state ? 
-        `${formData.city ? formData.city + ', ' : ''}${formData.state}` : 
+      const location = formData.region ? 
+        `${formData.city ? formData.city + ', ' : ''}${formData.region}` : 
         formData.city || ''
 
       await updateProfile.mutateAsync({
@@ -196,22 +196,22 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
                 </div>
 
                 <div>
-                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-                    State <span className="text-red-500">*</span>
+                  <label htmlFor="region" className="block text-sm font-medium text-gray-700 mb-1">
+                    Region <span className="text-red-500">*</span>
                   </label>
-                  <Select value={formData.state} onValueChange={handleStateChange}>
-                    <SelectTrigger className={errors.state ? 'border-red-500' : ''}>
-                      <SelectValue placeholder="Select your state" />
+                  <Select value={formData.region} onValueChange={handleRegionChange}>
+                    <SelectTrigger className={errors.region ? 'border-red-500' : ''}>
+                      <SelectValue placeholder="Select your region" />
                     </SelectTrigger>
                     <SelectContent>
-                      {nigerianStates.map((state) => (
-                        <SelectItem key={state.value} value={state.value}>
-                          {state.label}
+                      {nigerRegions.map((region) => (
+                        <SelectItem key={region.value} value={region.value}>
+                          {region.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state}</p>}
+                  {errors.region && <p className="mt-1 text-sm text-red-600">{errors.region}</p>}
                 </div>
 
                 <div>

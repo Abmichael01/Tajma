@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from api.models import Region
 
 User = get_user_model()
 
@@ -8,6 +9,7 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model"""
     full_name = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
     
     class Meta:
         model = User
@@ -46,10 +48,21 @@ class UserSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         """Return the full name of the user"""
         return obj.get_full_name()
+    
+    def get_location(self, obj):
+        """Return the region name as a string"""
+        if obj.location:
+            return obj.location.name
+        return None
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating user profile"""
+    location = serializers.PrimaryKeyRelatedField(
+        queryset=Region.objects.all(),
+        required=False,
+        allow_null=True
+    )
     
     class Meta:
         model = User
@@ -85,6 +98,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     """Serializer for user details endpoint"""
     
     full_name = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
     
     class Meta:
         model = User
@@ -123,6 +137,12 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         """Return the full name of the user"""
         return obj.get_full_name()
+    
+    def get_location(self, obj):
+        """Return the region name as a string"""
+        if obj.location:
+            return obj.location.name
+        return None
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -226,6 +246,7 @@ class UserSummarySerializer(serializers.ModelSerializer):
     """Lightweight serializer for user summary (used in nested serializers)"""
     
     full_name = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
     
     class Meta:
         model = User
@@ -237,12 +258,19 @@ class UserSummarySerializer(serializers.ModelSerializer):
             'last_name',
             'full_name',
             'avatar',
+            'location',
         ]
         read_only_fields = fields
     
     def get_full_name(self, obj):
         """Return the full name of the user"""
         return obj.get_full_name()
+    
+    def get_location(self, obj):
+        """Return the region name as a string"""
+        if obj.location:
+            return obj.location.name
+        return None
 
 
 class PasswordChangeSerializer(serializers.Serializer):

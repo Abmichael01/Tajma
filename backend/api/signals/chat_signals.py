@@ -146,6 +146,65 @@ def broadcast_message_on_create(sender, instance, created, **kwargs):
         logger.error(f"❌ Error broadcasting message {instance.id}: {e}", exc_info=True)
 
 
+@receiver(post_save, sender=Chat)
+def broadcast_chat_on_create_or_update(sender, instance, created, **kwargs):
+    """
+    Broadcast chat events via WebSocket when created or updated.
+    - On creation: broadcasts new chat to both participants
+    - On update: broadcasts chat update (e.g., when last_message_at changes)
+    This ensures chats created/updated via REST API are also broadcast via WebSocket
+    to update the chat list for both participants.
+    """
+    try:
+        channel_layer = get_channel_layer()
+        if not channel_layer:
+            logger.warning("Channel layer not configured, skipping chat broadcast")
+            return
+        
+        # Check if this is a relevant update (last_message_at or created_at changed)
+        update_fields = kwargs.get('update_fields', None)
+        if not created and update_fields:
+            # Only broadcast if last_message_at or updated_at changed
+            if 'last_message_at' not in update_fields and 'updated_at' not in update_fields:
+                return
+        
+        # Ensure relationships are loaded
+        chat = Chat.objects.select_related('ad', 'participant1', 'participant2').get(id=instance.id)
+        participant_ids = [chat.participant1_id, chat.participant2_id]
+        
+        # Broadcast chat event to both participants
+        event_type = 'chat_created' if created else 'chat_updated'
+        for user_id in participant_ids:
+            try:
+                user = User.objects.get(id=user_id)
+                # Serialize chat for this user
+                fake_request = SimpleNamespace(user=user)
+                chat_serializer = ChatSerializer(chat, context={'request': fake_request})
+                chat_data = make_serializable(chat_serializer.data)
+                
+                # Send to user's chat events group
+                async_to_sync(channel_layer.group_send)(
+                    f'chat_events_{user_id}',
+                    {
+                        'type': 'chat_event',
+                        'payload': {
+                            'type': event_type,
+                            'chat_id': str(chat.id),
+                            'chat': chat_data,
+                        }
+                    }
+                )
+                
+                logger.info(f"✅ Broadcasted chat {chat.id} ({event_type}) to user {user_id}")
+            except User.DoesNotExist:
+                logger.warning(f"User {user_id} not found when broadcasting chat event")
+            except Exception as e:
+                logger.error(f"Error broadcasting chat event for user {user_id}: {e}", exc_info=True)
+                
+    except Exception as e:
+        logger.error(f"❌ Error broadcasting chat {instance.id}: {e}", exc_info=True)
+
+
 def broadcast_chat_event_for_message(message_instance, message_data):
     """
     Broadcast chat event to update chat list for both participants.

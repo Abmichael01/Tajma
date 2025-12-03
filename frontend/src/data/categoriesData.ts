@@ -309,7 +309,7 @@ export const getSubcategoryOptions = (categoryId: string) => {
 }
 
 // Niger regions for location dropdown
-export const nigerianStates = [
+export const nigerRegions = [
   { value: 'niamey', label: 'Niamey' },
   { value: 'agadez', label: 'Agadez' },
   { value: 'diffa', label: 'Diffa' },

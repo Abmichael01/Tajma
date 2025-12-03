@@ -8,6 +8,7 @@ import { useToggleSaveAd } from '@/hooks/useSavedAds'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { useCategories } from '@/hooks/useCategories'
 import type { Ad } from '@/api/types'
 
 interface AdsListProps {
@@ -72,10 +73,30 @@ const sortAds = (ads: Ad[], sortBy: SortOption): Ad[] => {
 export default function AdsList({ ads, columns = 4, className = "" }: AdsListProps) {
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
+  const { categoryTree } = useCategories()
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [isSortOpen, setIsSortOpen] = useState(false)
   const { mutate: toggleSaveAd } = useToggleSaveAd()
   const [responsiveColumns, setResponsiveColumns] = useState<1 | 2 | 3 | 4 | 5>(columns)
+  
+  // Helper function to get category name from category tree
+  const getCategoryName = (categorySlugOrId: string | undefined): string => {
+    if (!categorySlugOrId || !categoryTree) return 'Uncategorized'
+    
+    const findCategory = (categories: any[], slug: string): any => {
+      for (const cat of categories) {
+        if (cat.slug === slug || cat.id === slug) return cat
+        if (cat.children || cat.subcategories) {
+          const found = findCategory(cat.children || cat.subcategories || [], slug)
+          if (found) return found
+        }
+      }
+      return null
+    }
+    
+    const category = findCategory(categoryTree, categorySlugOrId)
+    return category?.name || 'Uncategorized'
+  }
   
   // Handle favorite toggle using API
   const handleToggleFavorite = (adId: string) => {
@@ -191,8 +212,9 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
     // Get location from seller
     const location = ad.seller?.location || 'Location not specified'
     
-    // Get category name
-    const categoryName = ad.category_details?.name || ad.category || 'Uncategorized'
+    // Get category name - prefer category_details, fallback to category tree lookup, never show ID
+    const categoryName = ad.category_details?.name || 
+      (ad.category ? getCategoryName(ad.category) : 'Uncategorized')
     
     return (
       <Link key={ad.id} href={`/ads/${ad.slug}`} className="block">

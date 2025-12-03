@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { MessageSquare, Send } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
+import { useLanguage, getDefaultMessages } from '@/hooks/useLanguage'
 
 interface ContactSellerModalProps {
   isOpen: boolean
@@ -18,14 +19,6 @@ interface ContactSellerModalProps {
   adTitle: string
   sellerName: string
 }
-
-const defaultMessages = [
-  "Is this still available?",
-  "What's the best price you can offer?",
-  "Can I see more photos?",
-  "Where are you located?",
-  "When can I pick it up?",
-]
 
 export default function ContactSellerModal({ 
   isOpen, 
@@ -37,6 +30,8 @@ export default function ContactSellerModal({
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const currentLang = useLanguage()
+  const defaultMessages = getDefaultMessages(currentLang)
 
   const handleDefaultMessage = (defaultMsg: string) => {
     setMessage(defaultMsg)

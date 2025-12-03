@@ -5,6 +5,7 @@ from .review import Review
 from .notification import Notification
 from .chat import Chat, Message, UserOnlineStatus
 from .saved_ad import SavedAd
+from .region import Region
 
-__all__ = ['User', 'Category', 'Ad', 'AdView', 'Review', 'Notification', 'Chat', 'Message', 'UserOnlineStatus', 'SavedAd']
+__all__ = ['User', 'Category', 'Ad', 'AdView', 'Review', 'Notification', 'Chat', 'Message', 'UserOnlineStatus', 'SavedAd', 'Region']
 

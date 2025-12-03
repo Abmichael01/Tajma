@@ -24,6 +24,7 @@ import AdDescription from '@/components/ads/AdDescription'
 import AdInfo from '@/components/ads/AdInfo'
 import AdSellerInfo from '@/components/ads/AdSellerInfo'
 import AdSafetyTips from '@/components/ads/AdSafetyTips'
+import { useLanguage, getDefaultMessages } from '@/hooks/useLanguage'
 
 interface AdsDetailClientProps {
   adId: string // Actually a slug from the URL
@@ -105,14 +106,9 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
   // Get seller profile slug
   const sellerProfileSlug = ad?.seller?.username || ad?.seller?.email?.split('@')[0] || 'profile'
 
-  // Default messages for quick selection
-  const defaultMessages = [
-    "Is this still available?",
-    "What's the best price you can offer?",
-    "Can I see more photos?",
-    "Where are you located?",
-    "When can I pick it up?",
-  ]
+  // Get current language and default messages
+  const currentLang = useLanguage()
+  const defaultMessages = getDefaultMessages(currentLang)
 
   const handleDefaultMessage = (msg: string) => {
     setContactMessage(msg)

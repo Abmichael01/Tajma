@@ -24,6 +24,7 @@ import { toast } from 'sonner'
 import { useUpdateAd, useDeleteAd } from '@/hooks/useAds'
 import type { Ad, User, ReviewStats } from '@/api/types'
 import { getUserFullName } from '@/utils/user'
+import { useLanguage, getDefaultMessages } from '@/hooks/useLanguage'
 
 interface AdProductInfoProps {
   ad: Ad
@@ -73,14 +74,10 @@ export default function AdProductInfo({
   const router = useRouter()
   const updateAd = useUpdateAd(ad.slug)
   const deleteAd = useDeleteAd(ad.slug)
-
-  const defaultMessages = [
-    "Is this still available?",
-    "What's the best price you can offer?",
-    "Can I see more photos?",
-    "Where are you located?",
-    "When can I pick it up?",
-  ]
+  
+  // Get current language and translated default messages
+  const currentLang = useLanguage()
+  const defaultMessages = getDefaultMessages(currentLang)
 
   const handleArchive = async () => {
     try {

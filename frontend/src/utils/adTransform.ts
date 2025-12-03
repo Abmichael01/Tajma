@@ -30,10 +30,10 @@ export function transformBackendAdToFrontend(backendAd: BackendAd): FrontendAd {
   // Extract location from seller or use default
   const location = backendAd.seller?.location || 'Location not specified'
   
-  // Parse location to extract city and state if possible
+  // Parse location to extract city and region if possible
   const locationParts = location.split(',').map(s => s.trim())
   const city = locationParts[0] || ''
-  const state = locationParts[1] || locationParts[0] || ''
+  const region = locationParts[1] || locationParts[0] || ''
 
   // Get category name from category_details or use slug
   const category = backendAd.category_details?.name || backendAd.category || 'uncategorized'
@@ -52,7 +52,7 @@ export function transformBackendAdToFrontend(backendAd: BackendAd): FrontendAd {
     title: backendAd.title,
     price: formattedPrice,
     location: location,
-    state: state.toLowerCase().replace(/\s+/g, '-'),
+    region: region.toLowerCase().replace(/\s+/g, '-'),
     city: city,
     imageUrl: imageUrl,
     views: backendAd.views || 0,

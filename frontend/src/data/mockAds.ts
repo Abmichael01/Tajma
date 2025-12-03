@@ -4,7 +4,7 @@ export interface Ad {
   title: string
   price: string
   location: string
-  state: string
+  region: string
   city: string
   imageUrl: string
   views?: number
@@ -29,7 +29,7 @@ export const mockAds: Ad[] = [
     title: "iPhone 14 Pro Max 256GB - Space Black",
     price: "₦850,000",
     location: "Victoria Island, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Victoria Island",
     imageUrl: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400",
     views: 245,
@@ -47,7 +47,7 @@ export const mockAds: Ad[] = [
     title: "MacBook Pro M2 14-inch - Like New",
     price: "₦1,200,000",
     location: "Surulere, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Surulere",
     imageUrl: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400",
     views: 189,
@@ -65,7 +65,7 @@ export const mockAds: Ad[] = [
     title: "Samsung Galaxy S23 Ultra 512GB",
     price: "₦950,000",
     location: "Gbagada, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Gbagada",
     imageUrl: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400",
     views: 432,
@@ -83,7 +83,7 @@ export const mockAds: Ad[] = [
     title: "Dell XPS 13 Laptop - 2023 Model",
     price: "₦780,000",
     location: "Yaba, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Yaba",
     imageUrl: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400",
     views: 156,
@@ -101,7 +101,7 @@ export const mockAds: Ad[] = [
     title: "Sony PlayStation 5 - Brand New",
     price: "₦450,000",
     location: "Alaba, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Alaba",
     imageUrl: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=400",
     views: 678,
@@ -121,7 +121,7 @@ export const mockAds: Ad[] = [
     title: "Toyota Camry 2020 - Clean Title",
     price: "₦8,500,000",
     location: "Ikoyi, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Ikoyi",
     imageUrl: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400",
     views: 1203,
@@ -139,7 +139,7 @@ export const mockAds: Ad[] = [
     title: "Honda Accord 2019 - Excellent Condition",
     price: "₦6,800,000",
     location: "Ikeja, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Ikeja",
     imageUrl: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400",
     views: 892,
@@ -157,7 +157,7 @@ export const mockAds: Ad[] = [
     title: "Mercedes Benz C-Class 2021",
     price: "₦15,500,000",
     location: "Ikoyi, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Ikoyi",
     imageUrl: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=400",
     views: 2103,
@@ -175,7 +175,7 @@ export const mockAds: Ad[] = [
     title: "Nissan Altima 2020 - Clean Title",
     price: "₦4,200,000",
     location: "Ojodu, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Ojodu",
     imageUrl: "https://images.unsplash.com/photo-1549317336-206569e8475c?w=400",
     views: 321,
@@ -195,7 +195,7 @@ export const mockAds: Ad[] = [
     title: "3 Bedroom Apartment for Rent",
     price: "₦2,500,000/yr",
     location: "Lekki Phase 1, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Lekki",
     imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400",
     views: 567,
@@ -211,7 +211,7 @@ export const mockAds: Ad[] = [
     title: "2 Bedroom Duplex for Sale",
     price: "₦45,000,000",
     location: "Banana Island, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Banana Island",
     imageUrl: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400",
     views: 1234,
@@ -227,7 +227,7 @@ export const mockAds: Ad[] = [
     title: "Studio Apartment for Rent",
     price: "₦800,000/yr",
     location: "Magodo, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Magodo",
     imageUrl: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400",
     views: 445,
@@ -245,7 +245,7 @@ export const mockAds: Ad[] = [
     title: "Nike Air Jordan 1 - Size 42",
     price: "₦85,000",
     location: "Surulere, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Surulere",
     imageUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400",
     views: 234,
@@ -263,7 +263,7 @@ export const mockAds: Ad[] = [
     title: "Gucci Handbag - Authentic",
     price: "₦350,000",
     location: "Victoria Island, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Victoria Island",
     imageUrl: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400",
     views: 567,
@@ -283,7 +283,7 @@ export const mockAds: Ad[] = [
     title: "Modern L-Shaped Sofa - Grey",
     price: "₦280,000",
     location: "Ikeja, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Ikeja",
     imageUrl: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400",
     views: 178,
@@ -300,7 +300,7 @@ export const mockAds: Ad[] = [
     title: "LG 43 Inch Smart TV - 4K",
     price: "₦250,000",
     location: "Yaba, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Yaba",
     imageUrl: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400",
     views: 312,
@@ -320,7 +320,7 @@ export const mockAds: Ad[] = [
     title: "iPhone 13 Pro 128GB",
     price: "₦650,000",
     location: "Wuse 2, Abuja",
-    state: "abuja",
+    region: "niamey",
     city: "Wuse 2",
     imageUrl: "https://images.unsplash.com/photo-1632633173522-47456de71b76?w=400",
     views: 198,
@@ -338,7 +338,7 @@ export const mockAds: Ad[] = [
     title: "Honda CRV 2021",
     price: "₦12,000,000",
     location: "Maitama, Abuja",
-    state: "abuja",
+    region: "niamey",
     city: "Maitama",
     imageUrl: "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=400",
     views: 892,
@@ -358,7 +358,7 @@ export const mockAds: Ad[] = [
     title: "Adidas Ultraboost Running Shoes",
     price: "₦45,000",
     location: "Gbagada, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Gbagada",
     imageUrl: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=400",
     views: 123,
@@ -376,7 +376,7 @@ export const mockAds: Ad[] = [
     title: "Gym Equipment Set - Home Workout",
     price: "₦120,000",
     location: "Lekki, Niamey",
-    state: "lagos",
+    region: "niamey",
     city: "Lekki",
     imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400",
     views: 267,
@@ -398,7 +398,7 @@ export const filterAds = (
     subcategory?: string
     searchQuery?: string
     location?: string
-    state?: string
+    region?: string
     priceRange?: { min?: number; max?: number }
     condition?: string[]
     brand?: string[]
@@ -433,8 +433,8 @@ export const filterAds = (
       }
     }
 
-    // State filter
-    if (filters.state && ad.state !== filters.state) {
+    // Region filter
+    if (filters.region && ad.region !== filters.region) {
       return false
     }
 

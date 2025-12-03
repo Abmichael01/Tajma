@@ -1,7 +1,7 @@
 import { FilterGroup } from '@/components/ui/FiltersSection'
 
 // Niger Regions Data
-const nigerianStates = [
+const nigerRegions = [
   { id: "niamey", label: "Niamey", count: 2341 },
   { id: "maradi", label: "Maradi", count: 892 },
   { id: "zinder", label: "Zinder", count: 634 },
@@ -47,7 +47,7 @@ export const searchFilters: FilterGroup[] = [
     title: "Location",
     type: "checkbox",
     defaultExpanded: true,
-    options: nigerianStates
+    options: nigerRegions
   },
   {
     id: "condition",

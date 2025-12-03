@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react'
 import SearchBox from '../ui/SearchBox'
-import StateSelectorModal from '../modals/StateSelectorModal'
+import RegionSelectorModal from '../modals/RegionSelectorModal'
 import { MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function Hero() {
-    const [isStateModalOpen, setIsStateModalOpen] = useState(false)
-    const [selectedState, setSelectedState] = useState('All States')
+    const [isRegionModalOpen, setIsRegionModalOpen] = useState(false)
+    const [selectedRegion, setSelectedRegion] = useState('All Regions')
 
     return (
         <>
@@ -37,12 +37,12 @@ export default function Hero() {
                         >
                             <button
                                 type="button"
-                                onClick={() => setIsStateModalOpen(true)}
+                                onClick={() => setIsRegionModalOpen(true)}
                                 className="flex items-center justify-between gap-2 px-3 sm:px-4 py-3 bg-white border border-gray-300 hover:border-secondary/50 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-secondary transition-all w-full sm:w-[140px] md:w-[200px] shadow-sm rounded-full"
                             >
                                 <div className="flex items-center gap-2 min-w-0">
                                     <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
-                                    <span className="text-sm sm:text-base text-gray-700 truncate">{selectedState}</span>
+                                    <span className="text-sm sm:text-base text-gray-700 truncate">{selectedRegion}</span>
                                 </div>
                                 <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -59,12 +59,12 @@ export default function Hero() {
                 </div>
             </section>
 
-            {/* State Selector Modal */}
-            <StateSelectorModal
-                isOpen={isStateModalOpen}
-                onClose={() => setIsStateModalOpen(false)}
-                selectedState={selectedState}
-                onSelectState={setSelectedState}
+            {/* Region Selector Modal */}
+            <RegionSelectorModal
+                isOpen={isRegionModalOpen}
+                onClose={() => setIsRegionModalOpen(false)}
+                selectedRegion={selectedRegion}
+                onSelectRegion={setSelectedRegion}
             />
         </>
     )

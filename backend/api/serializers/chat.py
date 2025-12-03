@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Chat, Message, UserOnlineStatus
+from api.models import Chat, Message, UserOnlineStatus, Ad
 from api.serializers.user import UserSummarySerializer
 
 
@@ -49,6 +49,8 @@ class ChatSerializer(serializers.ModelSerializer):
     participant2 = UserSummarySerializer(read_only=True)
     participant1_id = serializers.IntegerField(write_only=True)
     participant2_id = serializers.IntegerField(write_only=True)
+    ad = serializers.PrimaryKeyRelatedField(queryset=Ad.objects.all(), required=False, allow_null=True, read_only=False)
+    ad_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
     ad_title = serializers.CharField(source='ad.title', read_only=True, allow_null=True)
     ad_slug = serializers.CharField(source='ad.slug', read_only=True, allow_null=True)
     ad_image = serializers.SerializerMethodField()
@@ -61,7 +63,7 @@ class ChatSerializer(serializers.ModelSerializer):
         model = Chat
         fields = [
             'id', 'participant1', 'participant1_id', 'participant2', 'participant2_id',
-            'ad', 'ad_title', 'ad_slug', 'ad_image', 'ad_price', 'ad_currency',
+            'ad', 'ad_id', 'ad_title', 'ad_slug', 'ad_image', 'ad_price', 'ad_currency',
             'created_at', 'updated_at', 'last_message_at', 'last_message', 'unread_count'
         ]
         read_only_fields = ['id', 'participant1', 'participant2', 'created_at', 'updated_at', 'last_message_at']
@@ -89,47 +91,47 @@ class ChatSerializer(serializers.ModelSerializer):
             return None
         
         # Initialize image_path and extract from images
-            image_path = None
-            # Handle both list and string formats
-            if isinstance(obj.ad.images, list) and len(obj.ad.images) > 0:
-                image_path = obj.ad.images[0]
-            elif isinstance(obj.ad.images, str):
-                image_path = obj.ad.images
-            
+        image_path = None
+        # Handle both list and string formats
+        if isinstance(obj.ad.images, list) and len(obj.ad.images) > 0:
+            image_path = obj.ad.images[0]
+        elif isinstance(obj.ad.images, str):
+            image_path = obj.ad.images
+        
         if not image_path:
             logger.debug(f"Chat {obj.id}: Ad {obj.ad.id} images field is empty or invalid")
             return None
         
         try:
-                # Convert to absolute URL
-                request = self.context.get('request')
-                base_url = ''
-                
-                # Check if request has build_absolute_uri method (real Django request)
-                if request and hasattr(request, 'build_absolute_uri'):
-                    base_url = request.build_absolute_uri('/')[:-1]  # Remove trailing slash
-                else:
-                    # Fallback: try SITE_URL setting or default to localhost
-                    base_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
-                if not base_url or base_url == 'http://localhost:8000':
-                    logger.warning(f"Chat {obj.id}: SITE_URL not configured, using fallback localhost URL")
-                
-                # If it's already a full URL, return as is
-                if image_path.startswith('http://') or image_path.startswith('https://'):
-                    return image_path
-                
-                # If it's an absolute path starting with /media/, convert to full URL
-                elif image_path.startswith('/media/'):
-                    return f"{base_url}{image_path}"
-                
-                # If it's an absolute path starting with /, convert to full URL
-                elif image_path.startswith('/'):
-                    return f"{base_url}{image_path}"
-                
-                else:
-                    # Relative path (e.g., 'ads/uuid.jpg'), prepend MEDIA_URL
-                    media_url = settings.MEDIA_URL.rstrip('/')
-                    return f"{base_url}{media_url}/{image_path}"
+            # Convert to absolute URL
+            request = self.context.get('request')
+            base_url = ''
+            
+            # Check if request has build_absolute_uri method (real Django request)
+            if request and hasattr(request, 'build_absolute_uri'):
+                base_url = request.build_absolute_uri('/')[:-1]  # Remove trailing slash
+            else:
+                # Fallback: try SITE_URL setting or default to localhost
+                base_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
+            if not base_url or base_url == 'http://localhost:8000':
+                logger.warning(f"Chat {obj.id}: SITE_URL not configured, using fallback localhost URL")
+            
+            # If it's already a full URL, return as is
+            if image_path.startswith('http://') or image_path.startswith('https://'):
+                return image_path
+            
+            # If it's an absolute path starting with /media/, convert to full URL
+            elif image_path.startswith('/media/'):
+                return f"{base_url}{image_path}"
+            
+            # If it's an absolute path starting with /, convert to full URL
+            elif image_path.startswith('/'):
+                return f"{base_url}{image_path}"
+            
+            else:
+                # Relative path (e.g., 'ads/uuid.jpg'), prepend MEDIA_URL
+                media_url = settings.MEDIA_URL.rstrip('/')
+                return f"{base_url}{media_url}/{image_path}"
         except Exception as e:
             logger.error(f"Chat {obj.id}: Error processing ad image for ad {obj.ad.id}: {e}", exc_info=True)
         return None
@@ -186,6 +188,15 @@ class ChatSerializer(serializers.ModelSerializer):
         
         p1_id = validated_data.pop('participant1_id')
         p2_id = validated_data.pop('participant2_id')
+        
+        # Handle ad_id if present - convert to ad object
+        ad_id = validated_data.pop('ad_id', None)
+        if ad_id:
+            from api.models import Ad
+            try:
+                validated_data['ad'] = Ad.objects.get(id=ad_id)
+            except Ad.DoesNotExist:
+                raise serializers.ValidationError({'ad_id': f'Ad with id {ad_id} does not exist'})
         
         # Ensure consistent ordering: smaller ID is participant1
         if p1_id > p2_id:

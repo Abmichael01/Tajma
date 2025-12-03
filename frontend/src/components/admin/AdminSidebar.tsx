@@ -11,6 +11,7 @@ import {
   ChevronLeft as LucideChevronLeft,
   ChevronRight as LucideChevronRight,
   Globe2,
+  MapPin,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
@@ -43,6 +44,12 @@ const menuItems = [
     label: "Categories",
     href: "/admin/categories",
     icon: Folders,
+    isAnimated: true,
+  },
+  {
+    label: "Regions",
+    href: "/admin/regions",
+    icon: MapPin,
     isAnimated: true,
   },
   {
@@ -131,7 +138,7 @@ export default function AdminSidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto ">
+      <nav className="flex-1 overflow-y-auto admin-sidebar-scrollbar pr-2">
         <ul className="space-y-3">
           {menuItems.map((item) => {
             const Icon = item.icon;

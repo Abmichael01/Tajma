@@ -95,7 +95,7 @@ class ChatViewSet(viewsets.ModelViewSet):
             'participant2_id': participant2_id,
         }
         if ad_id:
-            chat_data['ad'] = ad_id  # Use 'ad' field name as expected by serializer
+            chat_data['ad_id'] = ad_id
         
         serializer = self.get_serializer(data=chat_data)
         serializer.is_valid(raise_exception=True)
