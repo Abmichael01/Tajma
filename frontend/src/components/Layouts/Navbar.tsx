@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { useCategories } from '@/hooks/useCategories'
 import CategoryImage from '@/components/ui/CategoryImage'
+import { useLocation } from '@/hooks/useLocation'
 
 export default function Navbar() {
     const pathname = usePathname()
@@ -36,6 +37,7 @@ export default function Navbar() {
     const { data: savedAdsData } = useSavedAds(undefined, undefined)
     const { data: chats = [] } = useChats()
     const { rootCategories, loading: categoriesLoading, error: categoriesError } = useCategories()
+    const { getLocationString, getShortLocationString, loading: locationLoading } = useLocation()
     // Get count from paginated response or calculate from results
     const favoritesCount = savedAdsData?.count ?? (savedAdsData?.results?.length || 0)
     // Calculate total unread messages from all chats
@@ -157,8 +159,14 @@ export default function Navbar() {
                         <span className='sm:hidden'>Tajma Marketplace</span>
                         <div className='flex items-center gap-1 sm:gap-2'>
                             <MapPin className='w-3 h-3 sm:w-4 sm:h-4' />
-                            <span className='hidden xs:inline sm:inline'>Niamey, Niger</span>
-                            <span className='xs:hidden sm:hidden'>Niamey</span>
+                            {!locationLoading ? (
+                                <>
+                                    <span className='hidden xs:inline sm:inline'>{getLocationString()}</span>
+                                    <span className='xs:hidden sm:hidden'>{getShortLocationString()}</span>
+                                </>
+                            ) : (
+                                <span className='text-xs'>Loading...</span>
+                            )}
                         </div>
                     </div>
                     <div className='hidden sm:flex items-center gap-4'>

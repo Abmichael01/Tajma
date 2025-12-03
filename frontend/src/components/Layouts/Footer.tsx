@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import Logo from '../General/Logo'
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
+import { useCategories } from '@/hooks/useCategories'
 
 interface FooterProps {
   className?: string
@@ -11,6 +12,7 @@ interface FooterProps {
 
 export default function Footer({ className = '' }: FooterProps) {
   const currentYear = new Date().getFullYear()
+  const { rootCategories, loading: categoriesLoading } = useCategories()
 
   const footerLinks = {
     company: [
@@ -27,13 +29,6 @@ export default function Footer({ className = '' }: FooterProps) {
       { label: 'Register', href: '/register' },
       { label: 'Post Ad', href: '/create-ad' },
     ],
-    categories: [
-      { label: 'Electronics', href: '/category/electronics' },
-      { label: 'Vehicles', href: '/category/vehicles' },
-      { label: 'Real Estate', href: '/category/real-estate' },
-      { label: 'Jobs', href: '/category/jobs' },
-      { label: 'CV / Resume', href: '/category/cv' },
-    ]
   }
 
   const socialLinks = [
@@ -59,13 +54,13 @@ export default function Footer({ className = '' }: FooterProps) {
             
             {/* Contact Info */}
             <div className="space-y-3 text-sm">
-              <a href="mailto:support@tajma.com" className="flex items-center gap-2 hover:text-white transition-colors">
+              <a href="mailto:support@tajma.net" className="flex items-center gap-2 hover:text-white transition-colors">
                 <Mail className="w-4 h-4 flex-shrink-0" />
-                <span>support@tajma.com</span>
+                <span>support@tajma.net</span>
               </a>
-              <a href="tel:+2348008256200" className="flex items-center gap-2 hover:text-white transition-colors">
+              <a href="tel:+22792649999" className="flex items-center gap-2 hover:text-white transition-colors">
                 <Phone className="w-4 h-4 flex-shrink-0" />
-                <span>+234 800 TAJMA</span>
+                <span>+227 92 64 99 99</span>
               </a>
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -113,18 +108,33 @@ export default function Footer({ className = '' }: FooterProps) {
             </ul>
           </div>
 
-          {/* Popular Categories */}
+          {/* Categories */}
           <div>
             <h3 className="font-semibold text-white mb-4">Categories</h3>
-            <ul className="space-y-3">
-              {footerLinks.categories.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className="text-sm hover:text-white transition-colors">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {categoriesLoading ? (
+              <p className="text-sm text-gray-500">Loading categories...</p>
+            ) : (
+              <>
+                <ul className="space-y-2 mb-3">
+                  {rootCategories.slice(0, 5).map((cat) => (
+                    <li key={cat.id}>
+                      <Link
+                        href={`/category/${cat.slug}`}
+                        className="text-sm hover:text-white transition-colors"
+                      >
+                        {cat.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link 
+                  href="/categories" 
+                  className="inline-flex items-center text-sm hover:text-white transition-colors border border-gray-700 hover:border-primary px-4 py-2 rounded"
+                >
+                  View All Categories
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
@@ -150,7 +160,7 @@ export default function Footer({ className = '' }: FooterProps) {
             </div>
             
             <p className="text-sm text-gray-400 text-center sm:text-right">
-              © {currentYear} Tajma Marketplace. All rights reserved.
+              ©DIGIT SERVICES
             </p>
           </div>
         </div>
