@@ -22,15 +22,23 @@ class UserProfileView(APIView):
         User = get_user_model()
 
         try:
+            # First try to find by username
             user = User.objects.get(username__iexact=slug)
         except User.DoesNotExist:
             try:
+                # Then try to find by full email
                 user = User.objects.get(email__iexact=slug)
             except User.DoesNotExist:
-                return Response(
-                    {'detail': 'User not found.'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                try:
+                    # Finally, try to find by email prefix (part before @)
+                    # This handles cases where user has no username and frontend sends email prefix
+                    user = User.objects.get(email__istartswith=f"{slug}@")
+                except (User.DoesNotExist, User.MultipleObjectsReturned):
+                    # If multiple users match (unlikely but possible), return 404
+                    return Response(
+                        {'detail': 'User not found.'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
 
         # Send notification if profile is viewed by authenticated user (not the owner)
         # Only send once per day per viewer

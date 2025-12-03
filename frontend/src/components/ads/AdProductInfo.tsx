@@ -74,7 +74,7 @@ export default function AdProductInfo({
   const router = useRouter()
   const updateAd = useUpdateAd(ad.slug)
   const deleteAd = useDeleteAd(ad.slug)
-  
+
   // Get current language and translated default messages
   const currentLang = useLanguage()
   const defaultMessages = getDefaultMessages(currentLang)

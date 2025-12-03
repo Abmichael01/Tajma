@@ -151,9 +151,37 @@ export default function ProfileLayout({
     router.push(`/profile/${profileSlug}`)
   }
 
+  // Determine default tab: 'ads' for visitors, 'overview' for owners
+  // Visitors should never see overview, so block it
+  const getDefaultTab = () => {
+    if (!isOwner && activeTab === 'overview') {
+      return 'ads' // Force ads for visitors trying to access overview
+    }
+    if (activeTab) return activeTab
+    return isOwner ? 'overview' : 'ads'
+  }
+
   const renderTabContent = () => {
-    switch (activeTab || 'overview') {
+    const currentTab = getDefaultTab()
+    switch (currentTab) {
       case 'overview':
+        // Only show overview for owners
+        if (!isOwner) {
+          return (
+            <>
+              {adsLoading ? (
+                <div className="py-12 flex items-center justify-center">
+                  <MarketplaceLoader size="md" message="Loading ads..." />
+                </div>
+              ) : (
+                <ProfileAds 
+                  ads={ads} 
+                  isOwner={isOwner} 
+                />
+              )}
+            </>
+          )
+        }
         return (
           <ProfileOverview 
             stats={stats}
@@ -197,12 +225,26 @@ export default function ProfileLayout({
           />
         )
       default:
-        return (
+        // Default to ads for visitors, overview for owners
+        return isOwner ? (
           <ProfileOverview 
             stats={stats}
             isOwner={isOwner}
             userUid={profileSlug}
           />
+        ) : (
+          <>
+            {adsLoading ? (
+              <div className="py-12 flex items-center justify-center">
+                <MarketplaceLoader size="md" message="Loading ads..." />
+              </div>
+            ) : (
+              <ProfileAds 
+                ads={ads} 
+                isOwner={isOwner} 
+              />
+            )}
+          </>
         )
     }
   }
@@ -211,11 +253,22 @@ export default function ProfileLayout({
     // Determine which tabs should show full-screen mobile view
     const mobileFullScreenTabs = ['overview', 'ads', 'saved', 'reviews', 'settings']
     
+    // If visitor tries to access overview, redirect to ads
+    if (!isOwner && activeTab === 'overview') {
+      const newUrl = `/profile/${profileSlug}?tab=ads`
+      router.replace(newUrl, { scroll: false })
+      return null
+    }
+    
     if (!activeTab || !mobileFullScreenTabs.includes(activeTab)) {
       return null
     }
 
     if (activeTab === 'overview') {
+      // Only show overview for owners
+      if (!isOwner) {
+        return null
+      }
       return (
         <ProfileMobileView title="Overview" onBack={handleMobileBack}>
           <ProfileOverview 
@@ -274,6 +327,18 @@ export default function ProfileLayout({
     return null
   }
 
+  // Redirect to ads tab if visitor tries to access overview or has no tab
+  useEffect(() => {
+    if (!isOwner) {
+      // If visitor has no tab or tries to access overview, redirect to ads
+      if (!activeTab || activeTab === 'overview') {
+        const newUrl = `/profile/${profileSlug}?tab=ads`
+        // Use replace to update URL without adding to history
+        router.replace(newUrl, { scroll: false })
+      }
+    }
+  }, [activeTab, isOwner, profileSlug, router])
+
   // Mobile: Show full-screen view when navigating to a section (only on mobile)
   // Only show full-screen view if there's a tab in the URL
   const shouldShowMobileView = typeof window !== 'undefined' && 
@@ -311,6 +376,13 @@ export default function ProfileLayout({
             isOwner={isOwner}
             onContactClick={onContactClick}
             onCallClick={onCallClick}
+            ads={ads}
+            adsLoading={adsLoading}
+            reviews={reviews}
+            reviewsLoading={reviewsLoading}
+            reviewStats={finalReviewStats}
+            profileSlug={profileSlug}
+            onNavigate={handleMobileNavigate}
           />
           
           {/* Mobile Navigation Links */}

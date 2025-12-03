@@ -26,7 +26,7 @@ class CategorySerializer(serializers.ModelSerializer):
         # Ensure we are working with a string
         if not isinstance(value, str):
             raise serializers.ValidationError("Invalid image data format.")
-
+        
         # Check if it's a base64 string
         if value.startswith('data:image') or (len(value) > 500 and 'base64' in value):
             try:
@@ -35,7 +35,7 @@ class CategorySerializer(serializers.ModelSerializer):
                 return saved_path
             except Exception as e:
                 raise serializers.ValidationError(f"Failed to process image: {str(e)}")
-
+        
         # It's already a URL or path, return as-is
         return value
 

@@ -24,7 +24,11 @@ interface ProfileTabsProps {
 export default function ProfileTabs({ isOwner = false }: ProfileTabsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const activeTab = searchParams.get('tab') || (isOwner ? 'overview' : 'ads')
+  const tabFromUrl = searchParams.get('tab')
+  // For visitors, never allow 'overview' tab - default to 'ads'
+  const activeTab = tabFromUrl === 'overview' && !isOwner 
+    ? 'ads' 
+    : (tabFromUrl || (isOwner ? 'overview' : 'ads'))
 
   const tabs: Tab[] = [
     ...(isOwner ? [

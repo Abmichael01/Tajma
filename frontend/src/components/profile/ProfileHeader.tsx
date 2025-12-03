@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { 
@@ -13,9 +15,11 @@ import {
   ChevronUp,
   Phone,
   Globe,
-  Mail
+  Mail,
+  ArrowRight,
+  FileText
 } from 'lucide-react'
-import type { User, UserWithReviewStats } from '@/api/types'
+import type { User, UserWithReviewStats, Ad, Review, ReviewStats } from '@/api/types'
 import { getUserFullName, getUserInitials } from '@/utils/user'
 
 interface ProfileHeaderProps {
@@ -27,9 +31,29 @@ interface ProfileHeaderProps {
   isOwner?: boolean
   onContactClick?: () => void
   onCallClick?: () => void
+  ads?: Ad[]
+  adsLoading?: boolean
+  reviews?: Review[]
+  reviewsLoading?: boolean
+  reviewStats?: ReviewStats
+  profileSlug?: string
+  onNavigate?: (section: string) => void
 }
 
-export default function ProfileHeader({ user, stats, isOwner = false, onContactClick, onCallClick }: ProfileHeaderProps) {
+export default function ProfileHeader({ 
+  user, 
+  stats, 
+  isOwner = false, 
+  onContactClick, 
+  onCallClick,
+  ads = [],
+  adsLoading = false,
+  reviews = [],
+  reviewsLoading = false,
+  reviewStats,
+  profileSlug = '',
+  onNavigate
+}: ProfileHeaderProps) {
   const [isBioExpanded, setIsBioExpanded] = useState(false)
   const fullName = getUserFullName(user)
 
@@ -172,6 +196,158 @@ export default function ProfileHeader({ user, stats, isOwner = false, onContactC
               <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
               Call Seller
             </Button>
+          )}
+        </div>
+      )}
+
+      {/* Mobile: Ads Section */}
+      {!isOwner && (
+        <div className="lg:hidden border-t border-gray-200 pt-4 mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Ads
+            </h3>
+            {ads.length > 0 && onNavigate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate('ads')}
+                className="text-xs text-secondary hover:text-secondary/80"
+              >
+                View All
+                <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            )}
+          </div>
+          
+          {adsLoading ? (
+            <div className="py-4 text-center text-sm text-gray-500">Loading ads...</div>
+          ) : ads.length > 0 ? (
+            <div className="space-y-3">
+              {/* Show first ad */}
+              {(() => {
+                const firstAd = ads[0]
+                const imageUrl = firstAd.images && firstAd.images.length > 0
+                  ? firstAd.images[0]
+                  : 'https://via.placeholder.com/400x300?text=No+Image'
+                const formattedPrice = firstAd.price
+                  ? `${firstAd.currency || 'Fr'} ${parseFloat(String(firstAd.price)).toLocaleString()}`
+                  : 'Contact for price'
+                
+                return (
+                  <Link 
+                    href={`/ads/${firstAd.slug || firstAd.id}`}
+                    className="block bg-gray-50 border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex gap-3">
+                      <div className="relative w-20 h-20 flex-shrink-0">
+                        <Image
+                          src={imageUrl}
+                          alt={firstAd.title}
+                          fill
+                          className="object-cover"
+                          sizes="80px"
+                        />
+                      </div>
+                      <div className="flex-1 py-2 pr-2 min-w-0">
+                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                          {firstAd.title}
+                        </h4>
+                        <p className="text-xs font-semibold text-secondary">{formattedPrice}</p>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })()}
+            </div>
+          ) : (
+            <div className="py-4 text-center text-sm text-gray-500">
+              No ads available
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Mobile: Reviews Section */}
+      {!isOwner && (
+        <div className="lg:hidden border-t border-gray-200 pt-4 mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Reviews
+            </h3>
+            {reviews.length > 0 && onNavigate && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onNavigate('reviews')}
+                className="text-xs text-secondary hover:text-secondary/80"
+              >
+                View All
+                <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            )}
+          </div>
+          
+          {reviewsLoading ? (
+            <div className="py-4 text-center text-sm text-gray-500">Loading reviews...</div>
+          ) : reviews.length > 0 ? (
+            <div className="space-y-3">
+              {/* Show last review */}
+              {(() => {
+                const lastReview = reviews[reviews.length - 1]
+                const formatDate = (dateString: string) => {
+                  const date = new Date(dateString)
+                  return date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })
+                }
+                
+                return (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2 mb-2">
+                      <Avatar className="w-8 h-8 flex-shrink-0">
+                        <AvatarImage 
+                          src={lastReview.reviewer_avatar || lastReview.reviewer?.avatar || undefined} 
+                          alt={lastReview.reviewer_name || 'User'} 
+                        />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                          {(lastReview.reviewer_name || 'U').charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium text-gray-900 truncate">
+                            {lastReview.reviewer_name || lastReview.reviewer?.full_name || 'Anonymous'}
+                          </span>
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-3 h-3 ${
+                                  i < lastReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500">{formatDate(lastReview.created_at)}</p>
+                      </div>
+                    </div>
+                    {lastReview.comment && (
+                      <p className="text-xs text-gray-700 line-clamp-2">{lastReview.comment}</p>
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+          ) : (
+            <div className="py-4 text-center text-sm text-gray-500">
+              No reviews yet
+            </div>
           )}
         </div>
       )}

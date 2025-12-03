@@ -123,10 +123,10 @@ export default function Footer({ className = '' }: FooterProps) {
                         className="text-sm hover:text-white transition-colors"
                       >
                         {cat.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                  </Link>
+                </li>
+              ))}
+            </ul>
                 <Link 
                   href="/categories" 
                   className="inline-flex items-center text-sm hover:text-white transition-colors border border-gray-700 hover:border-primary px-4 py-2 rounded"
