@@ -51,6 +51,7 @@ const convertNode = (
     slug: node.slug || node.id,
     description: node.description,
     icon: node.icon,
+    imageUrl: (node as any).imageUrl,
     parentId,
     type: node.type || node.category_type || 'product', // Use type from CDN data
     status: 'active',

@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50 relative border-2 border-transparent rounded-full",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/50 relative border border-transparent rounded-full",
   {
     variants: {
       variant: {
@@ -28,7 +28,7 @@ const buttonVariants = cva(
         destructive: "bg-destructive text-destructive-foreground shadow-lg hover:bg-destructive/90 hover:border-destructive/30",
         
         // Outline - Outlined buttons
-        outline: "bg-white border-2 border-gray-300 text-gray-900 hover:bg-gray-50 hover:border-gray-400",
+        outline: "bg-white border border-gray-300 text-gray-900 hover:bg-gray-50 hover:border-gray-400",
         
         // Ghost - Minimal buttons (Back, Close, etc.)
         ghost: "hover:bg-accent hover:text-accent-foreground hover:border-accent/30",

@@ -1,10 +1,104 @@
 "use client"
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
-import { getCategoryIcon } from '@/utils/categoryIcons'
 import { useCategories } from '@/hooks/useCategories'
+import { cn } from '@/lib/utils'
+
+interface CategoryCardProps {
+  category: {
+    id: string
+    slug: string
+    name: string
+    imageUrl?: string | null
+    adsCount?: number
+  }
+}
+
+function CategoryCard({ category }: CategoryCardProps) {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoading, setImageLoading] = useState(true)
+
+  // Get full image URL if it's a relative path
+  const getImageUrl = () => {
+    if (!category.imageUrl) return null
+    
+    // If it's already a full URL, return as-is
+    if (category.imageUrl.startsWith('http://') || category.imageUrl.startsWith('https://')) {
+      return category.imageUrl
+    }
+    
+    // If it's a relative path, construct full URL using API media endpoint
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    
+    // If it starts with /media/, convert to API endpoint
+    if (category.imageUrl.startsWith('/media/')) {
+      const path = category.imageUrl.replace('/media/', '')
+      return `${apiUrl}/api/media/${path}`
+    }
+    
+    // If it's just a path starting with /, try API endpoint
+    if (category.imageUrl.startsWith('/')) {
+      const path = category.imageUrl.replace(/^\//, '')
+      return `${apiUrl}/api/media/${path}`
+    }
+    
+    // Relative path (e.g., 'categories/uuid.jpg'), use API endpoint
+    return `${apiUrl}/api/media/${category.imageUrl}`
+  }
+
+  const fullImageUrl = getImageUrl()
+
+  return (
+    <Link
+      href={`/category/${category.slug}`}
+      className="flex flex-col bg-white border rounded-xl border-gray-200 hover:border-secondary/50 hover:shadow-md transition-all text-secondary overflow-hidden"
+    >
+      {/* Image at top - fills width, rectangular */}
+      <div className="relative w-full h-20 bg-gray-100 overflow-hidden">
+        {imageLoading && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+        )}
+        {fullImageUrl && !imageError ? (
+          <Image
+            src={fullImageUrl}
+            alt={category.name ? `${category.name} category` : 'Category'}
+            width={120}
+            height={80}
+            className={cn(
+              'w-full h-full object-cover transition-opacity duration-300',
+              imageLoading ? 'opacity-0' : 'opacity-100'
+            )}
+            onLoad={() => setImageLoading(false)}
+            onError={() => {
+              setImageError(true)
+              setImageLoading(false)
+            }}
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <div className="w-8 h-8 rounded bg-gray-300" />
+          </div>
+        )}
+      </div>
+      
+      {/* Text content below image */}
+      <div className="flex flex-col items-center justify-center p-3 pt-2">
+        <span className="text-xs font-semibold text-center text-gray-900 leading-tight">
+          {category.name}
+        </span>
+        {typeof category.adsCount === 'number' && (
+          <span className="text-[10px] text-gray-500 mt-0.5">
+            {category.adsCount} ads
+          </span>
+        )}
+      </div>
+    </Link>
+  )
+}
 
 export default function CategoryGrid() {
   const { categoryTree, loading, error } = useCategories()
@@ -48,23 +142,7 @@ export default function CategoryGrid() {
         {!loading && !error && categories.length > 0 && (
           <div className="grid grid-cols-3 gap-3">
             {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/category/${category.slug}`}
-                className="flex flex-col items-center justify-center p-4 bg-white border rounded-xl border-gray-200 hover:border-secondary/50 hover:shadow-md transition-all text-secondary"
-              >
-                <div className="mb-2 text-secondary">
-                  {getCategoryIcon(category.icon || 'Package', 'w-6 h-6', 24)}
-                </div>
-                <span className="text-sm font-semibold text-center text-gray-900">
-                  {category.name}
-                </span>
-                {typeof category.adsCount === 'number' && (
-                  <span className="text-[11px] text-gray-500 mt-1">
-                    {category.adsCount} ads
-                  </span>
-                )}
-              </Link>
+              <CategoryCard key={category.id} category={category} />
             ))}
           </div>
         )}

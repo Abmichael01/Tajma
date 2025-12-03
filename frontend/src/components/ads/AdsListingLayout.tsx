@@ -46,17 +46,76 @@ export default function AdsListingLayout({
     }
   })
 
+  // Find current category from tree
+  const currentCategory = useMemo(() => {
+    if (!filters.category || !categoryTree) return null
+    
+    const findCategory = (categories: any[], slug: string): any => {
+      for (const cat of categories) {
+        if (cat.slug === slug) return cat
+        if (cat.children || cat.subcategories) {
+          const found = findCategory(cat.children || cat.subcategories || [], slug)
+          if (found) return found
+        }
+      }
+      return null
+    }
+    
+    return findCategory(categoryTree, filters.category)
+  }, [filters.category, categoryTree])
+
   // Build filter groups based on mode and category
   const filterGroups: FilterGroup[] = useMemo(() => {
-    if (mode === 'category' && filters.category) {
-      // Use category-specific filters for this category (price, condition, etc.)
-      // but avoid showing a top-level "Categories" selector on category pages.
-      const groups = getFiltersByCategory(filters.category)
-      return groups.filter((group) => group.id !== 'category')
+    if (mode === 'category' && filters.category && currentCategory) {
+      const groups: FilterGroup[] = []
+      
+      // If category has subcategories, add them as a filter group
+      const subcategories = currentCategory.children || currentCategory.subcategories || []
+      if (subcategories.length > 0) {
+        groups.push({
+          id: 'subcategory',
+          title: 'Subcategories',
+          type: 'link', // Use 'link' type so clicking navigates to that subcategory
+          defaultExpanded: true,
+          options: subcategories.map((sub: any) => ({
+            id: sub.slug,
+            label: sub.name,
+            count: sub.adsCount || sub.count || 0,
+            action: `/category/${sub.slug}`,
+          })),
+        })
+      }
+      
+      // Add other category-specific filters (price, condition, etc.)
+      const categoryFilters = getFiltersByCategory(filters.category)
+      const otherFilters = categoryFilters.filter((group) => group.id !== 'category' && group.id !== 'subcategory')
+      groups.push(...otherFilters)
+      
+      return groups
     }
-    // Search page: show all search filters, including category selector
+    
+    // Search page: show all search filters with real category data
+    if (mode === 'search' && categoryTree && categoryTree.length > 0) {
+      const searchFiltersWithRealData = searchFilters.map((group) => {
+        if (group.id === 'category') {
+          // Replace with real category data from tree
+          return {
+            ...group,
+            options: categoryTree.map((cat) => ({
+              id: cat.slug,
+              label: cat.name,
+              count: cat.adsCount || cat.count || 0,
+            })),
+          }
+        }
+        return group
+      })
+      return searchFiltersWithRealData
+    }
+    
+    // Fallback to default search filters
     return searchFilters
-  }, [mode, filters.category])
+  }, [mode, filters.category, currentCategory, categoryTree])
 
   // Build API params from filters
   const apiParams = useMemo(() => {
@@ -115,6 +174,12 @@ export default function AdsListingLayout({
     value: string | string[],
     action?: string
   ) => {
+    // If it's a subcategory selection and has an action (navigation), navigate to it
+    if (filterId === 'subcategory' && action && action.startsWith('/category/')) {
+      router.push(action)
+      return // Don't update filters state, let the navigation handle it
+    }
+    
     setFilters((prev) => ({
       ...prev,
       [filterId]: value,

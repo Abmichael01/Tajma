@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
-import { getCategoryIcon } from '@/utils/categoryIcons'
+import CategoryImage from '@/components/ui/CategoryImage'
 import { useCategories } from '@/hooks/useCategories'
 
 export default function CategoriesSection() {
@@ -43,9 +43,12 @@ export default function CategoriesSection() {
               onMouseLeave={() => setHoveredCategory(null)}
             >
               <div className="flex items-center gap-3 py-2.5  border-y border-transparent hover:border-gray-200 hover:bg-white/90 cursor-pointer group w-full transition-colors">
-                <div className="flex items-center justify-center w-10 h-10 rounded-md bg-secondary/10 text-secondary group-hover:bg-secondary/15 transition-colors">
-                  {getCategoryIcon(category.icon || 'Package', 'w-5 h-5', 20)}
-                </div>
+                <CategoryImage
+                  imageUrl={category.imageUrl}
+                  name={category.name}
+                  size={40}
+                  className="w-10 h-10 flex-shrink-0"
+                />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-gray-800 group-hover:text-gray-900">
                     {category.name}
@@ -86,9 +89,12 @@ export default function CategoriesSection() {
                             ease: 'easeOut',
                           }}
                         >
-                          <div className="flex items-center justify-center w-9 h-9 bg-secondary/10 text-secondary rounded-md">
-                            {getCategoryIcon(subcategory.icon || category.icon || 'Package', 'w-4 h-4', 16)}
-                          </div>
+                          <CategoryImage
+                            imageUrl={subcategory.imageUrl || category.imageUrl}
+                            name={subcategory.name}
+                            size={36}
+                            className="w-9 h-9 flex-shrink-0"
+                          />
                           <div className="flex-1">
                             <p className="font-medium">{subcategory.name}</p>
                             {subcategory.children && subcategory.children.length > 0 && (

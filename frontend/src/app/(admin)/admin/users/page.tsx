@@ -223,18 +223,21 @@ export default function AdminUsersPage() {
             value={usersStats.active.toLocaleString()}
             icon={UserCheck}
             href="/admin/users?is_active=true"
+            isPrimary={true}
           />
           <AdminStatsCard
             title="Sellers"
             value={usersStats.sellers.toLocaleString()}
             icon={Store}
             href="/admin/users?is_seller=true"
+            isPrimary={true}
           />
           <AdminStatsCard
             title="Staff"
             value={usersStats.staff.toLocaleString()}
             icon={Shield}
             href="/admin/users?is_staff=true"
+            isPrimary={true}
           />
         </div>
       )}

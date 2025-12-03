@@ -25,7 +25,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { useCategories } from '@/hooks/useCategories'
-import { getCategoryIcon } from '@/utils/categoryIcons'
+import CategoryImage from '@/components/ui/CategoryImage'
 
 export default function Navbar() {
     const pathname = usePathname()
@@ -336,9 +336,12 @@ export default function Navbar() {
                                         href={`/category/${category.slug}`}
                                         className='whitespace-nowrap text-xs sm:text-sm text-gray-600 hover:text-secondary hover:font-medium flex-shrink-0 px-1 flex items-center gap-1.5 sm:gap-2'
                                     >
-                                        <span className="text-primary flex-shrink-0">
-                                            {getCategoryIcon(category.icon || 'Package', 'w-3.5 h-3.5 sm:w-4 sm:h-4', 16)}
-                                        </span>
+                                        <CategoryImage
+                                          imageUrl={category.imageUrl}
+                                          name={category.name}
+                                          size={28}
+                                          className="w-7 h-7 flex-shrink-0"
+                                        />
                                         <span>{category.name}</span>
                                     </Link>
                                 ))}
@@ -349,9 +352,12 @@ export default function Navbar() {
                                         href={`/category/${category.slug}`}
                                         className='whitespace-nowrap text-xs sm:text-sm text-gray-600 hover:text-secondary hover:font-medium flex-shrink-0 px-1 flex items-center gap-1.5 sm:gap-2'
                                     >
-                                        <span className="text-primary flex-shrink-0">
-                                            {getCategoryIcon(category.icon || 'Package', 'w-3.5 h-3.5 sm:w-4 sm:h-4', 16)}
-                                        </span>
+                                        <CategoryImage
+                                          imageUrl={category.imageUrl}
+                                          name={category.name}
+                                          size={28}
+                                          className="w-7 h-7 flex-shrink-0"
+                                        />
                                         <span>{category.name}</span>
                                     </Link>
                                 ))}

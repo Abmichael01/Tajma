@@ -3,7 +3,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from django.db.models import Q, F
 
-from api.models import Ad, AdView
+from api.models import Ad, AdView, Category
 from api.serializers import AdSerializer
 
 
@@ -59,12 +59,31 @@ class AdViewSet(viewsets.ModelViewSet):
             except (ValueError, TypeError):
                 pass
         
-        # Filter by category slug
+        # Filter by category slug - include all child categories
         category_slug = self.request.query_params.get('category')
         if category_slug:
-            # Support nested category paths (e.g., "parent/child/grandchild")
-            # Try exact match first, then try as a path
-            qs = qs.filter(category__slug=category_slug)
+            try:
+                # Get the category by slug
+                category = Category.objects.filter(slug=category_slug, is_active=True).first()
+                if category:
+                    # Get all descendant category IDs (including the category itself)
+                    def get_descendant_ids(cat):
+                        """Recursively get all descendant category IDs"""
+                        ids = [cat.id]
+                        children = Category.objects.filter(parent=cat, is_active=True)
+                        for child in children:
+                            ids.extend(get_descendant_ids(child))
+                        return ids
+                    
+                    category_ids = get_descendant_ids(category)
+                    # Filter ads by category or any of its descendants
+                    qs = qs.filter(category_id__in=category_ids)
+                else:
+                    # Fallback to exact match if category not found
+                    qs = qs.filter(category__slug=category_slug)
+            except Exception:
+                # Fallback to exact match on any error
+                qs = qs.filter(category__slug=category_slug)
         
         # Search filter
         search = self.request.query_params.get('search')

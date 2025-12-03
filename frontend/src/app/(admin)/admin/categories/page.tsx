@@ -14,16 +14,18 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, FolderTree, CheckCircle, XCircle, Eye, Trash2 } from 'lucide-react'
+import { Plus, FolderTree, CheckCircle, XCircle, Eye, Trash2, Edit } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { useAdminStats } from '@/hooks/useAdmin'
 import { useMemo } from 'react'
+import ImageUploader from '@/components/ui/ImageUploader'
 
 export default function AdminCategoriesPage() {
   const searchParams = useSearchParams()
@@ -50,6 +52,8 @@ export default function AdminCategoriesPage() {
 
   // Category creation modal state
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -213,6 +217,70 @@ export default function AdminCategoriesPage() {
     }
   }
 
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    description: '',
+    parent_id: null as number | null,
+    category_type: 'product' as 'product' | 'service' | 'job' | 'cv',
+    image_url: '',
+    sort_order: 0,
+    is_active: true,
+  })
+  const [editErrors, setEditErrors] = useState<Record<string, string>>({})
+
+  const handleOpenEditModal = (category: AdminCategory) => {
+    setEditingCategory(category)
+    setEditErrors({})
+    setEditFormData({
+      name: category.name,
+      description: category.description || '',
+      parent_id: category.parent_id ?? null,
+      category_type: category.category_type,
+      image_url: category.image_url || '',
+      sort_order: category.sort_order ?? 0,
+      is_active: category.is_active,
+    })
+    setShowEditModal(true)
+  }
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategory) return
+
+    setEditErrors({})
+
+    try {
+      await updateCategory.mutateAsync({
+        id: editingCategory.id,
+        data: {
+          name: editFormData.name.trim(),
+          description: editFormData.description.trim() || undefined,
+          parent_id: editFormData.parent_id || undefined,
+          category_type: editFormData.category_type,
+          image_url: editFormData.image_url.trim() || undefined,
+          sort_order: editFormData.sort_order,
+          is_active: editFormData.is_active,
+        },
+      })
+      setShowEditModal(false)
+      setEditingCategory(null)
+    } catch (error: any) {
+      if (error?.response?.data) {
+        const fieldErrors: Record<string, string> = {}
+        Object.keys(error.response.data).forEach((key) => {
+          const value = error.response.data[key]
+          if (Array.isArray(value)) {
+            fieldErrors[key] = value[0]
+          } else if (typeof value === 'string') {
+            fieldErrors[key] = value
+          }
+        })
+        if (Object.keys(fieldErrors).length > 0) {
+          setEditErrors(fieldErrors)
+        }
+      }
+    }
+  }
+
   const columns: Column<AdminCategory>[] = [
     {
       key: 'name',
@@ -349,24 +417,64 @@ export default function AdminCategoriesPage() {
             : undefined
         }
         actions={(category) => (
-          <div className="flex items-center gap-2">
-            <Link href={`/admin/categories/${category.id}`}>
-              <Button variant="outline" size="sm" className="h-8">
-                <Eye className="w-4 h-4 mr-1.5" />
-                View
-              </Button>
-            </Link>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleToggleActive(category)
-              }}
-              className="h-8"
-            >
-              {category.is_active ? 'Deactivate' : 'Activate'}
-            </Button>
+          <div className="flex items-center justify-end gap-1.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href={`/admin/categories/${category.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 border border-gray-200 hover:border-gray-300"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="top">View details</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 border border-gray-200 hover:border-gray-300"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleOpenEditModal(category)
+                  }}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Edit category</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 border border-gray-200 hover:border-gray-300"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleToggleActive(category)
+                  }}
+                >
+                  {category.is_active ? (
+                    <XCircle className="w-4 h-4" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                {category.is_active ? 'Deactivate category' : 'Activate category'}
+              </TooltipContent>
+            </Tooltip>
           </div>
         )}
       />
@@ -458,27 +566,18 @@ export default function AdminCategoriesPage() {
               )}
             </div>
 
-            {/* Icon */}
+            {/* Category Image */}
             <div className="space-y-2">
-              <Label htmlFor="icon">Icon</Label>
-              <Input
-                id="icon"
-                value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                placeholder="e.g., lucide icon name or custom key"
-              />
-            </div>
-
-            {/* Image URL */}
-            <div className="space-y-2">
-              <Label htmlFor="image_url">Image URL</Label>
-              <Input
-                id="image_url"
+              <ImageUploader
                 value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-                type="url"
+                onChange={(value) => setFormData({ ...formData, image_url: value || '' })}
+                label="Category Image"
+                maxSizeMB={5}
+                aspectRatio="square"
               />
+              <p className="text-xs text-gray-500">
+                Upload an image for this category. If no image is provided, a skeleton placeholder will be shown.
+              </p>
             </div>
 
             {/* Sort Order */}
@@ -763,6 +862,165 @@ export default function AdminCategoriesPage() {
             <Button onClick={handleCreateCategory} disabled={createCategory.isPending}>
               {createCategory.isPending ? 'Creating...' : 'Create Category'}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Category Modal */}
+      <Dialog open={showEditModal} onOpenChange={(open) => {
+        setShowEditModal(open)
+        if (!open) {
+          setEditingCategory(null)
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+            <DialogDescription>
+              Update this category. Changes will reflect wherever the category is used.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingCategory && (
+            <div className="space-y-4 py-4">
+              {/* Name */}
+              <div className="space-y-2">
+                <Label htmlFor="edit_name">
+                  Name <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="edit_name"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  placeholder="Category name"
+                  className={editErrors.name ? 'border-red-500' : ''}
+                />
+                {editErrors.name && <p className="text-sm text-red-600">{editErrors.name}</p>}
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="edit_description">Description</Label>
+                <Textarea
+                  id="edit_description"
+                  value={editFormData.description}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, description: e.target.value })
+                  }
+                  placeholder="Category description"
+                  rows={3}
+                />
+              </div>
+
+              {/* Parent Category */}
+              <div className="space-y-2">
+                <Label htmlFor="edit_parent_id">Parent Category</Label>
+                <Select
+                  value={editFormData.parent_id?.toString() || 'none'}
+                  onValueChange={(value) =>
+                    setEditFormData({
+                      ...editFormData,
+                      parent_id: value === 'none' ? null : parseInt(value),
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select parent category (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Root Category)</SelectItem>
+                    {allCategories
+                      .filter((cat) => cat.id !== editingCategory.id)
+                      .map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id.toString()}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Category Type */}
+              <div className="space-y-2">
+                <Label htmlFor="edit_category_type">
+                  Category Type <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={editFormData.category_type}
+                  onValueChange={(value: 'product' | 'service' | 'job' | 'cv') =>
+                    setEditFormData({ ...editFormData, category_type: value })
+                  }
+                >
+                  <SelectTrigger className={editErrors.category_type ? 'border-red-500' : ''}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="product">Product</SelectItem>
+                    <SelectItem value="service">Service</SelectItem>
+                    <SelectItem value="job">Job</SelectItem>
+                    <SelectItem value="cv">CV</SelectItem>
+                  </SelectContent>
+                </Select>
+                {editErrors.category_type && (
+                  <p className="text-sm text-red-600">{editErrors.category_type}</p>
+                )}
+              </div>
+
+              {/* Category Image */}
+              <div className="space-y-2">
+                <ImageUploader
+                  value={editFormData.image_url}
+                  onChange={(value) =>
+                    setEditFormData({ ...editFormData, image_url: value || '' })
+                  }
+                  label="Category Image"
+                  maxSizeMB={5}
+                  aspectRatio="square"
+                />
+                <p className="text-xs text-gray-500">
+                  Upload an image for this category. If no image is provided, a skeleton
+                  placeholder will be shown.
+                </p>
+              </div>
+
+              {/* Sort Order */}
+              <div className="space-y-2">
+                <Label htmlFor="edit_sort_order">Sort Order</Label>
+                <Input
+                  id="edit_sort_order"
+                  type="number"
+                  value={editFormData.sort_order}
+                  onChange={(e) =>
+                    setEditFormData({
+                      ...editFormData,
+                      sort_order: parseInt(e.target.value) || 0,
+                    })
+                  }
+                  min="0"
+                />
+              </div>
+
+              {/* Status */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="edit_is_active"
+                  checked={editFormData.is_active}
+                  onCheckedChange={(checked) =>
+                    setEditFormData({ ...editFormData, is_active: !!checked })
+                  }
+                />
+                <label htmlFor="edit_is_active" className="text-sm text-gray-700">
+                  Active
+                </label>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowEditModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateCategory}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
