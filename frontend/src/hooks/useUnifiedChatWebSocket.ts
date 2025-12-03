@@ -466,9 +466,22 @@ export const useUnifiedChatWebSocket = ({
           connectionHealthCheckRef.current = null
         }
 
-        // Handle authentication errors
-        if (event.code === 4001 || event.code === 403) {
-          console.warn('Unified chat WebSocket closed due to auth error, logging out')
+        // Handle authentication errors - ONLY logout on explicit 403 Forbidden
+        // Do NOT logout on connection errors (network issues, dormancy)
+        const isAuthError = 
+          event.code === 4001 || 
+          event.code === 403 ||
+          (event.reason && (
+            event.reason.includes('403') || 
+            event.reason.toLowerCase().includes('forbidden')
+          ))
+
+        if (isAuthError) {
+          console.warn('Unified chat WebSocket closed due to auth error (403 Forbidden), logging out', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean
+          })
           reconnectAttemptsRef.current = 0
           import('@/store/authStore').then(({ useAuthStore }) => {
             useAuthStore.getState().logout()
@@ -486,6 +499,15 @@ export const useUnifiedChatWebSocket = ({
             }
           })
           return
+        }
+        
+        // Log connection errors but don't logout
+        if (!event.wasClean && event.code !== 1000) {
+          console.log('WebSocket connection error (not auth-related, staying logged in):', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean
+          })
         }
 
         // Don't reconnect if it was a clean close (user logged out, etc.)

@@ -146,7 +146,8 @@ export default function CreateAdClient() {
     if (existingPath) {
       setCategoryPath(existingPath)
       const node = findNodeBySlug(categoryTree, formData.category)
-      setCustomFields(node?.custom_fields || [])
+      // Use customFields (camelCase) first, fallback to custom_fields (snake_case) for compatibility
+      setCustomFields(node?.customFields || node?.custom_fields || [])
     }
   }, [categoryTree, formData.category, findPathForSlug, findNodeBySlug])
 

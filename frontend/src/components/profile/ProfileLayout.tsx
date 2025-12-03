@@ -87,7 +87,12 @@ export default function ProfileLayout({
   }
 
   const joinedDays = getJoinedDays(user.date_joined)
-  const sellerProfileComplete = Boolean(user.is_seller_account_setup)
+  // Seller profile is complete if phone, location (region), and address are set
+  const sellerProfileComplete = Boolean(
+    user.phone && 
+    user.location && 
+    user.address
+  )
 
   // Fetch user ads from API - backend handles showing all statuses for owner, only published for others
   const { data: backendAds, isLoading: adsLoading } = useUserAds(user.id)

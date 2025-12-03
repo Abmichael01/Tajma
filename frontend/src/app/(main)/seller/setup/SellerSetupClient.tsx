@@ -16,8 +16,8 @@ import ProgressStepper from '@/components/create-ad/ProgressStepper'
 import { useAuthStore } from '@/store/authStore'
 import { useUpdateProfile, useCSRFToken } from '@/hooks/useAuth'
 import { toast } from 'sonner'
-import { nigerRegions } from '@/data/categoriesData'
-import { Phone, MapPin, Check, Building2, Globe, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react'
+import { useRegions } from '@/hooks/useRegions'
+import { Phone, MapPin, Check, Building2, Globe, ArrowLeft, ArrowRight, CheckCircle, Loader2 } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 
 const businessTypes = [
@@ -35,9 +35,17 @@ export default function SellerSetupClient() {
   const updateProfile = useUpdateProfile()
   const { data: csrfData } = useCSRFToken()
 
+  const { data: regions, isLoading: regionsLoading } = useRegions()
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 3
   const [isLoading, setIsLoading] = useState(true)
+
+  // Get region ID from user location by matching region name
+  const getUserRegionId = () => {
+    if (!user?.location || !regions) return ''
+    const matchingRegion = regions.find(r => r.name === user.location)
+    return matchingRegion?.id.toString() || ''
+  }
 
   const [formData, setFormData] = useState({
     phone: user?.phone || '',
@@ -49,6 +57,16 @@ export default function SellerSetupClient() {
     website: user?.website || '',
     bio: user?.bio || ''
   })
+
+  // Update region when regions are loaded
+  useEffect(() => {
+    if (regions && user?.location && !formData.region) {
+      const regionId = getUserRegionId()
+      if (regionId) {
+        setFormData(prev => ({ ...prev, region: regionId }))
+      }
+    }
+  }, [regions, user?.location])
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [generalError, setGeneralError] = useState<string | null>(null)
@@ -161,15 +179,10 @@ export default function SellerSetupClient() {
     setGeneralError(null)
 
     try {
-      // Build location string
-      const location = formData.region ? 
-        `${formData.city ? formData.city + ', ' : ''}${formData.region}` : 
-        formData.city || ''
-
       // Update profile with seller information
       await updateProfile.mutateAsync({
         phone: formData.phone,
-        location: location || undefined,
+        location: formData.region ? parseInt(formData.region) : undefined,
         address: formData.address || undefined,
         business_name: formData.businessName || undefined,
         business_type: formData.businessType || undefined,
@@ -259,18 +272,25 @@ export default function SellerSetupClient() {
           <label htmlFor="region" className="block text-sm font-medium text-gray-700">
             Region <span className="text-red-500">*</span>
           </label>
-          <Select value={formData.region} onValueChange={handleRegionChange}>
-            <SelectTrigger className={errors.region ? 'border-red-500' : ''}>
-              <SelectValue placeholder="Select your region" />
-            </SelectTrigger>
-            <SelectContent>
-              {nigerRegions.map((region) => (
-                <SelectItem key={region.value} value={region.value}>
-                  {region.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {regionsLoading ? (
+            <div className="flex items-center gap-2 py-2">
+              <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+              <span className="text-sm text-gray-500">Loading regions...</span>
+            </div>
+          ) : (
+            <Select value={formData.region} onValueChange={handleRegionChange}>
+              <SelectTrigger className={errors.region ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select your region" />
+              </SelectTrigger>
+              <SelectContent>
+                {regions?.map((region) => (
+                  <SelectItem key={region.id} value={region.id.toString()}>
+                    {region.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           {errors.region && <p className="mt-1 text-sm text-red-600">{errors.region}</p>}
         </div>
       </div>
@@ -421,7 +441,9 @@ export default function SellerSetupClient() {
             </div>
             <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <dt className="font-medium text-gray-600 mb-1 sm:mb-0">Region</dt>
-              <dd className="text-gray-900 font-medium capitalize">{formData.region || '—'}</dd>
+              <dd className="text-gray-900 font-medium capitalize">
+                {formData.region ? regions?.find(r => r.id.toString() === formData.region)?.name || '—' : '—'}
+              </dd>
             </div>
             <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <dt className="font-medium text-gray-600 mb-1 sm:mb-0">City / Area</dt>

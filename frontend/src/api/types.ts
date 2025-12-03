@@ -70,7 +70,7 @@ export interface ProfileUpdateRequest {
   last_name?: string
   avatar?: string
   phone?: string
-  location?: string
+  location?: number | string
   address?: string
   business_name?: string
   business_type?: string

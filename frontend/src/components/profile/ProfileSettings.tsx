@@ -9,9 +9,12 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useUpdateProfile, useChangePassword } from '@/hooks/useAuth'
+import { useRegions } from '@/hooks/useRegions'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 import {
   Shield,
   Camera,
@@ -31,13 +34,14 @@ interface ProfileSettingsProps {
 const profileSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
-  username: z.string().min(1, 'Username is required'),
+  username: z.string().optional(), // Username is kept in form but not editable/required
   phone: z
     .string()
     .max(20, 'Phone number is too long')
     .optional()
     .or(z.literal('')),
-  location: z.string().max(255, 'Location is too long').optional().or(z.literal('')),
+  location: z.string().optional().or(z.literal('')),
+  address: z.string().max(500, 'Address is too long').optional().or(z.literal('')),
 })
 
 const passwordSchema = z
@@ -57,12 +61,20 @@ type PasswordFormValues = z.infer<typeof passwordSchema>
 export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
   const updateProfile = useUpdateProfile()
   const changePassword = useChangePassword()
+  const { data: regions, isLoading: regionsLoading } = useRegions()
   
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
+
+  // Get region ID from user location by matching region name
+  const getUserRegionId = () => {
+    if (!user?.location || !regions) return ''
+    const matchingRegion = regions.find(r => r.name === user.location)
+    return matchingRegion?.id.toString() || ''
+  }
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -71,7 +83,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
       last_name: user.last_name || '',
       username: user.username || '',
       phone: user.phone || '',
-      location: user.location || '',
+      location: getUserRegionId(),
+      address: user.address || '',
     },
   })
 
@@ -85,45 +98,55 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
   })
 
   useEffect(() => {
+    const regionId = getUserRegionId()
     profileForm.reset({
       first_name: user.first_name || '',
       last_name: user.last_name || '',
       username: user.username || '',
       phone: user.phone || '',
-      location: user.location || '',
+      location: regionId,
+      address: user.address || '',
     })
-  }, [user, profileForm])
+  }, [user, profileForm, regions])
 
-  const profileFieldNames: Array<keyof ProfileFormValues> = ['first_name', 'last_name', 'username', 'phone', 'location']
+  const profileFieldNames: Array<keyof ProfileFormValues> = ['first_name', 'last_name', 'phone', 'location', 'address']
   const passwordFieldNames: Array<keyof PasswordFormValues> = ['old_password', 'new_password', 'new_password_confirm']
 
   const handleProfileSubmit = profileForm.handleSubmit(async (values) => {
     const payload = {
       first_name: values.first_name.trim(),
       last_name: values.last_name.trim(),
-      username: values.username.trim(),
+      // Username is not included - users cannot change their username
       phone: values.phone?.trim() || undefined,
-      location: values.location?.trim() || undefined,
+      location: values.location ? parseInt(values.location) : undefined,
+      address: values.address?.trim() || undefined,
     }
 
     try {
       await updateProfile.mutateAsync(payload)
       toast.success('Profile updated successfully')
+      
+      // Get region name for display
+      const selectedRegion = regions?.find(r => r.id === payload.location)
+      const locationDisplay = selectedRegion?.name || ''
+      
       profileForm.reset({
         first_name: payload.first_name,
         last_name: payload.last_name,
-        username: payload.username,
+        username: user.username || '',
         phone: payload.phone || '',
-        location: payload.location || '',
+        location: payload.location?.toString() || '',
+        address: payload.address || '',
       })
       const userPatch: Partial<User> = {
         first_name: payload.first_name,
         last_name: payload.last_name,
-        username: payload.username,
+        // Username is not updated - users cannot change their username
       }
 
       userPatch.phone = payload.phone !== undefined ? payload.phone : null
-      userPatch.location = payload.location !== undefined ? payload.location : null
+      userPatch.location = locationDisplay || null
+      userPatch.address = payload.address || null
 
       onUpdateUser?.(userPatch)
     } catch (error: any) {
@@ -237,21 +260,18 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                   </FormItem>
                 )}
               />
-              <FormField
-                control={profileForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Username <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input type="text" placeholder="Choose a username" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Username
+                </label>
+                <Input 
+                  type="text" 
+                  value={user.username || ''} 
+                  disabled 
+                  className="bg-gray-50 cursor-not-allowed" 
+                />
+                <p className="mt-1 text-xs text-gray-500">Username cannot be changed</p>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                 <Input type="email" value={user.email} disabled className="bg-gray-50 cursor-not-allowed" />
@@ -275,9 +295,43 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>Region</FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="e.g., Lagos, Nigeria" {...field} />
+                      {regionsLoading ? (
+                        <div className="flex items-center gap-2 py-2">
+                          <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                          <span className="text-sm text-gray-500">Loading regions...</span>
+                        </div>
+                      ) : (
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your region" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {regions?.map((region) => (
+                              <SelectItem key={region.id} value={region.id.toString()}>
+                                {region.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="e.g., 123 Main Street" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -303,15 +357,17 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
               <Button 
                 type="button" 
                 variant="ghost"
-                onClick={() =>
+                onClick={() => {
+                  const regionId = getUserRegionId()
                   profileForm.reset({
                     first_name: user.first_name || '',
                     last_name: user.last_name || '',
-                    username: user.username || '',
+                    username: user.username || '', // Keep for form state but not editable
                     phone: user.phone || '',
-                    location: user.location || '',
+                    location: regionId,
+                    address: user.address || '',
                   })
-                }
+                }}
               >
                 Cancel
               </Button>

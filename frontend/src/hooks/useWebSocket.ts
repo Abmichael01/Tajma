@@ -182,20 +182,15 @@ export const useNotificationWebSocket = () => {
           console.log('Notification WebSocket disconnected', closeInfo)
         }
         
-        // Handle authentication errors
-        // Check for 403 close code, or if reason contains "403" or "Forbidden"
+        // Handle authentication errors - ONLY logout on explicit 403 Forbidden
+        // Do NOT logout on connection errors (1006, 1002, network issues, dormancy)
         const isAuthError = 
           event.code === 4001 || 
           event.code === 403 ||
           (event.reason && (
             event.reason.includes('403') || 
-            event.reason.toLowerCase().includes('forbidden') ||
-            event.reason.toLowerCase().includes('authentication') ||
-            event.reason.toLowerCase().includes('unauthorized')
-          )) ||
-          // 1006 = Abnormal Closure (often happens with HTTP 403)
-          // 1002 = Protocol Error (might indicate auth failure)
-          (event.code === 1006 && !event.wasClean && wsRef.current?.readyState === WebSocket.CLOSED)
+            event.reason.toLowerCase().includes('forbidden')
+          ))
         
         if (isAuthError) {
           console.warn('Notification WebSocket closed due to auth error (403 Forbidden), logging out', {
@@ -220,6 +215,15 @@ export const useNotificationWebSocket = () => {
             }
           })
           return // Don't reconnect on auth errors
+        }
+        
+        // Log connection errors but don't logout
+        if (!event.wasClean && event.code !== 1000) {
+          console.log('WebSocket connection error (not auth-related, staying logged in):', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean
+          })
         }
         
         // Don't reconnect if it was a clean close (normal disconnection)

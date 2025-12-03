@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,8 +17,8 @@ import { useAuthStore } from '@/store/authStore'
 import { useUpdateProfile, useCSRFToken, useCurrentUser } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { nigerRegions } from '@/data/categoriesData'
-import { UserCircle, Phone, MapPin } from 'lucide-react'
+import { useRegions } from '@/hooks/useRegions'
+import { UserCircle, Phone, MapPin, Loader2 } from 'lucide-react'
 
 interface CompleteProfileDialogProps {
   isOpen: boolean
@@ -34,7 +34,16 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
   const queryClient = useQueryClient()
   const { refetch: refetchUser } = useCurrentUser()
 
+  const { data: regions, isLoading: regionsLoading } = useRegions()
   const [showInlineForm, setShowInlineForm] = useState(showForm)
+  
+  // Get region ID from user location by matching region name
+  const getUserRegionId = () => {
+    if (!user?.location || !regions) return ''
+    const matchingRegion = regions.find(r => r.name === user.location)
+    return matchingRegion?.id.toString() || ''
+  }
+  
   const [formData, setFormData] = useState({
     phone: user?.phone || '',
     region: '',
@@ -46,6 +55,16 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
     bio: user?.bio || ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Update region when regions are loaded
+  useEffect(() => {
+    if (regions && user?.location && !formData.region) {
+      const regionId = getUserRegionId()
+      if (regionId) {
+        setFormData(prev => ({ ...prev, region: regionId }))
+      }
+    }
+  }, [regions, user?.location])
 
   const handleCompleteProfile = () => {
     if (showInlineForm) {
@@ -112,13 +131,9 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
     }
 
     try {
-      const location = formData.region ? 
-        `${formData.city ? formData.city + ', ' : ''}${formData.region}` : 
-        formData.city || ''
-
       await updateProfile.mutateAsync({
         phone: formData.phone,
-        location: location || undefined,
+        location: formData.region ? parseInt(formData.region) : undefined,
         address: formData.address || undefined,
         business_name: formData.businessName || undefined,
         business_type: formData.businessType || undefined,
@@ -199,18 +214,25 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
                   <label htmlFor="region" className="block text-sm font-medium text-gray-700 mb-1">
                     Region <span className="text-red-500">*</span>
                   </label>
-                  <Select value={formData.region} onValueChange={handleRegionChange}>
-                    <SelectTrigger className={errors.region ? 'border-red-500' : ''}>
-                      <SelectValue placeholder="Select your region" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {nigerRegions.map((region) => (
-                        <SelectItem key={region.value} value={region.value}>
-                          {region.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {regionsLoading ? (
+                    <div className="flex items-center gap-2 py-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                      <span className="text-sm text-gray-500">Loading regions...</span>
+                    </div>
+                  ) : (
+                    <Select value={formData.region} onValueChange={handleRegionChange}>
+                      <SelectTrigger className={errors.region ? 'border-red-500' : ''}>
+                        <SelectValue placeholder="Select your region" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regions?.map((region) => (
+                          <SelectItem key={region.id} value={region.id.toString()}>
+                            {region.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                   {errors.region && <p className="mt-1 text-sm text-red-600">{errors.region}</p>}
                 </div>
 
