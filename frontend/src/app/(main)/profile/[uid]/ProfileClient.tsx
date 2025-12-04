@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import ProfileLayout from '@/components/profile/ProfileLayout'
 import { Button } from '@/components/ui/button'
+import BackButton from '@/components/ui/BackButton'
 import { UserX } from 'lucide-react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import { notificationsApi } from '@/api/notifications'
@@ -152,6 +153,11 @@ export default function ProfileClient({ uid }: ProfileClientProps) {
 
   return (
     <div className="bg-white min-h-screen">
+      <div className="container pt-4 sm:pt-6">
+        <div className="">
+          <BackButton />
+        </div>
+      </div>
       <ProfileLayout
         user={currentProfile}
         profileSlug={getProfileSlug(currentProfile)}

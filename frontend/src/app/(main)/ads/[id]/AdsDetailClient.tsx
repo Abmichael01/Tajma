@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import BackButton from '@/components/ui/BackButton'
 import { useAdDetails } from '@/hooks/useAds'
 import { useAuthStore } from '@/store/authStore'
 import { useToggleSaveAd } from '@/hooks/useSavedAds'
@@ -234,6 +235,11 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
   return (
     <div className="min-h-screen bg-white py-4 sm:py-8">
       <div className="container">
+        {/* Back Button */}
+        <div className="mb-4 sm:mb-6">
+          <BackButton />
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column - All Content (Desktop) */}
           <div className="hidden lg:flex lg:flex-col lg:col-span-2 lg:space-y-6">

@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 import FiltersSection, { FilterGroup } from '@/components/ui/FiltersSection'
 import AdsList from '@/components/Home/AdsList'
 import AdsListSkeleton from '@/components/ui/AdsListSkeleton'
+import BackButton from '@/components/ui/BackButton'
 import { useAdsList } from '@/hooks/useAds'
 import { useCategories } from '@/hooks/useCategories'
 import { searchFilters, getFiltersByCategory } from '@/data/filterConfigs'
@@ -251,6 +252,11 @@ export default function AdsListingLayout({
   return (
     <div className="bg-white min-h-screen">
       <div className="container py-4 sm:py-6 lg:py-8">
+        {/* Back Button */}
+        <div className="mb-4 sm:mb-6">
+          <BackButton />
+        </div>
+        
         {/* Page Header */}
         {(title || subtitle || categoryName) && (
           <div className="mb-6">
