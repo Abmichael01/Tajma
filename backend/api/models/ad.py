@@ -33,7 +33,7 @@ class Ad(models.Model):
     ad_type = models.CharField(max_length=20, choices=Category.CATEGORY_TYPES)
     description = models.TextField()
     price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    currency = models.CharField(max_length=8, default='NGN')
+    currency = models.CharField(max_length=8, default='XOF')
     is_negotiable = models.BooleanField(default=False)
     attributes = models.JSONField(default=dict, blank=True)
     images = models.JSONField(default=list, blank=True)

@@ -203,7 +203,7 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
                       value={formData.phone}
                       onChange={handleInputChange}
                       className={`pl-10 ${errors.phone ? 'border-red-500' : ''}`}
-                      placeholder="+234 801 234 5678"
+                      placeholder="+227 92 64 99 99"
                     />
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>

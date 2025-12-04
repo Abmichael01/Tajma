@@ -234,10 +234,10 @@ export default function PrivacyClient() {
                 <strong>Email:</strong> privacy@tajma.com
               </p>
               <p className="text-gray-600 mb-2">
-                <strong>Phone:</strong> +234 800 TAJMA (82562)
+                <strong>Phone:</strong> +227 92 64 99 99
               </p>
               <p className="text-gray-600">
-                <strong>Address:</strong> Lagos, Nigeria
+                <strong>Address:</strong> Niamey, Niger
               </p>
             </div>
           </section>

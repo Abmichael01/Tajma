@@ -35,11 +35,11 @@ export const searchFilters: FilterGroup[] = [
     defaultExpanded: true,
     options: [
       { id: "any", label: "Any Price" },
-      { id: "0-50000", label: "₦0 - ₦50,000" },
-      { id: "50000-200000", label: "₦50,000 - ₦200,000" },
-      { id: "200000-500000", label: "₦200,000 - ₦500,000" },
-      { id: "500000-1000000", label: "₦500,000 - ₦1M" },
-      { id: "1000000+", label: "₦1M+" },
+      { id: "0-50000", label: "Fr 0 - Fr 50,000" },
+      { id: "50000-200000", label: "Fr 50,000 - Fr 200,000" },
+      { id: "200000-500000", label: "Fr 200,000 - Fr 500,000" },
+      { id: "500000-1000000", label: "Fr 500,000 - Fr 1M" },
+      { id: "1000000+", label: "Fr 1M+" },
     ]
   },
   {
@@ -124,11 +124,11 @@ export const electronicsFilters: FilterGroup[] = [
     defaultExpanded: true,
     options: [
       { id: "any", label: "Any Price" },
-      { id: "0-50000", label: "₦0 - ₦50,000" },
-      { id: "50000-150000", label: "₦50,000 - ₦150,000" },
-      { id: "150000-300000", label: "₦150,000 - ₦300,000" },
-      { id: "300000-500000", label: "₦300,000 - ₦500,000" },
-      { id: "500000+", label: "₦500,000+" },
+      { id: "0-50000", label: "Fr 0 - Fr 50,000" },
+      { id: "50000-150000", label: "Fr 50,000 - Fr 150,000" },
+      { id: "150000-300000", label: "Fr 150,000 - Fr 300,000" },
+      { id: "300000-500000", label: "Fr 300,000 - Fr 500,000" },
+      { id: "500000+", label: "Fr 500,000+" },
     ]
   },
   {
@@ -212,11 +212,11 @@ export const vehiclesFilters: FilterGroup[] = [
     defaultExpanded: true,
     options: [
       { id: "any", label: "Any Price" },
-      { id: "0-500000", label: "₦0 - ₦500,000" },
-      { id: "500000-1500000", label: "₦500,000 - ₦1.5M" },
-      { id: "1500000-3000000", label: "₦1.5M - ₦3M" },
-      { id: "3000000-5000000", label: "₦3M - ₦5M" },
-      { id: "5000000+", label: "₦5M+" },
+      { id: "0-500000", label: "Fr 0 - Fr 500,000" },
+      { id: "500000-1500000", label: "Fr 500,000 - Fr 1.5M" },
+      { id: "1500000-3000000", label: "Fr 1.5M - Fr 3M" },
+      { id: "3000000-5000000", label: "Fr 3M - Fr 5M" },
+      { id: "5000000+", label: "Fr 5M+" },
     ]
   }
 ]

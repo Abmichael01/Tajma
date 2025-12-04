@@ -284,7 +284,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="+234 801 234 5678" {...field} />
+                      <Input type="tel" placeholder="+227 92 64 99 99" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

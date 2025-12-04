@@ -175,7 +175,7 @@ export default function TermsClient() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Governing Law</h2>
             <p className="text-gray-600 leading-relaxed">
-              These Terms and Conditions shall be governed by and construed in accordance with the laws of the Federal Republic of Nigeria. Any disputes arising from these terms shall be subject to the exclusive jurisdiction of the courts of Nigeria.
+              These Terms and Conditions shall be governed by and construed in accordance with the laws of the Republic of Niger. Any disputes arising from these terms shall be subject to the exclusive jurisdiction of the courts of Niger.
             </p>
           </section>
 
@@ -190,10 +190,10 @@ export default function TermsClient() {
                 <strong>Email:</strong> legal@tajma.com
               </p>
               <p className="text-gray-600 mb-2">
-                <strong>Phone:</strong> +234 800 TAJMA (82562)
+                <strong>Phone:</strong> +227 92 64 99 99
               </p>
               <p className="text-gray-600">
-                <strong>Address:</strong> Lagos, Nigeria
+                <strong>Address:</strong> Niamey, Niger
               </p>
             </div>
           </section>

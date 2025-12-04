@@ -107,7 +107,7 @@ export default function ContactClient() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Call Us</h3>
             <p className="text-gray-600 text-sm mb-2">
-              +234 800 TAJMA (82562)
+              +227 92 64 99 99
             </p>
             <p className="text-gray-500 text-xs">
               Mon-Fri: 8am - 8pm WAT
@@ -120,10 +120,10 @@ export default function ContactClient() {
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Visit Us</h3>
             <p className="text-gray-600 text-sm mb-2">
-              123 Marketplace Ave, Lagos
+              Niamey, Niger
             </p>
             <p className="text-gray-500 text-xs">
-              Nigeria
+              Niger
             </p>
           </div>
         </div>

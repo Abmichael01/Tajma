@@ -27,7 +27,7 @@ export const mockAds: Ad[] = [
   {
     id: "1",
     title: "iPhone 14 Pro Max 256GB - Space Black",
-    price: "₦850,000",
+    price: "Fr 850,000",
     location: "Victoria Island, Niamey",
     region: "niamey",
     city: "Victoria Island",
@@ -45,7 +45,7 @@ export const mockAds: Ad[] = [
   {
     id: "4",
     title: "MacBook Pro M2 14-inch - Like New",
-    price: "₦1,200,000",
+    price: "Fr 1,200,000",
     location: "Surulere, Niamey",
     region: "niamey",
     city: "Surulere",
@@ -63,7 +63,7 @@ export const mockAds: Ad[] = [
   {
     id: "5",
     title: "Samsung Galaxy S23 Ultra 512GB",
-    price: "₦950,000",
+    price: "Fr 950,000",
     location: "Gbagada, Niamey",
     region: "niamey",
     city: "Gbagada",
@@ -81,7 +81,7 @@ export const mockAds: Ad[] = [
   {
     id: "8",
     title: "Dell XPS 13 Laptop - 2023 Model",
-    price: "₦780,000",
+    price: "Fr 780,000",
     location: "Yaba, Niamey",
     region: "niamey",
     city: "Yaba",
@@ -99,7 +99,7 @@ export const mockAds: Ad[] = [
   {
     id: "11",
     title: "Sony PlayStation 5 - Brand New",
-    price: "₦450,000",
+    price: "Fr 450,000",
     location: "Alaba, Niamey",
     region: "niamey",
     city: "Alaba",
@@ -119,7 +119,7 @@ export const mockAds: Ad[] = [
   {
     id: "2",
     title: "Toyota Camry 2020 - Clean Title",
-    price: "₦8,500,000",
+    price: "Fr 8,500,000",
     location: "Ikoyi, Niamey",
     region: "niamey",
     city: "Ikoyi",
@@ -137,7 +137,7 @@ export const mockAds: Ad[] = [
   {
     id: "6",
     title: "Honda Accord 2019 - Excellent Condition",
-    price: "₦6,800,000",
+    price: "Fr 6,800,000",
     location: "Ikeja, Niamey",
     region: "niamey",
     city: "Ikeja",
@@ -155,7 +155,7 @@ export const mockAds: Ad[] = [
   {
     id: "9",
     title: "Mercedes Benz C-Class 2021",
-    price: "₦15,500,000",
+    price: "Fr 15,500,000",
     location: "Ikoyi, Niamey",
     region: "niamey",
     city: "Ikoyi",
@@ -173,7 +173,7 @@ export const mockAds: Ad[] = [
   {
     id: "12",
     title: "Nissan Altima 2020 - Clean Title",
-    price: "₦4,200,000",
+    price: "Fr 4,200,000",
     location: "Ojodu, Niamey",
     region: "niamey",
     city: "Ojodu",
@@ -193,7 +193,7 @@ export const mockAds: Ad[] = [
   {
     id: "3",
     title: "3 Bedroom Apartment for Rent",
-    price: "₦2,500,000/yr",
+    price: "Fr 2,500,000/yr",
     location: "Lekki Phase 1, Niamey",
     region: "niamey",
     city: "Lekki",
@@ -209,7 +209,7 @@ export const mockAds: Ad[] = [
   {
     id: "7",
     title: "2 Bedroom Duplex for Sale",
-    price: "₦45,000,000",
+    price: "Fr 45,000,000",
     location: "Banana Island, Niamey",
     region: "niamey",
     city: "Banana Island",
@@ -225,7 +225,7 @@ export const mockAds: Ad[] = [
   {
     id: "10",
     title: "Studio Apartment for Rent",
-    price: "₦800,000/yr",
+    price: "Fr 800,000/yr",
     location: "Magodo, Niamey",
     region: "niamey",
     city: "Magodo",
@@ -243,7 +243,7 @@ export const mockAds: Ad[] = [
   {
     id: "13",
     title: "Nike Air Jordan 1 - Size 42",
-    price: "₦85,000",
+    price: "Fr 85,000",
     location: "Surulere, Niamey",
     region: "niamey",
     city: "Surulere",
@@ -261,7 +261,7 @@ export const mockAds: Ad[] = [
   {
     id: "14",
     title: "Gucci Handbag - Authentic",
-    price: "₦350,000",
+    price: "Fr 350,000",
     location: "Victoria Island, Niamey",
     region: "niamey",
     city: "Victoria Island",
@@ -281,7 +281,7 @@ export const mockAds: Ad[] = [
   {
     id: "15",
     title: "Modern L-Shaped Sofa - Grey",
-    price: "₦280,000",
+    price: "Fr 280,000",
     location: "Ikeja, Niamey",
     region: "niamey",
     city: "Ikeja",
@@ -298,7 +298,7 @@ export const mockAds: Ad[] = [
   {
     id: "16",
     title: "LG 43 Inch Smart TV - 4K",
-    price: "₦250,000",
+    price: "Fr 250,000",
     location: "Yaba, Niamey",
     region: "niamey",
     city: "Yaba",
@@ -318,7 +318,7 @@ export const mockAds: Ad[] = [
   {
     id: "17",
     title: "iPhone 13 Pro 128GB",
-    price: "₦650,000",
+    price: "Fr 650,000",
     location: "Wuse 2, Abuja",
     region: "niamey",
     city: "Wuse 2",
@@ -336,7 +336,7 @@ export const mockAds: Ad[] = [
   {
     id: "18",
     title: "Honda CRV 2021",
-    price: "₦12,000,000",
+    price: "Fr 12,000,000",
     location: "Maitama, Abuja",
     region: "niamey",
     city: "Maitama",
@@ -356,7 +356,7 @@ export const mockAds: Ad[] = [
   {
     id: "19",
     title: "Adidas Ultraboost Running Shoes",
-    price: "₦45,000",
+    price: "Fr 45,000",
     location: "Gbagada, Niamey",
     region: "niamey",
     city: "Gbagada",
@@ -374,7 +374,7 @@ export const mockAds: Ad[] = [
   {
     id: "20",
     title: "Gym Equipment Set - Home Workout",
-    price: "₦120,000",
+    price: "Fr 120,000",
     location: "Lekki, Niamey",
     region: "niamey",
     city: "Lekki",
@@ -440,7 +440,7 @@ export const filterAds = (
 
     // Price range filter
     if (filters.priceRange) {
-      const priceNum = parseInt(ad.price.replace(/[₦,]/g, ''))
+      const priceNum = parseInt(ad.price.replace(/[Fr,\s]/g, ''))
       if (filters.priceRange.min && priceNum < filters.priceRange.min) {
         return false
       }

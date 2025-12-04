@@ -143,12 +143,12 @@ export default function AdsListingLayout({
       const priceRange = filters.price as string
       // Parse price range: "0-50000", "50000-200000", "1000000+", etc.
       if (priceRange.includes('-')) {
-        const [min, max] = priceRange.split('-').map(p => parseInt(p.replace(/[₦,]/g, ''), 10))
+        const [min, max] = priceRange.split('-').map(p => parseInt(p.replace(/[Fr,\s]/g, ''), 10))
         if (!isNaN(min)) params.min_price = min
         if (!isNaN(max)) params.max_price = max
       } else if (priceRange.endsWith('+')) {
         // Handle "1000000+" format
-        const min = parseInt(priceRange.replace(/[₦,+]/g, ''), 10)
+        const min = parseInt(priceRange.replace(/[Fr,+]/g, ''), 10)
         if (!isNaN(min)) params.min_price = min
       }
     }

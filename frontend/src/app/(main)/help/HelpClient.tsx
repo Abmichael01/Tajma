@@ -66,13 +66,13 @@ const faqs: FAQItem[] = [
     id: 9,
     category: 'Selling',
     question: 'How quickly will my ad appear?',
-    answer: 'Your ad goes live immediately after posting! It will appear in search results and category listings right away, making it visible to potential buyers across Nigeria.'
+    answer: 'Your ad goes live immediately after posting! It will appear in search results and category listings right away, making it visible to potential buyers across Niger.'
   },
   {
     id: 10,
     category: 'Selling',
     question: 'What items cannot be sold on Tajma?',
-    answer: 'We prohibit illegal items, weapons, drugs, counterfeit goods, adult content, and anything that violates Nigerian law. Check our Terms & Conditions for the complete list of prohibited items.'
+    answer: 'We prohibit illegal items, weapons, drugs, counterfeit goods, adult content, and anything that violates Niger law. Check our Terms & Conditions for the complete list of prohibited items.'
   },
   {
     id: 11,

@@ -49,7 +49,7 @@ export default function Footer({ className = '' }: FooterProps) {
               <Logo />
             </div>
             <p className="text-sm text-gray-400 mb-6">
-              Nigeria's trusted online marketplace. Buy, sell, and discover amazing deals every day.
+              Niger's trusted online marketplace. Buy, sell, and discover amazing deals every day.
             </p>
             
             {/* Contact Info */}
