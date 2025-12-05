@@ -306,15 +306,21 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
       console.log('✅ Setting avatar file state')
       setAvatarFile(file)
       
-      // Create preview from file
+      // Create preview from file immediately
       const reader = new FileReader()
       reader.onload = (event) => {
         const base64 = event.target?.result as string
         console.log('✅ Avatar preview created, base64 length:', base64?.length)
-        setAvatarPreview(base64)
+        console.log('✅ Base64 preview starts with:', base64?.substring(0, 30))
+        if (base64) {
+          setAvatarPreview(base64)
+          console.log('✅ Avatar preview state updated')
+        } else {
+          console.error('❌ Base64 string is empty')
+        }
       }
-      reader.onerror = () => {
-        console.error('❌ Failed to read image file')
+      reader.onerror = (error) => {
+        console.error('❌ Failed to read image file:', error)
         toast.error('Failed to read image file')
       }
       reader.readAsDataURL(file)
@@ -370,31 +376,48 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
       
       <div className="bg-white border border-gray-200 p-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="relative group">
-            <Avatar className="w-16 h-16">
-              <AvatarImage src={normalizeAvatarUrl(avatarPreview) || undefined} alt={fullName} />
-              <AvatarFallback className="bg-secondary text-secondary-foreground text-lg">
-                {getUserInitials(user)}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex flex-col items-center gap-2">
+            {(() => {
+              const avatarSrc = avatarPreview 
+                ? (avatarPreview.startsWith('data:') ? avatarPreview : normalizeAvatarUrl(avatarPreview))
+                : (user.avatar ? normalizeAvatarUrl(user.avatar) : null)
+              
+              if (avatarSrc) {
+                return (
+                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100">
+                    <img
+                      src={avatarSrc}
+                      alt={fullName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('❌ Avatar image failed to load')
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                      }}
+                      onLoad={() => {
+                        console.log('✅ Avatar image loaded successfully')
+                      }}
+                    />
+                  </div>
+                )
+              }
+              
+              return (
+                <Avatar className="w-16 h-16">
+                  <AvatarFallback className="bg-secondary text-secondary-foreground text-lg">
+                    {getUserInitials(user)}
+                  </AvatarFallback>
+                </Avatar>
+              )
+            })()}
             <button
               type="button"
               onClick={handleAvatarClick}
-              className="absolute bottom-0 right-0 bg-secondary text-secondary-foreground p-1 rounded-full hover:bg-secondary/90 transition-colors"
-              title="Change profile image"
+              className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 transition-colors"
             >
               <Camera className="w-3 h-3" />
+              <span>Change Photo</span>
             </button>
-            {avatarPreview && (
-              <button
-                type="button"
-                onClick={handleRemoveAvatar}
-                className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                title="Remove profile image"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
             <input
               ref={avatarInputRef}
               type="file"
