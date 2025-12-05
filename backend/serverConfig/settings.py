@@ -218,6 +218,9 @@ CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = ENVIRONMENT == 'production'  # Set to True in production with HTTPS
+SESSION_COOKIE_AGE = 604800  # 7 days (1 week) in seconds
+SESSION_SAVE_EVERY_REQUEST = True  # Renew session on each request (extends expiry time)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser closes
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 CSRF_COOKIE_SAMESITE = 'Lax'
 csrf_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000')

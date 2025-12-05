@@ -236,7 +236,7 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
     <div className="min-h-screen bg-white py-4 sm:py-8">
       <div className="container">
         {/* Back Button */}
-        <div className="mb-4 sm:mb-6">
+        <div className="hidden md:block mb-4 sm:mb-6">
           <BackButton />
         </div>
         

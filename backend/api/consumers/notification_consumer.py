@@ -21,7 +21,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         # Only allow authenticated users
         if not self.user or self.user.is_anonymous:
             logger.warning("WebSocket connection rejected: User is anonymous")
-            await self.close(code=4001)  # 4001 = Unauthorized
+            # Accept first to ensure close code is transmitted properly
+            await self.accept()
+            await self.close(code=4001, reason="User is anonymous")
             return
         
         # Create a unique group name for this user

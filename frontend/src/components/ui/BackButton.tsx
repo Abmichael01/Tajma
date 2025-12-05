@@ -25,7 +25,7 @@ export default function BackButton({ className = '', onClick }: BackButtonProps)
     <Button
       variant="outline"
       onClick={handleClick}
-      className={`rounded-full border flex items-center gap-2 ${className}`}
+      className={`hidden md:flex rounded-full border items-center gap-2 ${className}`}
     >
       <ArrowLeft className="w-4 h-4" />
       <span>Back</span>

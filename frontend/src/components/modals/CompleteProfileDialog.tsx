@@ -19,6 +19,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRegions } from '@/hooks/useRegions'
 import { UserCircle, Phone, MapPin, Loader2 } from 'lucide-react'
+import ImageUploader from '@/components/ui/ImageUploader'
 
 interface CompleteProfileDialogProps {
   isOpen: boolean
@@ -54,6 +55,7 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
     website: user?.website || '',
     bio: user?.bio || ''
   })
+  const [avatarBase64, setAvatarBase64] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Update region when regions are loaded
@@ -114,6 +116,11 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
       newErrors.address = 'Address is required'
     }
 
+    // Validate profile image - required if user doesn't have one already
+    if (!user?.avatar && !avatarBase64) {
+      newErrors.avatar = 'Profile image is required'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -139,6 +146,7 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
         business_type: formData.businessType || undefined,
         website: formData.website || undefined,
         bio: formData.bio || undefined,
+        avatar: avatarBase64 || undefined,
       })
 
       completeSellerSetup()
@@ -188,6 +196,31 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
 
         {showInlineForm ? (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Profile Image</h3>
+              <div className="mb-6">
+                <ImageUploader
+                  value={avatarBase64 || user?.avatar || undefined}
+                  onChange={(value) => {
+                    setAvatarBase64(value)
+                    if (errors.avatar) {
+                      setErrors(prev => ({ ...prev, avatar: '' }))
+                    }
+                  }}
+                  label="Profile Image"
+                  accept="image/*"
+                  maxSizeMB={5}
+                  aspectRatio="square"
+                  className={errors.avatar ? 'border-red-500' : ''}
+                />
+                {errors.avatar && <p className="mt-1 text-sm text-red-600">{errors.avatar}</p>}
+                {!user?.avatar && !avatarBase64 && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    <span className="text-red-500">*</span> Profile image is required
+                  </p>
+                )}
+              </div>
+            </div>
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
               <div className="space-y-4">

@@ -45,8 +45,11 @@ export const useNotificationWebSocket = () => {
     try {
       // WebSocket will use cookies for authentication (session-based)
       const ws = new WebSocket(wsUrl)
+      const connectionStartTime = Date.now()
+      let connectionOpened = false
       
       ws.onopen = () => {
+        connectionOpened = true
         console.log('WebSocket connected for notifications')
         reconnectAttempts.current = 0
         
@@ -171,50 +174,44 @@ export const useNotificationWebSocket = () => {
       }
       
       ws.onclose = (event) => {
+        const connectionDuration = Date.now() - connectionStartTime
         const closeInfo = {
           code: event.code,
           reason: event.reason || 'No reason provided',
-          wasClean: event.wasClean
+          wasClean: event.wasClean,
+          connectionOpened,
+          connectionDuration: `${connectionDuration}ms`
         }
         
-        // Log only if not a clean close or if it's an error code
-        if (!event.wasClean || event.code !== 1000) {
-          console.log('Notification WebSocket disconnected', closeInfo)
-        }
+        // Log close event details for debugging
+        console.log('🔌 Notification WebSocket closed:', closeInfo)
         
-        // Handle authentication errors - ONLY logout on explicit 403 Forbidden
-        // Do NOT logout on connection errors (1006, 1002, network issues, dormancy)
-        const isAuthError = 
-          event.code === 4001 || 
-          event.code === 403 ||
+        // Handle anonymous user errors - ONLY logout when backend explicitly indicates user is anonymous
+        // Backend sends code 4001 with reason "User is anonymous" when user.is_anonymous is true
+        // DO NOT logout on connection failures - they can happen for many reasons (network, timing, etc.)
+        const isAnonymousUserError = 
+          event.code === 4001 ||
           (event.reason && (
-            event.reason.includes('403') || 
-            event.reason.toLowerCase().includes('forbidden')
+            event.reason.toLowerCase().includes('user is anonymous') ||
+            event.reason.toLowerCase().includes('anonymous user')
           ))
         
-        if (isAuthError) {
-          console.warn('Notification WebSocket closed due to auth error (403 Forbidden), logging out', {
+        if (isAnonymousUserError) {
+          console.warn('🚫 Notification WebSocket: User is anonymous - logging out', {
             code: event.code,
             reason: event.reason,
-            wasClean: event.wasClean
+            wasClean: event.wasClean,
+            connectionDuration: `${connectionDuration}ms`
           })
-          import('@/store/authStore').then(({ useAuthStore }) => {
+          import('@/store/authStore').then(async ({ useAuthStore }) => {
             useAuthStore.getState().logout()
+            // Show toast notification
             if (typeof window !== 'undefined') {
-              // Only redirect to login if current page requires authentication
-              // For public pages (like home), just log out silently
-              const currentPath = window.location.pathname
-              const authRequiredPaths = ['/create-ad', '/profile', '/alerts', '/chat']
-              const requiresAuth = authRequiredPaths.some(path => currentPath.startsWith(path))
-              
-              if (requiresAuth) {
-                // Redirect to login with auth_required parameter to show toast
-                window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
-              }
-              // Otherwise, just log out silently - user can continue browsing public pages
+              const { toast } = await import('sonner')
+              toast.info('Account was logged out')
             }
           })
-          return // Don't reconnect on auth errors
+          return // Don't reconnect on anonymous user errors
         }
         
         // Log connection errors but don't logout

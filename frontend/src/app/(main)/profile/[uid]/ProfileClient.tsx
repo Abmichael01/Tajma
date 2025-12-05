@@ -154,7 +154,7 @@ export default function ProfileClient({ uid }: ProfileClientProps) {
   return (
     <div className="bg-white min-h-screen">
       <div className="container pt-4 sm:pt-6">
-        <div className="">
+        <div className="hidden md:block">
           <BackButton />
         </div>
       </div>

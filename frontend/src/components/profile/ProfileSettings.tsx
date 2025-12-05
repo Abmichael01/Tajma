@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -21,10 +21,11 @@ import {
   Eye,
   EyeOff,
   Lock,
-  CheckCircle
+  CheckCircle,
+  X
 } from 'lucide-react'
-import type { User } from '@/api/types'
-import { getUserFullName, getUserInitials } from '@/utils/user'
+import type { User, ProfileUpdateResponse } from '@/api/types'
+import { getUserFullName, getUserInitials, normalizeAvatarUrl } from '@/utils/user'
 
 interface ProfileSettingsProps {
   user: User
@@ -68,6 +69,9 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar || null)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   // Get region ID from user location by matching region name
   const getUserRegionId = () => {
@@ -107,49 +111,156 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
       location: regionId,
       address: user.address || '',
     })
+    setAvatarPreview(user.avatar || null)
+    setAvatarFile(null)
   }, [user, profileForm, regions])
 
   const profileFieldNames: Array<keyof ProfileFormValues> = ['first_name', 'last_name', 'phone', 'location', 'address']
   const passwordFieldNames: Array<keyof PasswordFormValues> = ['old_password', 'new_password', 'new_password_confirm']
 
   const handleProfileSubmit = profileForm.handleSubmit(async (values) => {
-    const payload = {
-      first_name: values.first_name.trim(),
-      last_name: values.last_name.trim(),
-      // Username is not included - users cannot change their username
-      phone: values.phone?.trim() || undefined,
-      location: values.location ? parseInt(values.location) : undefined,
-      address: values.address?.trim() || undefined,
-    }
-
+    console.log('📝 Profile form submit started')
+    console.log('📝 Form values:', values)
+    console.log('📝 Avatar file state:', {
+      hasAvatarFile: avatarFile !== null,
+      fileName: avatarFile?.name,
+      fileSize: avatarFile?.size,
+      fileType: avatarFile?.type
+    })
+    
     try {
-      await updateProfile.mutateAsync(payload)
+      // If avatar file is present, use FormData; otherwise use JSON
+      const hasAvatarFile = avatarFile !== null
+      
+      let response: ProfileUpdateResponse
+      
+      if (hasAvatarFile) {
+        console.log('📤 Using FormData for file upload')
+        // Use FormData for file upload
+        const formData = new FormData()
+        formData.append('first_name', values.first_name.trim())
+        formData.append('last_name', values.last_name.trim())
+        if (values.phone?.trim()) {
+          formData.append('phone', values.phone.trim())
+        }
+        if (values.location) {
+          formData.append('location', parseInt(values.location).toString())
+        }
+        if (values.address?.trim()) {
+          formData.append('address', values.address.trim())
+        }
+        formData.append('avatar', avatarFile)
+        
+        // Log FormData contents
+        console.log('📤 FormData created with fields:')
+        for (const [key, value] of formData.entries()) {
+          if (value instanceof File) {
+            console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`)
+          } else {
+            console.log(`  ${key}: ${value}`)
+          }
+        }
+        
+        // Make FormData request directly
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
+        
+        console.log('📤 Sending FormData request to:', `${API_BASE_URL}/api/auth/profile/update/`)
+        console.log('📤 CSRF Token:', csrfToken ? 'Present' : 'Missing')
+        
+        const formDataResponse = await fetch(`${API_BASE_URL}/api/auth/profile/update/`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: {
+            'X-CSRFToken': csrfToken || '',
+          },
+          body: formData,
+        })
+        
+        console.log('📥 Response status:', formDataResponse.status, formDataResponse.statusText)
+        
+        if (!formDataResponse.ok) {
+          const errorData = await formDataResponse.json()
+          console.error('❌ Profile update error:', errorData)
+          throw { response: { data: errorData } }
+        }
+        
+        response = await formDataResponse.json()
+        console.log('✅ Profile update success:', {
+          userAvatar: response?.user?.avatar,
+          message: response?.message
+        })
+      } else {
+        console.log('📤 Using JSON payload (no file upload)')
+        // Use JSON payload (no file upload)
+        const payload = {
+          first_name: values.first_name.trim(),
+          last_name: values.last_name.trim(),
+          phone: values.phone?.trim() || undefined,
+          location: values.location ? parseInt(values.location) : undefined,
+          address: values.address?.trim() || undefined,
+        }
+        
+        console.log('📤 JSON payload:', payload)
+        response = await updateProfile.mutateAsync(payload)
+        console.log('✅ Profile update success (JSON):', {
+          userAvatar: response?.user?.avatar,
+          message: response?.message
+        })
+      }
       toast.success('Profile updated successfully')
       
       // Get region name for display
-      const selectedRegion = regions?.find(r => r.id === payload.location)
+      const selectedRegion = regions?.find(r => r.id === (values.location ? parseInt(values.location) : undefined))
       const locationDisplay = selectedRegion?.name || ''
       
       profileForm.reset({
-        first_name: payload.first_name,
-        last_name: payload.last_name,
+        first_name: values.first_name,
+        last_name: values.last_name,
         username: user.username || '',
-        phone: payload.phone || '',
-        location: payload.location?.toString() || '',
-        address: payload.address || '',
+        phone: values.phone || '',
+        location: values.location || '',
+        address: values.address || '',
       })
+      
+      // Update avatar preview with the new avatar URL from response
+      // The useEffect will also sync when user prop updates, but update immediately here
+      console.log('🔄 Updating avatar preview from response:', response?.user?.avatar)
+      if (response?.user?.avatar) {
+        setAvatarPreview(response.user.avatar)
+        console.log('✅ Avatar preview updated')
+      } else if (!response?.user?.avatar) {
+        // If avatar was removed, clear preview
+        console.log('🗑️ Avatar removed, clearing preview')
+        setAvatarPreview(null)
+      }
+      
+      // Reset avatar file state if it was updated
+      if (avatarFile) {
+        console.log('🔄 Resetting avatar file state')
+        setAvatarFile(null)
+      }
+      
       const userPatch: Partial<User> = {
-        first_name: payload.first_name,
-        last_name: payload.last_name,
+        first_name: values.first_name.trim(),
+        last_name: values.last_name.trim(),
         // Username is not updated - users cannot change their username
       }
 
-      userPatch.phone = payload.phone !== undefined ? payload.phone : null
+      userPatch.phone = values.phone?.trim() || null
       userPatch.location = locationDisplay || null
-      userPatch.address = payload.address || null
+      userPatch.address = values.address?.trim() || null
+      
+      // Include updated avatar in the user patch
+      if (response?.user?.avatar) {
+        userPatch.avatar = response.user.avatar
+      }
 
       onUpdateUser?.(userPatch)
+      console.log('✅ Profile update completed successfully')
     } catch (error: any) {
+      console.error('❌ Profile update failed:', error)
+      console.error('❌ Error response:', error.response?.data)
       const apiErrors = error.response?.data || {}
       Object.entries(apiErrors).forEach(([key, value]) => {
         if (profileFieldNames.includes(key as keyof ProfileFormValues)) {
@@ -161,6 +272,62 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
       })
     }
   })
+
+  const handleAvatarClick = () => {
+    avatarInputRef.current?.click()
+  }
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    console.log('🖼️ Avatar file selected:', {
+      fileName: file?.name,
+      fileSize: file?.size,
+      fileType: file?.type,
+      hasFile: !!file
+    })
+    
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        console.error('❌ Invalid file type:', file.type)
+        toast.error('Please select an image file')
+        return
+      }
+
+      // Validate file size (5MB max)
+      const maxSize = 5 * 1024 * 1024
+      if (file.size > maxSize) {
+        console.error('❌ File too large:', file.size, 'bytes')
+        toast.error('Image size must be less than 5MB')
+        return
+      }
+
+      // Store the file object (will be sent as FormData)
+      console.log('✅ Setting avatar file state')
+      setAvatarFile(file)
+      
+      // Create preview from file
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string
+        console.log('✅ Avatar preview created, base64 length:', base64?.length)
+        setAvatarPreview(base64)
+      }
+      reader.onerror = () => {
+        console.error('❌ Failed to read image file')
+        toast.error('Failed to read image file')
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveAvatar = () => {
+    setAvatarFile(null)
+    setAvatarPreview(null)
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = ''
+    }
+  }
 
   const handlePasswordSubmit = passwordForm.handleSubmit(async (values) => {
     setPasswordError(null)
@@ -203,16 +370,38 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
       
       <div className="bg-white border border-gray-200 p-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="relative">
+          <div className="relative group">
             <Avatar className="w-16 h-16">
-              <AvatarImage src={user.avatar || undefined} alt={fullName} />
+              <AvatarImage src={normalizeAvatarUrl(avatarPreview) || undefined} alt={fullName} />
               <AvatarFallback className="bg-secondary text-secondary-foreground text-lg">
                 {getUserInitials(user)}
               </AvatarFallback>
             </Avatar>
-            <button className="absolute bottom-0 right-0 bg-secondary text-secondary-foreground p-1 rounded-full hover:bg-secondary/90 transition-colors">
+            <button
+              type="button"
+              onClick={handleAvatarClick}
+              className="absolute bottom-0 right-0 bg-secondary text-secondary-foreground p-1 rounded-full hover:bg-secondary/90 transition-colors"
+              title="Change profile image"
+            >
               <Camera className="w-3 h-3" />
             </button>
+            {avatarPreview && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                title="Remove profile image"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
           </div>
           <div>
             <h4 className="text-lg font-medium text-gray-900">{fullName}</h4>

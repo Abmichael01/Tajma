@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.conf import settings
 from api.models import Region
+from api.utils.image_upload import save_base64_image, save_uploaded_file
 
 User = get_user_model()
 
@@ -54,6 +56,31 @@ class UserSerializer(serializers.ModelSerializer):
         if obj.location:
             return obj.location.name
         return None
+    
+    def to_representation(self, instance):
+        """Override to normalize avatar URL to full URL using API media endpoint"""
+        data = super().to_representation(instance)
+        
+        if 'avatar' in data and data['avatar']:
+            request = self.context.get('request')
+            avatar_path = data['avatar']
+            
+            # If it's already a full URL, return as is
+            if avatar_path.startswith('http://') or avatar_path.startswith('https://'):
+                data['avatar'] = avatar_path
+            else:
+                # Build full URL using API media endpoint
+                if request:
+                    base_url = request.build_absolute_uri('/api/media/').rstrip('/')
+                else:
+                    # Fallback if no request context
+                    site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
+                    base_url = f"{site_url}/api/media"
+                
+                # If it's a relative path (e.g., 'avatars/uuid.jpg'), use API media endpoint
+                data['avatar'] = f"{base_url}/{avatar_path}"
+        
+        return data
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -63,6 +90,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
+    # Use a flexible field for avatar - can accept URLs, base64 strings
+    # File uploads are handled in the view before reaching serializer
+    avatar = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     
     class Meta:
         model = User
@@ -91,6 +121,38 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             user = self.instance
             if User.objects.filter(username=value).exclude(pk=user.pk).exists():
                 raise serializers.ValidationError('A user with this username already exists.')
+        return value
+    
+    def validate_avatar(self, value):
+        """Process base64 avatar image if provided, otherwise use URL as-is."""
+        print(f"🔵 validate_avatar() called with value type: {type(value)}")
+        if value:
+            print(f"🔵 Value length: {len(str(value)) if isinstance(value, str) else 'N/A'}")
+        
+        if not value:
+            # Allow empty / null avatar
+            print("🔵 Avatar value is empty/null, returning None")
+            return None
+
+        # Ensure we are working with a string (file uploads are processed in view)
+        if not isinstance(value, str):
+            print(f"❌ Invalid avatar data format - not a string: {type(value)}")
+            raise serializers.ValidationError("Invalid avatar data format.")
+        
+        # Check if it's a base64 string
+        if value.startswith('data:image') or (len(value) > 500 and 'base64' in value):
+            print("🔵 Detected base64 string, processing...")
+            try:
+                # Save base64 image and return the relative path (e.g. 'avatars/uuid.jpg')
+                saved_path = save_base64_image(value, folder='avatars')
+                print(f"✅ Base64 image saved to: {saved_path}")
+                return saved_path
+            except Exception as e:
+                print(f"❌ Failed to process base64 avatar: {str(e)}")
+                raise serializers.ValidationError(f"Failed to process avatar image: {str(e)}")
+        
+        # It's already a URL or path (from file upload processed in view), return as-is
+        print(f"✅ Avatar is already a path/URL: {value}")
         return value
 
 
@@ -143,6 +205,31 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         if obj.location:
             return obj.location.name
         return None
+    
+    def to_representation(self, instance):
+        """Override to normalize avatar URL to full URL using API media endpoint"""
+        data = super().to_representation(instance)
+        
+        if 'avatar' in data and data['avatar']:
+            request = self.context.get('request')
+            avatar_path = data['avatar']
+            
+            # If it's already a full URL, return as is
+            if avatar_path.startswith('http://') or avatar_path.startswith('https://'):
+                data['avatar'] = avatar_path
+            else:
+                # Build full URL using API media endpoint
+                if request:
+                    base_url = request.build_absolute_uri('/api/media/').rstrip('/')
+                else:
+                    # Fallback if no request context
+                    site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
+                    base_url = f"{site_url}/api/media"
+                
+                # If it's a relative path (e.g., 'avatars/uuid.jpg'), use API media endpoint
+                data['avatar'] = f"{base_url}/{avatar_path}"
+        
+        return data
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -271,6 +358,31 @@ class UserSummarySerializer(serializers.ModelSerializer):
         if obj.location:
             return obj.location.name
         return None
+    
+    def to_representation(self, instance):
+        """Override to normalize avatar URL to full URL using API media endpoint"""
+        data = super().to_representation(instance)
+        
+        if 'avatar' in data and data['avatar']:
+            request = self.context.get('request')
+            avatar_path = data['avatar']
+            
+            # If it's already a full URL, return as is
+            if avatar_path.startswith('http://') or avatar_path.startswith('https://'):
+                data['avatar'] = avatar_path
+            else:
+                # Build full URL using API media endpoint
+                if request:
+                    base_url = request.build_absolute_uri('/api/media/').rstrip('/')
+                else:
+                    # Fallback if no request context
+                    site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
+                    base_url = f"{site_url}/api/media"
+                
+                # If it's a relative path (e.g., 'avatars/uuid.jpg'), use API media endpoint
+                data['avatar'] = f"{base_url}/{avatar_path}"
+        
+        return data
 
 
 class PasswordChangeSerializer(serializers.Serializer):

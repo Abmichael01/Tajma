@@ -39,7 +39,9 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         
         if not self.user or self.user.is_anonymous:
             logger.warning("Unified Chat WebSocket connection rejected: User is anonymous")
-            await self.close(code=4001)
+            # Accept first to ensure close code is transmitted properly
+            await self.accept()
+            await self.close(code=4001, reason="User is anonymous")
             return
         
         # Always join user-level group for chat list updates

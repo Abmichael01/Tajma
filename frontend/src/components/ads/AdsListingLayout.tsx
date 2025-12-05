@@ -253,7 +253,7 @@ export default function AdsListingLayout({
     <div className="bg-white min-h-screen">
       <div className="container py-4 sm:py-6 lg:py-8">
         {/* Back Button */}
-        <div className="mb-4 sm:mb-6">
+        <div className="hidden md:block mb-4 sm:mb-6">
           <BackButton />
         </div>
         

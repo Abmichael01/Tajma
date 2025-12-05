@@ -269,8 +269,13 @@ export const useUnifiedChatWebSocket = ({
     const connect = () => {
       const socket = new WebSocket(buildUrl())
       wsRef.current = socket
+      
+      // Track if connection opened successfully (to detect immediate rejections)
+      let connectionOpened = false
+      const connectionStartTime = Date.now()
 
       socket.onopen = () => {
+        connectionOpened = true
         setIsConnected(true)
         reconnectAttemptsRef.current = 0
 
@@ -466,36 +471,41 @@ export const useUnifiedChatWebSocket = ({
           connectionHealthCheckRef.current = null
         }
 
-        // Handle authentication errors - ONLY logout on explicit 403 Forbidden
-        // Do NOT logout on connection errors (network issues, dormancy)
-        const isAuthError = 
-          event.code === 4001 || 
-          event.code === 403 ||
+        // Log close event details for debugging
+        const connectionDuration = Date.now() - connectionStartTime
+        console.log('🔌 Unified chat WebSocket closed:', {
+          code: event.code,
+          reason: event.reason || 'No reason provided',
+          wasClean: event.wasClean,
+          connectionOpened,
+          connectionDuration: `${connectionDuration}ms`
+        })
+
+        // Handle anonymous user errors - ONLY logout when backend explicitly indicates user is anonymous
+        // Backend sends code 4001 with reason "User is anonymous" when user.is_anonymous is true
+        // DO NOT logout on connection failures - they can happen for many reasons (network, timing, etc.)
+        const isAnonymousUserError = 
+          event.code === 4001 ||
           (event.reason && (
-            event.reason.includes('403') || 
-            event.reason.toLowerCase().includes('forbidden')
+            event.reason.toLowerCase().includes('user is anonymous') ||
+            event.reason.toLowerCase().includes('anonymous user')
           ))
 
-        if (isAuthError) {
-          console.warn('Unified chat WebSocket closed due to auth error (403 Forbidden), logging out', {
+        if (isAnonymousUserError) {
+          console.warn('🚫 Unified chat WebSocket: User is anonymous - logging out', {
             code: event.code,
             reason: event.reason,
-            wasClean: event.wasClean
+            wasClean: event.wasClean,
+            connectionOpened,
+            connectionDuration: `${connectionDuration}ms`
           })
           reconnectAttemptsRef.current = 0
-          import('@/store/authStore').then(({ useAuthStore }) => {
+          import('@/store/authStore').then(async ({ useAuthStore }) => {
             useAuthStore.getState().logout()
+            // Show toast notification
             if (typeof window !== 'undefined') {
-              // Only redirect to login if current page requires authentication
-              // For public pages (like home), just log out silently
-              const currentPath = window.location.pathname
-              const authRequiredPaths = ['/create-ad', '/profile', '/alerts', '/chat']
-              const requiresAuth = authRequiredPaths.some(path => currentPath.startsWith(path))
-              
-              if (requiresAuth) {
-                window.location.href = '/login'
-              }
-              // Otherwise, just log out silently - user can continue browsing public pages
+              const { toast } = await import('sonner')
+              toast.info('Account was logged out')
             }
           })
           return

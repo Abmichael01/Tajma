@@ -25,6 +25,7 @@ interface ChatWebSocketState {
   pingInterval: NodeJS.Timeout | null
   connectionHealthCheck: NodeJS.Timeout | null
   lastPongTime: number
+  connectionStartTime?: number
   
   // Event handlers
   onChatMessage?: (message: ChatMessage, chatId: string) => void
@@ -104,13 +105,17 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     
     try {
       const socket = new WebSocket(wsUrl)
+      const connectionStartTime = Date.now()
+      let connectionOpened = false
       
       socket.onopen = () => {
+        connectionOpened = true
         console.log('✅ WebSocket connected')
         set({ 
           isConnected: true,
           reconnectAttempts: 0,
-          lastPongTime: Date.now()
+          lastPongTime: Date.now(),
+          connectionStartTime
         })
 
         // Mark all unread messages as delivered when user comes online
@@ -294,7 +299,13 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       }
 
       socket.onclose = (event) => {
-        console.log('WebSocket closed', event.code, event.reason)
+        // Log close event details for debugging
+        console.log('🔌 Chat WebSocket closed:', {
+          code: event.code,
+          reason: event.reason || 'No reason provided',
+          wasClean: event.wasClean
+        })
+        
         set({
           isConnected: false,
           subscribedChats: new Set(),
@@ -304,6 +315,9 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
         // Clear intervals
         const state = get()
+        const connectionStartTime = state.connectionStartTime || Date.now()
+        const connectionDuration = Date.now() - connectionStartTime
+        
         if (state.pingInterval) {
           clearInterval(state.pingInterval)
           set({ pingInterval: null })
@@ -313,31 +327,32 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
           set({ connectionHealthCheck: null })
         }
 
-        // Handle authentication errors - ONLY logout on explicit 403 Forbidden
-        // Do NOT logout on connection errors (1006, 1002, network issues, dormancy)
-        const isAuthError = 
-          event.code === 4001 || 
-          event.code === 403 ||
+        // Handle anonymous user errors - ONLY logout when backend explicitly indicates user is anonymous
+        // Backend sends code 4001 with reason "User is anonymous" when user.is_anonymous is true
+        // DO NOT logout on connection failures - they can happen for many reasons (network, timing, etc.)
+        const isAnonymousUserError = 
+          event.code === 4001 ||
           (event.reason && (
-            event.reason.includes('403') || 
-            event.reason.toLowerCase().includes('forbidden')
+            event.reason.toLowerCase().includes('user is anonymous') ||
+            event.reason.toLowerCase().includes('anonymous user')
           ))
 
-        if (isAuthError) {
-          console.warn('Unified chat WebSocket closed due to auth error (403 Forbidden), logging out', {
+        if (isAnonymousUserError) {
+          console.warn('🚫 Chat WebSocket: User is anonymous - logging out', {
             code: event.code,
             reason: event.reason,
-            wasClean: event.wasClean
+            wasClean: event.wasClean,
+            connectionDuration: `${connectionDuration}ms`
           })
           set({ reconnectAttempts: 0 })
           
-          // Logout user and redirect to login with parameter
-          import('@/store/authStore').then(({ useAuthStore }) => {
+          // Logout user and show toast
+          import('@/store/authStore').then(async ({ useAuthStore }) => {
             useAuthStore.getState().logout()
+            // Show toast notification
             if (typeof window !== 'undefined') {
-              // Redirect to login with auth_required parameter to show toast
-              const currentPath = window.location.pathname
-              window.location.href = `/login?auth_required=true&redirect=${encodeURIComponent(currentPath)}`
+              const { toast } = await import('sonner')
+              toast.info('Account was logged out')
             }
           })
           return

@@ -6,6 +6,7 @@ import Navbar from '@/components/Layouts/Navbar'
 import Footer from '@/components/Layouts/Footer'
 import MobileBottomNav from '@/components/Layouts/MobileBottomNav'
 import AccountSetupChecker from '@/components/auth/AccountSetupChecker'
+import AuthInitializer from '@/components/auth/AuthInitializer'
 import GlobalChatConnection from '@/components/chat/GlobalChatConnection'
 // import CursorBag from '@/components/ui/CursorBag'
 
@@ -19,6 +20,8 @@ export default function MainLayout({
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Initialize and verify auth state */}
+      <AuthInitializer />
       {/* Global chat WebSocket connection - stays connected when user is authenticated */}
       <GlobalChatConnection />
       <Navbar />

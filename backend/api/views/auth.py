@@ -18,6 +18,7 @@ from api.serializers.user import (
     UserLoginSerializer,
     UserUpdateSerializer,
 )
+from api.utils.image_upload import save_uploaded_file
 
 
 @method_decorator(csrf_protect, name='dispatch')
@@ -120,9 +121,49 @@ class ProfileUpdateView(APIView):
     
     def patch(self, request):
         """Update user profile (partial update)"""
+        print("=" * 50)
+        print("🔵 ProfileUpdateView.patch() called")
+        print(f"🔵 Request method: {request.method}")
+        print(f"🔵 Content-Type: {request.content_type}")
+        print(f"🔵 User: {request.user.email if request.user.is_authenticated else 'Anonymous'}")
+        print(f"🔵 request.FILES keys: {list(request.FILES.keys())}")
+        print(f"🔵 request.data keys: {list(request.data.keys())}")
+        
+        # Handle FormData file uploads - process file uploads before serializer
+        data = request.data.copy()
+        
+        # If avatar is in request.FILES (FormData upload), process it first
+        if 'avatar' in request.FILES:
+            print("📁 Avatar file found in request.FILES")
+            uploaded_file = request.FILES['avatar']
+            print(f"📁 File name: {uploaded_file.name}")
+            print(f"📁 File size: {uploaded_file.size} bytes")
+            print(f"📁 Content type: {uploaded_file.content_type}")
+            try:
+                # Save uploaded file and get path
+                print("💾 Saving uploaded file...")
+                saved_path = save_uploaded_file(uploaded_file, folder='avatars')
+                print(f"✅ File saved to: {saved_path}")
+                # Pass the saved path to serializer (it will handle it as URL/path)
+                data['avatar'] = saved_path
+                print(f"📝 Set data['avatar'] = {saved_path}")
+            except Exception as e:
+                print(f"❌ Error saving uploaded file: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                return Response(
+                    {'avatar': [f'Failed to process avatar file: {str(e)}']},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            print("⚠️ No avatar file in request.FILES")
+            if 'avatar' in request.data:
+                print(f"📝 Avatar in request.data: {type(request.data['avatar'])}")
+        
+        print(f"📝 Data to serialize: {data}")
         serializer = UserUpdateSerializer(
             request.user,
-            data=request.data,
+            data=data,
             partial=True
         )
         if serializer.is_valid():
@@ -130,10 +171,10 @@ class ProfileUpdateView(APIView):
             
             # If seller-related fields are being updated, mark as seller and setup complete
             seller_fields = ['business_name', 'business_type', 'phone', 'location', 'address']
-            if any(field in request.data for field in seller_fields):
+            if any(field in data for field in seller_fields):
                 user.is_seller = True
                 # Mark setup as complete if business info is provided
-                if request.data.get('business_name') or request.data.get('business_type'):
+                if data.get('business_name') or data.get('business_type'):
                     user.is_seller_account_setup = True
                 user.save()
             
@@ -148,19 +189,36 @@ class ProfileUpdateView(APIView):
     
     def put(self, request):
         """Update user profile (full update)"""
+        # Handle FormData file uploads - process file uploads before serializer
+        data = request.data.copy()
+        
+        # If avatar is in request.FILES (FormData upload), process it first
+        if 'avatar' in request.FILES:
+            uploaded_file = request.FILES['avatar']
+            try:
+                # Save uploaded file and get path
+                saved_path = save_uploaded_file(uploaded_file, folder='avatars')
+                # Pass the saved path to serializer (it will handle it as URL/path)
+                data['avatar'] = saved_path
+            except Exception as e:
+                return Response(
+                    {'avatar': [f'Failed to process avatar file: {str(e)}']},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
         serializer = UserUpdateSerializer(
             request.user,
-            data=request.data
+            data=data
         )
         if serializer.is_valid():
             user = serializer.save()
             
             # If seller-related fields are being updated, mark as seller and setup complete
             seller_fields = ['business_name', 'business_type', 'phone', 'location', 'address']
-            if any(field in request.data for field in seller_fields):
+            if any(field in data for field in seller_fields):
                 user.is_seller = True
                 # Mark setup as complete if business info is provided
-                if request.data.get('business_name') or request.data.get('business_type'):
+                if data.get('business_name') or data.get('business_type'):
                     user.is_seller_account_setup = True
                 user.save()
             

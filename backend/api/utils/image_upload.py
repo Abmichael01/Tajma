@@ -91,6 +91,85 @@ def save_base64_image(base64_string: str, folder: str = 'ads') -> str:
         raise ValueError(f"Invalid image data: {str(e)}")
 
 
+def save_uploaded_file(uploaded_file, folder: str = 'ads') -> str:
+    """
+    Save an uploaded file (from FormData/multipart) to the media storage and return the URL path.
+    
+    Args:
+        uploaded_file: Django UploadedFile object (from request.FILES)
+        folder: Folder name in media root to save the file
+        
+    Returns:
+        URL path to the saved file (relative to MEDIA_URL)
+    """
+    print(f"📁 save_uploaded_file() called with folder: {folder}")
+    print(f"📁 File name: {uploaded_file.name}")
+    print(f"📁 File size: {uploaded_file.size} bytes")
+    print(f"📁 Content type: {getattr(uploaded_file, 'content_type', 'N/A')}")
+    try:
+        # Read file data
+        print("📖 Reading file data...")
+        file_data = uploaded_file.read()
+        print(f"📖 Read {len(file_data)} bytes")
+        
+        # Get file extension from uploaded file name
+        original_filename = uploaded_file.name
+        ext = 'jpg'  # default
+        if '.' in original_filename:
+            ext = original_filename.rsplit('.', 1)[1].lower()
+            # Normalize extension
+            if ext not in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                ext = 'jpg'
+        print(f"📁 File extension: {ext}")
+        
+        # Validate and process image if Pillow is available
+        if PIL_AVAILABLE:
+            try:
+                print("🖼️ Processing image with Pillow...")
+                img = Image.open(io.BytesIO(file_data))
+                print(f"🖼️ Image mode: {img.mode}, size: {img.size}")
+                # Convert RGBA to RGB if necessary
+                if img.mode == 'RGBA':
+                    rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                    rgb_img.paste(img, mask=img.split()[3])
+                    img = rgb_img
+                
+                # Resize if too large (max 2000px on longest side)
+                max_size = 2000
+                if max(img.size) > max_size:
+                    print(f"🖼️ Resizing image from {img.size} to max {max_size}px")
+                    img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+                
+                # Save to buffer
+                output = io.BytesIO()
+                img.save(output, format='JPEG', quality=85, optimize=True)
+                output.seek(0)
+                file_data = output.read()
+                ext = 'jpg'  # Always save as JPEG after processing
+                print(f"🖼️ Image processed, new size: {len(file_data)} bytes")
+            except Exception as e:
+                # If image processing fails, use original data
+                print(f"⚠️ Image processing warning: {e}")
+        
+        # Generate unique filename
+        filename = f"{uuid.uuid4()}.{ext}"
+        file_path = os.path.join(folder, filename)
+        print(f"💾 Saving file to: {file_path}")
+        
+        # Save file using default storage
+        saved_path = default_storage.save(file_path, ContentFile(file_data))
+        print(f"✅ File saved successfully to: {saved_path}")
+        
+        # Return URL relative to MEDIA_URL
+        return saved_path
+        
+    except Exception as e:
+        print(f"❌ Error saving uploaded file: {e}")
+        import traceback
+        traceback.print_exc()
+        raise ValueError(f"Failed to save uploaded file: {str(e)}")
+
+
 def process_images_list(images: list) -> list:
     """
     Process a list of images (base64 strings or URLs) and return URLs.
