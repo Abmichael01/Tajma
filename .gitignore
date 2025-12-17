@@ -1,5 +1,6 @@
 # App folder
 /app
+/appTemplate
 
 # OS files
 .DS_Store
