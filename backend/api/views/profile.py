@@ -63,7 +63,7 @@ class UserProfileView(APIView):
             else:
                 logger.info(f"⏭️ Skipping profile view notification: Already sent today by {request.user.id} to {user.id}")
 
-        serializer = UserDetailsSerializer(user)
+        serializer = UserDetailsSerializer(user, context={'request': request})
         data = serializer.data
         
         # Calculate review statistics

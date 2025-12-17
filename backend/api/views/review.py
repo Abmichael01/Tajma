@@ -25,6 +25,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return ReviewCreateSerializer
         return ReviewSerializer
     
+    def get_serializer_context(self):
+        """Add request context to serializer"""
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+    
     def get_queryset(self):
         """Filter reviews by ad, seller, or reviewer"""
         queryset = super().get_queryset()

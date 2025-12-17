@@ -231,3 +231,17 @@ class ProfileUpdateView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+@method_decorator(csrf_protect, name='dispatch')
+class LogoutView(APIView):
+    """Logout view"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Logout the current user"""
+        logout(request)
+        return Response(
+            {'message': 'Logout successful.'},
+            status=status.HTTP_200_OK
+        )
+

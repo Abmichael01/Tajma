@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from django.conf import settings
 from api.models import Review, Ad
 from api.serializers.user import UserSummarySerializer
+from api.utils.image_url import build_full_image_url
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -39,8 +41,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         return 'Anonymous'
     
     def get_reviewer_avatar(self, obj):
-        """Get reviewer's avatar URL"""
-        return obj.reviewer.avatar if obj.reviewer else None
+        """Get reviewer's avatar URL, normalized to full URL using request's host"""
+        if not obj.reviewer or not obj.reviewer.avatar:
+            return None
+        
+        request = self.context.get('request')
+        return build_full_image_url(obj.reviewer.avatar, request)
     
     def validate_ad(self, ad):
         """Ensure ad exists and is published"""

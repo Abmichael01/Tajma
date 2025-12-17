@@ -4,6 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from api.models import Region
 from api.utils.image_upload import save_base64_image, save_uploaded_file
+from api.utils.image_url import build_full_image_url
 
 User = get_user_model()
 
@@ -58,27 +59,12 @@ class UserSerializer(serializers.ModelSerializer):
         return None
     
     def to_representation(self, instance):
-        """Override to normalize avatar URL to full URL using API media endpoint"""
+        """Override to normalize avatar URL to full URL using request's host"""
         data = super().to_representation(instance)
         
         if 'avatar' in data and data['avatar']:
             request = self.context.get('request')
-            avatar_path = data['avatar']
-            
-            # If it's already a full URL, return as is
-            if avatar_path.startswith('http://') or avatar_path.startswith('https://'):
-                data['avatar'] = avatar_path
-            else:
-                # Build full URL using API media endpoint
-                if request:
-                    base_url = request.build_absolute_uri('/api/media/').rstrip('/')
-                else:
-                    # Fallback if no request context
-                    site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
-                    base_url = f"{site_url}/api/media"
-                
-                # If it's a relative path (e.g., 'avatars/uuid.jpg'), use API media endpoint
-                data['avatar'] = f"{base_url}/{avatar_path}"
+            data['avatar'] = build_full_image_url(data['avatar'], request)
         
         return data
 
@@ -207,27 +193,12 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         return None
     
     def to_representation(self, instance):
-        """Override to normalize avatar URL to full URL using API media endpoint"""
+        """Override to normalize avatar URL to full URL using request's host"""
         data = super().to_representation(instance)
         
         if 'avatar' in data and data['avatar']:
             request = self.context.get('request')
-            avatar_path = data['avatar']
-            
-            # If it's already a full URL, return as is
-            if avatar_path.startswith('http://') or avatar_path.startswith('https://'):
-                data['avatar'] = avatar_path
-            else:
-                # Build full URL using API media endpoint
-                if request:
-                    base_url = request.build_absolute_uri('/api/media/').rstrip('/')
-                else:
-                    # Fallback if no request context
-                    site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
-                    base_url = f"{site_url}/api/media"
-                
-                # If it's a relative path (e.g., 'avatars/uuid.jpg'), use API media endpoint
-                data['avatar'] = f"{base_url}/{avatar_path}"
+            data['avatar'] = build_full_image_url(data['avatar'], request)
         
         return data
 
@@ -360,27 +331,12 @@ class UserSummarySerializer(serializers.ModelSerializer):
         return None
     
     def to_representation(self, instance):
-        """Override to normalize avatar URL to full URL using API media endpoint"""
+        """Override to normalize avatar URL to full URL using request's host"""
         data = super().to_representation(instance)
         
         if 'avatar' in data and data['avatar']:
             request = self.context.get('request')
-            avatar_path = data['avatar']
-            
-            # If it's already a full URL, return as is
-            if avatar_path.startswith('http://') or avatar_path.startswith('https://'):
-                data['avatar'] = avatar_path
-            else:
-                # Build full URL using API media endpoint
-                if request:
-                    base_url = request.build_absolute_uri('/api/media/').rstrip('/')
-                else:
-                    # Fallback if no request context
-                    site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
-                    base_url = f"{site_url}/api/media"
-                
-                # If it's a relative path (e.g., 'avatars/uuid.jpg'), use API media endpoint
-                data['avatar'] = f"{base_url}/{avatar_path}"
+            data['avatar'] = build_full_image_url(data['avatar'], request)
         
         return data
 

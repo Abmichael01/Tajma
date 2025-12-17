@@ -29,6 +29,14 @@ def google_login(request):
         # CRITICAL: Remove trailing slash - Google is very strict about exact match
         redirect_uri = redirect_uri.rstrip('/')
         
+        # Check if this is a mobile app request
+        mobile_app = request.GET.get('mobile_app', 'false').lower() == 'true'
+        
+        # Remove mobile_app param from redirect_uri for Google (Google needs exact match)
+        # We'll use state parameter to pass mobile_app flag through OAuth flow
+        base_redirect_uri = redirect_uri.split('?')[0].split('&')[0]
+        base_redirect_uri = base_redirect_uri.rstrip('/')
+        
         google_config = settings.SOCIALACCOUNT_PROVIDERS.get('google', {})
         app_config = google_config.get('APP', {})
         client_id = app_config.get('client_id', '')
@@ -43,22 +51,27 @@ def google_login(request):
         if settings.DEBUG:
             import logging
             logger = logging.getLogger(__name__)
-            logger.info(f'Google OAuth redirect_uri: {redirect_uri}')
+            logger.info(f'Google OAuth base_redirect_uri: {base_redirect_uri}, mobile_app: {mobile_app}')
         
         # Build Google OAuth URL using allauth's approach
+        # Use base_redirect_uri (without mobile_app param) for Google
         params = {
             'client_id': client_id,
-            'redirect_uri': redirect_uri,  # Must match EXACTLY what's in Google Cloud Console
+            'redirect_uri': base_redirect_uri,  # Must match EXACTLY what's in Google Cloud Console
             'response_type': 'code',
             'scope': 'openid email profile',
             'access_type': 'online',
         }
         
+        # If mobile app, add state parameter to pass mobile_app flag through OAuth flow
+        if mobile_app:
+            params['state'] = 'mobile_app'
+        
         authorization_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
         
         return Response({
             'authorization_url': authorization_url,
-            'redirect_uri': redirect_uri,  # Return for debugging
+            'redirect_uri': base_redirect_uri,  # Return base URI for debugging
         })
     except Exception as e:
         import traceback
@@ -72,19 +85,34 @@ def google_login(request):
 
 
 @csrf_exempt
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def google_callback(request):
     """
     Handle Google OAuth callback using django-allauth
+    Supports both GET (redirect from Google) and POST (API call from mobile app)
     """
     import requests
     import logging
     
     logger = logging.getLogger(__name__)
     
-    code = request.data.get('code')
-    redirect_uri = request.data.get('redirect_uri', f'{settings.FRONTEND_URL}/auth/google/callback')
+    # Handle both GET (redirect from Google) and POST (API call) requests
+    if request.method == 'GET':
+        code = request.GET.get('code')
+        # For GET requests, build the redirect_uri from the current request
+        # This should match what was sent to Google (base URI without mobile_app param)
+        redirect_uri = request.build_absolute_uri('/api/auth/google/callback').split('?')[0]
+        redirect_uri = redirect_uri.rstrip('/')
+        # Check state parameter to see if this is from mobile app
+        state = request.GET.get('state', '')
+        mobile_app = state == 'mobile_app'
+    else:
+        code = request.data.get('code')
+        redirect_uri = request.data.get('redirect_uri', f'{settings.FRONTEND_URL}/auth/google/callback')
+        redirect_uri = redirect_uri.rstrip('/')
+        mobile_app = request.data.get('mobile_app', False)
+    
     redirect_uri = redirect_uri.rstrip('/')
     
     if not code:
@@ -196,6 +224,16 @@ def google_callback(request):
         # Log the user in
         login(request._request, user)
         
+        # For mobile apps (GET request with mobile_app=true), redirect to app deep link
+        if mobile_app and request.method == 'GET':
+            # Redirect to app deep link
+            # The app will intercept this deep link and complete the login
+            from django.http import HttpResponseRedirect
+            app_scheme = getattr(settings, 'MOBILE_APP_SCHEME', 'tajma')
+            redirect_url = f'{app_scheme}://auth/google/callback?success=true&code={code}'
+            return HttpResponseRedirect(redirect_url)
+        
+        # For web/API requests, return JSON response
         return Response({
             'user': UserDetailsSerializer(user).data,
             'message': 'Google authentication successful'

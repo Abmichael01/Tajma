@@ -4,6 +4,7 @@ from django.conf import settings
 from api.models import Ad, Category
 from api.serializers.user import UserSerializer
 from api.utils.image_upload import process_images_list
+from api.utils.image_url import build_full_image_url
 from api.services.response_stats import calculate_response_stats_for_seller
 
 
@@ -161,29 +162,14 @@ class AdSerializer(serializers.ModelSerializer):
         
         if 'images' in data and data['images']:
             request = self.context.get('request')
-            base_url = ''
-            if request:
-                base_url = request.build_absolute_uri('/')[:-1]  # Remove trailing slash
-            else:
-                # Fallback if no request context
-                base_url = getattr(settings, 'SITE_URL', '').rstrip('/')
-            
             image_urls = []
             for image_path in data['images']:
                 if isinstance(image_path, str):
-                    # If it's already a full URL, return as is
-                    if image_path.startswith('http://') or image_path.startswith('https://'):
-                        image_urls.append(image_path)
-                    # If it's an absolute path starting with /media/, convert to full URL
-                    elif image_path.startswith('/media/'):
-                        image_urls.append(f"{base_url}{image_path}")
-                    # If it's an absolute path starting with /, convert to full URL
-                    elif image_path.startswith('/'):
-                        image_urls.append(f"{base_url}{image_path}")
-                    else:
-                        # Relative path (e.g., 'ads/uuid.jpg'), prepend MEDIA_URL
-                        media_url = settings.MEDIA_URL.rstrip('/')
-                        image_urls.append(f"{base_url}{media_url}/{image_path}")
+                    # Use helper function to build full URL from request
+                    full_url = build_full_image_url(image_path, request)
+                    image_urls.append(full_url if full_url else image_path)
+                else:
+                    image_urls.append(image_path)
             
             data['images'] = image_urls
         

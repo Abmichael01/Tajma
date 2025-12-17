@@ -3,6 +3,7 @@ from django.conf import settings
 
 from api.models import Category
 from api.utils.image_upload import save_base64_image
+from api.utils.image_url import build_full_image_url
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -40,33 +41,12 @@ class CategorySerializer(serializers.ModelSerializer):
         return value
 
     def to_representation(self, instance):
-        """Override to convert image_url to full URL in response"""
+        """Override to convert image_url to full URL in response using request's host"""
         data = super().to_representation(instance)
         
         if 'image_url' in data and data['image_url']:
             request = self.context.get('request')
-            base_url = ''
-            if request:
-                base_url = request.build_absolute_uri('/')[:-1]  # Remove trailing slash
-            else:
-                # Fallback if no request context
-                base_url = getattr(settings, 'SITE_URL', '').rstrip('/')
-            
-            image_path = data['image_url']
-            
-            # If it's already a full URL, return as is
-            if image_path.startswith('http://') or image_path.startswith('https://'):
-                data['image_url'] = image_path
-            # If it's an absolute path starting with /media/, convert to full URL
-            elif image_path.startswith('/media/'):
-                data['image_url'] = f"{base_url}{image_path}"
-            # If it's an absolute path starting with /, convert to full URL
-            elif image_path.startswith('/'):
-                data['image_url'] = f"{base_url}{image_path}"
-            else:
-                # Relative path (e.g., 'categories/uuid.jpg'), prepend MEDIA_URL
-                media_url = settings.MEDIA_URL.rstrip('/')
-                data['image_url'] = f"{base_url}{media_url}/{image_path}"
+            data['image_url'] = build_full_image_url(data['image_url'], request)
         
         return data
 

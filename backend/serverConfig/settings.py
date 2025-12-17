@@ -34,9 +34,12 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ENVIRONMENT = os.getenv('ENV', 'development')
 
 # Get allowed hosts from environment or use defaults
-allowed_hosts_str = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1')
-ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',')]
+allowed_hosts_str = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',') if host.strip()]
 
+# Always add ngrok hostname to ALLOWED_HOSTS
+if 'interavailable-lexi-instigative.ngrok-free.dev' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('interavailable-lexi-instigative.ngrok-free.dev')
 
 # Application definition
 
@@ -85,7 +88,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'serverConfig.middleware.CustomCsrfMiddleware',  # Custom CSRF middleware for React Native
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -209,10 +212,20 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-cors_origins_str = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000')
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',')]
+cors_origins_str = os.getenv('CORS_ALLOWED_ORIGINS', 
+    'http://localhost:3000,http://127.0.0.1:3000,'
+    'http://localhost:8081,http://127.0.0.1:8081,'
+    'exp://4zeu84i-urkelcodes-8081.exp.direct,'
+    'https://interavailable-lexi-instigative.ngrok-free.dev')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',') if origin.strip()]
 
-CORS_ALLOW_CREDENTIALS = True
+# In development, allow requests without Origin header (React Native apps)
+# This allows React Native to connect without CORS issues
+if DEBUG:
+    CORS_ALLOW_CREDENTIALS = True
+    # React Native requests typically don't have Origin header, so they'll be allowed
+else:
+    CORS_ALLOW_CREDENTIALS = True
 
 # Session settings
 SESSION_COOKIE_HTTPONLY = True
@@ -223,8 +236,12 @@ SESSION_SAVE_EVERY_REQUEST = True  # Renew session on each request (extends expi
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser closes
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 CSRF_COOKIE_SAMESITE = 'Lax'
-csrf_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000')
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_str.split(',')]
+# CSRF trusted origins
+csrf_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', 
+    'http://localhost:3000,http://127.0.0.1:3000,'
+    'http://localhost:8081,http://127.0.0.1:8081,'
+    'https://interavailable-lexi-instigative.ngrok-free.dev')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_str.split(',') if origin.strip()]
 
 # dj-rest-auth settings
 REST_AUTH = {
