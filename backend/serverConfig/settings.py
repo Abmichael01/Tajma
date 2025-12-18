@@ -236,6 +236,10 @@ SESSION_SAVE_EVERY_REQUEST = True  # Renew session on each request (extends expi
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser closes
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Cookie Domains
+SESSION_COOKIE_DOMAIN = os.getenv('SESSION_COOKIE_DOMAIN', None)
+CSRF_COOKIE_DOMAIN = os.getenv('CSRF_COOKIE_DOMAIN', None)
 # CSRF trusted origins
 csrf_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', 
     'http://localhost:3000,http://127.0.0.1:3000,'

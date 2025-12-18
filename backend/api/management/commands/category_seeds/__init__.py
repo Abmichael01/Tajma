@@ -1,0 +1,1 @@
+from api.management.commands.category_seeds.electronics import ELECTRONICS_CATEGORY
