@@ -7,7 +7,8 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "lan": "next dev --turbopack -p 3005 -H 0.0.0.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Tajma",
+    "slug": "tajma",
+    "scheme": "tajma",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/logo.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#cb234a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "splash": {
+        "image": "./assets/logo.jpg",
+        "resizeMode": "contain",
+        "backgroundColor": "#cb234a"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#cb234a"
+      },
+      "splash": {
+        "image": "./assets/logo.jpg",
+        "resizeMode": "contain",
+        "backgroundColor": "#cb234a"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-web-browser"
+    ]
+  }
+}

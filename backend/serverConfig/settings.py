@@ -34,12 +34,9 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ENVIRONMENT = os.getenv('ENV', 'development')
 
 # Get allowed hosts from environment or use defaults
-allowed_hosts_str = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0')
+allowed_hosts_str = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0,10.208.33.221')
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',') if host.strip()]
 
-# Always add ngrok hostname to ALLOWED_HOSTS
-if 'interavailable-lexi-instigative.ngrok-free.dev' not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append('interavailable-lexi-instigative.ngrok-free.dev')
 
 # Application definition
 
@@ -213,8 +210,9 @@ REST_FRAMEWORK = {
 
 # CORS settings
 cors_origins_str = os.getenv('CORS_ALLOWED_ORIGINS', 
-    'http://localhost:3000,http://127.0.0.1:3000,'
+    'http://localhost:3005,http://127.0.0.1:3005,'
     'http://localhost:8081,http://127.0.0.1:8081,'
+    'http://192.168.1.152:8081,'
     'exp://4zeu84i-urkelcodes-8081.exp.direct,'
     'https://interavailable-lexi-instigative.ngrok-free.dev')
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',') if origin.strip()]
@@ -242,8 +240,9 @@ SESSION_COOKIE_DOMAIN = os.getenv('SESSION_COOKIE_DOMAIN', None)
 CSRF_COOKIE_DOMAIN = os.getenv('CSRF_COOKIE_DOMAIN', None)
 # CSRF trusted origins
 csrf_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', 
-    'http://localhost:3000,http://127.0.0.1:3000,'
+    'http://localhost:3005,http://127.0.0.1:3005,'
     'http://localhost:8081,http://127.0.0.1:8081,'
+    'http://192.168.1.152:8081,'
     'https://interavailable-lexi-instigative.ngrok-free.dev')
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_str.split(',') if origin.strip()]
 

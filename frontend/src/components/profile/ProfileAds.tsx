@@ -6,14 +6,16 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Plus, MapPin, Eye, Heart, MessageSquare, Edit, MoreVertical, FileText } from 'lucide-react'
 import AdDetailsModal from './AdDetailsModal'
+import HorizontalAdCard from '@/components/ads/HorizontalAdCard'
 import type { Ad } from '@/api/types'
 
 interface ProfileAdsProps {
   ads: Ad[]
   isOwner?: boolean
+  variant?: 'grid' | 'horizontal'
 }
 
-export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
+export default function ProfileAds({ ads, isOwner = false, variant = 'grid' }: ProfileAdsProps) {
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [columns, setColumns] = useState(2) // Default to 2 columns for mobile
@@ -229,6 +231,61 @@ export default function ProfileAds({ ads, isOwner = false }: ProfileAdsProps) {
             }}
             isOwner={isOwner}
           />
+        )}
+      </div>
+    )
+  }
+
+  // Horizontal Variant
+  if (variant === 'horizontal') {
+    return (
+      <div className="space-y-4">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+              {isOwner ? 'My Ads' : 'All Ads'}
+            </h3>
+            <p className="text-sm text-gray-500">
+              {ads.length} {ads.length === 1 ? 'ad' : 'ads'} {isOwner ? 'posted' : 'found'}
+            </p>
+          </div>
+          {isOwner && (
+            <Link href="/create-ad">
+              <Button variant="primary">
+                <Plus className="w-4 h-4 mr-2" />
+                Post New Ad
+              </Button>
+            </Link>
+          )}
+        </div>
+
+        {ads.length > 0 ? (
+          <div className="space-y-4">
+            {ads.map((ad) => (
+              <HorizontalAdCard key={ad.id} ad={ad} isOwner={isOwner} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white border border-gray-200">
+             <div className="w-16 h-16 bg-gray-100 flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {isOwner ? 'No ads posted yet' : 'No ads available'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {isOwner ? 'Start by posting your first ad' : 'This user hasn\'t posted any ads'}
+            </p>
+            {isOwner && (
+              <Link href="/create-ad">
+                <Button variant="primary">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Post Your First Ad
+                </Button>
+              </Link>
+            )}
+          </div>
         )}
       </div>
     )
