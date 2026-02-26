@@ -148,10 +148,21 @@ class AdViewSet(viewsets.ModelViewSet):
             except (ValueError, TypeError):
                 pass
         
-        # Filter by seller location
+        # Filter by seller location / region
+        region_slug = self.request.query_params.get('region')
+        region_id = self.request.query_params.get('region_id')
         seller_location = self.request.query_params.get('seller_location')
-        if seller_location:
-            qs = qs.filter(seller__location__icontains=seller_location)
+        
+        if region_slug:
+            qs = qs.filter(seller__location__slug=region_slug)
+        elif region_id:
+            try:
+                qs = qs.filter(seller__location_id=int(region_id))
+            except (ValueError, TypeError):
+                pass
+        elif seller_location:
+            # If a generic location string is provided, try to match region name
+            qs = qs.filter(seller__location__name__icontains=seller_location)
         
         return qs
 

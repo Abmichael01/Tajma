@@ -1,7 +1,11 @@
-import { View, TouchableOpacity, Image } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import AppText from "@/components/ui/AppText";
+import { resolveImageUrl } from "@/utils/imageUtils";
 
 interface CategoryCardProps {
   category: {
@@ -11,80 +15,125 @@ interface CategoryCardProps {
     imageUrl?: string | null;
     adsCount?: number;
   };
+  size?: 'featured' | 'compact';
 }
+
+// Deterministic soft background per category for fallbacks
+const BG_COLORS = ['#F9FAFB', '#FFF7F5', '#F5F7FF', '#F0FDF4', '#FFFBEB', '#FDF4FF'];
+const ACCENT_COLORS = ['#374151', '#FF4F18', '#3B82F6', '#10B981', '#F59E0B', '#D946EF'];
 
 export default function CategoryCard({ category }: CategoryCardProps) {
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
 
-  // Get full image URL if it's a relative path
-  const getImageUrl = () => {
-    if (!category.imageUrl) return null;
-    
-    // If it's already a full URL, return as-is
-    if (category.imageUrl.startsWith('http://') || category.imageUrl.startsWith('https://')) {
-      return category.imageUrl;
-    }
-    
-    // If it's a relative path, construct full URL using API media endpoint
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-    
-    // If it starts with /media/, convert to API endpoint
-    if (category.imageUrl.startsWith('/media/')) {
-      const path = category.imageUrl.replace('/media/', '');
-      return `${apiUrl}/api/media/${path}`;
-    }
-    
-    // If it's just a path starting with /, try API endpoint
-    if (category.imageUrl.startsWith('/')) {
-      const path = category.imageUrl.replace(/^\//, '');
-      return `${apiUrl}/api/media/${path}`;
-    }
-    
-    // Relative path (e.g., 'categories/uuid.jpg'), use API endpoint
-    return `${apiUrl}/api/media/${category.imageUrl}`;
-  };
+  const fullImageUrl = resolveImageUrl(category.imageUrl);
+  const hasImage = fullImageUrl && !imageError;
 
-  const fullImageUrl = getImageUrl();
-
-  const handlePress = () => {
-    router.push(`/(tabs)/category/${category.slug}`);
-  };
+  const colorIndex = category.name.charCodeAt(0) % BG_COLORS.length;
+  const bgColor = BG_COLORS[colorIndex];
+  const accentColor = ACCENT_COLORS[colorIndex];
 
   return (
     <TouchableOpacity
-      className="flex-1 bg-white border border-gray-200 rounded-xl overflow-hidden"
-      onPress={handlePress}
-      activeOpacity={0.7}
+      onPress={() => router.push(`/category/${category.slug}`)}
+      activeOpacity={0.8}
+      style={styles.card}
     >
-      {/* Image at top - fills width, rectangular */}
-      <View className="relative w-full h-20 bg-gray-100">
-        {fullImageUrl && !imageError ? (
-          <Image
-            source={{ uri: fullImageUrl }}
-            className="w-full h-full"
-            resizeMode="cover"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <View className="w-full h-full bg-gray-200 items-center justify-center">
-            <View className="w-8 h-8 rounded bg-gray-300" />
-          </View>
-        )}
-      </View>
-      
-      {/* Text content below image */}
-      <View className="items-center justify-center p-3 pt-2">
-        <AppText variant="default" weight="semibold" className="text-center text-gray-900" numberOfLines={2}>
-          {category.name}
-        </AppText>
-        {typeof category.adsCount === 'number' && category.adsCount >= 0 && (
-          <AppText variant="default" className="text-gray-500 mt-0.5 text-sm">
-            {String(category.adsCount)} ads
+      <View style={styles.container}>
+        {/* Background Layer: Image or Fallback Icon */}
+        <View style={[styles.background, { backgroundColor: bgColor }]}>
+          {hasImage ? (
+            <Image
+              source={{ uri: fullImageUrl }}
+              style={styles.fullImage}
+              contentFit="cover"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <Ionicons name="grid-outline" size={44} color={accentColor} style={{ opacity: 0.3 }} />
+          )}
+        </View>
+
+        {/* Dark Gradient Overlay at the base */}
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.85)']}
+          style={styles.gradient}
+        />
+
+        {/* Text Content at the base */}
+        <View style={styles.textContainer}>
+          <AppText weight="bold" numberOfLines={1} style={styles.name}>
+            {category.name}
           </AppText>
-        )}
+          <View style={styles.metaRow}>
+            <Ionicons name="apps-outline" size={10} color="#E2E8F0" style={{ opacity: 0.8 }} />
+            <AppText style={styles.count}>
+              {category.adsCount || 0} ads
+            </AppText>
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   );
 }
 
+const styles = StyleSheet.create({
+  card: {
+    width: '100%',
+    aspectRatio: 0.70, // Taller 'long' cards
+  },
+  container: {
+    flex: 1,
+    borderRadius: 28,
+    overflow: 'hidden',
+    backgroundColor: '#F8FAFC',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
+  background: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fullImage: {
+    width: '100%',
+    height: '100%',
+  },
+  gradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '65%',
+  },
+  textContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    paddingBottom: 20,
+    justifyContent: 'flex-end',
+  },
+  name: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    letterSpacing: -0.5,
+    marginBottom: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  count: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 11,
+    fontWeight: '600',
+    fontFamily: 'WorkSans-Medium',
+  },
+});

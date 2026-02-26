@@ -246,6 +246,8 @@ export interface ChatMessage {
   chat: string
   sender: User
   content: string
+  attachment?: string | null
+  message_type: 'text' | 'image' | 'audio'
   is_read: boolean
   read_at?: string | null
   delivered_at?: string | null
@@ -296,5 +298,30 @@ export interface UserOnlineStatus {
   user: User
   is_online: boolean
   last_seen: string | null
+}
+
+export interface Lead {
+  id: string
+  seller: number
+  client: number
+  client_detail?: {
+    id: number
+    email: string
+    first_name: string
+    last_name: string
+    avatar: string | null
+    phone: string | null
+  }
+  ad?: string | null
+  ad_detail?: {
+    id: string
+    title: string
+    price: string
+    images: string[]
+  }
+  source: 'phone_view' | 'profile_view' | 'save_ad'
+  messaged: boolean
+  created_at: string
+  updated_at: string
 }
 

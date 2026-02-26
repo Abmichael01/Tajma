@@ -1,4 +1,5 @@
-import { View, Pressable, Image } from "react-native";
+import { View, Pressable } from "react-native";
+import { Image } from 'expo-image';
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -36,15 +37,15 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
   const imageUrl = ad.images && ad.images.length > 0
     ? ad.images[0]
     : null;
-  
+
   // Format price
   const formattedPrice = ad.price
     ? `${ad.currency || 'Fr'} ${parseFloat(String(ad.price)).toLocaleString()}`
     : 'Contact for price';
-  
+
   // Get location from seller
   const location = ad.seller?.location || 'Location not specified';
-  
+
   // Get category name
   const categoryName = ad.category_details?.name || 'Uncategorized';
 
@@ -62,23 +63,23 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
   // Get full image URL if it's a relative path
   const getImageUrl = () => {
     if (!imageUrl) return null;
-    
+
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return imageUrl;
     }
-    
+
     const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-    
+
     if (imageUrl.startsWith('/media/')) {
       const path = imageUrl.replace('/media/', '');
       return `${apiUrl}/api/media/${path}`;
     }
-    
+
     if (imageUrl.startsWith('/')) {
       const path = imageUrl.replace(/^\//, '');
       return `${apiUrl}/api/media/${path}`;
     }
-    
+
     return `${apiUrl}/api/media/${imageUrl}`;
   };
 
@@ -86,7 +87,7 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
 
   return (
     <Pressable
-      className="bg-white border border-gray-200"
+      className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm"
       onPress={handlePress}
       style={({ pressed }) => [
         {
@@ -95,19 +96,20 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
       ]}
     >
       {/* Image Container - Maintains natural aspect ratio for Pinterest style */}
-      <View className="relative w-full bg-gray-100">
+      <View className="relative w-full bg-gray-100 overflow-hidden">
         {fullImageUrl && !imageError ? (
           <Image
             source={{ uri: fullImageUrl }}
-            style={{ 
-              width: '100%', 
+            style={{
+              width: '100%',
               aspectRatio: imageAspectRatio || 1,
             }}
-            resizeMode="cover"
+            contentFit="cover"
+            transition={200}
             onError={() => setImageError(true)}
             onLoad={(e) => {
               // Calculate and set aspect ratio to maintain natural image proportions for Pinterest style
-              const { width, height } = e.nativeEvent.source;
+              const { width, height } = e.source;
               if (width && height && height > 0) {
                 setImageAspectRatio(width / height);
               } else {
@@ -117,20 +119,20 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
             }}
           />
         ) : (
-          <View className="w-full bg-gray-200 items-center justify-center" style={{ aspectRatio: 1 }}>
-            <Ionicons name="image-outline" size={40} color="#9ca3af" />
+          <View className="w-full bg-gray-100 items-center justify-center" style={{ aspectRatio: 1 }}>
+            <AppText weight="bold" style={{ fontSize: 52, color: "#9ca3af", opacity: 0.3 }}>?</AppText>
           </View>
         )}
-        
+
         {/* Category Badge */}
         {categoryName && (
-          <View className="absolute top-2 left-2 bg-secondary/90 px-2 py-1">
+          <View className="absolute top-2 left-2 bg-secondary/90 px-2 py-1 rounded-lg">
             <AppText variant="caption" weight="medium" className="text-white text-xs">
               {categoryName}
             </AppText>
           </View>
         )}
-        
+
         {/* Favorite Button */}
         {onToggleFavorite && (
           <Pressable
@@ -145,7 +147,7 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
             <Ionicons
               name={ad.is_saved ? "heart" : "heart-outline"}
               size={20}
-              color={ad.is_saved ? "#cb234a" : "#666"}
+              color={ad.is_saved ? "#FF4F18" : "#666"}
             />
           </Pressable>
         )}
@@ -155,47 +157,37 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
       <View className="p-3">
         {/* Price - Before Title */}
         <View className="mb-1.5">
-          <AppText variant="subheading" weight="semibold" className="text-primary">
-            {formattedPrice}
-          </AppText>
+          <AppText variant="subheading" weight="semibold" className="text-primary">{String(formattedPrice || '')}</AppText>
         </View>
-        
+
         {/* Title */}
         <AppText
           variant="default"
           weight="semibold"
           className="text-gray-900 mb-1.5"
           numberOfLines={2}
-        >
-          {ad.title}
-        </AppText>
-        
+        >{String(ad.title || '')}</AppText>
+
         {/* Description - Truncated */}
-        {ad.description && (
+        {!!ad.description && (
           <AppText
             variant="caption"
             className="text-gray-600 mb-2"
             numberOfLines={2}
-          >
-            {ad.description}
-          </AppText>
+          >{String(ad.description)}</AppText>
         )}
-        
+
         {/* Location and Views */}
         <View className="flex-row items-center justify-between mt-2 pt-2 border-t border-gray-100">
           <View className="flex-row items-center gap-1 flex-1">
             <Ionicons name="location-outline" size={12} color="#6b7280" />
-            <AppText variant="caption" className="text-gray-500" numberOfLines={1}>
-              {location}
-            </AppText>
+            <AppText variant="caption" className="text-gray-500" numberOfLines={1}>{String(location || '')}</AppText>
           </View>
-          
-          {ad.views && ad.views > 0 && (
+
+          {!!(ad.views && ad.views > 0) && (
             <View className="flex-row items-center gap-1">
               <Ionicons name="eye-outline" size={12} color="#6b7280" />
-              <AppText variant="caption" className="text-gray-500">
-                {String(ad.views)}
-              </AppText>
+              <AppText variant="caption" className="text-gray-500">{String(ad.views)}</AppText>
             </View>
           )}
         </View>

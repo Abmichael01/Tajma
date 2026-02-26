@@ -11,6 +11,7 @@ from django.db import models
 from django.utils import timezone
 
 from api.models import Chat, Message, UserOnlineStatus
+from api.utils.link_preview import extract_url, get_link_preview
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -311,8 +312,11 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
             }))
             return
         
+        parent_message_id = data.get('parent_message_id')
+        client_id = data.get('client_id')
+        
         # Create message in database
-        message = await self.create_message(chat_id, self.user, content)
+        message = await self.create_message(chat_id, self.user, content, parent_message_id, client_id)
         if not message:
             await self.send(text_data=json.dumps({
                 'type': 'error',
@@ -463,8 +467,12 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         result = await self.mark_messages_as_read(chat_id, self.user)
         
         if result['updated'] > 0:
-            # Broadcast read status updates via WebSocket
+            # 1. Broadcast read status updates via WebSocket (updates ticks in active chats)
             await self.broadcast_read_status_updates(chat_id, result['message_ids'])
+            
+            # 2. Broadcast chat event to participants (refreshes unread counts in chat list)
+            # This ensures unread count goes to 0 instantly on all devices
+            await self.broadcast_chat_event({}, chat_id)
             
             await self.send(text_data=json.dumps({
                 'type': 'marked_read',
@@ -637,7 +645,7 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
             return False
     
     @database_sync_to_async
-    def create_message(self, chat_id, sender, content):
+    def create_message(self, chat_id, sender, content, parent_message_id=None, client_id=None):
         """Create a new message in the database"""
         try:
             chat = Chat.objects.select_related('participant1', 'participant2').get(id=chat_id)
@@ -654,11 +662,30 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
                 pass
             
             # Create message
-            message = Message.objects.create(
-                chat=chat,
-                sender=sender,
-                content=content
-            )
+            message_data = {
+                'chat': chat,
+                'sender': sender,
+                'content': content,
+                'client_id': client_id
+            }
+            
+            if parent_message_id:
+                try:
+                    message_data['parent_message_id'] = parent_message_id
+                except Exception as e:
+                    logger.warning(f"Invalid parent_message_id: {parent_message_id}")
+
+            # Extract and fetch link preview if content is text
+            url = extract_url(content)
+            if url:
+                preview = get_link_preview(url)
+                if preview:
+                    message_data['link_url'] = preview['url']
+                    message_data['link_title'] = preview['title']
+                    message_data['link_description'] = preview['description']
+                    message_data['link_image'] = preview['image']
+
+            message = Message.objects.create(**message_data)
             
             # If recipient is online, mark as delivered immediately
             if is_recipient_online:
@@ -685,7 +712,7 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
             except Message.DoesNotExist:
                 pass
         
-        serializer = MessageSerializer(message)
+        serializer = MessageSerializer(message, context={'request': self._get_mock_request(self.user)})
         data = serializer.data
         
         # Convert UUIDs and other non-serializable types to strings
@@ -764,9 +791,23 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
         except (Chat.DoesNotExist, User.DoesNotExist):
             return {}
         
-        fake_request = SimpleNamespace(user=user)
+        fake_request = self._get_mock_request(user)
         serializer = ChatSerializer(chat, context={'request': fake_request})
         return serializer.data
+
+    def _get_mock_request(self, user):
+        """Create a mock request object for serialization"""
+        from types import SimpleNamespace
+        from django.conf import settings
+        
+        request = SimpleNamespace(user=user)
+        
+        def mock_build_absolute_uri(location):
+            site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
+            return f"{site_url}{location}"
+            
+        request.build_absolute_uri = mock_build_absolute_uri
+        return request
     
     async def handle_mark_all_delivered(self):
         """Mark all unread messages as delivered when user comes online"""
@@ -912,7 +953,7 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
                 read_at = updated_message_data.get('read_at')
                 logger.info(f"📤 Broadcasting read status for message {message_id} - is_read: {is_read}, read_at: {read_at}")
                 
-                # Broadcast to chat group so sender receives the read status update
+                # Broadcast to chat group (for active subscribers inside this chat)
                 await self.channel_layer.group_send(
                     chat_group_name,
                     {
@@ -921,7 +962,21 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
                         'chat_id': chat_id
                     }
                 )
-                logger.info(f"✅ Broadcasted read status update for message {message_id} to chat {chat_id}")
+                
+                # ALSO broadcast to user-level groups (WhatsApp/Telegram pattern)
+                # This ensures the sender sees blue ticks even if they are on the chat list page
+                participant_ids = await self.get_chat_participant_ids(chat_id)
+                for user_id in participant_ids:
+                    user_messages_group = f'user_{user_id}'
+                    await self.channel_layer.group_send(
+                        user_messages_group,
+                        {
+                            'type': 'message_status_update',
+                            'message': updated_message_data,
+                            'chat_id': chat_id
+                        }
+                    )
+                logger.info(f"✅ Broadcasted read status update for message {message_id} to global groups")
             else:
                 logger.warning(f"Could not find message {message_id} to broadcast read status")
 

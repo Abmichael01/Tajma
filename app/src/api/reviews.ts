@@ -1,4 +1,5 @@
-import apiClient from './apiClient'
+import apiClient from './apiClient';
+import { CreateReviewRequest } from './types';
 
 export const reviewsApi = {
   /**

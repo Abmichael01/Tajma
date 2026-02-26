@@ -25,7 +25,7 @@ class Category(models.Model):
         blank=True,
         help_text='Frontend icon identifier (e.g., lucide name or custom key).',
     )
-    image_url = models.URLField(blank=True)
+    image_url = models.CharField(max_length=500, blank=True)
     category_type = models.CharField(
         max_length=20,
         choices=CATEGORY_TYPES,

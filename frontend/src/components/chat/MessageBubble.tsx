@@ -15,7 +15,17 @@ interface MessageBubbleProps {
   onRetry?: (message: ChatMessage) => void
 }
 
-export default function MessageBubble({ message, isOwn, participant, currentUserAvatar, currentUser, onRetry }: MessageBubbleProps) {
+import AudioPlayer from './AudioPlayer'
+
+// Helper function to normalize image URLs
+const normalizeMediaUrl = (url: string | null | undefined): string => {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  return url.startsWith('/') ? `${apiUrl}${url}` : `${apiUrl}/${url}`
+}
+
+function MessageBubble({ message, isOwn, participant, currentUserAvatar, currentUser, onRetry }: MessageBubbleProps) {
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
     return date.toLocaleTimeString('en-US', {
@@ -26,106 +36,65 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
   }
 
   const getMessageStatus = (): 'sending' | 'sent' | 'delivered' | 'read' | 'failed' => {
-    // WhatsApp flow: sending → sent → delivered → read → failed (if error)
-    
-    // Check if message failed to send
-    if (message.send_failed) {
-      return 'failed'
-    }
-    
-    // State 1: Sending (optimistic, not yet saved to DB)
+    if (message.send_failed) return 'failed'
     const isOptimistic = typeof message.id === 'string' && message.id.startsWith('temp-')
     if (isOptimistic) return 'sending'
-    
-    // Once message has a real ID (not temp), it means it was created/sent
-    // So we show "sent" immediately, regardless of delivered_at
-    // State 2: Sent (message saved to DB) - this happens as soon as message is created
-    
-    // State 3: Delivered (when recipient receives it) - only update if delivered_at exists
-    // State 4: Read (when recipient views it) - only update if is_read is true
-    
     const isRead = Boolean(message.is_read)
     const isDelivered = Boolean(message.delivered_at)
-    
-    // Check read status first (highest priority)
-    if (isRead) {
-      return 'read' // State 4: Read (double blue checks)
-    }
-    
-    // Then check delivered (only if not read yet)
-    if (isDelivered) {
-      return 'delivered' // State 3: Delivered (double gray checks)
-    }
-    
-    // Otherwise, message is sent (has real ID, created on server)
-    return 'sent' // State 2: Sent (single gray check - message created on server)
+    if (isRead) return 'read'
+    if (isDelivered) return 'delivered'
+    return 'sent'
   }
 
   const renderStatusIcon = () => {
     if (!isOwn) return null
     const status = getMessageStatus()
-    
-    // WhatsApp Status Flow:
-    // 1. Sending: Clock icon (pulsing) - message being sent (optimistic, not yet created on server)
+
     if (status === 'sending') {
       return (
         <span title="Sending...">
-        <Clock 
-          className="w-3 h-3 text-gray-400 animate-pulse" 
-        />
+          <Clock className="w-3 h-3 text-gray-400 animate-pulse" />
         </span>
       )
     }
-    
-    // 2. Sent: Single gray check - message saved to server, not yet delivered
+
     if (status === 'sent') {
       return (
         <span title="Sent">
-        <Check 
-          className="w-3 h-3 text-gray-400" 
-        />
+          <Check className="w-3 h-3 text-gray-400" />
         </span>
       )
     }
-    
-    // 3. Delivered: Double gray checks - message delivered to recipient's device
+
     if (status === 'delivered') {
       return (
         <span title="Delivered">
-        <CheckCheck 
-          className="w-3 h-3 text-gray-400" 
-        />
+          <CheckCheck className="w-3 h-3 text-gray-400" />
         </span>
       )
     }
-    
-    // 4. Read: Double blue checks - message read by recipient
+
     if (status === 'read') {
       return (
         <span title="Read">
-        <CheckCheck 
-          className="w-3 h-3 text-blue-500" 
-        />
+          <CheckCheck className="w-3 h-3 text-blue-500" />
         </span>
       )
     }
-    
-    // 5. Failed: Error icon - message failed to send
+
     if (status === 'failed') {
       return (
         <span title="Failed to send. Tap to retry">
-        <AlertCircle 
-          className="w-3 h-3 text-red-500" 
-        />
+          <AlertCircle className="w-3 h-3 text-red-500" />
         </span>
       )
     }
-    
+
     return null
   }
 
   return (
-    <div 
+    <div
       className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group message-enter`}
       data-message-id={message.id}
     >
@@ -143,15 +112,33 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
 
         <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
           <div
-            className={`message-bubble px-4 py-2 rounded-2xl shadow-sm ${
-              isOwn
-                ? 'bg-primary text-primary-foreground rounded-br-sm'
-                : 'bg-white text-gray-900 rounded-bl-sm border border-gray-100'
-            }`}
+            className={`message-bubble overflow-hidden rounded-2xl shadow-sm ${isOwn
+              ? 'bg-primary text-primary-foreground rounded-br-sm'
+              : 'bg-white text-gray-900 rounded-bl-sm border border-gray-100'
+              } ${message.message_type !== 'text' ? 'p-1' : 'px-4 py-2'}`}
           >
-            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isOwn ? 'text-white' : 'text-gray-900'}`}>
-              {message.content}
-            </p>
+            {message.message_type === 'image' && message.attachment && (
+              <div className="relative aspect-square w-full min-w-[240px] rounded-lg overflow-hidden bg-gray-100 mb-1">
+                <img
+                  src={normalizeMediaUrl(message.attachment)}
+                  alt="Shared image"
+                  className="object-cover w-full h-full cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => window.open(normalizeMediaUrl(message.attachment), '_blank')}
+                />
+              </div>
+            )}
+
+            {message.message_type === 'audio' && message.attachment && (
+              <div className="p-1 min-w-[280px]">
+                <AudioPlayer uri={normalizeMediaUrl(message.attachment)} isOwn={isOwn} />
+              </div>
+            )}
+
+            {(message.message_type === 'text' || (message.content && !['📷 Image', '🎤 Audio Message'].includes(message.content))) && (
+              <p className={`text-sm leading-relaxed whitespace-pre-wrap ${message.message_type !== 'text' ? 'px-3 py-1' : ''} ${isOwn ? 'text-white' : 'text-gray-900'}`}>
+                {message.content}
+              </p>
+            )}
           </div>
 
           <div className={`flex items-center gap-1 mt-1 px-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -163,7 +150,7 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
               </div>
             )}
           </div>
-          
+
           {/* Retry button for failed messages */}
           {isOwn && getMessageStatus() === 'failed' && onRetry && (
             <div className="flex justify-end mt-1 px-2">
@@ -191,3 +178,5 @@ export default function MessageBubble({ message, isOwn, participant, currentUser
     </div>
   )
 }
+
+export default React.memo(MessageBubble)

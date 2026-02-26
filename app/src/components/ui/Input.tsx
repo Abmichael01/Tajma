@@ -9,6 +9,7 @@ interface InputProps extends TextInputProps {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   showPasswordToggle?: boolean;
+  multiline?: boolean;
 }
 
 export default function Input({
@@ -18,47 +19,38 @@ export default function Input({
   rightIcon,
   showPasswordToggle = false,
   secureTextEntry,
+  multiline,
   ...props
-}: InputProps) {
+}: InputProps & { multiline?: boolean }) { // Explicitly add multiline to props destructuring
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const isPassword = secureTextEntry || showPasswordToggle;
 
   return (
-    <View className="relative">
+    <View className="relative w-full">
       {leftIcon && (
-        <View
-          style={{
-            position: "absolute",
-            left: 16,
-            top: 0,
-            bottom: 0,
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 10,
-          }}
-          pointerEvents="none"
-        >
+        <View className="absolute left-4 top-0 bottom-0 z-10 justify-center items-center pointer-events-none">
           {leftIcon}
         </View>
       )}
       <TextInput
         className={cn(
-          "px-8 py-4 w-full min-w-0 bg-transparent border text-lg",
-          props.multiline ? "rounded-xl" : "rounded-full",
+          "px-5 py-3 w-full bg-gray-50 border text-gray-900 text-base",
+          multiline ? "rounded-2xl" : "rounded-full", // Full rounded for single line
           leftIcon ? "pl-12" : "",
-          (rightIcon || isPassword) ? "pr-12" : "",
-          error ? "border-destructive" : "border-input",
+          (rightIcon || secureTextEntry) ? "pr-12" : "",
+          error ? "border-red-500" : "border-gray-200 focus:border-primary",
           "disabled:opacity-50",
           className
         )}
-        secureTextEntry={isPassword && !isPasswordVisible}
+        secureTextEntry={secureTextEntry && !isPasswordVisible}
         style={{
           fontFamily: "WorkSans-Regular",
         }}
         placeholderTextColor="#9ca3af"
+        multiline={multiline}
         {...props}
       />
-      {(rightIcon || isPassword) && (
+      {(rightIcon || secureTextEntry) && (
         <View
           style={{
             position: "absolute",
@@ -70,7 +62,7 @@ export default function Input({
             zIndex: 10,
           }}
         >
-          {isPassword ? (
+          {secureTextEntry ? (
             <Pressable
               onPress={() => setIsPasswordVisible(!isPasswordVisible)}
               style={({ pressed }) => [{ padding: 4, opacity: pressed ? 0.6 : 1 }]}

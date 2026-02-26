@@ -71,7 +71,12 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class CategoryTreeSerializer(serializers.ModelSerializer):
-    children = serializers.SerializerMethodField()
+    id = serializers.CharField(source='slug')
+    subcategories = serializers.SerializerMethodField()
+    customFields = serializers.JSONField(source='custom_fields')
+    imageUrl = serializers.CharField(source='image_url', required=False, allow_blank=True)
+    type = serializers.CharField(source='category_type')
+    count = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
@@ -81,15 +86,40 @@ class CategoryTreeSerializer(serializers.ModelSerializer):
             'slug',
             'description',
             'icon',
-            'image_url',
-            'category_type',
-            'custom_fields',
-            'parent_id',
-            'children',
+            'imageUrl',
+            'type',
+            'customFields',
+            'subcategories',
+            'count',
         ]
 
-    def get_children(self, obj):
+    def get_count(self, obj):
+        # Calculate total count: this category + all descendants
+        from api.models import Ad
+        from django.db.models import Q
+        
+        # Get all descendant IDs
+        def get_descendant_ids(category):
+            ids = [category.id]
+            for child in category.children.filter(is_active=True):
+                ids.extend(get_descendant_ids(child))
+            return ids
+        
+        category_ids = get_descendant_ids(obj)
+        return Ad.objects.filter(category_id__in=category_ids, status='published').count()
+
+    def get_subcategories(self, obj):
         children_qs = obj.children.filter(is_active=True).order_by('sort_order', 'name')
+        if not children_qs.exists():
+            return []
         serializer = CategoryTreeSerializer(children_qs, many=True, context=self.context)
         return serializer.data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Ensure imageUrl is full URL
+        if data.get('imageUrl'):
+            request = self.context.get('request')
+            data['imageUrl'] = build_full_image_url(data['imageUrl'], request)
+        return data
 

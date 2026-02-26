@@ -65,10 +65,27 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
     
+    KYC_STATUS_CHOICES = [
+        ('none', 'Not Submitted'),
+        ('pending', 'Pending Verification'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+    ]
+    kyc_status = models.CharField(max_length=20, choices=KYC_STATUS_CHOICES, default='none')
+    kyc_notes = models.TextField(blank=True, null=True)
+    
     # Timestamps
     date_joined = models.DateTimeField(default=timezone.now)
     last_login = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Blocked users
+    blocked_users = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        related_name='blocked_by',
+        blank=True
+    )
     
     # Django auth fields
     groups = models.ManyToManyField(

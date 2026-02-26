@@ -3,6 +3,7 @@ BEAUTY_HEALTH_CATEGORY = {
     "name": "Health & Beauty",
     "icon": "Sparkles",
     "type": "product",
+    "image_url": "/fashion_banner.png",
     "custom_fields": [
         {
             "name": "brand",

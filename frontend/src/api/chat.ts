@@ -16,23 +16,23 @@ export const chatApi = {
   list: async (): Promise<ChatSummary[]> => {
     try {
       const response = await apiClient.get<ChatSummary[] | { results: ChatSummary[] }>(basePath)
-      
+
       // Handle null or undefined response
       if (!response.data) {
         console.warn('chatApi.list: No data in response')
         return []
       }
-      
+
       // Handle paginated response
       if (typeof response.data === 'object' && 'results' in response.data && Array.isArray((response.data as any).results)) {
         return (response.data as { results: ChatSummary[] }).results
       }
-      
+
       // Handle direct array response
       if (Array.isArray(response.data)) {
         return response.data
       }
-      
+
       // Unexpected format
       console.warn('chatApi.list: Unexpected response format:', response.data)
       return []
@@ -61,13 +61,13 @@ export const chatApi = {
       const response = await apiClient.get<ChatMessage[] | { results: ChatMessage[]; count: number; next: string | null; previous: string | null }>(messagesPath, {
         params: { chat: chatId, page },
       })
-      
+
       // Handle null or undefined response
       if (!response.data) {
         console.warn('listMessages: No data in response')
         return { results: [], count: 0, next: null, previous: null }
       }
-      
+
       // Handle paginated response
       if (typeof response.data === 'object' && 'results' in response.data && Array.isArray((response.data as any).results)) {
         const paginatedData = response.data as { results: ChatMessage[]; count: number; next: string | null; previous: string | null }
@@ -78,7 +78,7 @@ export const chatApi = {
           previous: paginatedData.previous || null,
         }
       }
-      
+
       // Handle direct array response (backward compatibility)
       if (Array.isArray(response.data)) {
         return {
@@ -88,7 +88,7 @@ export const chatApi = {
           previous: null,
         }
       }
-      
+
       // Unexpected format
       console.warn('listMessages: Unexpected response format:', response.data)
       return { results: [], count: 0, next: null, previous: null }
@@ -103,26 +103,35 @@ export const chatApi = {
     return response.data
   },
 
+  sendMediaMessage: async (formData: FormData): Promise<ChatMessage> => {
+    const response = await apiClient.post<ChatMessage>(messagesPath, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response.data
+  },
+
   listOnlineStatuses: async (): Promise<UserOnlineStatus[]> => {
     try {
       const response = await apiClient.get<UserOnlineStatus[] | { results: UserOnlineStatus[] }>(onlineStatusPath)
-      
+
       // Handle null or undefined response
       if (!response.data) {
         console.warn('listOnlineStatuses: No data in response')
         return []
       }
-      
+
       // Handle paginated response
       if (typeof response.data === 'object' && 'results' in response.data && Array.isArray((response.data as any).results)) {
         return (response.data as { results: UserOnlineStatus[] }).results
       }
-      
+
       // Handle direct array response
       if (Array.isArray(response.data)) {
         return response.data
       }
-      
+
       // Unexpected format
       console.warn('listOnlineStatuses: Unexpected response format:', response.data)
       return []

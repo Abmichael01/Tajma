@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
+import { Alert } from 'react-native'
 import { savedAdsApi } from '@/api/savedAds'
 import { useAuthStore } from '@/store/authStore'
 
@@ -45,15 +46,15 @@ export function useToggleSaveAd() {
     onMutate: async (adId) => {
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: ['saved-ads'] })
-      
+
       // Snapshot the previous values for all ad queries
       const previousAdQueries: Array<{ queryKey: any[], data: any }> = []
       const previousAdsListQueries: Array<{ queryKey: any[], data: any }> = []
-      
+
       // Find all ad queries and snapshot them
-      queryClient.getQueryCache().getAll().forEach((query) => {
+      queryClient.getQueryCache().getAll().forEach((query: any) => {
         const queryKey = query.queryKey
-        if (queryKey[0] === 'ad' && query.state.data) {
+        if (queryKey[0] === 'ad' && query.state?.data) {
           const ad = query.state.data as any
           // Check if this is the ad we're toggling (by id or slug)
           if (ad.id === adId || ad.slug === adId) {
@@ -61,7 +62,7 @@ export function useToggleSaveAd() {
               queryKey,
               data: query.state.data,
             })
-            
+
             // Optimistically update the ad
             queryClient.setQueryData(queryKey, (oldData: any) => {
               if (oldData) {
@@ -69,8 +70,8 @@ export function useToggleSaveAd() {
                 return {
                   ...oldData,
                   is_saved: newSavedState,
-                  saved_count: newSavedState 
-                    ? (oldData.saved_count || 0) + 1 
+                  saved_count: newSavedState
+                    ? (oldData.saved_count || 0) + 1
                     : Math.max(0, (oldData.saved_count || 1) - 1),
                 }
               }
@@ -78,22 +79,22 @@ export function useToggleSaveAd() {
             })
           }
         }
-        
+
         // Also update ads list queries
         if (queryKey[0] === 'ads' && query.state.data) {
           const adsData = query.state.data as any
           const ads = Array.isArray(adsData) ? adsData : (adsData.results || [])
-          
+
           // Check if this list contains the ad we're toggling
           const hasAd = ads.some((ad: any) => ad.id === adId || ad.slug === adId)
-          
+
           if (hasAd) {
             // Snapshot previous state
             previousAdsListQueries.push({
               queryKey,
               data: query.state.data,
             })
-            
+
             // Optimistically update the ads list
             const updatedAds = ads.map((ad: any) => {
               if (ad.id === adId || ad.slug === adId) {
@@ -101,14 +102,14 @@ export function useToggleSaveAd() {
                 return {
                   ...ad,
                   is_saved: newSavedState,
-                  saved_count: newSavedState 
-                    ? (ad.saved_count || 0) + 1 
+                  saved_count: newSavedState
+                    ? (ad.saved_count || 0) + 1
                     : Math.max(0, (ad.saved_count || 1) - 1),
                 }
               }
               return ad
             })
-            
+
             queryClient.setQueryData(queryKey, (oldData: any) => {
               if (Array.isArray(oldData)) {
                 return updatedAds
@@ -121,7 +122,7 @@ export function useToggleSaveAd() {
           }
         }
       })
-      
+
       // Return context with previous values for rollback
       return { previousAdQueries, previousAdsListQueries }
     },
@@ -132,15 +133,15 @@ export function useToggleSaveAd() {
           queryClient.setQueryData(queryKey, data)
         })
       }
-      
+
       // Rollback ads list updates
       if (context?.previousAdsListQueries) {
         context.previousAdsListQueries.forEach(({ queryKey, data }) => {
           queryClient.setQueryData(queryKey, data)
         })
       }
-      
-      console.error('Failed to save ad:', error?.response?.data?.message || 'Failed to save ad')
+
+      console.error('Failed to save ad:', (error as any)?.response?.data?.message || 'Failed to save ad')
     },
     onSuccess: (data, adId) => {
       // Update with server response to ensure consistency
@@ -162,10 +163,10 @@ export function useToggleSaveAd() {
           }
         }
       })
-      
+
       // Invalidate saved ads list (both regular and infinite)
       queryClient.invalidateQueries({ queryKey: ['saved-ads'] })
-      
+
       // Invalidate ads list to update saved counts
       queryClient.invalidateQueries({ queryKey: ['ads'] })
     },
@@ -190,7 +191,7 @@ export function useSaveAd() {
       // Success - data updated
     },
     onError: (error: any) => {
-      console.error('Failed to save ad:', error?.response?.data?.message || 'Failed to save ad')
+      console.error('Failed to save ad:', (error as any)?.response?.data?.message || 'Failed to save ad')
     },
   })
 }
@@ -209,7 +210,7 @@ export function useUnsaveAd() {
       // Success - data updated
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Failed to unsave ad')
+      Alert.alert('Error', error?.response?.data?.message || 'Failed to unsave ad')
     },
   })
 }

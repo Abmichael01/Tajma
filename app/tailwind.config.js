@@ -9,53 +9,53 @@ module.exports = {
       },
       colors: {
         primary: {
-          DEFAULT: "#0f172b", // oklch(0.208 0.042 265.755) - exact dark blue/purple
-          foreground: "#f8fafc", // oklch(0.984 0.003 247.858) - exact white
-          50: "#f0f1f5",
-          100: "#d9dbe4",
-          200: "#b3b7c9",
-          300: "#8d93ae",
-          400: "#676f93",
-          500: "#414b78",
-          600: "#0f172b",
-          700: "#0a0f1d",
-          800: "#05080f",
-          900: "#000000",
+          DEFAULT: "#FF4F18",
+          foreground: "#ffffff",
+          50: "#fff1ee",
+          100: "#ffe0d8",
+          200: "#ffc1b1",
+          300: "#ffa189",
+          400: "#ff8262",
+          500: "#FF4F18", // OneFood Orange
+          600: "#e64716",
+          700: "#bf3b12",
+          800: "#992f0e",
+          900: "#7d260c",
         },
         secondary: {
-          DEFAULT: "#cb234a", // oklch(0.55 0.20 15) - exact orange/peach
-          foreground: "#ffffff", // oklch(1 0 0) - white
-          50: "#fef2f4",
-          100: "#fde2e7",
-          200: "#fbc5cf",
-          300: "#f9a8b7",
-          400: "#f78b9f",
-          500: "#f56e87",
-          600: "#cb234a",
-          700: "#a01c3b",
-          800: "#75152c",
-          900: "#4a0e1d",
+          DEFAULT: "#2D2D2D",
+          foreground: "#ffffff",
+          50: "#f6f6f6",
+          100: "#e7e7e7",
+          200: "#d1d1d1",
+          300: "#b0b0b0",
+          400: "#888888",
+          500: "#2D2D2D", // Charcoal
+          600: "#282828",
+          700: "#212121",
+          800: "#1a1a1a",
+          900: "#141414",
         },
         destructive: {
-          DEFAULT: "#e7000b", // oklch(0.577 0.245 27.325) - exact red
+          DEFAULT: "#e7000b",
           foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "#f1f5f9", // oklch(0.968 0.007 247.896) - exact
-          foreground: "#62748e", // oklch(0.554 0.046 257.417) - exact
+          DEFAULT: "#f1f5f9",
+          foreground: "#62748e",
         },
         accent: {
-          DEFAULT: "#f1f5f9", // oklch(0.968 0.007 247.896) - exact
-          foreground: "#0f172b", // oklch(0.208 0.042 265.755) - exact
+          DEFAULT: "#f1f5f9",
+          foreground: "#0f172b",
         },
-        border: "#e2e8f0", // oklch(0.929 0.013 255.508) - exact
-        input: "#e2e8f0", // oklch(0.929 0.013 255.508) - exact
-        ring: "#90a1b9", // oklch(0.704 0.04 256.788) - exact
-        background: "#ffffff", // oklch(1 0 0) - exact
-        foreground: "#020618", // oklch(0.129 0.042 264.695) - exact
+        border: "#d1d5db",
+        input: "#d1d5db",
+        ring: "#90a1b9",
+        background: "#ffffff",
+        foreground: "#020618",
         card: {
-          DEFAULT: "#ffffff", // oklch(1 0 0) - exact
-          foreground: "#020618", // oklch(0.129 0.042 264.695) - exact
+          DEFAULT: "#ffffff",
+          foreground: "#020618",
         },
       },
     },

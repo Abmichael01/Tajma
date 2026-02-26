@@ -15,7 +15,7 @@ interface UseChatRealtimeOptions {
 export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTypingChange }: UseChatRealtimeOptions) => {
   const queryClient = useQueryClient()
   const { isAuthenticated, user } = useAuthStore()
-  
+
   // Prepare active chat IDs array for unified connection
   const activeChatIds = useMemo(() => {
     return activeConversationId ? [activeConversationId] : []
@@ -35,20 +35,20 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
 
       queryClient.setQueryData(['chats'], (oldData: ChatSummary[] | undefined) => {
         if (!oldData) return [updatedChat]
-        
+
         const chats = [...oldData]
         const index = chats.findIndex((c) => c.id === updatedChat.id)
-        
+
         if (index !== -1) {
           const existingChat = chats[index]
-          
+
           const finalAd = isValidAdField(updatedChat.ad) ? updatedChat.ad : existingChat.ad
           const finalAdTitle = isValidAdField(updatedChat.ad_title) ? updatedChat.ad_title : existingChat.ad_title
           const finalAdSlug = isValidAdField(updatedChat.ad_slug) ? updatedChat.ad_slug : existingChat.ad_slug
           const finalAdImage = isValidAdField(updatedChat.ad_image) ? updatedChat.ad_image : existingChat.ad_image
           const finalAdPrice = isValidAdField(updatedChat.ad_price) ? updatedChat.ad_price : existingChat.ad_price
           const finalAdCurrency = isValidAdField(updatedChat.ad_currency) ? updatedChat.ad_currency : existingChat.ad_currency
-          
+
           const mergedChat = {
             ...existingChat,
             last_message: updatedChat.last_message ?? existingChat.last_message,
@@ -64,31 +64,31 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             ad_price: finalAdPrice,
             ad_currency: finalAdCurrency,
           }
-          
+
           chats[index] = mergedChat
         } else {
           chats.unshift(updatedChat)
         }
-        
+
         const sorted = chats.sort((a, b) => {
           const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
           const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
           return timeB - timeA
         })
-        
+
         return sorted
       })
 
       queryClient.setQueryData(['chats', chat_id], (oldData: any) => {
         if (!oldData) return oldData
-        
+
         const finalAd = isValidAdField(updatedChat.ad) ? updatedChat.ad : oldData.ad
         const finalAdTitle = isValidAdField(updatedChat.ad_title) ? updatedChat.ad_title : oldData.ad_title
         const finalAdSlug = isValidAdField(updatedChat.ad_slug) ? updatedChat.ad_slug : oldData.ad_slug
         const finalAdImage = isValidAdField(updatedChat.ad_image) ? updatedChat.ad_image : oldData.ad_image
         const finalAdPrice = isValidAdField(updatedChat.ad_price) ? updatedChat.ad_price : oldData.ad_price
         const finalAdCurrency = isValidAdField(updatedChat.ad_currency) ? updatedChat.ad_currency : oldData.ad_currency
-        
+
         const merged = {
           ...oldData,
           last_message: updatedChat.last_message ?? oldData.last_message,
@@ -104,7 +104,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           ad_price: finalAdPrice,
           ad_currency: finalAdCurrency,
         }
-        
+
         return merged
       })
     },
@@ -113,90 +113,83 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
 
   const updateMessagesCacheForChat = useCallback(
     (message: ChatMessage, chatId: string) => {
-      
+
       queryClient.setQueryData(['messages', chatId], (oldData: any) => {
-          if (!oldData?.pages) {
+        if (!oldData?.pages) {
+          return {
+            pages: [{ results: [message], count: 1, next: null, previous: null, page: 1 }],
+            pageParams: [1],
+          }
+        }
+
+        let messageFound = false
+
+        const updatedPages = oldData.pages.map((page: any) => {
+          const messagesArray = page.results || []
+
+          const existingIndex = messagesArray.findIndex((m: ChatMessage) => m.id === message.id)
+          if (existingIndex !== -1) {
+            messageFound = true
+            const updated = [...messagesArray]
+            updated[existingIndex] = { ...updated[existingIndex], ...message }
             return {
-              pages: [{ results: [message], count: 1, next: null, previous: null, page: 1 }],
-              pageParams: [1],
+              ...page,
+              results: updated.sort((a: ChatMessage, b: ChatMessage) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              ),
             }
           }
-          
-          let messageFound = false
-          
-          const updatedPages = oldData.pages.map((page: any) => {
-            const messagesArray = page.results || []
-            
-            const existingIndex = messagesArray.findIndex((m: ChatMessage) => m.id === message.id)
-            if (existingIndex !== -1) {
-              messageFound = true
-              const updated = [...messagesArray]
-              updated[existingIndex] = { ...updated[existingIndex], ...message }
-              return {
-                ...page,
-                results: updated.sort((a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                ),
-              }
-            }
-            
-            const messageTime = new Date(message.created_at).getTime()
-            const optimisticIndex = messagesArray.findIndex((m: ChatMessage) => {
-              const isTemp = String(m.id).startsWith('temp-')
-              if (!isTemp) return false 
-              const sameContent = String(m.content).trim() === String(message.content).trim()
-              const sameSender = m.sender?.id === message.sender?.id
-              const optimisticTime = new Date(m.created_at).getTime()
-              const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 90000 
-              return sameContent && sameSender && withinTimeWindow
-            })
-            
-            if (optimisticIndex !== -1) {
-              messageFound = true
-              const updated = [...messagesArray]
-              updated[optimisticIndex] = message
-              return {
-                ...page,
-                results: updated.sort((a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                ),
-              }
-            }
-            
-            return page
+
+          const messageTime = new Date(message.created_at).getTime()
+          const optimisticIndex = messagesArray.findIndex((m: ChatMessage) => {
+            const isTemp = String(m.id).startsWith('temp-')
+            if (!isTemp) return false
+            const sameContent = String(m.content).trim() === String(message.content).trim()
+            const sameSender = m.sender?.id === message.sender?.id
+            const optimisticTime = new Date(m.created_at).getTime()
+            const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 90000
+            return sameContent && sameSender && withinTimeWindow
           })
-          
-          if (!messageFound && updatedPages.length > 0) {
-            const lastPage = updatedPages[updatedPages.length - 1]
-            if (lastPage && lastPage.results) {
-              const hasExactDuplicate = lastPage.results.some((m: ChatMessage) => m.id === message.id)
-              
-              if (!hasExactDuplicate) {
-                const lastPageUpdated = {
-                  ...lastPage,
-                  results: [...(lastPage.results || []), message].sort((a: ChatMessage, b: ChatMessage) => 
-                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                  ),
-                }
-                updatedPages[updatedPages.length - 1] = lastPageUpdated
-              }
+
+          if (optimisticIndex !== -1) {
+            messageFound = true
+            const updated = [...messagesArray]
+            updated[optimisticIndex] = message
+            return {
+              ...page,
+              results: updated.sort((a: ChatMessage, b: ChatMessage) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              ),
             }
-          } else if (!messageFound && updatedPages.length === 0) {
-            updatedPages.push({
-              results: [message],
-              count: 1,
-              next: null,
-              previous: null,
-              page: 1
-            })
           }
-          
-          const result = {
-            ...oldData,
-            pages: updatedPages,
-          }
-          return result
+
+          return page
         })
+
+        if (!messageFound && updatedPages.length > 0) {
+          const firstPageUpdated = {
+            ...updatedPages[0],
+            results: [message, ...(updatedPages[0].results || [])].sort((a: ChatMessage, b: ChatMessage) =>
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            ),
+          }
+          updatedPages[0] = firstPageUpdated
+        } else if (!messageFound && updatedPages.length === 0) {
+          updatedPages.push({
+            results: [message],
+            count: 1,
+            next: null,
+            previous: null,
+            page: 1
+          })
+        }
+
+        const result = {
+          ...oldData,
+          pages: updatedPages,
+        }
+        return result
+      })
     },
     [queryClient, activeConversationId]
   )
@@ -210,7 +203,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
 
         queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
           if (!oldChats) return oldChats
-          
+
           const updated = oldChats.map((chat) => {
             if (chat.id === activeConversationId) {
               const updatedChat = {
@@ -230,13 +223,13 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             }
             return chat
           })
-          
+
           const sorted = updated.sort((a, b) => {
             const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
             const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
             return timeB - timeA
           })
-          
+
           return sorted
         })
 
@@ -244,15 +237,15 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           if (!oldData) return oldData
           const existingMessages = oldData.messages || []
           const existingIndex = existingMessages.findIndex((m: ChatMessage) => m.id === message.id)
-           
+
           if (existingIndex !== -1) {
             const updated = [...existingMessages]
             updated[existingIndex] = message
             return {
               ...oldData,
               messages: updated.sort(
-                (a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                (a: ChatMessage, b: ChatMessage) =>
+                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
               ),
               last_message: message,
               last_message_at: message.created_at,
@@ -264,22 +257,22 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ad_currency: oldData.ad_currency,
             }
           }
-          
+
           const optimisticIndex = existingMessages.findIndex((m: ChatMessage) => {
             const isTemp = String(m.id).startsWith('temp-')
             const sameContent = String(m.content).trim() === String(message.content).trim()
             const sameSender = m.sender?.id === message.sender?.id
             return isTemp && sameContent && sameSender
           })
-          
+
           if (optimisticIndex !== -1) {
             const updated = [...existingMessages]
             updated[optimisticIndex] = message
             return {
               ...oldData,
               messages: updated.sort(
-                (a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                (a: ChatMessage, b: ChatMessage) =>
+                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
               ),
               last_message: message,
               last_message_at: message.created_at,
@@ -291,12 +284,12 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ad_currency: oldData.ad_currency,
             }
           }
-          
+
           return {
             ...oldData,
-            messages: [...existingMessages, message].sort(
-              (a: ChatMessage, b: ChatMessage) => 
-                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            messages: [message, ...existingMessages].sort(
+              (a: ChatMessage, b: ChatMessage) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             ),
             last_message: message,
             last_message_at: message.created_at,
@@ -318,11 +311,11 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
       if (activeConversationId) {
         queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
           if (!oldData?.pages) return oldData
-          
+
           const updatedPages = oldData.pages.map((page: any) => {
             const messagesArray = page.results || []
             const existingIndex = messagesArray.findIndex((m: ChatMessage) => m.id === message.id)
-            
+
             if (existingIndex !== -1) {
               const updated = [...messagesArray]
               updated[existingIndex] = { ...updated[existingIndex], ...message }
@@ -331,10 +324,10 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
                 results: updated,
               }
             }
-            
+
             return page
           })
-          
+
           return {
             ...oldData,
             pages: updatedPages,
@@ -372,10 +365,10 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
   const handleChatMessage = useCallback(
     (message: ChatMessage, chatId: string) => {
       updateMessagesCacheForChat(message, chatId)
-      
+
       queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
         if (!oldChats) return oldChats
-        
+
         const updated = oldChats.map((chat) => {
           if (chat.id === chatId) {
             const updatedChat = {
@@ -394,32 +387,32 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           }
           return chat
         })
-        
+
         const sorted = updated.sort((a, b) => {
           const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
           const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
           return timeB - timeA
         })
-        
+
         return sorted
       })
-      
+
       if (activeConversationId === chatId) {
         onMessageReceived?.(message)
-        
+
         queryClient.setQueryData(['chats', chatId], (oldData: any) => {
           if (!oldData) return oldData
           const existingMessages = oldData.messages || []
           const existingIndex = existingMessages.findIndex((m: ChatMessage) => m.id === message.id)
-          
+
           if (existingIndex !== -1) {
             const updated = [...existingMessages]
             updated[existingIndex] = message
             return {
               ...oldData,
               messages: updated.sort(
-                (a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                (a: ChatMessage, b: ChatMessage) =>
+                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
               ),
               last_message: message,
               last_message_at: message.created_at,
@@ -431,22 +424,22 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ad_currency: oldData.ad_currency,
             }
           }
-          
+
           const optimisticIndex = existingMessages.findIndex((m: ChatMessage) => {
             const isTemp = String(m.id).startsWith('temp-')
             const sameContent = String(m.content).trim() === String(message.content).trim()
             const sameSender = m.sender?.id === message.sender?.id
             return isTemp && sameContent && sameSender
           })
-          
+
           if (optimisticIndex !== -1) {
             const updated = [...existingMessages]
             updated[optimisticIndex] = message
             return {
               ...oldData,
               messages: updated.sort(
-                (a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                (a: ChatMessage, b: ChatMessage) =>
+                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
               ),
               last_message: message,
               last_message_at: message.created_at,
@@ -458,12 +451,12 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ad_currency: oldData.ad_currency,
             }
           }
-          
+
           return {
             ...oldData,
-            messages: [...existingMessages, message].sort(
-              (a: ChatMessage, b: ChatMessage) => 
-                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            messages: [message, ...existingMessages].sort(
+              (a: ChatMessage, b: ChatMessage) =>
+                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             ),
             last_message: message,
             last_message_at: message.created_at,
@@ -490,17 +483,17 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ...chat,
               last_message: {
                 ...chat.last_message,
-                ...message, 
+                ...message,
               },
             }
           }
           return chat
         })
       })
-      
+
       queryClient.setQueryData(['messages', chatId], (oldData: any) => {
         if (!oldData) return oldData
-        
+
         if (oldData.pages) {
           return {
             ...oldData,
@@ -515,7 +508,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             })),
           }
         }
-        
+
         if (Array.isArray(oldData)) {
           return oldData.map((msg: ChatMessage) => {
             if (msg.id === message.id) {
@@ -524,10 +517,10 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             return msg
           })
         }
-        
+
         return oldData
       })
-      
+
       if (chatId === activeConversationId) {
         handleMessageStatusUpdateInternal(message)
       }
@@ -537,26 +530,66 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
 
   const handleMarkedRead = useCallback(
     (chatId: string, count: number) => {
+      console.log(`👁️ [MarkedRead] All messages unread by current user in chat ${chatId} marked as read (${count} messages).`)
+
+      // 1. Update unread_count in chat list (for the other user if this event meant I read it, but usually this event means THEY read mine)
+      // Actually, if 'marked_read' event comes, it means "Messages were marked read".
+      // If it means "Use X read your messages", then we update OUR messages to is_read=true.
+      // If it means "You read messages", then unread_count becomes 0.
+      // The frontend logic updates unread_count=0 AND updates MY messages to is_read=true.
+      // This implies the event might be ambiguous or broadcasted to both? 
+      // Let's stick to frontend logic: unread_count = 0 (maybe local update?) AND msg.sender.id == user.id -> is_read=true.
+
       queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
         if (!oldChats) return oldChats
-        return oldChats.map((chat) => {
-          if (chat.id === chatId) {
-            return {
-              ...chat,
-              unread_count: 0, 
-            }
-          }
-          return chat
-        })
+        return oldChats.map((chat) =>
+          chat.id === chatId ? { ...chat, unread_count: 0 } : chat
+        )
       })
-      
-      if (chatId === activeConversationId) {
-        queryClient.invalidateQueries({ queryKey: ['messages', chatId] })
+
+      const updateMsg = (msg: ChatMessage) => {
+        // Optimistically mark MY messages as read (Blue ticks)
+        if (String(msg.sender?.id) === String(user?.id) && !msg.is_read) {
+          return { ...msg, is_read: true }
+        }
+        // Also if the event implies we read THEIR messages, we might want to update their status?
+        // But usually 'marked_read' is about the OTHER person reading.
+        // Frontend logic specifically targets `msg.sender?.id === user?.id`. Matches "Peer read my messages".
+        return msg
       }
+
+      queryClient.setQueryData(['messages', chatId], (oldData: any) => {
+        if (!oldData) return oldData
+
+        if (oldData.pages) {
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => ({
+              ...page,
+              results: page.results?.map(updateMsg) || [],
+            })),
+          }
+        }
+
+        if (Array.isArray(oldData)) {
+          return oldData.map(updateMsg)
+        }
+
+        return oldData
+      })
+
+      queryClient.setQueryData(['chats', chatId], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          unread_count: 0,
+          messages: oldData.messages?.map(updateMsg) || []
+        }
+      })
     },
-    [activeConversationId, queryClient]
+    [queryClient, user?.id]
   )
-  
+
   // Store handlers in ref to avoid infinite loop
   // The handlers need to be updated without triggering re-renders
   const handlersRef = useRef({
@@ -580,7 +613,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
 
   // Register handlers once on mount, using ref to get latest versions
   const { setHandlers } = useChatWebSocketStore()
-  
+
   useEffect(() => {
     // Create wrapper functions that always use the latest handlers from ref
     const wrappedHandlers = {
@@ -600,7 +633,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         handlersRef.current.handleMarkedRead(chatId, count)
       },
     }
-    
+
     setHandlers(wrappedHandlers)
   }, [setHandlers]) // Only depend on setHandlers, which is stable
 

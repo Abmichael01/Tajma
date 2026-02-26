@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'http',
+        hostname: 'localhost',
+        port: '8007',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
         hostname: '127.0.0.1',
         port: '8000',
         pathname: '/**',
@@ -28,6 +34,12 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '8007',
+        pathname: '/**',
+      },
+      {
         protocol: 'https',
         hostname: 'images.unsplash.com',
         port: '',
@@ -35,7 +47,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'via.placeholder.com', 
+        hostname: 'via.placeholder.com',
         port: '',
         pathname: '/**',
       },
@@ -85,6 +97,12 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'www.tajma.net',
         port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '192.168.1.152',
+        port: '8007',
         pathname: '/**',
       },
     ],

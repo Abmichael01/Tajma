@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore'
 
 export const useNotifications = (params?: { is_read?: boolean }) => {
   const { isAuthenticated } = useAuthStore()
-  
+
   return useQuery({
     queryKey: ['notifications', params],
     queryFn: () => notificationsApi.list(params),
@@ -15,7 +15,7 @@ export const useNotifications = (params?: { is_read?: boolean }) => {
 
 export const useUnreadNotificationCount = () => {
   const { isAuthenticated } = useAuthStore()
-  
+
   return useQuery({
     queryKey: ['notifications', 'unread_count'],
     queryFn: () => notificationsApi.getUnreadCount(),
@@ -64,4 +64,13 @@ export const useDeleteNotification = () => {
     },
   })
 }
-
+export const useCreateNotification = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: Parameters<typeof notificationsApi.create>[0]) => notificationsApi.create(data),
+    onSuccess: () => {
+      // No need to invalidate for the current user if they are the one creating it for someone else,
+      // but good practice if we implement multi-user local state
+    },
+  })
+}

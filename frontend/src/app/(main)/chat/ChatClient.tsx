@@ -9,6 +9,7 @@ import { useBottomNavHeight } from '@/hooks/useBottomNavHeight'
 import { useAuthStore } from '@/store/authStore'
 import { useChats, useChatDetail, useChatMessages, useMarkChatAsRead, useOnlineStatuses } from '@/hooks/useChat'
 import { useChatRealtime } from '@/hooks/useChatRealtime'
+import { chatApi } from '@/api/chat'
 import type { ChatMessage, ChatSummary, User, UserOnlineStatus } from '@/api/types'
 import { useQueryClient } from '@tanstack/react-query'
 import { useChatSounds } from '@/hooks/useChatSounds'
@@ -21,7 +22,7 @@ function ChatClientContent() {
   const { user } = useAuthStore()
   const queryClient = useQueryClient()
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  
+
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     searchParams.get('id') || null
   )
@@ -36,10 +37,10 @@ function ChatClientContent() {
 
   // Fetch chats list
   const { data: chats = [], isLoading: chatsLoading } = useChats()
-  
+
   // Fetch active chat details
   const { data: activeChatDetail } = useChatDetail(activeConversationId)
-  
+
   // Fetch messages for active chat with infinite scroll
   const {
     data: messagesData,
@@ -48,33 +49,33 @@ function ChatClientContent() {
     hasNextPage,
     isFetchingNextPage,
   } = useChatMessages(activeConversationId)
-  
+
   // Flatten all pages into a single array
   const messages: ChatMessage[] = useMemo(() => {
     if (!messagesData?.pages || !Array.isArray(messagesData.pages)) return []
-    
+
     // Combine all pages and sort by created_at (oldest first)
     const allMessages = messagesData.pages
       .filter((page) => page && page.results && Array.isArray(page.results))
       .flatMap((page) => page.results || [])
-    
+
     if (!Array.isArray(allMessages) || allMessages.length === 0) return []
-    
+
     return allMessages.sort((a, b) => {
       if (!a?.created_at || !b?.created_at) return 0
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     })
   }, [messagesData])
-  
+
   // Note: No refetch needed - WebSocket updates messages cache for ALL chats (WhatsApp pattern)
   // Messages are always cached when received, so opening a chat shows cached data instantly
-  
+
   // Fetch online statuses
   const { data: onlineStatusesData = [] } = useOnlineStatuses()
-  
+
   // Mark chat as read mutation (REST API - kept as fallback)
   const markChatAsRead = useMarkChatAsRead()
-  
+
   // Prefer WebSocket for marking as read (like WhatsApp/Telegram)
   // Falls back to REST API if WebSocket not available
 
@@ -109,7 +110,7 @@ function ChatClientContent() {
     // 2. User is in active chat
     // 3. User is NOT at bottom (check directly using scroll check function for accurate timing)
     if (
-      message.sender?.id !== user?.id && 
+      message.sender?.id !== user?.id &&
       activeConversationId === String(message.chat)
     ) {
       // Check scroll position directly using the function from ChatArea
@@ -119,7 +120,7 @@ function ChatClientContent() {
         playReceivedSound()
       }
     }
-    
+
     // Clear timeout for optimistic messages that match this received message
     // This prevents false "failed" status when message is successfully received
     // Check even if chat context changed (handles case when coming back to page)
@@ -127,7 +128,7 @@ function ChatClientContent() {
       const messageContent = String(message.content).trim()
       const messageTime = new Date(message.created_at).getTime()
       const messageChatId = String(message.chat)
-      
+
       // Check all stored timeouts for messages with matching content
       messageTimeoutsRef.current.forEach((timeout, tempId) => {
         // Try to find optimistic message in the message's chat cache
@@ -140,7 +141,7 @@ function ChatClientContent() {
               const sameSender = optimisticMsg.sender?.id === message.sender?.id
               const optimisticTime = new Date(optimisticMsg.created_at).getTime()
               const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 90000 // 90 seconds window
-              
+
               if (sameContent && sameSender && withinTimeWindow) {
                 // Clear the timeout for this optimistic message
                 clearTimeout(timeout)
@@ -153,7 +154,7 @@ function ChatClientContent() {
         }
       })
     }
-    
+
     // Don't auto-scroll - let user decide when to scroll
     // ChatArea component will show scroll-to-bottom button with badge
   }, [queryClient, user?.id, activeConversationId, playReceivedSound])
@@ -177,7 +178,7 @@ function ChatClientContent() {
           return updated
         })
       }
-      
+
       // Only show typing indicator if it's from the participant (not current user)
       if (activeParticipant && userId === activeParticipant.id && chatId === activeConversationId) {
         setIsParticipantTyping(isTyping)
@@ -189,9 +190,9 @@ function ChatClientContent() {
   // This is handled by ChatArea component using Intersection Observer
   const handleMarkAsRead = useCallback(() => {
     if (!activeConversationId || !isConnected) return
-    
+
     console.log(`[Mark Read] Last unread message is visible, marking as read for chat: ${activeConversationId}`)
-    
+
     // Prefer WebSocket for marking as read (like WhatsApp/Telegram)
     if (isConnected) {
       markAsReadWebSocket()
@@ -232,23 +233,24 @@ function ChatClientContent() {
     // Create optimistic message with "sending" status
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     const messageContent = content.trim()
-    
+
     // Check if recipient is online - if so, mark as delivered immediately (WhatsApp pattern)
     const isRecipientOnline = activeParticipant && participantStatus?.is_online
     const deliveredAt = isRecipientOnline ? new Date().toISOString() : undefined
-    
+
     const optimisticMessage: ChatMessage = {
       id: tempId,
       chat: activeConversationId,
       sender: user!,
       content: messageContent,
+      message_type: 'text',
       is_read: false,
       delivered_at: deliveredAt, // Mark as delivered if recipient is online
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       send_failed: false,
     }
-    
+
     if (isRecipientOnline) {
       console.log('✅ [Send] Recipient is online, marking message as delivered immediately:', tempId)
     }
@@ -262,20 +264,20 @@ function ChatClientContent() {
           pageParams: [1],
         }
       }
-      
+
       // Add to the last page (newest messages)
       const lastPageIndex = oldData.pages.length - 1
       const lastPage = oldData.pages[lastPageIndex]
       const updatedPages = [...oldData.pages]
-      
+
       updatedPages[lastPageIndex] = {
         ...lastPage,
         results: [...lastPage.results, optimisticMessage].sort(
-          (a: ChatMessage, b: ChatMessage) => 
+          (a: ChatMessage, b: ChatMessage) =>
             new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         ),
       }
-      
+
       return {
         ...oldData,
         pages: updatedPages,
@@ -285,7 +287,7 @@ function ChatClientContent() {
     // Also update chat list optimistically (preserve ad fields and reorder)
     queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
       if (!oldChats) return []
-      
+
       // Debug logging before optimistic update
       const existingChat = oldChats.find((c) => c.id === activeConversationId)
       if (existingChat) {
@@ -295,7 +297,7 @@ function ChatClientContent() {
           temp_message_id: optimisticMessage.id,
         })
       }
-      
+
       const updated = oldChats.map((chat) => {
         if (chat.id === activeConversationId) {
           const updatedChat = {
@@ -311,32 +313,32 @@ function ChatClientContent() {
             ad_price: chat.ad_price,
             ad_currency: chat.ad_currency,
           }
-          
+
           console.log('✅ [Optimistic] After optimistic chat list update:', {
             chat_id: updatedChat.id,
             ad_image: updatedChat.ad_image,
             ad_image_preserved: updatedChat.ad_image === chat.ad_image,
             last_message_at: updatedChat.last_message_at,
           })
-          
+
           return updatedChat
         }
         return chat
       })
-      
+
       const sorted = updated.sort((a, b) => {
         // Sort by most recent activity (WhatsApp/Telegram pattern)
         const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
         const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
         return timeB - timeA
       })
-      
+
       console.log('📋 [Optimistic] Chat list sorted. Top chat:', {
         id: sorted[0]?.id,
         ad_image: sorted[0]?.ad_image,
         last_message_at: sorted[0]?.last_message_at,
       })
-      
+
       return sorted
     })
 
@@ -345,15 +347,15 @@ function ChatClientContent() {
       if (!isConnected) {
         throw new Error('WebSocket not connected')
       }
-      
+
       const sent = sendWebSocketMessage(messageContent)
       if (sent === false) {
         throw new Error('Failed to send message via WebSocket')
       }
-      
+
       // Play sent sound when message is successfully sent
       playSentSound()
-      
+
       // Set timeout to mark message as failed if not confirmed within 15 seconds
       // Increased timeout to account for subscription delay when coming back to page
       // Store timeout reference so we can clear it if message is successfully received
@@ -364,10 +366,10 @@ function ChatClientContent() {
             messageTimeoutsRef.current.delete(tempId)
             return oldData
           }
-          
+
           let messageStillExists = false
           let hasMatchingRealMessage = false
-          
+
           // First check if a real message with same content exists
           const allMessages = oldData.pages.flatMap((page: any) => page.results || [])
           const matchingRealMessage = allMessages.find((m: ChatMessage) => {
@@ -379,7 +381,7 @@ function ChatClientContent() {
             const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 60000 // 60 seconds
             return sameContent && sameSender && withinTimeWindow && !String(m.id).startsWith('temp-')
           })
-          
+
           if (matchingRealMessage) {
             hasMatchingRealMessage = true
             // Remove the optimistic message since real message exists
@@ -390,12 +392,12 @@ function ChatClientContent() {
             messageTimeoutsRef.current.delete(tempId)
             return { ...oldData, pages: updatedPages }
           }
-          
+
           // If no matching real message, check if optimistic message still exists
           const updatedPages = oldData.pages.map((page: any) => {
             const messagesArray = page.results || []
             const messageIndex = messagesArray.findIndex((m: ChatMessage) => m.id === tempId)
-            
+
             if (messageIndex !== -1) {
               messageStillExists = true
               const message = messagesArray[messageIndex]
@@ -414,10 +416,10 @@ function ChatClientContent() {
             }
             return page
           })
-          
+
           // Remove timeout from map after it fires
           messageTimeoutsRef.current.delete(tempId)
-          
+
           // Only return updated pages if message still exists and was marked as failed
           if (messageStillExists && !hasMatchingRealMessage) {
             return {
@@ -425,14 +427,14 @@ function ChatClientContent() {
               pages: updatedPages,
             }
           }
-          
+
           return oldData
         })
       }, 15000) // 15 seconds timeout - increased to account for subscription delays
-      
+
       // Store timeout reference
       messageTimeoutsRef.current.set(tempId, timeoutId)
-      
+
       // The WebSocket handler will replace the optimistic message with the real one
       // when the server confirms the message was saved
     } catch (error) {
@@ -440,11 +442,11 @@ function ChatClientContent() {
       // Mark message as failed immediately
       queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
         if (!oldData?.pages) return oldData
-        
+
         const updatedPages = oldData.pages.map((page: any) => {
           const messagesArray = page.results || []
           const messageIndex = messagesArray.findIndex((m: ChatMessage) => m.id === tempId)
-          
+
           if (messageIndex !== -1) {
             const updated = [...messagesArray]
             updated[messageIndex] = {
@@ -458,13 +460,13 @@ function ChatClientContent() {
           }
           return page
         })
-        
+
         return {
           ...oldData,
           pages: updatedPages,
         }
       })
-      
+
       // Revert chat list update
       queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
         if (!oldChats) return []
@@ -474,7 +476,7 @@ function ChatClientContent() {
             // Handle infinite query structure
             const messagesData = queryClient.getQueryData<any>(['messages', activeConversationId])
             let messages: ChatMessage[] = []
-            
+
             if (messagesData?.pages) {
               // Infinite query structure
               messages = messagesData.pages.flatMap((page: any) => page.results || [])
@@ -482,7 +484,7 @@ function ChatClientContent() {
               // Fallback for array structure
               messages = messagesData
             }
-            
+
             const previousLastMessage = messages.length > 1 ? messages[messages.length - 2] : null
             return {
               ...chat,
@@ -495,17 +497,17 @@ function ChatClientContent() {
       })
     }
   }, [activeConversationId, user, sendWebSocketMessage, queryClient, isConnected, playSentSound])
-  
+
   // Retry failed message
   const handleRetryMessage = useCallback((message: ChatMessage) => {
     if (!activeConversationId || !message.content || !isConnected) return
-    
+
     const oldMessageId = message.id
-    
+
     // Remove the old failed message and create a new optimistic one
     queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
       if (!oldData?.pages) return oldData
-      
+
       const updatedPages = oldData.pages.map((page: any) => {
         const messagesArray = page.results || []
         // Remove the old failed message
@@ -515,13 +517,13 @@ function ChatClientContent() {
           results: filtered,
         }
       })
-      
+
       return {
         ...oldData,
         pages: updatedPages,
       }
     })
-    
+
     // Also remove from chat list if it was the last message
     queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
       if (!oldChats) return []
@@ -530,11 +532,11 @@ function ChatClientContent() {
           // Get previous last message from cache
           const messagesData = queryClient.getQueryData<any>(['messages', activeConversationId])
           let messages: ChatMessage[] = []
-          
+
           if (messagesData?.pages) {
             messages = messagesData.pages.flatMap((page: any) => page.results || [])
           }
-          
+
           const previousLastMessage = messages.length > 0 ? messages[messages.length - 1] : null
           return {
             ...chat,
@@ -545,7 +547,7 @@ function ChatClientContent() {
         return chat
       })
     })
-    
+
     // Resend the message (this will create a new optimistic message)
     handleSendMessage(message.content)
   }, [activeConversationId, handleSendMessage, queryClient, isConnected])
@@ -561,7 +563,7 @@ function ChatClientContent() {
     if (typing && activeConversationId && isConnected) {
       sendTyping(true)
       setIsParticipantTyping(false) // Reset local state, will be set by WebSocket if participant is typing
-      
+
       // Auto-stop typing after 2 seconds of inactivity
       // Matches WhatsApp behavior: typing indicator disappears after inactivity
       typingTimeoutRef.current = setTimeout(() => {
@@ -641,6 +643,64 @@ function ChatClientContent() {
             isLoadingMessages={messagesLoading || isFetchingNextPage}
             hasMoreMessages={hasNextPage || false}
             onSendMessage={handleSendMessage}
+            onSendMedia={async (formData) => {
+              if (!activeConversationId || !isConnected) return
+
+              const messageType = formData.get('message_type') as 'image' | 'audio' | 'text'
+              const content = formData.get('content') as string
+              const attachmentFile = formData.get('attachment') as File
+
+              // Create optimistic media message
+              const tempId = `temp-media-${Date.now()}`
+              const optimisticMessage: ChatMessage = {
+                id: tempId,
+                chat: activeConversationId,
+                sender: user!,
+                content: content,
+                message_type: messageType,
+                attachment: URL.createObjectURL(attachmentFile), // Temporary local URL
+                is_read: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                send_failed: false,
+              }
+
+              // Add to cache
+              queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
+                if (!oldData?.pages) return oldData
+                const updatedPages = [...oldData.pages]
+                const lastPageIndex = updatedPages.length - 1
+                updatedPages[lastPageIndex] = {
+                  ...updatedPages[lastPageIndex],
+                  results: [...updatedPages[lastPageIndex].results, optimisticMessage]
+                }
+                return { ...oldData, pages: updatedPages }
+              })
+
+              try {
+                const response = await chatApi.sendMediaMessage(formData)
+                // Replace optimistic message with real one
+                queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
+                  if (!oldData?.pages) return oldData
+                  const updatedPages = oldData.pages.map((page: any) => ({
+                    ...page,
+                    results: page.results.map((m: ChatMessage) => m.id === tempId ? response : m)
+                  }))
+                  return { ...oldData, pages: updatedPages }
+                })
+                playSentSound()
+              } catch (error) {
+                console.error('Failed to send media:', error)
+                queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
+                  if (!oldData?.pages) return oldData
+                  const updatedPages = oldData.pages.map((page: any) => ({
+                    ...page,
+                    results: page.results.map((m: ChatMessage) => m.id === tempId ? { ...m, send_failed: true } : m)
+                  }))
+                  return { ...oldData, pages: updatedPages }
+                })
+              }
+            }}
             onTypingChange={handleTypingChange}
             onLoadMore={() => {
               if (hasNextPage && !isFetchingNextPage) {

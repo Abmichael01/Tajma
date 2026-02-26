@@ -11,22 +11,25 @@ import { useAuthStore } from '@/store/authStore'
 import MessageBubble from './MessageBubble'
 import { getUserFullName, getUserInitials } from '@/utils/user'
 import { useChatSounds } from '@/hooks/useChatSounds'
+import { toast } from 'sonner'
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
 // Helper function to normalize image URLs
 const normalizeImageUrl = (url: string | null | undefined): string => {
   if (!url) return '/default-product.png'
-  
+
   // If already an absolute URL, return as is
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url
   }
-  
+
   // If starts with /, it's already a valid relative path
   if (url.startsWith('/')) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
     return `${apiUrl}${url}`
   }
-  
+
   // Otherwise, prepend API URL and add leading slash
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
   return `${apiUrl}/${url}`
@@ -42,6 +45,7 @@ interface ChatAreaProps {
   isLoadingMessages?: boolean
   hasMoreMessages?: boolean
   onSendMessage: (content: string) => Promise<void> | void
+  onSendMedia: (formData: FormData) => Promise<void> | void
   onTypingChange?: (typing: boolean) => void
   onLoadMore?: () => void
   onBack?: () => void
@@ -62,6 +66,7 @@ export default function ChatArea({
   isLoadingMessages = false,
   hasMoreMessages = false,
   onSendMessage,
+  onSendMedia,
   onTypingChange,
   onLoadMore,
   onBack,
@@ -74,6 +79,13 @@ export default function ChatArea({
   const [inputValue, setInputValue] = useState('')
   const [showScrollToBottom, setShowScrollToBottom] = useState(false)
   const [unreadCountBelow, setUnreadCountBelow] = useState(0)
+  const [selectedMedia, setSelectedMedia] = useState<File | null>(null)
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordingDuration, setRecordingDuration] = useState(0)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const lastUnreadMessageRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -90,7 +102,7 @@ export default function ChatArea({
   const checkIsAtBottom = useCallback((): boolean => {
     const container = messagesContainerRef.current
     if (!container) return true // Default to true if container not available
-    
+
     const { scrollTop, scrollHeight, clientHeight } = container
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight
     return distanceFromBottom < 100 // Within 100px of bottom
@@ -126,10 +138,10 @@ export default function ChatArea({
     const { scrollTop, scrollHeight, clientHeight } = container
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight
     const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
-    
+
     // Notify parent component of scroll state
     onScrollStateChange?.(isNearBottom)
-    
+
     // Only show button if user has scrolled up (not at bottom)
     if (isNearBottom) {
       // User is at bottom - hide button
@@ -137,32 +149,32 @@ export default function ChatArea({
       setUnreadCountBelow(0)
       return
     }
-    
+
     // User has scrolled up - show button
     setShowScrollToBottom(true)
-    
+
     // Count unread messages that are below current scroll position
     let count = 0
     const viewportBottom = scrollTop + clientHeight
-    
+
     // Get all message elements
     const messageElements = Array.from(container.querySelectorAll('[data-message-id]')) as HTMLElement[]
-    
+
     messageElements.forEach((element) => {
       const messageId = element.getAttribute('data-message-id')
       const message = messages.find(m => String(m.id) === messageId)
-      
+
       if (message && message.sender?.id !== user.id && !message.is_read) {
         const elementTop = element.offsetTop
         const elementBottom = elementTop + element.offsetHeight
-        
+
         // Check if message is below current viewport
         if (elementTop > viewportBottom) {
           count++
         }
       }
     })
-    
+
     // Set unread count (will show badge if count > 0)
     setUnreadCountBelow(count)
   }, [messages, user, onScrollStateChange])
@@ -176,7 +188,7 @@ export default function ChatArea({
       const { scrollTop, scrollHeight, clientHeight } = container
       const distanceFromBottom = scrollHeight - scrollTop - clientHeight
       wasAtBottomRef.current = distanceFromBottom < 100 // Within 100px of bottom
-      
+
       updateScrollState()
     }
 
@@ -191,7 +203,7 @@ export default function ChatArea({
       container.removeEventListener('scroll', handleScroll)
     }
   }, [updateScrollState])
-  
+
   // Check for new messages and show scroll button if user is not at bottom
   useEffect(() => {
     if (!messages || messages.length === 0) {
@@ -199,102 +211,102 @@ export default function ChatArea({
       lastMessageIdRef.current = null
       return
     }
-    
+
     // Get the last message
     const lastMessage = messages[messages.length - 1]
     const currentMessageCount = messages.length
     const currentLastMessageId = lastMessage?.id
-    
+
     // Check if a new message actually arrived (not just status update or array reference change)
     // Only treat as new message if:
     // 1. Message count increased, OR
     // 2. Last message ID changed (new message added)
     // Do NOT treat status updates (delivered_at, read_at changes) as new messages
-    const isNewMessage = 
-      currentMessageCount > lastMessageCountRef.current || 
+    const isNewMessage =
+      currentMessageCount > lastMessageCountRef.current ||
       (currentLastMessageId && currentLastMessageId !== lastMessageIdRef.current)
-    
+
     // If this is just a status update (same message count, same last message ID),
     // don't trigger scroll logic - just return early
     if (!isNewMessage) {
       return
     }
-    
+
     // Store if user was at bottom before new message
     const wasAtBottom = wasAtBottomRef.current
-    
+
     // Update refs only if it's actually a new message
     lastMessageCountRef.current = currentMessageCount
     lastMessageIdRef.current = currentLastMessageId
-    
+
     // Only check scroll position if a new message arrived (already checked above)
-      // Use multiple requestAnimationFrame calls to ensure DOM is fully updated
+    // Use multiple requestAnimationFrame calls to ensure DOM is fully updated
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            const container = messagesContainerRef.current
-            if (!container) return
-            
+        setTimeout(() => {
+          const container = messagesContainerRef.current
+          if (!container) return
+
           // CRITICAL: Verify actual scroll position RIGHT BEFORE deciding to scroll
           // Don't rely solely on wasAtBottomRef - check the actual DOM position
           const { scrollTop, scrollHeight, clientHeight } = container
           const distanceFromBottom = scrollHeight - scrollTop - clientHeight
           const isActuallyAtBottom = distanceFromBottom < 100 // Within 100px of bottom
-          
+
           // Only auto-scroll if user was at bottom BEFORE message AND is still at bottom NOW
           // This prevents scrolling when user scrolled up during message processing
           if (wasAtBottom && isActuallyAtBottom) {
-              scrollToBottom(false) // Instant scroll
+            scrollToBottom(false) // Instant scroll
+            setShowScrollToBottom(false)
+            setUnreadCountBelow(0)
+            // Update wasAtBottomRef after scrolling
+            wasAtBottomRef.current = true
+          } else {
+            // User was not at bottom or scrolled up - check current position and show button if needed
+            const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
+
+            // If user is not at bottom, show scroll button
+            if (!isNearBottom) {
+              setShowScrollToBottom(true)
+
+              // Count unread messages from other user that are below viewport
+              let count = 0
+              const viewportBottom = scrollTop + clientHeight
+
+              // Get all message elements
+              const messageElements = Array.from(container.querySelectorAll('[data-message-id]')) as HTMLElement[]
+
+              messageElements.forEach((element) => {
+                const messageId = element.getAttribute('data-message-id')
+                const message = messages.find(m => String(m.id) === messageId)
+
+                if (message && message.sender?.id !== user?.id && !message.is_read) {
+                  const elementTop = element.offsetTop
+
+                  // Check if message is below current viewport
+                  if (elementTop > viewportBottom) {
+                    count++
+                  }
+                }
+              })
+
+              setUnreadCountBelow(count)
+            } else {
+              // User is at bottom - hide button
               setShowScrollToBottom(false)
               setUnreadCountBelow(0)
-              // Update wasAtBottomRef after scrolling
               wasAtBottomRef.current = true
-            } else {
-            // User was not at bottom or scrolled up - check current position and show button if needed
-              const isNearBottom = distanceFromBottom < 100 // Within 100px of bottom
-              
-              // If user is not at bottom, show scroll button
-              if (!isNearBottom) {
-                setShowScrollToBottom(true)
-                
-                // Count unread messages from other user that are below viewport
-                let count = 0
-                const viewportBottom = scrollTop + clientHeight
-                
-                // Get all message elements
-                const messageElements = Array.from(container.querySelectorAll('[data-message-id]')) as HTMLElement[]
-                
-                messageElements.forEach((element) => {
-                  const messageId = element.getAttribute('data-message-id')
-                  const message = messages.find(m => String(m.id) === messageId)
-                  
-                  if (message && message.sender?.id !== user?.id && !message.is_read) {
-                    const elementTop = element.offsetTop
-                    
-                    // Check if message is below current viewport
-                    if (elementTop > viewportBottom) {
-                      count++
-                    }
-                  }
-                })
-                
-                setUnreadCountBelow(count)
-              } else {
-                // User is at bottom - hide button
-                setShowScrollToBottom(false)
-                setUnreadCountBelow(0)
-                wasAtBottomRef.current = true
-              }
             }
-          }, 300) // Delay to ensure messages are rendered
-        })
+          }
+        }, 300) // Delay to ensure messages are rendered
       })
+    })
   }, [messages, user])
 
   // Track which chat we've scrolled for to prevent duplicate scrolls
   const scrolledForChatRef = useRef<string | null>(null)
   const lastMessageCountForChatRef = useRef<Record<string, number>>({})
-  
+
   // Scroll to bottom when chat is opened (chatId changes)
   // This effect only handles chatId changes, not message updates
   useEffect(() => {
@@ -302,18 +314,18 @@ export default function ChatArea({
       scrolledForChatRef.current = null
       return
     }
-    
+
     // Reset scroll state when chat changes
     setShowScrollToBottom(false)
     setUnreadCountBelow(0)
     wasAtBottomRef.current = true
-    
+
     // Reset scroll tracking for new chat (allow scroll when messages load)
     if (scrolledForChatRef.current !== chatId) {
       scrolledForChatRef.current = null
     }
   }, [chatId])
-  
+
   // Scroll to bottom when messages first load for a new chat
   // This ensures we scroll after messages are actually loaded, not just when chatId changes
   // Only scrolls when: chatId changed AND messages exist AND we haven't scrolled for this chat yet
@@ -321,11 +333,11 @@ export default function ChatArea({
     if (!chatId || !messagesContainerRef.current) return
     if (!messages || messages.length === 0) return // Wait for messages to load
     if (scrolledForChatRef.current === chatId) return // Already scrolled for this chat
-    
+
     // Check if message count changed from 0 (new chat) or if this is first time seeing messages for this chat
     const previousCount = lastMessageCountForChatRef.current[chatId] || 0
     const currentCount = messages.length
-    
+
     // Only scroll if:
     // 1. This is a new chat (previousCount was 0 and now we have messages), OR
     // 2. We haven't scrolled for this chat yet and messages exist
@@ -333,25 +345,25 @@ export default function ChatArea({
       // Mark that we've scrolled for this chat
       scrolledForChatRef.current = chatId
       lastMessageCountForChatRef.current[chatId] = currentCount
-      
+
       // Scroll to bottom instantly when messages load for new chat
-    const scrollToBottomNow = () => {
-      const container = messagesContainerRef.current
-      if (container) {
-        container.scrollTop = container.scrollHeight
+      const scrollToBottomNow = () => {
+        const container = messagesContainerRef.current
+        if (container) {
+          container.scrollTop = container.scrollHeight
+        }
       }
-    }
-    
+
       // Try multiple times to ensure it works (messages might still be rendering)
-    requestAnimationFrame(() => {
-      scrollToBottomNow()
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         scrollToBottomNow()
         setTimeout(() => {
           scrollToBottomNow()
+          setTimeout(() => {
+            scrollToBottomNow()
           }, 100)
         }, 100)
-    })
+      })
     } else if (currentCount > 0) {
       // Update message count tracking (but don't scroll if we already scrolled)
       lastMessageCountForChatRef.current[chatId] = currentCount
@@ -361,13 +373,13 @@ export default function ChatArea({
   // Play typing sound and scroll to show typing indicator if user is at bottom
   useEffect(() => {
     if (!isParticipantTyping) return
-    
+
     // Play typing sound when participant starts typing
     playTypingSound()
-    
+
     const container = messagesContainerRef.current
     if (!container) return
-    
+
     // Only scroll if user is at bottom - this shows the typing indicator
     // If user is not at bottom, just show the indicator without scrolling
     if (wasAtBottomRef.current) {
@@ -380,6 +392,9 @@ export default function ChatArea({
   }, [isParticipantTyping, playTypingSound])
 
   // WhatsApp-style: Mark as read when last unread message is visible
+  // Only marks as read if:
+  // 1. Message is visible (Intersection Observer)
+  // 2. Window has focus (don't mark as read in background tabs)
   useEffect(() => {
     if (!onMarkAsRead || !messages || !user || !messagesContainerRef.current) return
 
@@ -387,12 +402,23 @@ export default function ChatArea({
     const unreadMessages = messages.filter(
       (msg) => !msg.is_read && msg.sender?.id !== user.id
     )
-    
+
     if (unreadMessages.length === 0) return
 
     const lastUnreadMessage = unreadMessages[unreadMessages.length - 1]
     let observer: IntersectionObserver | null = null
-    
+
+    const checkAndMarkRead = () => {
+      // Only mark as read if document has focus (WhatsApp style)
+      if (document.hasFocus()) {
+        console.log('[Mark Read] ✅ Environment and focus confirmed, marking as read')
+        onMarkAsRead()
+        return true
+      }
+      console.log('[Mark Read] ⏳ Last message visible but window blurred. Waiting for focus...')
+      return false
+    }
+
     // Wait for DOM to update, then find the element
     const timeoutId = setTimeout(() => {
       const lastUnreadElement = document.querySelector(`[data-message-id="${lastUnreadMessage.id}"]`) as HTMLElement
@@ -407,26 +433,58 @@ export default function ChatArea({
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              // Last unread message is visible - mark all as read (WhatsApp style)
-              console.log('[Mark Read] ✅ Last unread message is visible, marking as read')
-              onMarkAsRead()
-              observer?.disconnect()
+              // Last unread message is visible - check focus
+              const marked = checkAndMarkRead()
+              if (marked) {
+                observer?.disconnect()
+                observer = null
+              } else {
+                // If not marked due to focus, we'll wait for the focus event
+                // The visibility state is now "cached" by the fact that the observer is still observing
+              }
             }
           })
         },
         {
           root: messagesContainerRef.current,
           rootMargin: '0px',
-          threshold: 0.1, // At least 10% visible (more lenient)
+          threshold: 0.1, // At least 10% visible
         }
       )
 
       observer.observe(lastUnreadElement)
       console.log(`[Mark Read] Observing last unread message ${lastUnreadMessage.id}`)
-    }, 100) // Small delay to ensure DOM is updated
+    }, 100)
+
+    // Listener for window focus to mark as read if message was already visible
+    const handleFocus = () => {
+      // If we are observing and message is visible, check visibility again
+      const lastUnreadElement = document.querySelector(`[data-message-id="${lastUnreadMessage.id}"]`) as HTMLElement
+      if (lastUnreadElement && observer) {
+        // We can't easily check 'isIntersecting' outside the callback without a ref or extra state
+        // But we can check if it's currently in the viewport
+        const rect = lastUnreadElement.getBoundingClientRect()
+        const containerRect = messagesContainerRef.current?.getBoundingClientRect()
+
+        if (containerRect) {
+          const isVisible = (
+            rect.top >= containerRect.top &&
+            rect.bottom <= containerRect.bottom
+          )
+
+          if (isVisible && checkAndMarkRead()) {
+            observer.disconnect()
+            observer = null
+          }
+        }
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
 
     return () => {
       clearTimeout(timeoutId)
+      window.removeEventListener('focus', handleFocus)
       if (observer) {
         observer.disconnect()
       }
@@ -444,7 +502,7 @@ export default function ChatArea({
         isLoadingMoreRef.current = true
         const previousScrollHeight = container.scrollHeight
         onLoadMore?.()
-        
+
         // Restore scroll position after loading
         setTimeout(() => {
           if (container) {
@@ -495,7 +553,7 @@ export default function ChatArea({
 
   const handleTypingChange = (value: string) => {
     setInputValue(value)
-    
+
     // Only send typing indicator if there's actual content
     if (value.trim().length > 0) {
       onTypingChange?.(true)
@@ -520,10 +578,116 @@ export default function ChatArea({
     }
   }
 
-  const handleAttachmentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAttachmentChange = async (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'file') => {
     const file = event.target.files?.[0]
-    if (file) {
-      console.warn('File attachments are not supported yet', file.name)
+    if (!file || !chat) return
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('File too large', {
+        description: 'Please select a file smaller than 20MB.'
+      })
+      event.target.value = ''
+      return
+    }
+
+    if (type === 'image') {
+      setSelectedMedia(file)
+      event.target.value = ''
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('chat', chat.id)
+    formData.append('message_type', type === 'image' ? 'image' : 'text')
+    formData.append('content', type === 'image' ? '📷 Image' : `📎 ${file.name}`)
+    formData.append('attachment', file)
+
+    try {
+      await onSendMedia(formData)
+      // Reset input
+      event.target.value = ''
+    } catch (error) {
+      console.error('Failed to send media', error)
+    }
+  }
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mediaRecorder = new MediaRecorder(stream)
+      mediaRecorderRef.current = mediaRecorder
+      audioChunksRef.current = []
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data)
+        }
+      }
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+
+        if (audioBlob.size > MAX_FILE_SIZE) {
+          toast.error('Recording too large', {
+            description: 'Audio message exceeds 20MB limit.'
+          })
+          stream.getTracks().forEach(track => track.stop())
+          return
+        }
+
+        if (audioBlob.size > 1000) { // Only send if more than 1s of audio approximately
+          const formData = new FormData()
+          formData.append('chat', chat!.id)
+          formData.append('message_type', 'audio')
+          formData.append('content', '🎤 Audio Message')
+          formData.append('attachment', audioBlob, 'recording.webm')
+          await onSendMedia(formData)
+        }
+        stream.getTracks().forEach(track => track.stop())
+      }
+
+      mediaRecorder.start()
+      setIsRecording(true)
+      setRecordingDuration(0)
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1)
+      }, 1000)
+    } catch (err) {
+      console.error('Failed to start recording', err)
+      alert('Could not access microphone')
+    }
+  }
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop()
+      setIsRecording(false)
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current)
+      }
+    }
+  }
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const handleSendPreview = async (caption: string) => {
+    if (!selectedMedia || !chat) return
+
+    const formData = new FormData()
+    formData.append('chat', chat.id)
+    formData.append('message_type', 'image')
+    formData.append('content', caption.trim() || '📷 Image')
+    formData.append('attachment', selectedMedia)
+
+    try {
+      await onSendMedia(formData)
+      setSelectedMedia(null)
+    } catch (error) {
+      console.error('Failed to send media via preview', error)
     }
   }
 
@@ -663,75 +827,75 @@ export default function ChatArea({
       )}
 
       <div className="flex-1 relative overflow-hidden">
-      <div
-        ref={messagesContainerRef}
+        <div
+          ref={messagesContainerRef}
           className="h-full overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50 custom-scrollbar"
-      >
-        {/* Loading indicator for older messages */}
-        {isLoadingMessages && messages && Array.isArray(messages) && messages.length > 0 && (
-          <div className="flex justify-center py-2">
-            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          </div>
-        )}
-
-        {/* Load older messages button - at top before messages */}
-        {hasMoreMessages && !isLoadingMessages && (
-          <div className="flex justify-center py-2">
-            <button
-              onClick={() => onLoadMore?.()}
-              className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300"
-            >
-              Load older messages
-            </button>
-          </div>
-        )}
-
-        {messages && Array.isArray(messages) && messages.length > 0 ? (
-          <>
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                isOwn={message.sender?.id === user?.id}
-                participant={participant}
-                currentUserAvatar={user?.avatar ?? null}
-                currentUser={user}
-                onRetry={onRetryMessage}
-              />
-            ))}
-          </>
-        ) : !isLoadingMessages ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            <div className="text-center">
-              <p className="text-sm">No messages yet</p>
-              <p className="text-xs text-gray-400 mt-1">Start the conversation</p>
+        >
+          {/* Loading indicator for older messages */}
+          {isLoadingMessages && messages && Array.isArray(messages) && messages.length > 0 && (
+            <div className="flex justify-center py-2">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
             </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        )}
+          )}
 
-        {isParticipantTyping && (
-          <div className="flex items-center gap-2">
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={participant.avatar || undefined} alt={getUserFullName(participant)} />
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                {getUserInitials(participant)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm">
-              <div className="flex gap-1">
-                <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
-                <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
-                <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
+          {/* Load older messages button - at top before messages */}
+          {hasMoreMessages && !isLoadingMessages && (
+            <div className="flex justify-center py-2">
+              <button
+                onClick={() => onLoadMore?.()}
+                className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300"
+              >
+                Load older messages
+              </button>
+            </div>
+          )}
+
+          {messages && Array.isArray(messages) && messages.length > 0 ? (
+            <>
+              {messages.map((message) => (
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  isOwn={message.sender?.id === user?.id}
+                  participant={participant}
+                  currentUserAvatar={user?.avatar ?? null}
+                  currentUser={user}
+                  onRetry={onRetryMessage}
+                />
+              ))}
+            </>
+          ) : !isLoadingMessages ? (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="text-center">
+                <p className="text-sm">No messages yet</p>
+                <p className="text-xs text-gray-400 mt-1">Start the conversation</p>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          )}
+
+          {isParticipantTyping && (
+            <div className="flex items-center gap-2">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={participant.avatar || undefined} alt={getUserFullName(participant)} />
+                <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                  {getUserInitials(participant)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm">
+                <div className="flex gap-1">
+                  <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
+                  <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
+                  <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        
+
         {/* Scroll to bottom button (WhatsApp style) - fixed position, only shows when user scrolls up */}
         {showScrollToBottom && (
           <div className="absolute bottom-4 right-4 z-20">
@@ -749,110 +913,163 @@ export default function ChatArea({
             </button>
           </div>
         )}
+
+        {selectedMedia && (
+          <MediaPreview
+            file={selectedMedia}
+            onClose={() => setSelectedMedia(null)}
+            onSend={handleSendPreview}
+          />
+        )}
       </div>
 
-      <div className="p-2 sm:p-4 border-t border-gray-200 bg-white">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:flex items-center justify-center flex-shrink-0"
-            title="Attach file"
-          >
-            <Paperclip className="w-5 h-5 text-gray-600" />
-          </button>
+      <div className="p-3 sm:p-4 bg-gray-50 border-t border-gray-100">
+        <form onSubmit={handleSendMessage} className="flex items-end gap-2 sm:gap-4 max-w-5xl mx-auto">
+          {/* Main Input Pill */}
+          <div className="flex-1 flex items-center gap-1 sm:gap-2 bg-white rounded-3xl border border-gray-200 px-2 sm:px-3 py-1.5 min-h-[50px] shadow-sm hover:border-gray-300 transition-colors focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/5">
 
-          <button
-            type="button"
-            onClick={() => imageInputRef.current?.click()}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden sm:flex items-center justify-center flex-shrink-0"
-            title="Attach image"
-          >
-            <ImageIcon className="w-5 h-5 text-gray-600" />
-          </button>
+            {/* Action Buttons Group */}
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center flex-shrink-0"
+                title="Attach file"
+              >
+                <Paperclip className="w-5 h-5 text-gray-500" />
+              </button>
 
-          <EmojiPicker
-            onEmojiSelect={(emoji) => {
-              setInputValue((prev) => prev + emoji)
-              // Focus back on textarea after emoji selection
-              const textarea = document.querySelector('textarea[placeholder="Type a message..."]') as HTMLTextAreaElement
-              if (textarea) {
-                textarea.focus()
-                // Move cursor to end
-                textarea.setSelectionRange(textarea.value.length, textarea.value.length)
-              }
-            }}
-          />
+              <button
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center flex-shrink-0"
+                title="Attach image"
+              >
+                <ImageIcon className="w-5 h-5 text-gray-500" />
+              </button>
 
-          <div className="flex-1 relative min-w-0">
-            <textarea
-              ref={(textarea) => {
-                if (textarea) {
-                  // Auto-resize textarea
-                  textarea.style.height = 'auto'
-                  const newHeight = Math.min(textarea.scrollHeight, 120)
-                  textarea.style.height = `${newHeight}px`
-                  
-                  // Add/remove scrollbar class based on overflow
-                  if (textarea.scrollHeight > 120) {
-                    textarea.classList.add('has-overflow')
-                  } else {
-                    textarea.classList.remove('has-overflow')
+              <EmojiPicker
+                onEmojiSelect={(emoji) => {
+                  setInputValue((prev) => prev + emoji)
+                  const textarea = document.querySelector('textarea[placeholder="Type a message..."]') as HTMLTextAreaElement
+                  if (textarea) {
+                    textarea.focus()
+                    textarea.setSelectionRange(textarea.value.length, textarea.value.length)
                   }
-                }
-              }}
-              value={inputValue}
-              onChange={(event) => {
-                handleTypingChange(event.target.value)
-                // Auto-resize on change
-                const textarea = event.target as HTMLTextAreaElement
-                textarea.style.height = 'auto'
-                const newHeight = Math.min(textarea.scrollHeight, 120)
-                textarea.style.height = `${newHeight}px`
-                
-                // Add/remove scrollbar class based on overflow
-                if (textarea.scrollHeight > 120) {
-                  textarea.classList.add('has-overflow')
-                } else {
-                  textarea.classList.remove('has-overflow')
-                }
-              }}
-              placeholder="Type a message..."
-              className="w-full resize-none border border-gray-200 rounded-lg px-3 sm:px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary text-sm max-h-[120px] custom-scrollbar"
-              rows={1}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' && !event.shiftKey) {
-                  event.preventDefault()
-                  handleSendMessage(event)
-                }
-              }}
-              // Better mobile keyboard handling
-              inputMode="text"
-              autoComplete="off"
-              autoCorrect="on"
-              autoCapitalize="sentences"
-            />
+                }}
+              />
+            </div>
+
+            {/* Textarea Area */}
+            <div className="flex-1 relative min-w-0">
+              {isRecording ? (
+                <div className="flex-1 h-[40px] flex items-center justify-between px-3 bg-red-50 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" />
+                    <span className="text-sm font-semibold text-red-600">Recording {formatDuration(recordingDuration)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (mediaRecorderRef.current) {
+                        mediaRecorderRef.current.onstop = () => {
+                          mediaRecorderRef.current = null
+                          setIsRecording(false)
+                          if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current)
+                        }
+                        mediaRecorderRef.current.stop()
+                      }
+                    }}
+                    className="text-[10px] text-red-400 font-bold uppercase hover:text-red-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <textarea
+                  ref={(textarea) => {
+                    if (textarea) {
+                      textarea.style.height = 'auto'
+                      const newHeight = Math.min(textarea.scrollHeight, 150)
+                      textarea.style.height = `${newHeight}px`
+                      if (textarea.scrollHeight > 150) {
+                        textarea.classList.add('has-overflow')
+                      } else {
+                        textarea.classList.remove('has-overflow')
+                      }
+                    }
+                  }}
+                  value={inputValue}
+                  onChange={(event) => {
+                    handleTypingChange(event.target.value)
+                    const textarea = event.target as HTMLTextAreaElement
+                    textarea.style.height = 'auto'
+                    const newHeight = Math.min(textarea.scrollHeight, 150)
+                    textarea.style.height = `${newHeight}px`
+                    if (textarea.scrollHeight > 150) {
+                      textarea.classList.add('has-overflow')
+                    } else {
+                      textarea.classList.remove('has-overflow')
+                    }
+                  }}
+                  placeholder="Type a message..."
+                  className="w-full bg-transparent resize-none border-none outline-none focus:ring-0 text-gray-900 text-[15px] py-2 px-1 max-h-[150px] custom-scrollbar placeholder-gray-400"
+                  rows={1}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault()
+                      handleSendMessage(event)
+                    }
+                  }}
+                  inputMode="text"
+                  autoComplete="off"
+                  autoCorrect="on"
+                  autoCapitalize="sentences"
+                />
+              )}
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={!inputValue.trim()}
-            className="p-2.5 sm:p-3 bg-secondary text-secondary-foreground rounded-full hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0 flex items-center justify-center"
-            title="Send message"
-          >
-            <Send className="w-5 h-5" />
-          </button>
+          {/* Send / Mic Button */}
+          {!inputValue.trim() && !isRecording ? (
+            <button
+              type="button"
+              onMouseDown={startRecording}
+              className="w-[50px] h-[50px] bg-primary text-white rounded-full flex items-center justify-center shadow hover:bg-primary/95 transition-all active:scale-95 flex-shrink-0"
+              title="Record audio"
+            >
+              <svg className="w-5 h-5 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type={isRecording ? "button" : "submit"}
+              onClick={isRecording ? stopRecording : undefined}
+              disabled={!isRecording && !inputValue.trim()}
+              className={`w-[50px] h-[50px] ${isRecording ? 'bg-red-500' : 'bg-primary'} text-white rounded-full flex items-center justify-center shadow hover:opacity-90 disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none transition-all active:scale-95 flex-shrink-0`}
+              title={isRecording ? "Stop and Send" : "Send message"}
+            >
+              <Send className="w-5 h-5 ml-1" />
+            </button>
+          )}
         </form>
 
         <input
           ref={fileInputRef}
           type="file"
           accept=".pdf,.doc,.docx,.txt,.zip"
-          onChange={handleAttachmentChange}
+          onChange={(e) => handleAttachmentChange(e, 'file')}
           className="hidden"
         />
 
-        <input ref={imageInputRef} type="file" accept="image/*" onChange={handleAttachmentChange} className="hidden" />
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleAttachmentChange(e, 'image')}
+          className="hidden"
+        />
       </div>
     </div>
   )

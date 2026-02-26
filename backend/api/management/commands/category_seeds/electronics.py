@@ -3,6 +3,7 @@ ELECTRONICS_CATEGORY = {
     "name": "Electronics",
     "icon": "Smartphone",
     "type": "product",
+    "image_url": "/electronics_banner.png",
     "custom_fields": [
         {
             "name": "condition",
@@ -44,6 +45,7 @@ ELECTRONICS_CATEGORY = {
         # LEVEL 2: Phones & Tablets
         {
             "name": "Phones & Tablets",
+            "image_url": "/electronics_banner.png",
             "icon": "Smartphone",
             "children": [
                 {
@@ -118,6 +120,7 @@ ELECTRONICS_CATEGORY = {
         # LEVEL 2: Computers & Laptops
         {
             "name": "Computers & Laptops",
+            "image_url": "/laptop1.jpg",
             "icon": "Laptop",
             "custom_fields": [
                  {

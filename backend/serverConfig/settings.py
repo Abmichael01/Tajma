@@ -194,8 +194,8 @@ AUTH_USER_MODEL = 'api.User'
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',  # Use standard session auth
         'api.authentication.csrf_enforced_session.CSRFEnforcedSessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
@@ -209,31 +209,20 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-cors_origins_str = os.getenv('CORS_ALLOWED_ORIGINS', 
-    'http://localhost:3005,http://127.0.0.1:3005,'
-    'http://localhost:8081,http://127.0.0.1:8081,'
-    'http://192.168.1.152:8081,'
-    'exp://4zeu84i-urkelcodes-8081.exp.direct,'
-    'https://interavailable-lexi-instigative.ngrok-free.dev')
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',') if origin.strip()]
-
-# In development, allow requests without Origin header (React Native apps)
-# This allows React Native to connect without CORS issues
-if DEBUG:
-    CORS_ALLOW_CREDENTIALS = True
-    # React Native requests typically don't have Origin header, so they'll be allowed
-else:
-    CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 # Session settings
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = ENVIRONMENT == 'production'  # Set to True in production with HTTPS
-SESSION_COOKIE_AGE = 604800  # 7 days (1 week) in seconds
-SESSION_SAVE_EVERY_REQUEST = True  # Renew session on each request (extends expiry time)
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session persists after browser closes
-CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token
-CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = False
+SESSION_COOKIE_SAMESITE = None
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_AGE = 604800  # 7 days
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = None
+CSRF_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = False  # Keep CSRF in cookies for easier access by mobile
 
 # Cookie Domains
 SESSION_COOKIE_DOMAIN = os.getenv('SESSION_COOKIE_DOMAIN', None)
@@ -308,3 +297,10 @@ else:
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
         },
     }
+
+# Smile ID Configuration
+SMILE_ID_PARTNER_ID = os.getenv('SMILE_ID_PARTNER_ID', '')
+SMILE_ID_API_KEY = os.getenv('SMILE_ID_API_KEY', '')
+SMILE_ID_SANDBOX = os.getenv('SMILE_ID_SANDBOX', 'True') == 'True'
+SMILE_ID_CALLBACK_URL = f"{SITE_URL}/api/kyc/webhook/"
+SMILE_ID_CONFIG_PATH = os.getenv('SMILE_ID_CONFIG_PATH', str(BASE_DIR / 'smile_config.json'))

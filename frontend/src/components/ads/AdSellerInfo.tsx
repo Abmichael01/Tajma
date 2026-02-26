@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Star, Shield } from 'lucide-react'
 import type { User, ReviewStats, ResponseStats } from '@/api/types'
 import { getUserFullName } from '@/utils/user'
+import { leadsApi } from '@/api/leads'
+import { useRouter } from 'next/navigation'
+import { useAuthStore } from '@/store/authStore'
 
 interface AdSellerInfoProps {
   seller: User & { response_stats?: ResponseStats }
@@ -23,6 +26,8 @@ export default function AdSellerInfo({
   reviewStats,
   className = ''
 }: AdSellerInfoProps) {
+  const router = useRouter()
+  const { user: currentUser, isAuthenticated } = useAuthStore()
   const fullName = getUserFullName(seller)
   const stats = seller.response_stats
 
@@ -46,7 +51,7 @@ export default function AdSellerInfo({
   return (
     <div className={`bg-white border border-gray-200 p-4 sm:p-6 ${className}`}>
       <h3 className="font-semibold text-gray-900 mb-4">Seller Information</h3>
-      
+
       <div className="flex items-center gap-3 mb-4">
         {seller.avatar ? (
           <Image
@@ -73,7 +78,7 @@ export default function AdSellerInfo({
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 text-yellow-500 fill-current" />
             <span className="text-sm text-gray-600">
-              {reviewStats?.average_rating 
+              {reviewStats?.average_rating
                 ? `${reviewStats.average_rating.toFixed(1)} (${reviewStats.total_reviews || 0} reviews)`
                 : 'No reviews yet'}
             </span>
@@ -89,11 +94,21 @@ export default function AdSellerInfo({
         <div>{responseTimeText}</div>
       </div>
 
-      <Link href={`/profile/${sellerProfileSlug}`}>
-        <Button variant="ghost" className="w-full">
-          View Profile
-        </Button>
-      </Link>
+      <Button
+        variant="ghost"
+        className="w-full"
+        onClick={() => {
+          if (isAuthenticated && currentUser?.id !== seller.id) {
+            leadsApi.recordInteraction({
+              seller_id: String(seller.id),
+              source: 'profile_view'
+            }).catch(console.error)
+          }
+          router.push(`/profile/${sellerProfileSlug}`)
+        }}
+      >
+        View Profile
+      </Button>
     </div>
   )
 }

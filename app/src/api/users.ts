@@ -34,5 +34,10 @@ export const usersApi = {
     const response = await apiClient.get<UserWithReviewStats>(`/auth/profile/${slug}/`)
     return response.data
   },
+
+  getById: async (id: number): Promise<UserWithReviewStats> => {
+    const response = await apiClient.get<UserWithReviewStats>(`/auth/profile/${id}/`)
+    return response.data
+  },
 }
 

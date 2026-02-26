@@ -32,27 +32,28 @@ export const useNotificationWebSocket = () => {
 
     // Build WebSocket URL - extract base URL and convert to WebSocket protocol
     const buildWebSocketUrl = (): string => {
-      const base = process.env.NEXT_PUBLIC_WS_URL || 
+      const base = process.env.NEXT_PUBLIC_WS_BASE_URL ||
+        process.env.NEXT_PUBLIC_WS_URL ||
         (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
-          .replace(/^https?/, (match) => match === 'https' ? 'wss' : 'ws')
+          .replace(/^https?/, (match: string) => match === 'https' ? 'wss' : 'ws')
           .replace(/\/api\/?$/, '') // Remove /api suffix if present
       return `${base.replace(/\/$/, '')}/ws/notifications/`
     }
-    
+
     const wsUrl = buildWebSocketUrl()
     console.log('🔌 Connecting notification WebSocket to:', wsUrl)
-    
+
     try {
       // WebSocket will use cookies for authentication (session-based)
       const ws = new WebSocket(wsUrl)
       const connectionStartTime = Date.now()
       let connectionOpened = false
-      
+
       ws.onopen = () => {
         connectionOpened = true
         console.log('WebSocket connected for notifications')
         reconnectAttempts.current = 0
-        
+
         // Send ping to keep connection alive
         const pingInterval = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
@@ -62,7 +63,7 @@ export const useNotificationWebSocket = () => {
           }
         }, 30000) // Ping every 30 seconds
       }
-      
+
       // Helper to map backend notification types to frontend types
       const mapNotificationType = (type: string): 'message' | 'view' | 'favorite' | 'offer' | 'system' | 'phone_view' => {
         switch (type) {
@@ -80,23 +81,23 @@ export const useNotificationWebSocket = () => {
             return 'system'
         }
       }
-      
+
       ws.onmessage = async (event) => {
         try {
           console.log('📨 WebSocket message received:', event.data)
           const data: WebSocketMessage = JSON.parse(event.data)
           console.log('📦 Parsed WebSocket data:', data)
-          
+
           if (data.type === 'notification' && data.notification) {
             // Add notification to store
             const { useNotificationsStore } = await import('@/store/notificationsStore')
             const { toast } = await import('sonner')
             const store = useNotificationsStore.getState()
-            
+
             // Map backend notification to store format
             const notification = data.notification
             console.log('📨 WebSocket: Received notification:', notification)
-            
+
             const mappedNotification = {
               id: String(notification.id || ''),
               type: mapNotificationType(notification.type || 'other'),
@@ -107,22 +108,22 @@ export const useNotificationWebSocket = () => {
               adId: notification.related_ad ? String(notification.related_ad) : undefined,
               timestamp: notification.created_at || new Date().toISOString(),
             }
-            
+
             // Add notification to store
             const wasAdded = store.getNotifications().some(n => n.id === mappedNotification.id)
             if (!wasAdded) {
               store.addNotification(mappedNotification)
             }
-            
+
             // Get updated unread count
             const updatedNotifications = store.getNotifications()
             const newUnreadCount = updatedNotifications.filter(n => !n.isRead).length
-            
+
             // Show toast notification only once per notification ID
             const notificationId = String(notification.id || '')
             if (!shownToastIds.current.has(notificationId)) {
               shownToastIds.current.add(notificationId)
-              
+
               // Show toast with just the message (no description)
               // Use unique ID to prevent duplicate toasts
               toast(notification.message || notification.title || 'New notification', {
@@ -136,17 +137,17 @@ export const useNotificationWebSocket = () => {
                   }
                 } : undefined,
               })
-              
+
               // Clean up old toast IDs after 1 minute to prevent memory leak
               setTimeout(() => {
                 shownToastIds.current.delete(notificationId)
               }, 60000)
             }
-            
+
             // Invalidate notifications query to refetch
             queryClient.invalidateQueries({ queryKey: ['notifications'] })
             queryClient.setQueryData(['notifications', 'unread_count'], { count: newUnreadCount })
-            
+
             console.log(`✅ WebSocket: Notification added. Store now has ${updatedNotifications.length} notifications, ${newUnreadCount} unread`)
           } else if (data.type === 'notification_count' && typeof data.count === 'number') {
             console.log('📊 Updating notification count:', data.count)
@@ -161,7 +162,7 @@ export const useNotificationWebSocket = () => {
           console.error('Raw message:', event.data)
         }
       }
-      
+
       ws.onerror = (error) => {
         // WebSocket error event is typically empty, actual error info is in onclose
         // Only log if we have useful information
@@ -172,7 +173,7 @@ export const useNotificationWebSocket = () => {
           })
         }
       }
-      
+
       ws.onclose = (event) => {
         const connectionDuration = Date.now() - connectionStartTime
         const closeInfo = {
@@ -182,38 +183,33 @@ export const useNotificationWebSocket = () => {
           connectionOpened,
           connectionDuration: `${connectionDuration}ms`
         }
-        
+
         // Log close event details for debugging
         console.log('🔌 Notification WebSocket closed:', closeInfo)
-        
+
         // Handle anonymous user errors - ONLY logout when backend explicitly indicates user is anonymous
         // Backend sends code 4001 with reason "User is anonymous" when user.is_anonymous is true
         // DO NOT logout on connection failures - they can happen for many reasons (network, timing, etc.)
-        const isAnonymousUserError = 
+        const isAnonymousUserError =
           event.code === 4001 ||
           (event.reason && (
             event.reason.toLowerCase().includes('user is anonymous') ||
             event.reason.toLowerCase().includes('anonymous user')
           ))
-        
+
         if (isAnonymousUserError) {
-          console.warn('🚫 Notification WebSocket: User is anonymous - logging out', {
+          console.warn('🚫 Notification WebSocket: User is anonymous - stopping reconnection', {
             code: event.code,
             reason: event.reason,
             wasClean: event.wasClean,
             connectionDuration: `${connectionDuration}ms`
           })
-          import('@/store/authStore').then(async ({ useAuthStore }) => {
-            useAuthStore.getState().logout()
-            // Show toast notification
-            if (typeof window !== 'undefined') {
-              const { toast } = await import('sonner')
-              toast.info('Account was logged out')
-            }
-          })
+          // DO NOT logout the entire app session here. 
+          // WebSocket can fail to send cookies for many reasons that are not "the session is dead".
+          // The main API client will handle actual 401/403 errors and logout if necessary.
           return // Don't reconnect on anonymous user errors
         }
-        
+
         // Log connection errors but don't logout
         if (!event.wasClean && event.code !== 1000) {
           console.log('WebSocket connection error (not auth-related, staying logged in):', {
@@ -222,19 +218,19 @@ export const useNotificationWebSocket = () => {
             wasClean: event.wasClean
           })
         }
-        
+
         // Don't reconnect if it was a clean close (normal disconnection)
         if (event.wasClean && event.code === 1000) {
           return
         }
-        
+
         // Attempt to reconnect with exponential backoff
         if (reconnectAttempts.current < maxReconnectAttempts) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000)
           reconnectAttempts.current++
-          
+
           console.log(`Reconnecting notification WebSocket in ${delay}ms (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`)
-          
+
           reconnectTimeoutRef.current = setTimeout(() => {
             connect()
           }, delay)
@@ -242,7 +238,7 @@ export const useNotificationWebSocket = () => {
           console.error('Max reconnection attempts reached for notification WebSocket')
         }
       }
-      
+
       wsRef.current = ws
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error)
@@ -254,12 +250,12 @@ export const useNotificationWebSocket = () => {
       clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
     }
-    
+
     if (wsRef.current) {
       wsRef.current.close()
       wsRef.current = null
     }
-    
+
     reconnectAttempts.current = 0
   }, [])
 

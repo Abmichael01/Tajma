@@ -3,6 +3,7 @@ HOME_GARDEN_CATEGORY = {
     "name": "Home, Furniture & Garden",
     "icon": "Armchair",
     "type": "product",
+    "image_url": "/property_banner.png",
     "custom_fields": [
         {
             "name": "condition",

@@ -30,15 +30,15 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
-        export_categories_to_json()
+        # export_categories_to_json()
 
     def perform_update(self, serializer):
         serializer.save()
-        export_categories_to_json()
+        # export_categories_to_json()
 
     def perform_destroy(self, instance):
         instance.delete()
-        export_categories_to_json()
+        # export_categories_to_json()
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def tree(self, request):

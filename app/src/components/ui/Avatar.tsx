@@ -1,4 +1,5 @@
-import { View, Image, ImageProps, Pressable, PressableProps } from "react-native";
+import { View, Pressable, PressableProps } from "react-native";
+import { Image } from 'expo-image';
 import { useState } from "react";
 import AppText from "./AppText";
 import { cn } from "@/utils/cn";
@@ -9,6 +10,7 @@ interface AvatarProps {
   fallback?: string;
   size?: number;
   className?: string;
+  textClassName?: string;
   onPress?: () => void;
 }
 
@@ -30,34 +32,34 @@ const getInitials = (name?: string, email?: string): string => {
 // Helper function to normalize avatar URL
 const normalizeAvatarUrl = (url?: string | null): string | null => {
   if (!url || url.trim() === '') return null;
-  
+
   const trimmedUrl = url.trim();
-  
+
   // If it's already a full URL, return as-is
   if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
     return trimmedUrl;
   }
-  
+
   // If it's a relative path, construct full URL using API media endpoint
   const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-  
+
   // If it starts with /api/media/, just prepend the base URL
   if (trimmedUrl.startsWith('/api/media/')) {
     return `${apiUrl}${trimmedUrl}`;
   }
-  
+
   // If it starts with /media/, convert to API endpoint
   if (trimmedUrl.startsWith('/media/')) {
     const path = trimmedUrl.replace('/media/', '');
     return `${apiUrl}/api/media/${path}`;
   }
-  
+
   // If it's just a path starting with /, try API endpoint
   if (trimmedUrl.startsWith('/')) {
     const path = trimmedUrl.replace(/^\//, '');
     return `${apiUrl}/api/media/${path}`;
   }
-  
+
   // Relative path (e.g., 'avatars/uuid.jpg'), use API endpoint
   return `${apiUrl}/api/media/${trimmedUrl}`;
 };
@@ -68,6 +70,7 @@ export default function Avatar({
   fallback,
   size = 40,
   className,
+  textClassName,
   onPress,
 }: AvatarProps) {
   const [imageError, setImageError] = useState(false);
@@ -81,20 +84,21 @@ export default function Avatar({
     borderRadius: size / 2,
   };
 
-  const fontSize = size * 0.4; // 40% of size for font
+  const fontSize = size * 4 * 0.1; // 40% of size for font
 
   const content = (
     <View
-      className={cn("items-center justify-center overflow-hidden", className)}
+      className={cn("bg-primary/10 items-center justify-center overflow-hidden", className)}
       style={sizeStyle}
     >
       {showImage ? (
         <Image
           source={{ uri: normalizedSrc }}
           style={sizeStyle}
-          resizeMode="cover"
+          contentFit="cover"
+          transition={200}
           onError={(error) => {
-            console.log('Avatar image error:', error.nativeEvent.error, 'URL:', normalizedSrc);
+            console.log('Avatar image error:', error.error, 'URL:', normalizedSrc);
             setImageError(true);
           }}
           onLoad={() => {
@@ -103,14 +107,9 @@ export default function Avatar({
           }}
         />
       ) : (
-        <View
-          className="w-full h-full bg-primary/10 items-center justify-center"
-          style={sizeStyle}
-        >
-          <AppText weight="semibold" className="text-primary" style={{ fontSize }}>
-            {initials}
-          </AppText>
-        </View>
+        <AppText weight="bold" className={cn("text-primary", textClassName)} style={{ fontSize }}>
+          {initials}
+        </AppText>
       )}
     </View>
   );

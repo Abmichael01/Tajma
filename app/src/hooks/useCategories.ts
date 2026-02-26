@@ -45,14 +45,14 @@ const convertNode = (
     slug: node.slug || node.id,
     description: node.description,
     icon: node.icon,
-    imageUrl: (node as any).imageUrl,
+    imageUrl: node.imageUrl || node.image_url,
     parentId,
-    type: node.type || node.category_type || 'product', // Use type from CDN data
+    type: node.type || node.category_type || 'product',
     status: 'active',
     level,
     displayOrder: 0,
     customFields: node.customFields || node.custom_fields || [],
-    adsCount: node.count || 0, // Use count from JSON if available
+    adsCount: node.count || 0,
     subcategoriesCount: children.length,
     createdAt: timestamp(),
     updatedAt: timestamp(),
@@ -79,20 +79,20 @@ const normalizeNodes = (nodes: CategoryNode[]) => {
 export function useCategories(options: UseCategoriesOptions = {}) {
   const { autoFetch = true } = options
   const queryClient = useQueryClient()
-  
+
   // Use React Query to fetch and cache categories
   const { data: cdnTree, isLoading, error: queryError } = useQuery<CategoryNode[]>({
     queryKey: ['categories'],
     queryFn: () => categoriesApi.getTree(),
     enabled: autoFetch,
-    staleTime: 5 * 60 * 1000, 
-    gcTime: 10 * 60 * 1000, 
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 2 * 60 * 1000, // 2 minutes
   })
-  
+
   const [categories, setCategories] = useState<Category[]>([])
   const [categoryTree, setCategoryTree] = useState<CategoryTree[]>([])
   const [rootCategories, setRootCategories] = useState<Category[]>([])
-  
+
   const loadFromNodes = useCallback((nodes: CategoryNode[]) => {
     const { flat, tree, rootCategories } = normalizeNodes(nodes)
     setCategories(flat)
@@ -111,28 +111,28 @@ export function useCategories(options: UseCategoriesOptions = {}) {
     // Invalidate and refetch using React Query
     await queryClient.invalidateQueries({ queryKey: ['categories'] })
   }, [queryClient])
-  
+
   const loadCategoryTree = useCallback(async () => {
     if (categoryTree.length === 0 && cdnTree && Array.isArray(cdnTree)) {
       loadFromNodes(cdnTree)
     }
   }, [categoryTree, cdnTree, loadFromNodes])
-  
+
   // Get category by ID
   const getCategoryById = useCallback((id: string): Category | undefined => {
     return categories.find(cat => cat.id === id)
   }, [categories])
-  
+
   // Get category by slug
   const getCategoryBySlug = useCallback((slug: string): Category | undefined => {
     return categories.find(cat => cat.slug === slug)
   }, [categories])
-  
+
   // Get subcategories
   const getSubcategories = useCallback((parentId: string): Category[] => {
     return categories.filter(cat => cat.parentId === parentId)
   }, [categories])
-  
+
   return {
     categories,
     categoryTree,

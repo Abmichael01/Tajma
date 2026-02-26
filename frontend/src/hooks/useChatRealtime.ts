@@ -15,7 +15,7 @@ interface UseChatRealtimeOptions {
 export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTypingChange }: UseChatRealtimeOptions) => {
   const queryClient = useQueryClient()
   const { isAuthenticated, user } = useAuthStore()
-  
+
   // Prepare active chat IDs array for unified connection
   const activeChatIds = useMemo(() => {
     return activeConversationId ? [activeConversationId] : []
@@ -55,15 +55,15 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
       // This ensures chat list stays updated on all pages
       queryClient.setQueryData(['chats'], (oldData: ChatSummary[] | undefined) => {
         if (!oldData) return [updatedChat]
-        
+
         const chats = [...oldData]
         const index = chats.findIndex((c) => c.id === updatedChat.id)
-        
+
         if (index !== -1) {
           // Defensive merge: Preserve ad fields from existing chat
           // Production backend may send null for ad fields, so we always preserve existing values
           const existingChat = chats[index]
-          
+
           // Debug logging before merge
           console.log('🔍 [ChatEvent] Before merge:', {
             chat_id: existingChat.id,
@@ -84,7 +84,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ad_currency: updatedChat.ad_currency,
             }
           })
-          
+
           // Determine which ad fields to use - use helper to check for valid values (not undefined, null, or empty string)
           // This ensures we preserve existing values when backend sends invalid/null/empty data
           const finalAd = isValidAdField(updatedChat.ad) ? updatedChat.ad : existingChat.ad
@@ -93,7 +93,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           const finalAdImage = isValidAdField(updatedChat.ad_image) ? updatedChat.ad_image : existingChat.ad_image
           const finalAdPrice = isValidAdField(updatedChat.ad_price) ? updatedChat.ad_price : existingChat.ad_price
           const finalAdCurrency = isValidAdField(updatedChat.ad_currency) ? updatedChat.ad_currency : existingChat.ad_currency
-          
+
           // Warn if we're preserving existing values due to invalid incoming data
           if (!isValidAdField(updatedChat.ad_image) && existingChat.ad_image) {
             console.warn(`⚠️ [ChatEvent] Preserving existing ad_image for chat ${chat_id} because incoming value is invalid:`, {
@@ -101,7 +101,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               preserved: existingChat.ad_image
             })
           }
-          
+
           const mergedChat = {
             ...existingChat,
             // Update message-related fields
@@ -119,7 +119,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             ad_price: finalAdPrice,
             ad_currency: finalAdCurrency,
           }
-          
+
           // Debug logging after merge
           console.log('✅ [ChatEvent] After merge:', {
             chat_id: mergedChat.id,
@@ -134,7 +134,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             adImagePreserved: mergedChat.ad_image === existingChat.ad_image,
             adImageChanged: mergedChat.ad_image !== existingChat.ad_image,
           })
-          
+
           chats[index] = mergedChat
         } else {
           console.log('➕ [ChatEvent] New chat added:', {
@@ -143,27 +143,27 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           })
           chats.unshift(updatedChat)
         }
-        
+
         // Sort by most recent activity (WhatsApp/Telegram pattern - most recent on top)
         const sorted = chats.sort((a, b) => {
           const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
           const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
           return timeB - timeA
         })
-        
+
         console.log('📋 [ChatEvent] Chat list sorted. Top chat:', {
           id: sorted[0]?.id,
           ad_image: sorted[0]?.ad_image,
-          last_message_at: sorted[0]?.last_message_at,
+          last_message_at: sorted[0]?.last_message_at
         })
-        
+
         return sorted
       })
 
       // Update chat detail cache for this specific chat (preserve ad fields)
       queryClient.setQueryData(['chats', chat_id], (oldData: any) => {
         if (!oldData) return oldData
-        
+
         // Debug logging before chat detail update
         console.log('🔍 [ChatEvent] Updating chat detail cache:', {
           chat_id,
@@ -173,7 +173,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           incoming_ad_image_is_null: updatedChat.ad_image === null,
           incoming_ad_image_is_undefined: updatedChat.ad_image === undefined,
         })
-        
+
         // Defensive merge: Always preserve ad fields from existing data
         // Production backend may send null/empty for ad fields, so we always preserve existing values
         // Use helper function to check for valid values (not undefined, null, or empty string)
@@ -183,7 +183,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         const finalAdImage = isValidAdField(updatedChat.ad_image) ? updatedChat.ad_image : oldData.ad_image
         const finalAdPrice = isValidAdField(updatedChat.ad_price) ? updatedChat.ad_price : oldData.ad_price
         const finalAdCurrency = isValidAdField(updatedChat.ad_currency) ? updatedChat.ad_currency : oldData.ad_currency
-        
+
         // Warn if we're preserving existing values due to invalid incoming data
         if (!isValidAdField(updatedChat.ad_image) && oldData.ad_image) {
           console.warn(`⚠️ [ChatEvent] Preserving existing ad_image in chat detail cache for chat ${chat_id} because incoming value is invalid:`, {
@@ -191,7 +191,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             preserved: oldData.ad_image
           })
         }
-        
+
         const merged = {
           ...oldData,
           // Update message-related fields
@@ -210,7 +210,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           ad_price: finalAdPrice,
           ad_currency: finalAdCurrency,
         }
-        
+
         console.log('✅ [ChatEvent] Chat detail cache updated:', {
           chat_id: merged.id,
           final_ad_image: merged.ad_image,
@@ -218,7 +218,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           ad_image_changed: merged.ad_image !== oldData.ad_image,
           decision: isValidAdField(updatedChat.ad_image) ? 'USED_INCOMING' : 'PRESERVED_EXISTING',
         })
-        
+
         return merged
       })
     },
@@ -234,135 +234,135 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         isActiveChat: activeConversationId === chatId,
         hasExistingCache: !!queryClient.getQueryData(['messages', chatId]),
       })
-      
+
       queryClient.setQueryData(['messages', chatId], (oldData: any) => {
-          if (!oldData?.pages) {
-            // Initialize with first page if no data exists (even if chat hasn't been opened yet)
-            // This is the WhatsApp/Telegram pattern - cache messages for ALL chats
-            console.log('📝 [updateMessagesCacheForChat] Initializing cache for chat (not yet opened):', chatId, {
-              messageId: message.id,
-              messageContent: message.content.substring(0, 50),
-            })
-            return {
-              pages: [{ results: [message], count: 1, next: null, previous: null, page: 1 }],
-              pageParams: [1],
-            }
-          }
-          
-          // Track if message was found/added
-          let messageFound = false
-          
-          // Update all pages to check for the message
-          const updatedPages = oldData.pages.map((page: any) => {
-            const messagesArray = page.results || []
-            
-            // FIRST: Check if message already exists by exact ID (most reliable)
-            const existingIndex = messagesArray.findIndex((m: ChatMessage) => m.id === message.id)
-            if (existingIndex !== -1) {
-              messageFound = true
-              // Update existing message (merge to preserve any local state)
-              const updated = [...messagesArray]
-              updated[existingIndex] = { ...updated[existingIndex], ...message }
-              return {
-                ...page,
-                results: updated.sort((a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                ),
-              }
-            }
-            
-            // SECOND: Check for optimistic message to replace (temp-* IDs only)
-            // This is for replacing optimistic messages with real ones
-            const messageTime = new Date(message.created_at).getTime()
-            const optimisticIndex = messagesArray.findIndex((m: ChatMessage) => {
-              const isTemp = String(m.id).startsWith('temp-')
-              if (!isTemp) return false // Only check temp messages
-              const sameContent = String(m.content).trim() === String(message.content).trim()
-              const sameSender = m.sender?.id === message.sender?.id
-              const optimisticTime = new Date(m.created_at).getTime()
-              const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 90000 // 90 seconds window
-              return sameContent && sameSender && withinTimeWindow
-            })
-            
-            if (optimisticIndex !== -1) {
-              messageFound = true
-              // Replace optimistic message with real one
-              const updated = [...messagesArray]
-              updated[optimisticIndex] = message
-              return {
-                ...page,
-                results: updated.sort((a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                ),
-              }
-            }
-            
-            return page
+        if (!oldData?.pages) {
+          // Initialize with first page if no data exists (even if chat hasn't been opened yet)
+          // This is the WhatsApp/Telegram pattern - cache messages for ALL chats
+          console.log('📝 [updateMessagesCacheForChat] Initializing cache for chat (not yet opened):', chatId, {
+            messageId: message.id,
+            messageContent: message.content.substring(0, 50),
           })
-          
-          // If message not found in any page, add it to the last page
-          // IMPORTANT: Only check for duplicates by exact ID, not by content
-          // This ensures messages for non-active chats are always added
-          if (!messageFound && updatedPages.length > 0) {
-            const lastPage = updatedPages[updatedPages.length - 1]
-            if (lastPage && lastPage.results) {
-              // Only check if exact message ID already exists (shouldn't happen, but safety check)
-              const hasExactDuplicate = lastPage.results.some((m: ChatMessage) => m.id === message.id)
-              
-              if (!hasExactDuplicate) {
-                // Always add the message - don't filter by content
-                // This ensures messages for non-active chats are cached
-                const lastPageUpdated = {
-                  ...lastPage,
-                  results: [...(lastPage.results || []), message].sort((a: ChatMessage, b: ChatMessage) => 
-                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                  ),
-                }
-                updatedPages[updatedPages.length - 1] = lastPageUpdated
-                console.log('✅ [updateMessagesCacheForChat] Added new message to cache:', {
-                  chatId: chatId,
-                  messageId: message.id,
-                  wasFound: messageFound,
-                })
-              } else {
-                console.warn('⚠️ [updateMessagesCacheForChat] Message already exists (should not happen):', {
-                  chatId: chatId,
-                  messageId: message.id,
-                })
-              }
+          return {
+            pages: [{ results: [message], count: 1, next: null, previous: null, page: 1 }],
+            pageParams: [1],
+          }
+        }
+
+        // Track if message was found/added
+        let messageFound = false
+
+        // Update all pages to check for the message
+        const updatedPages = oldData.pages.map((page: any) => {
+          const messagesArray = page.results || []
+
+          // FIRST: Check if message already exists by exact ID (most reliable)
+          const existingIndex = messagesArray.findIndex((m: ChatMessage) => m.id === message.id)
+          if (existingIndex !== -1) {
+            messageFound = true
+            // Update existing message (merge to preserve any local state)
+            const updated = [...messagesArray]
+            updated[existingIndex] = { ...updated[existingIndex], ...message }
+            return {
+              ...page,
+              results: updated.sort((a: ChatMessage, b: ChatMessage) =>
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              ),
             }
-          } else if (!messageFound && updatedPages.length === 0) {
-            // No pages exist yet, create first page with this message
-            updatedPages.push({
-              results: [message],
-              count: 1,
-              next: null,
-              previous: null,
-              page: 1
-            })
-            console.log('✅ [updateMessagesCacheForChat] Created first page with message:', {
-              chatId: chatId,
-              messageId: message.id,
-            })
           }
-          
-          const result = {
-            ...oldData,
-            pages: updatedPages,
+
+          // SECOND: Check for optimistic message to replace (temp-* IDs only)
+          // This is for replacing optimistic messages with real ones
+          const messageTime = new Date(message.created_at).getTime()
+          const optimisticIndex = messagesArray.findIndex((m: ChatMessage) => {
+            const isTemp = String(m.id).startsWith('temp-')
+            if (!isTemp) return false // Only check temp messages
+            const sameContent = String(m.content).trim() === String(message.content).trim()
+            const sameSender = m.sender?.id === message.sender?.id
+            const optimisticTime = new Date(m.created_at).getTime()
+            const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 90000 // 90 seconds window
+            return sameContent && sameSender && withinTimeWindow
+          })
+
+          if (optimisticIndex !== -1) {
+            messageFound = true
+            // Replace optimistic message with real one
+            const updated = [...messagesArray]
+            updated[optimisticIndex] = message
+            return {
+              ...page,
+              results: updated.sort((a: ChatMessage, b: ChatMessage) =>
+                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              ),
+            }
           }
-          
-          // Count total messages across all pages
-          const totalMessages = updatedPages.reduce((sum: number, page: any) => sum + (page.results?.length || 0), 0)
-          
-          console.log('✅ [updateMessagesCacheForChat] Cache updated for chat:', chatId, {
-            totalPages: updatedPages.length,
-            totalMessages,
-            messageAdded: true,
-            isActiveChat: activeConversationId === chatId,
+
+          return page
+        })
+
+        // If message not found in any page, add it to the last page
+        // IMPORTANT: Only check for duplicates by exact ID, not by content
+        // This ensures messages for non-active chats are always added
+        if (!messageFound && updatedPages.length > 0) {
+          const lastPage = updatedPages[updatedPages.length - 1]
+          if (lastPage && lastPage.results) {
+            // Only check if exact message ID already exists (shouldn't happen, but safety check)
+            const hasExactDuplicate = lastPage.results.some((m: ChatMessage) => m.id === message.id)
+
+            if (!hasExactDuplicate) {
+              // Always add the message - don't filter by content
+              // This ensures messages for non-active chats are cached
+              const lastPageUpdated = {
+                ...lastPage,
+                results: [...(lastPage.results || []), message].sort((a: ChatMessage, b: ChatMessage) =>
+                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                ),
+              }
+              updatedPages[updatedPages.length - 1] = lastPageUpdated
+              console.log('✅ [updateMessagesCacheForChat] Added new message to cache:', {
+                chatId: chatId,
+                messageId: message.id,
+                wasFound: messageFound,
+              })
+            } else {
+              console.warn('⚠️ [updateMessagesCacheForChat] Message already exists (should not happen):', {
+                chatId: chatId,
+                messageId: message.id,
+              })
+            }
+          }
+        } else if (!messageFound && updatedPages.length === 0) {
+          // No pages exist yet, create first page with this message
+          updatedPages.push({
+            results: [message],
+            count: 1,
+            next: null,
+            previous: null,
+            page: 1
+          })
+          console.log('✅ [updateMessagesCacheForChat] Created first page with message:', {
+            chatId: chatId,
             messageId: message.id,
           })
-          return result
+        }
+
+        const result = {
+          ...oldData,
+          pages: updatedPages,
+        }
+
+        // Count total messages across all pages
+        const totalMessages = updatedPages.reduce((sum: number, page: any) => sum + (page.results?.length || 0), 0)
+
+        console.log('✅ [updateMessagesCacheForChat] Cache updated for chat:', chatId, {
+          totalPages: updatedPages.length,
+          totalMessages,
+          messageAdded: true,
+          isActiveChat: activeConversationId === chatId,
+          messageId: message.id,
         })
+        return result
+      })
     },
     [queryClient, activeConversationId]
   )
@@ -380,7 +380,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         // Also update chat list to move chat to top and update last message (WhatsApp/Telegram pattern)
         queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
           if (!oldChats) return oldChats
-          
+
           // Debug logging before update
           const existingChat = oldChats.find((c) => c.id === activeConversationId)
           if (existingChat) {
@@ -391,7 +391,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               message_created_at: message.created_at,
             })
           }
-          
+
           const updated = oldChats.map((chat) => {
             if (chat.id === activeConversationId) {
               const updatedChat = {
@@ -407,32 +407,32 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
                 ad_price: chat.ad_price,
                 ad_currency: chat.ad_currency,
               }
-              
+
               console.log('✅ [SocketMessage] Chat list updated:', {
                 chat_id: updatedChat.id,
                 ad_image: updatedChat.ad_image,
                 ad_image_preserved: updatedChat.ad_image === chat.ad_image,
                 last_message_at: updatedChat.last_message_at,
               })
-              
+
               return updatedChat
             }
             return chat
           })
-          
+
           const sorted = updated.sort((a, b) => {
             // Sort by most recent activity (most recent on top)
             const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
             const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
             return timeB - timeA
           })
-          
+
           console.log('📋 [SocketMessage] Chat list sorted. Top chat:', {
             id: sorted[0]?.id,
             ad_image: sorted[0]?.ad_image,
             last_message_at: sorted[0]?.last_message_at,
           })
-          
+
           return sorted
         })
 
@@ -441,14 +441,14 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           if (!oldData) return oldData
           const existingMessages = oldData.messages || []
           const existingIndex = existingMessages.findIndex((m: ChatMessage) => m.id === message.id)
-           
+
           if (existingIndex !== -1) {
             const updated = [...existingMessages]
             updated[existingIndex] = message
             return {
               ...oldData,
               messages: updated.sort(
-                (a: ChatMessage, b: ChatMessage) => 
+                (a: ChatMessage, b: ChatMessage) =>
                   new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
               ),
               last_message: message,
@@ -462,7 +462,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ad_currency: oldData.ad_currency,
             }
           }
-          
+
           // Check for optimistic message
           const optimisticIndex = existingMessages.findIndex((m: ChatMessage) => {
             const isTemp = String(m.id).startsWith('temp-')
@@ -470,14 +470,14 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             const sameSender = m.sender?.id === message.sender?.id
             return isTemp && sameContent && sameSender
           })
-          
+
           if (optimisticIndex !== -1) {
             const updated = [...existingMessages]
             updated[optimisticIndex] = message
             return {
               ...oldData,
               messages: updated.sort(
-                (a: ChatMessage, b: ChatMessage) => 
+                (a: ChatMessage, b: ChatMessage) =>
                   new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
               ),
               last_message: message,
@@ -491,11 +491,11 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ad_currency: oldData.ad_currency,
             }
           }
-          
+
           return {
             ...oldData,
             messages: [...existingMessages, message].sort(
-              (a: ChatMessage, b: ChatMessage) => 
+              (a: ChatMessage, b: ChatMessage) =>
                 new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
             ),
             last_message: message,
@@ -514,60 +514,73 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
     [activeConversationId, queryClient, onMessageReceived, updateMessagesCacheForChat]
   )
 
-  // --- Handler for Message Status Updates (Read Receipts) ---
-  const handleMessageStatusUpdateInternal = useCallback(
-    (message: ChatMessage) => {
-      console.log('📬 Received read receipt update:', message.id, 'is_read:', message.is_read)
-      
-      // Update message read status in cache for active chat (Infinite Query)
-      if (activeConversationId) {
-        queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
-          if (!oldData?.pages) return oldData
-          
-          // Update message in all pages
-          const updatedPages = oldData.pages.map((page: any) => {
-            const messagesArray = page.results || []
-            const existingIndex = messagesArray.findIndex((m: ChatMessage) => m.id === message.id)
-            
-            if (existingIndex !== -1) {
-              const updated = [...messagesArray]
-              updated[existingIndex] = { ...updated[existingIndex], ...message }
-              return {
-                ...page,
-                results: updated,
-              }
+  // --- Consolidated Handler for Message Status Updates ---
+  const applyMessageStatusUpdate = useCallback(
+    (message: ChatMessage, chatId: string) => {
+      console.log(`📬 [StatusUpdate] Applying update to chat ${chatId}: msg ${message.id}, is_read: ${message.is_read}, delivered: ${!!message.delivered_at}`)
+
+      // 1. Update Chat List Cache (last_message status)
+      queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
+        if (!oldChats) return oldChats
+        return oldChats.map((chat) => {
+          if (chat.id === chatId && chat.last_message && chat.last_message.id === message.id) {
+            return {
+              ...chat,
+              last_message: { ...chat.last_message, ...message },
             }
-            
-            return page
-          })
-          
+          }
+          return chat
+        })
+      })
+
+      // 2. Update Messages Cache (individual message status)
+      queryClient.setQueryData(['messages', chatId], (oldData: any) => {
+        if (!oldData) return oldData
+
+        // Handle Infinite Query (pages)
+        if (oldData.pages) {
           return {
             ...oldData,
-            pages: updatedPages,
+            pages: oldData.pages.map((page: any) => ({
+              ...page,
+              results: page.results?.map((msg: ChatMessage) =>
+                msg.id === message.id ? { ...msg, ...message } : msg
+              ) || [],
+            })),
           }
-        })
+        }
 
-        // Update in chat detail cache
-        queryClient.setQueryData(['chats', activeConversationId], (oldData: any) => {
-          if (!oldData) return oldData
-          const existingMessages = oldData.messages || []
-          const messageIndex = existingMessages.findIndex((m: ChatMessage) => m.id === message.id)
-          if (messageIndex !== -1) {
-            const updated = [...existingMessages]
-            updated[messageIndex] = { ...updated[messageIndex], ...message }
-            // Update last_message if this is the last message
-            const isLastMessage = messageIndex === existingMessages.length - 1
-            return {
-              ...oldData,
-              messages: updated,
-              last_message: isLastMessage ? message : oldData.last_message,
-            }
+        // Handle simple array (fallback)
+        if (Array.isArray(oldData)) {
+          return oldData.map((msg: ChatMessage) =>
+            msg.id === message.id ? { ...msg, ...message } : msg
+          )
+        }
+
+        return oldData
+      })
+
+      // 3. Update Chat Detail Cache (if matching)
+      queryClient.setQueryData(['chats', chatId], (oldData: any) => {
+        if (!oldData) return oldData
+
+        const existingMessages = oldData.messages || []
+        const messageIndex = existingMessages.findIndex((m: ChatMessage) => m.id === message.id)
+
+        if (messageIndex !== -1) {
+          const updated = [...existingMessages]
+          updated[messageIndex] = { ...updated[messageIndex], ...message }
+          const isLastMessage = messageIndex === existingMessages.length - 1
+          return {
+            ...oldData,
+            messages: updated,
+            last_message: isLastMessage ? { ...oldData.last_message, ...message } : oldData.last_message,
           }
-          return oldData
-        })
-      }
+        }
+        return oldData
+      })
     },
-    [activeConversationId, queryClient]
+    [queryClient]
   )
 
   // --- Handler for Typing Indicators ---
@@ -580,8 +593,6 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
   )
 
   // --- Handler for Chat Messages (with chatId) - WhatsApp Pattern ---
-  // WhatsApp pattern: Always update messages cache for ALL chats, not just active one
-  // This ensures when user opens a chat later, messages are already cached (no refetch needed)
   const handleChatMessage = useCallback(
     (message: ChatMessage, chatId: string) => {
       console.log('📨 [handleChatMessage] Received message for chat:', chatId, {
@@ -589,24 +600,21 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
         isActiveChat: activeConversationId === chatId,
         activeChatId: activeConversationId,
       })
-      
-      // 1. Always update messages cache for this chat (regardless of if it's active)
-      // This is the key difference - we cache messages for ALL chats, not just active
-      // Use the same pattern as chat list update - always update, not conditional
+
+      // 1. Always update messages cache for this chat
       updateMessagesCacheForChat(message, chatId)
-      
-      // 2. Update chat list for the chat that received the message (move to top, update last message)
+
+      // 2. Update chat list for the chat that received the message
       queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
         if (!oldChats) return oldChats
-        
+
         const updated = oldChats.map((chat) => {
           if (chat.id === chatId) {
-            const updatedChat = {
+            return {
               ...chat,
               last_message: message,
               last_message_at: message.created_at,
               updated_at: message.created_at,
-              // Preserve all ad-related fields
               ad: chat.ad,
               ad_title: chat.ad_title,
               ad_slug: chat.ad_slug,
@@ -614,90 +622,50 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
               ad_price: chat.ad_price,
               ad_currency: chat.ad_currency,
             }
-            return updatedChat
           }
           return chat
         })
-        
-        // Sort by most recent activity (most recent on top)
-        const sorted = updated.sort((a, b) => {
+
+        return updated.sort((a, b) => {
           const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
           const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
           return timeB - timeA
         })
-        
-        return sorted
       })
-      
-      // 3. If this is the active chat, also trigger scroll/sound handlers
+
+      // 3. If this is the active chat, trigger scroll/detail update
       if (activeConversationId === chatId) {
         onMessageReceived?.(message)
-        
-        // Update chat detail cache for active chat
+
         queryClient.setQueryData(['chats', chatId], (oldData: any) => {
           if (!oldData) return oldData
           const existingMessages = oldData.messages || []
+
           const existingIndex = existingMessages.findIndex((m: ChatMessage) => m.id === message.id)
-          
+          const optimisticIndex = existingIndex === -1 ? existingMessages.findIndex((m: ChatMessage) => {
+            return String(m.id).startsWith('temp-') &&
+              String(m.content).trim() === String(message.content).trim() &&
+              m.sender?.id === message.sender?.id
+          }) : -1
+
+          const updated = [...existingMessages]
           if (existingIndex !== -1) {
-            const updated = [...existingMessages]
             updated[existingIndex] = message
-            return {
-              ...oldData,
-              messages: updated.sort(
-                (a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-              ),
-              last_message: message,
-              last_message_at: message.created_at,
-              // Preserve ad fields
-              ad: oldData.ad,
-              ad_title: oldData.ad_title,
-              ad_slug: oldData.ad_slug,
-              ad_image: oldData.ad_image,
-              ad_price: oldData.ad_price,
-              ad_currency: oldData.ad_currency,
-            }
-          }
-          
-          // Check for optimistic message
-          const optimisticIndex = existingMessages.findIndex((m: ChatMessage) => {
-            const isTemp = String(m.id).startsWith('temp-')
-            const sameContent = String(m.content).trim() === String(message.content).trim()
-            const sameSender = m.sender?.id === message.sender?.id
-            return isTemp && sameContent && sameSender
-          })
-          
-          if (optimisticIndex !== -1) {
-            const updated = [...existingMessages]
+          } else if (optimisticIndex !== -1) {
             updated[optimisticIndex] = message
-            return {
-              ...oldData,
-              messages: updated.sort(
-                (a: ChatMessage, b: ChatMessage) => 
-                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-              ),
-              last_message: message,
-              last_message_at: message.created_at,
-              // Preserve ad fields
-              ad: oldData.ad,
-              ad_title: oldData.ad_title,
-              ad_slug: oldData.ad_slug,
-              ad_image: oldData.ad_image,
-              ad_price: oldData.ad_price,
-              ad_currency: oldData.ad_currency,
-            }
+          } else {
+            updated.push(message)
           }
-          
+
+          const sorted = updated.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+          const isLast = sorted.length > 0 && sorted[sorted.length - 1].id === message.id
+
           return {
             ...oldData,
-            messages: [...existingMessages, message].sort(
-              (a: ChatMessage, b: ChatMessage) => 
-                new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-            ),
-            last_message: message,
-            last_message_at: message.created_at,
-            // Preserve ad fields
+            messages: sorted,
+            last_message: isLast ? message : oldData.last_message,
+            last_message_at: isLast ? message.created_at : oldData.last_message_at,
+            // Preserve all ad-related fields
             ad: oldData.ad,
             ad_title: oldData.ad_title,
             ad_slug: oldData.ad_slug,
@@ -707,115 +675,78 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           }
         })
       }
-      
-      // Note: Chat list is already updated by handleChatEvent
     },
     [activeConversationId, queryClient, onMessageReceived, updateMessagesCacheForChat]
   )
 
-  // --- Handler for Message Status Updates (Global - WhatsApp/Telegram Pattern) ---
-  // Status updates work globally - you see read receipts everywhere (like WhatsApp/Telegram)
+  // --- Handler for Message Status Updates ---
   const handleMessageStatusUpdate = useCallback(
     (message: ChatMessage, chatId: string) => {
-      // ALWAYS update chat list - update last_message status if it matches (global)
+      applyMessageStatusUpdate(message, chatId)
+    },
+    [applyMessageStatusUpdate]
+  )
+
+  // --- Handler for Marked Read Event ---
+  const handleMarkedRead = useCallback(
+    (chatId: string, count: number) => {
+      console.log(`👁️ [MarkedRead] All messages unread by current user in chat ${chatId} marked as read (${count} messages).`)
+
       queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
         if (!oldChats) return oldChats
-        return oldChats.map((chat) => {
-          // Update last_message status if this message is the last message
-          if (chat.id === chatId && chat.last_message && chat.last_message.id === message.id) {
-            return {
-              ...chat,
-              last_message: {
-                ...chat.last_message,
-                ...message, // Updates is_read, read_at, delivered_at, etc.
-              },
-            }
-          }
-          return chat
-        })
+        return oldChats.map((chat) =>
+          chat.id === chatId ? { ...chat, unread_count: 0 } : chat
+        )
       })
-      
-      // Update messages cache for this chat (if it exists - context-aware)
-      // Only update if this is the active chat OR if cache exists (for background updates)
+
+      const updateMsg = (msg: ChatMessage) => {
+        if (msg.sender?.id === user?.id && !msg.is_read) {
+          return { ...msg, is_read: true }
+        }
+        return msg
+      }
+
       queryClient.setQueryData(['messages', chatId], (oldData: any) => {
         if (!oldData) return oldData
-        
-        // Handle paginated data (Infinite Query)
+
         if (oldData.pages) {
           return {
             ...oldData,
             pages: oldData.pages.map((page: any) => ({
               ...page,
-              results: page.results?.map((msg: ChatMessage) => {
-                if (msg.id === message.id) {
-                  return { ...msg, ...message }
-                }
-                return msg
-              }) || [],
+              results: page.results?.map(updateMsg) || [],
             })),
           }
         }
-        
-        // Handle simple array
+
         if (Array.isArray(oldData)) {
-          return oldData.map((msg: ChatMessage) => {
-            if (msg.id === message.id) {
-              return { ...msg, ...message }
-            }
-            return msg
-          })
+          return oldData.map(updateMsg)
         }
-        
+
         return oldData
       })
-      
-      // Also update active chat detail if this is the active chat
-      if (chatId === activeConversationId) {
-        handleMessageStatusUpdateInternal(message)
-      }
-    },
-    [activeConversationId, handleMessageStatusUpdateInternal, queryClient]
-  )
 
-  // --- Handler for Marked Read Event (Global - WhatsApp/Telegram Pattern) ---
-  // When messages are marked as read, update chat list globally
-  const handleMarkedRead = useCallback(
-    (chatId: string, count: number) => {
-      // ALWAYS update chat list - set unread_count to 0 (global update)
-      queryClient.setQueryData(['chats'], (oldChats: ChatSummary[] | undefined) => {
-        if (!oldChats) return oldChats
-        return oldChats.map((chat) => {
-          if (chat.id === chatId) {
-            return {
-              ...chat,
-              unread_count: 0, // All messages are now read
-            }
-          }
-          return chat
-        })
+      queryClient.setQueryData(['chats', chatId], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          unread_count: 0,
+          messages: oldData.messages?.map(updateMsg) || []
+        }
       })
-      
-      // Invalidate messages query to refresh delivery status (only if active chat)
-      if (chatId === activeConversationId) {
-        queryClient.invalidateQueries({ queryKey: ['messages', chatId] })
-      }
     },
-    [activeConversationId, queryClient]
+    [queryClient, user?.id]
   )
-
-  // Handler for all messages delivered is not needed separately
-  // The backend broadcasts message_status_update events for each message
-  // which will be handled by handleMessageStatusUpdate above
 
   // --- Use Global WebSocket Connection from Zustand Store ---
-  const { 
-    isConnected, 
-    subscribeToChat: subscribeToChatStore, 
-    unsubscribeFromChat: unsubscribeFromChatStore, 
-    sendMessage: sendMessageRaw, 
-    sendTyping: sendTypingRaw, 
-    markAsRead: markAsReadRaw, 
-    setHandlers: setHandlersStore 
+  const {
+    isConnected,
+    subscribeToChat: subscribeToChatStore,
+    unsubscribeFromChat: unsubscribeFromChatStore,
+    sendMessage: sendMessageRaw,
+    sendTyping: sendTypingRaw,
+    markAsRead: markAsReadRaw,
+    setHandlers: setHandlersStore
   } = useChatWebSocketStore()
 
   // Store handlers in refs to prevent infinite loops
@@ -838,12 +769,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
     }
   }, [handleChatMessage, handleChatEvent, handleSocketTyping, handleMessageStatusUpdate, handleMarkedRead])
 
-  // Register context-aware handlers with the global store (Single Source of Truth)
-  // WhatsApp/Telegram pattern: Handlers are context-aware and handle all scenarios
-  // - Chat list updates: Always processed (global - works on all pages)
-  // - Messages: Only processed for active chat (context-aware)
-  // - Status updates: Always processed (global - read receipts work everywhere)
-  // - Typing: Context-aware (only shown for active chat)
+  // Register context-aware handlers with the global store
   useEffect(() => {
     setHandlersStore({
       onChatMessage: (message, chatId) => handlersRef.current.onChatMessage(message, chatId),
@@ -852,19 +778,16 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
       onMessageStatusUpdate: (message, chatId) => handlersRef.current.onMessageStatusUpdate(message, chatId),
       onMarkedRead: (chatId, count) => handlersRef.current.onMarkedRead(chatId, count),
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setHandlersStore]) // Only run once - handlers accessed via refs
+  }, [setHandlersStore])
 
   // Subscribe/unsubscribe to active chats when they change
   useEffect(() => {
     if (!isConnected) return
 
-    // Subscribe to active chat
     activeChatIds.forEach((chatId) => {
       subscribeToChatStore(chatId)
     })
 
-    // Cleanup: unsubscribe when component unmounts or chat changes
     return () => {
       activeChatIds.forEach((chatId) => {
         unsubscribeFromChatStore(chatId)
@@ -872,7 +795,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
     }
   }, [isConnected, activeChatIds, subscribeToChatStore, unsubscribeFromChatStore])
 
-  // Wrapper functions to match the expected API
+  // Wrapper functions
   const sendMessage = useCallback(
     (content: string): boolean => {
       if (activeConversationId) {
@@ -905,4 +828,3 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
     markAsRead,
   }
 }
-

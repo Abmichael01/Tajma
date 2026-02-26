@@ -1,8 +1,9 @@
-import { View, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from "react-native";
+import { View, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, FlatList, Platform } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
-import BackButton from "@/components/ui/BackButton";
+import ScreenHeader from "@/components/ui/ScreenHeader";
 import { useSavedAds, useToggleSaveAd } from "@/hooks/useSavedAds";
 import AdCard from "@/components/ads/AdCard";
 
@@ -10,7 +11,7 @@ export default function SavedAdsScreen() {
   const router = useRouter();
   const { data: savedAdsData, isLoading, refetch, isRefetching } = useSavedAds();
   const toggleFavoriteMutation = useToggleSaveAd();
-  
+
   const savedAds = Array.isArray(savedAdsData) ? savedAdsData : ((savedAdsData as any)?.results || []);
 
   const handleToggleFavorite = (adId: string) => {
@@ -19,42 +20,33 @@ export default function SavedAdsScreen() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <View className="px-4 pt-14 pb-4 bg-white border-b border-gray-200 flex-row items-center">
-         <TouchableOpacity onPress={() => router.back()} className="mr-3">
-          <Ionicons name="arrow-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <AppText variant="heading" weight="semibold">Saved Ads</AppText>
-      </View>
+      <ScreenHeader
+        title="Saved Ads"
+        subtitle={savedAds.length > 0 ? `${savedAds.length} items saved` : "Your wishlist"}
+      />
 
       {isLoading && !isRefetching ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#cb234a" />
+          <ActivityIndicator size="large" color="#FF4F18" />
         </View>
       ) : (
-        <ScrollView 
-          className="flex-1 px-4 pt-4"
+        <FlatList
+          data={savedAds}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={{ justifyContent: 'space-between' }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
           refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#cb234a" />
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#FF4F18" />
           }
-        >
-          {savedAds.length > 0 ? (
-            <View className="pb-8">
+          ListHeaderComponent={
+            savedAds.length > 0 ? (
               <AppText variant="default" className="text-gray-500 mb-4">
                 {savedAds.length} saved {savedAds.length === 1 ? 'item' : 'items'}
               </AppText>
-              
-              <View className="flex-row flex-wrap justify-between">
-                {savedAds.map((ad: any) => (
-                  <View key={ad.id} className="w-[48%] mb-4">
-                    <AdCard 
-                      ad={{ ...ad, is_saved: true }} 
-                      onToggleFavorite={() => handleToggleFavorite(ad.id)}
-                    />
-                  </View>
-                ))}
-              </View>
-            </View>
-          ) : (
+            ) : null
+          }
+          ListEmptyComponent={
             <View className="flex-1 items-center justify-center py-20 min-h-[500px]">
               <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-4">
                 <Ionicons name="heart-outline" size={32} color="#9ca3af" />
@@ -71,8 +63,19 @@ export default function SavedAdsScreen() {
                 </TouchableOpacity>
               </Link>
             </View>
+          }
+          renderItem={({ item: ad }) => (
+            <View className="w-[48%] mb-4">
+              <AdCard
+                ad={{ ...ad, is_saved: true }}
+                onToggleFavorite={() => handleToggleFavorite(ad.id)}
+              />
+            </View>
           )}
-        </ScrollView>
+          windowSize={10}
+          maxToRenderPerBatch={10}
+          removeClippedSubviews={Platform.OS === 'android'}
+        />
       )}
     </View>
   );

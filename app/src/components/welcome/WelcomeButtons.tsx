@@ -9,7 +9,6 @@ export default function WelcomeButtons() {
   return (
     <View className="w-full">
       <Button
-        variant="default"
         size="lg"
         className="mb-3 w-full"
         leftIcon={<Ionicons name="log-in-outline" size={24} color="#FFFFFF" />}

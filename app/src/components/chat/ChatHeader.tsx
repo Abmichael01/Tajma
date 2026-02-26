@@ -1,6 +1,8 @@
-import { View, Pressable, Animated } from "react-native";
-import { useEffect, useRef } from "react";
+import { View, Pressable, Animated, StyleSheet } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AppText from "@/components/ui/AppText";
 import Avatar from "@/components/ui/Avatar";
 
@@ -25,48 +27,7 @@ export default function ChatHeader({
   onMenuPress,
   onAvatarPress,
 }: ChatHeaderProps) {
-  // Animated values for typing dots
-  const dot1 = useRef(new Animated.Value(0)).current;
-  const dot2 = useRef(new Animated.Value(0)).current;
-  const dot3 = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (!isTyping) return;
-
-    const animateDot = (dot: Animated.Value, delay: number) => {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.delay(delay),
-          Animated.timing(dot, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.timing(dot, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-    };
-
-    const animations = Animated.parallel([
-      animateDot(dot1, 0),
-      animateDot(dot2, 150),
-      animateDot(dot3, 300),
-    ]);
-
-    animations.start();
-
-    return () => {
-      animations.stop();
-      dot1.setValue(0);
-      dot2.setValue(0);
-      dot3.setValue(0);
-    };
-  }, [isTyping, dot1, dot2, dot3]);
-
+  const insets = useSafeAreaInsets();
   const formatRelativeTime = (timestamp: string) => {
     const now = Date.now();
     const date = new Date(timestamp).getTime();
@@ -87,82 +48,124 @@ export default function ChatHeader({
   };
 
   const getStatusText = () => {
-    if (isTyping) return null; // Will show typing animation instead
+    if (isTyping) return null;
     if (isOnline) return "Online";
     if (lastSeen) return `Last seen ${formatRelativeTime(lastSeen)}`;
     return "Offline";
   };
 
-  const dotStyle = (animatedValue: Animated.Value) => ({
-    opacity: animatedValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0.4, 1],
-    }),
-  });
+  const statusOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Fade out then in when isTyping change to make transitions smoother
+    Animated.sequence([
+      Animated.timing(statusOpacity, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(statusOpacity, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, [isTyping]);
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <View className="bg-white border-b border-gray-100" style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 }}>
-      <View className="flex-row items-center px-2 py-2" style={{ height: 60 }}>
+    <View className="bg-primary" style={{ elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 3, zIndex: 1000 }}>
+      <StatusBar style="light" />
+      <View className="flex-row items-center px-1 py-2" style={{ paddingTop: insets.top + 5, paddingBottom: 10 }}>
         {/* Back Button */}
         <Pressable
           onPress={onBackPress}
           className="w-10 h-10 items-center justify-center mr-1"
           style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
         >
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </Pressable>
 
         {/* User Info */}
         <Pressable
           onPress={onAvatarPress}
-          className="flex-1 flex-row items-center gap-3"
+          className="flex-1 flex-row items-center gap-2"
           style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
           disabled={!onAvatarPress}
         >
           <View className="relative">
-            <Avatar src={avatarSrc} alt={userName} size={40} />
+            <Avatar
+              src={avatarSrc}
+              alt={userName}
+              size={40}
+              className="border border-white/20 bg-white/10"
+              textClassName="text-white"
+            />
             {isOnline && (
               <View className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
             )}
           </View>
           <View className="flex-1">
-            <AppText weight="semibold" className="text-base text-gray-900" numberOfLines={1}>
+            <AppText weight="bold" className="text-[17px] text-white" numberOfLines={1}>
               {userName}
             </AppText>
-            {isTyping ? (
-              <View className="flex-row items-center gap-1">
-                <View className="flex-row gap-0.5">
-                  <Animated.View 
-                    className="w-1 h-1 bg-gray-500 rounded-full"
-                    style={dotStyle(dot1)}
-                  />
-                  <Animated.View 
-                    className="w-1 h-1 bg-gray-500 rounded-full"
-                    style={dotStyle(dot2)}
-                  />
-                  <Animated.View 
-                    className="w-1 h-1 bg-gray-500 rounded-full"
-                    style={dotStyle(dot3)}
-                  />
+            <Animated.View style={{ opacity: statusOpacity }}>
+              {isTyping ? (
+                <View className="h-4 justify-center">
+                  <AppText className="text-[12px] text-white/95 font-medium italic">typing...</AppText>
                 </View>
-                <AppText className="text-xs text-gray-500">typing...</AppText>
-              </View>
-            ) : (
-              <AppText className="text-xs text-gray-500">{getStatusText()}</AppText>
-            )}
+              ) : (
+                <AppText className="text-[12px] text-white/80">{getStatusText()}</AppText>
+              )}
+            </Animated.View>
           </View>
         </Pressable>
 
-        {/* Menu Button */}
-        <Pressable
-          onPress={onMenuPress}
-          className="w-10 h-10 items-center justify-center"
-          style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
-          disabled={!onMenuPress}
-        >
-          <Ionicons name="ellipsis-vertical" size={20} color="#000" />
-        </Pressable>
+        {/* Action Buttons */}
+        <View className="flex-row items-center">
+          <Pressable
+            onPress={() => setIsMenuOpen(!isMenuOpen)}
+            className="w-10 h-10 items-center justify-center"
+            style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Ionicons name="ellipsis-vertical" size={20} color="#FFFFFF" />
+          </Pressable>
+        </View>
       </View>
+
+      {/* Simple Dropdown Menu */}
+      {isMenuOpen && (
+        <>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIsMenuOpen(false)}
+          />
+          <View
+            className="absolute right-2 top-[100%] bg-white rounded-xl shadow-xl py-1 min-w-[160px]"
+            style={{
+              marginTop: -5,
+              elevation: 8,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.2,
+              shadowRadius: 5,
+            }}
+          >
+            <Pressable
+              onPress={() => {
+                setIsMenuOpen(false);
+                onMenuPress?.(); // Trigger search
+              }}
+              className="flex-row items-center px-4 py-3"
+              style={({ pressed }) => [{ backgroundColor: pressed ? '#f3f4f6' : 'transparent' }]}
+            >
+              <Ionicons name="search" size={20} color="#4b5563" />
+              <AppText className="ml-3 text-gray-700 text-base">Search</AppText>
+            </Pressable>
+          </View>
+        </>
+      )}
     </View>
   );
 }

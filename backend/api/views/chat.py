@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from django.db.models import Q
 from django.utils import timezone
 
-from api.models import Chat, Message, UserOnlineStatus
+from api.models import Chat, Message, UserOnlineStatus, UserOnlineStatus
+from api.utils.link_preview import extract_url, get_link_preview
 from api.serializers import (
     ChatSerializer, 
     ChatDetailSerializer, 
@@ -137,6 +138,25 @@ class ChatViewSet(viewsets.ModelViewSet):
             'message': f'{updated} messages marked as read',
             'count': updated
         })
+    
+    @action(detail=True, methods=['post'])
+    def clear(self, request, pk=None):
+        """Delete all messages in the chat"""
+        chat = self.get_object()
+        count = chat.messages.all().delete()[0]
+        return Response({'message': 'Chat cleared', 'count': count})
+
+    @action(detail=True, methods=['post'])
+    def mute(self, request, pk=None):
+        """Toggle mute for a chat"""
+        chat = self.get_object()
+        is_muted = request.data.get('is_muted', True)
+        chat.is_muted = is_muted
+        chat.save(update_fields=['is_muted', 'updated_at'])
+        return Response({
+            'message': 'Chat muted' if is_muted else 'Chat unmuted',
+            'is_muted': is_muted
+        })
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -177,7 +197,26 @@ class MessageViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Create message - set sender and update chat's last_message_at"""
-        message = serializer.save(sender=self.request.user)
+        # Get content from data
+        content = self.request.data.get('content', '')
+        
+        # Link preview data
+        extra_data = {}
+        url = extract_url(content)
+        if url:
+            preview = get_link_preview(url)
+            if preview:
+                extra_data['link_url'] = preview['url']
+                extra_data['link_title'] = preview['title']
+                extra_data['link_description'] = preview['description']
+                extra_data['link_image'] = preview['image']
+
+        # Client-side ID for deduplication
+        client_id = self.request.data.get('client_id')
+        if client_id:
+            extra_data['client_id'] = client_id
+
+        message = serializer.save(sender=self.request.user, **extra_data)
         
         # Update chat's last_message_at
         message.chat.update_last_message_time()

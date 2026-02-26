@@ -3,6 +3,7 @@ VEHICLES_CATEGORY = {
     "name": "Vehicles",
     "icon": "Car",
     "type": "product",
+    "image_url": "/vehicles_banner.png",
     "custom_fields": [
         {
             "name": "condition",
@@ -137,6 +138,7 @@ VEHICLES_CATEGORY = {
     "children": [
         {
             "name": "Cars",
+            "image_url": "/car1.jpg",
             "children": [
                 {"name": "Toyota"},
                 {"name": "Mercedes-Benz"},
@@ -171,6 +173,7 @@ VEHICLES_CATEGORY = {
         },
         {
             "name": "Motorcycles & Scooters",
+            "image_url": "/bike1.jpg",
             "custom_fields": [
                  {"name": "engine_capacity", "label": "Engine Capacity (cc)", "type": "number"},
                  {"name": "start_type", "label": "Start Type", "type": "select", "options": [{"value": "electric", "label": "Electric Start"}, {"value": "kick", "label": "Kick Start"}]}

@@ -8,6 +8,8 @@ from api.views.notification import NotificationViewSet
 from api.views.chat import ChatViewSet, MessageViewSet, UserOnlineStatusViewSet
 from api.views.saved_ad import SavedAdViewSet
 from api.views.region import RegionViewSet
+from api.views.lead import LeadViewSet
+from api.views.kyc import KYCViewSet # Added this import
 from api.views.media import serve_media
 
 router = DefaultRouter()
@@ -20,6 +22,8 @@ router.register(r'messages', MessageViewSet, basename='message')
 router.register(r'online-status', UserOnlineStatusViewSet, basename='online-status')
 router.register(r'saved-ads', SavedAdViewSet, basename='saved-ad')
 router.register(r'regions', RegionViewSet, basename='region')
+router.register(r'leads', LeadViewSet, basename='lead')
+router.register(r'kyc', KYCViewSet, basename='kyc') # Added this registration
 
 urlpatterns = [
     path('auth/', include('api.urls.auth')),

@@ -3,6 +3,7 @@ PROPERTY_CATEGORY = {
     "name": "Real Estate",
     "icon": "Home",
     "type": "product",
+    "image_url": "/property_banner.png",
     "custom_fields": [
         {
             "name": "type",
@@ -23,6 +24,7 @@ PROPERTY_CATEGORY = {
         # LEVEL 2: HOUSES & APARTMENTS FOR RENT
         {
             "name": "Houses & Apartments for Rent",
+            "image_url": "/house2.jpg",
             "custom_fields": [
                  {
                     "name": "bedrooms",
@@ -101,6 +103,7 @@ PROPERTY_CATEGORY = {
         # LEVEL 2: HOUSES & APARTMENTS FOR SALE
         {
             "name": "Houses & Apartments for Sale",
+            "image_url": "/house1.jpg",
              "custom_fields": [
                  {
                     "name": "bedrooms",

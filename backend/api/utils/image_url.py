@@ -24,7 +24,8 @@ def build_full_image_url(image_path, request=None):
         return image_path
     
     # Use request to build absolute URI (automatically gets host from request)
-    if request:
+    # Use request to build absolute URI only if it provides the required method
+    if request and hasattr(request, "build_absolute_uri"):
         # Remove leading slash if present
         clean_path = image_path.lstrip('/')
         # Build full URL using request's host

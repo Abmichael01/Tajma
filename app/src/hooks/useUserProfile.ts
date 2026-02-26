@@ -8,6 +8,12 @@ export const useUserProfile = (slug?: string) => {
       if (!slug) {
         throw new Error('Profile slug is required')
       }
+
+      // If slug is numeric, treat as ID
+      if (/^\d+$/.test(slug)) {
+        return usersApi.getById(Number(slug))
+      }
+
       return usersApi.getProfile(slug)
     },
     enabled: !!slug,

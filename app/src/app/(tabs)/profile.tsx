@@ -1,239 +1,243 @@
-import { View, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, ScrollView, TouchableOpacity, Image, ImageBackground, Dimensions, RefreshControl } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { useState } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
 import Avatar from "@/components/ui/Avatar";
+import CustomAlert from "@/components/ui/CustomAlert";
+import { useAlert } from "@/hooks/useAlert";
 import { useAuthStore } from "@/store/authStore";
-import { useLogout } from "@/hooks/useAuth";
-import { useCurrentUser } from "@/hooks/useAuth";
+import { useLogout, useCurrentUser } from "@/hooks/useAuth";
+import { useUserAds } from "@/hooks/useAds";
+import { useKYC } from "@/hooks/useKYC";
+
+
+const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { data: currentUser, isLoading } = useCurrentUser();
+  const { data: currentUser } = useCurrentUser();
+  const { alertConfig, showAlert, hideAlert } = useAlert();
+
+  const displayUser = currentUser || user;
+  const { data: recentAds, refetch: refetchAds } = useUserAds(displayUser?.id, 'published');
+  const { refetch: refetchUser } = useCurrentUser();
   const logoutMutation = useLogout();
 
-  // Use currentUser from API if available, otherwise fall back to store user
-  const displayUser = currentUser || user;
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: () => {
-            logoutMutation.mutate();
-          },
-        },
-      ]
-    );
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([refetchAds(), refetchUser()]);
+    setRefreshing(false);
   };
 
-  const handleNavigateToProfile = () => {
-    if (displayUser?.username) {
-      router.push(`/users/${displayUser.username}`);
-    }
+  const handleLogout = () => {
+    showAlert({
+      title: "Logout",
+      message: "Are you sure you want to logout?",
+      icon: "log-out-outline",
+      iconColor: "#ef4444",
+      buttons: [
+        { text: "Cancel", style: "cancel" },
+        { text: "Logout", style: "destructive", onPress: () => logoutMutation.mutate() },
+      ]
+    });
   };
 
   if (!displayUser) {
-    return (
-      <View className="flex-1 bg-white justify-center items-center px-4">
-        <AppText variant="heading" weight="semibold" className="text-gray-900 mb-4">
-          Not Logged In
-        </AppText>
-        <TouchableOpacity
-          className="bg-primary px-6 py-3 rounded-full"
-          onPress={() => router.push("/(auth)/login")}
-        >
-          <AppText variant="default" weight="semibold" className="text-white">
-            Sign In
-          </AppText>
-        </TouchableOpacity>
-      </View>
-    );
+    return null;
   }
 
-  const fullName = displayUser.first_name && displayUser.last_name
-    ? `${displayUser.first_name} ${displayUser.last_name}`
-    : displayUser.first_name || displayUser.last_name || displayUser.username || displayUser.email || "User";
+  const fullName = displayUser.full_name || `${displayUser.first_name || ""} ${displayUser.last_name || ""}`.trim() || displayUser.username || "User";
+  const initials = (displayUser.first_name?.[0] || "") + (displayUser.last_name?.[0] || "") || displayUser.username?.[0] || "U";
 
-  const initials = displayUser.first_name && displayUser.last_name
-    ? `${displayUser.first_name[0]}${displayUser.last_name[0]}`
-    : displayUser.first_name?.[0] || displayUser.last_name?.[0] || displayUser.username?.[0] || displayUser.email?.[0] || "U";
+  // Cast for stats
+  const extendedUser = displayUser as any;
+  const avgRating = extendedUser.review_stats?.average_rating || 0;
+  const totalReviews = extendedUser.review_stats?.total_reviews || 0;
+  const listingsCount = recentAds?.length || 0;
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" showsVerticalScrollIndicator={false}>
-      {/* Header Section */}
-      <View className="bg-primary pt-16 pb-8 px-4">
-        <View className="items-center">
-          <Avatar
-            source={displayUser.avatar ? { uri: displayUser.avatar } : undefined}
-            size={100}
-            fallbackText={initials.toUpperCase()}
-            onPress={handleNavigateToProfile}
-          />
-          <AppText
-            variant="heading"
-            weight="semibold"
-            className="text-white mt-4 text-center"
-          >
-            {fullName}
-          </AppText>
-          {displayUser.email && (
-            <AppText variant="default" className="text-white/80 mt-1 text-center">
-              {displayUser.email}
-            </AppText>
-          )}
-          {displayUser.location && (
-            <View className="flex-row items-center mt-2">
-              <Ionicons name="location-outline" size={16} color="rgba(255,255,255,0.8)" />
-              <AppText variant="default" className="text-white/80 ml-1">
-                {displayUser.location}
-              </AppText>
+    <View className="flex-1 bg-gray-50/50">
+      <StatusBar style="light" />
+
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF4F18" />
+        }
+      >
+        {/* Overscroll Background */}
+        <View className="absolute top-[-1000px] left-0 right-0 h-[1000px] bg-primary" />
+
+        {/* Immersive Header */}
+        <ImageBackground
+          source={require("../../../assets/images/profile_header_bg.png")}
+          className="bg-primary"
+          style={{ height: 260 }}
+        >
+          <View className="absolute inset-0 bg-primary/40" />
+          <View className="pt-16 px-6 flex-row justify-between items-center">
+            <AppText weight="bold" className="text-white text-xl">Account</AppText>
+            <TouchableOpacity
+              onPress={() => router.push("/settings")}
+              className="w-10 h-10 rounded-full bg-white/20 items-center justify-center"
+            >
+              <Ionicons name="settings-outline" size={22} color="white" />
+            </TouchableOpacity>
+          </View>
+        </ImageBackground>
+
+        {/* Profile Info Section */}
+        <View className="px-6 -mt-24">
+          <View className="items-center">
+            <View className="relative">
+              <Avatar
+                src={displayUser.avatar}
+                size={110}
+                fallback={initials.toUpperCase()}
+                alt={fullName}
+                onPress={() => router.push(`/users/${displayUser.username || displayUser.id}`)}
+                className="border-4 border-white shadow-2xl bg-white"
+              />
+              <View className="absolute bottom-1 right-1 w-7 h-7 bg-green-500 border-4 border-white rounded-full shadow-sm" />
             </View>
-          )}
+
+            <View className="mt-4 items-center">
+              <View className="flex-row items-center">
+                <AppText variant="subheading" weight="bold" className="text-gray-900 text-2xl">{fullName}</AppText>
+                {displayUser.is_verified ? (
+                  <Ionicons name="checkmark-circle" size={24} color="#FF4F18" style={{ marginLeft: 6 }} />
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => router.push("/profile/kyc")}
+                    className="ml-2 bg-primary/10 px-2 py-1 rounded-full flex-row items-center"
+                  >
+                    <Ionicons name="shield-checkmark-outline" size={14} color="#FF4F18" />
+                    <AppText className="text-primary text-[10px] ml-1 font-bold uppercase">
+                      {displayUser.kyc_status === 'pending' ? 'Pending' : 'Verify'}
+                    </AppText>
+                  </TouchableOpacity>
+                )}
+              </View>
+              <AppText className="text-gray-500 font-medium text-sm mt-1">{displayUser.email}</AppText>
+              {displayUser.bio && (
+                <AppText className="text-gray-500 text-center mt-2 px-10 text-xs" numberOfLines={2}>{displayUser.bio}</AppText>
+              )}
+            </View>
+          </View>
+
+          {/* Stats Bar */}
+          <View className="flex-row bg-white rounded-3xl p-6 mt-8 shadow-sm border border-gray-100 justify-between">
+            {[
+              { label: 'Listings', value: listingsCount },
+              { label: 'Reviews', value: totalReviews },
+              { label: 'Reputation', value: avgRating.toFixed(1) },
+            ].map((stat, i) => (
+              <View key={i} className={`items-center flex-1 ${i < 2 ? 'border-r border-gray-50' : ''}`}>
+                <AppText weight="bold" className="text-primary text-xl">{stat.value}</AppText>
+                <AppText className="text-gray-400 text-[10px] uppercase font-bold tracking-widest mt-0.5">{stat.label}</AppText>
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
 
-      {/* Profile Actions */}
-      <View className="px-4 py-6">
-        {/* View Profile */}
-        <TouchableOpacity
-          className="bg-white rounded-xl p-4 mb-3 flex-row items-center justify-between border border-gray-200"
-          onPress={handleNavigateToProfile}
-          activeOpacity={0.7}
-        >
-          <View className="flex-row items-center flex-1">
-            <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
-              <Ionicons name="person-outline" size={20} color="#cb234a" />
-            </View>
-            <View className="flex-1">
-              <AppText variant="default" weight="semibold" className="text-gray-900">
-                View Profile
-              </AppText>
-              <AppText variant="default" className="text-gray-500 text-sm mt-0.5">
-                See your public profile
-              </AppText>
-            </View>
+        {/* Content Section */}
+        <View className="mt-10">
+          {/* Quick Actions List */}
+          <View className="px-6 space-y-3">
+            {[
+              { id: 'ads', label: 'My Ads', icon: 'grid-outline', route: '/profile/my-ads', color: '#FF4F18' },
+              { id: 'leads', label: 'Potential Clients', icon: 'people-outline', route: '/profile/leads', color: '#10b981' },
+              { id: 'inbox', label: 'Inbox', icon: 'chatbubbles-outline', route: '/chat', color: '#FF4F18' },
+              { id: 'favorites', label: 'Wishlist', icon: 'heart-outline', route: '/profile/saved', color: '#FF4F18' },
+              { id: 'reviews', label: 'Reviews', icon: 'star-outline', route: '/profile/reviews', color: '#FF4F18' },
+            ].map(item => (
+              <TouchableOpacity
+                key={item.id}
+                onPress={() => router.push(item.route as any)}
+                className="bg-white p-5 rounded-3xl border border-gray-100 flex-row items-center shadow-sm"
+              >
+                <View className="w-10 h-10 rounded-2xl bg-gray-50 items-center justify-center">
+                  <Ionicons name={item.icon as any} size={22} color={item.color} />
+                </View>
+                <AppText weight="bold" className="text-gray-800 ml-4 flex-1">{item.label}</AppText>
+                <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+              </TouchableOpacity>
+            ))}
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-        </TouchableOpacity>
 
-        {/* My Ads */}
-        <TouchableOpacity
-          className="bg-white rounded-xl p-4 mb-3 flex-row items-center justify-between border border-gray-200"
-          onPress={() => router.push("/profile/my-ads")}
-          activeOpacity={0.7}
-        >
-          <View className="flex-row items-center flex-1">
-            <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
-              <Ionicons name="grid-outline" size={20} color="#cb234a" />
+          {/* Recent Ads Section - Visual Preview */}
+          {recentAds && recentAds.length > 0 && (
+            <View className="mt-10 mb-6">
+              <View className="px-6 flex-row justify-between items-center mb-4">
+                <AppText weight="bold" className="text-gray-900 text-lg">My Recent Listings</AppText>
+                <TouchableOpacity onPress={() => router.push("/profile/my-ads")}>
+                  <AppText weight="bold" className="text-secondary text-sm">See All</AppText>
+                </TouchableOpacity>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingLeft: 24, paddingRight: 12 }}
+              >
+                {recentAds.slice(0, 5).map((ad: any) => (
+                  <TouchableOpacity
+                    key={ad.id}
+                    className="mr-3 w-40 bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm"
+                    onPress={() => router.push(`/ads/${ad.slug}`)}
+                  >
+                    <Image source={{ uri: ad.images?.[0] }} className="w-full h-24 bg-gray-100" />
+                    <View className="p-3">
+                      <AppText weight="bold" className="text-gray-900 text-xs" numberOfLines={1}>{ad.title}</AppText>
+                      <AppText className="text-secondary font-bold text-xs mt-1">{ad.currency} {ad.price}</AppText>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
-            <View className="flex-1">
-              <AppText variant="default" weight="semibold" className="text-gray-900">
-                My Ads
-              </AppText>
-              <AppText variant="default" className="text-gray-500 text-sm mt-0.5">
-                Manage your listings
-              </AppText>
-            </View>
+          )}
+
+          {/* Support Section */}
+          <View className="px-6 mt-8 pb-32 space-y-3">
+            {[
+              { label: 'Help & Support', icon: 'help-circle-outline' },
+              { label: 'Legal Terms', icon: 'document-text-outline' },
+              { label: 'Share App', icon: 'share-social-outline' },
+            ].map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                className="flex-row items-center p-5 bg-white rounded-3xl border border-gray-100 shadow-sm"
+              >
+                <Ionicons name={item.icon as any} size={22} color="#64748b" />
+                <AppText weight="semibold" className="text-gray-700 ml-4 flex-1">{item.label}</AppText>
+                <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              onPress={handleLogout}
+              className="mt-8 flex-row items-center justify-center p-5 bg-red-50 rounded-3xl"
+            >
+              <Ionicons name="log-out-outline" size={24} color="#dc2626" />
+              <AppText weight="bold" className="text-red-600 ml-3">Sign Out Account</AppText>
+            </TouchableOpacity>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-        </TouchableOpacity>
-        
-        {/* My Reviews */}
-        <TouchableOpacity
-          className="bg-white rounded-xl p-4 mb-3 flex-row items-center justify-between border border-gray-200"
-          onPress={() => router.push("/profile/reviews")}
-          activeOpacity={0.7}
-        >
-          <View className="flex-row items-center flex-1">
-            <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
-              <Ionicons name="star-outline" size={20} color="#cb234a" />
-            </View>
-            <View className="flex-1">
-              <AppText variant="default" weight="semibold" className="text-gray-900">
-                My Reviews
-              </AppText>
-              <AppText variant="default" className="text-gray-500 text-sm mt-0.5">
-                See what others say
-              </AppText>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-        </TouchableOpacity>
+        </View>
+      </ScrollView>
 
-        {/* Saved Ads */}
-        <TouchableOpacity
-          className="bg-white rounded-xl p-4 mb-3 flex-row items-center justify-between border border-gray-200"
-          onPress={() => router.push("/profile/saved")}
-          activeOpacity={0.7}
-        >
-          <View className="flex-row items-center flex-1">
-            <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
-              <Ionicons name="heart-outline" size={20} color="#cb234a" />
-            </View>
-            <View className="flex-1">
-              <AppText variant="default" weight="semibold" className="text-gray-900">
-                Saved Ads
-              </AppText>
-              <AppText variant="default" className="text-gray-500 text-sm mt-0.5">
-                Your favorite listings
-              </AppText>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-        </TouchableOpacity>
-
-        {/* Settings */}
-        <TouchableOpacity
-          className="bg-white rounded-xl p-4 mb-3 flex-row items-center justify-between border border-gray-200"
-          onPress={() => {
-            if (displayUser.username) {
-              router.push(`/users/${displayUser.username}?tab=settings`);
-            }
-          }}
-          activeOpacity={0.7}
-        >
-          <View className="flex-row items-center flex-1">
-            <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
-              <Ionicons name="settings-outline" size={20} color="#cb234a" />
-            </View>
-            <View className="flex-1">
-              <AppText variant="default" weight="semibold" className="text-gray-900">
-                Settings
-              </AppText>
-              <AppText variant="default" className="text-gray-500 text-sm mt-0.5">
-                Account preferences
-              </AppText>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-        </TouchableOpacity>
-
-        {/* Divider */}
-        <View className="h-px bg-gray-200 my-4" />
-
-        {/* Logout Button */}
-        <TouchableOpacity
-          className="bg-white rounded-xl p-4 flex-row items-center justify-center border border-red-200"
-          onPress={handleLogout}
-          activeOpacity={0.7}
-          disabled={logoutMutation.isPending}
-        >
-          <Ionicons name="log-out-outline" size={20} color="#dc2626" />
-          <AppText variant="default" weight="semibold" className="text-red-600 ml-2">
-            {logoutMutation.isPending ? "Logging out..." : "Logout"}
-          </AppText>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        iconColor={alertConfig.iconColor}
+        buttons={alertConfig.buttons}
+        onDismiss={hideAlert}
+      />
+    </View>
   );
 }

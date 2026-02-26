@@ -12,7 +12,7 @@ import type { Ad } from '@/api/types'
 
 export default function HomeClient() {
   const { data: backendAds, isLoading, error } = useAdsList({ status: 'published' })
-  
+
   // Use backend ads directly - no transformation needed
   const ads = React.useMemo(() => {
     if (backendAds && Array.isArray(backendAds) && backendAds.length > 0) {
@@ -24,53 +24,34 @@ export default function HomeClient() {
   return (
     <div className="bg-white min-h-screen">
       <Hero />
-      
+
       {/* Category Grid - Mobile Only */}
       <CategoryGrid />
-      
+
       <div className="container py-8">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Categories Section - Desktop Sidebar */}
           <CategoriesSection />
-          
+
           {/* Main Content */}
           <div className="flex-1 space-y-12">
-            
-            {/* Trending Ads Section */}
-            {ads.length > 0 && (
-              <FeaturedAdsSection
-                title="Trending Now"
-                subtitle="Most viewed items this week"
-                ads={[...ads].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4)}
-                viewAllLink="/ads?sort=views"
-                className="!py-0"
-              />
-            )}
-
-            {/* New Arrivals Section */}
-            {ads.length > 0 && (
-              <FeaturedAdsSection
-                title="Fresh Recommendations"
-                subtitle="Based on your interests"
-                ads={[...ads].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 4)}
-                viewAllLink="/ads?sort=newest"
-                className="!py-0"
-              />
-            )}
 
             {/* Main Ads List */}
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Explore All Listings</h2>
-              </div>
-              
+
               {isLoading ? (
                 <div className="py-4">
                   <AdsListSkeleton columns={4} count={8} />
                 </div>
               ) : error ? (
                 <div className="py-12 text-center">
-                  <p className="text-gray-600 mb-4">Unable to load ads. Showing sample listings.</p>
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Connection</h3>
+                  <p className="text-gray-600 mb-4">Unable to connect to server. Displaying cached results.</p>
                   <AdsList ads={ads} columns={4} className="py-4" />
                 </div>
               ) : ads.length === 0 ? (

@@ -21,13 +21,13 @@ export default function AdInfo({ attributes, className = "" }: AdInfoProps) {
       if (value.length === 0) {
         return <AppText variant="default" className="text-gray-400">None</AppText>;
       }
-      
+
       // Array of objects (e.g., array type fields with sub-fields)
       if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null) {
         return (
           <View className="space-y-2">
             {value.map((item: any, idx: number) => (
-              <View key={idx} className="border-l-2 border-secondary/30 pl-3 py-2 bg-gray-50 rounded">
+              <View key={idx} className="border-l-2 border-primary-200 pl-3 py-2 bg-gray-50 rounded">
                 {Object.entries(item).map(([k, v]) => {
                   const childLabel = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                   return (
@@ -42,16 +42,16 @@ export default function AdInfo({ attributes, className = "" }: AdInfoProps) {
           </View>
         );
       }
-      
+
       // Simple array (e.g., tags, skills)
       return (
         <View className="flex-row flex-wrap gap-2">
           {value.map((item: any, idx: number) => (
             <View
               key={idx}
-              className="bg-secondary/10 px-3 py-1.5 rounded-full"
+              className="bg-primary-50 px-3 py-1.5 rounded-full border border-primary-100"
             >
-              <AppText variant="default" className="text-secondary">{String(item)}</AppText>
+              <AppText variant="default" weight="medium" style={{ color: '#FF4F18' }}>{String(item)}</AppText>
             </View>
           ))}
         </View>
@@ -107,12 +107,12 @@ export default function AdInfo({ attributes, className = "" }: AdInfoProps) {
         {Object.entries(attributes).map(([key, value]) => {
           // Skip cv_file_name as it's usually shown elsewhere
           if (key === 'cv_file_name') return null;
-          
+
           // Format key: replace underscores with spaces and capitalize
           const formattedKey = key
             .replace(/_/g, ' ')
             .replace(/\b\w/g, l => l.toUpperCase());
-          
+
           return (
             <View key={key} className="space-y-3 border border-gray-200 rounded-xl p-5">
               <AppText variant="subheading" weight="semibold" className="text-gray-700">

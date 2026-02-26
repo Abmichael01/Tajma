@@ -10,17 +10,20 @@ const DEFAULT_API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:800
 
 // Build WebSocket URL
 const buildWebSocketUrl = (): string => {
+  if (process.env.EXPO_PUBLIC_WS_BASE_URL) {
+    return `${process.env.EXPO_PUBLIC_WS_BASE_URL.replace(/\/$/, '')}/ws/chat/`
+  }
   // Replace http/https with ws/wss
-  let base = (DEFAULT_API_URL).replace(/^https?/, (match) => match === 'https' ? 'wss' : 'ws')
-  
+  let base = (DEFAULT_API_URL).replace(/^https?/, (match: string) => match === 'https' ? 'wss' : 'ws')
+
   // Strip trailing slash
   base = base.replace(/\/$/, '')
-  
+
   // Backend routing.py implies WS is at /ws/chat/
   // But EXPO_PUBLIC_API_URL might be http://.../api
   // If so, we need to remove /api from the end if present to get root
   base = base.replace(/\/api$/, '')
-  
+
   return `${base}/ws/chat/`
 }
 
@@ -31,28 +34,32 @@ interface ChatWebSocketState {
   subscribedChats: Set<string>
   pendingSubscriptions: Set<string>
   pendingMessages: Map<string, string[]>
-  
+
   // Reconnection state
   reconnectAttempts: number
-  reconnectTimeout: NodeJS.Timeout | null
-  pingInterval: NodeJS.Timeout | null
-  connectionHealthCheck: NodeJS.Timeout | null
+  reconnectTimeout: any
+  pingInterval: any
+  connectionHealthCheck: any
   lastPongTime: number
   connectionStartTime?: number
-  
+
   // Event handlers
   onChatMessage?: (message: ChatMessage, chatId: string) => void
   onChatListUpdate?: (payload: { type: 'chat_event'; chat_id: string; chat?: ChatSummary; message?: ChatMessage }) => void
   onTyping?: (payload: { userId: number; typing: boolean; chatId: string }) => void
   onMessageStatusUpdate?: (message: ChatMessage, chatId: string) => void
   onMarkedRead?: (chatId: string, count: number) => void
-  
+  onUserStatus?: (payload: { user_id: number; is_online: boolean; last_seen?: string }) => void
+
+  // Typing status (tracked per chat)
+  typingStatus: Record<string, Record<number, boolean>>
+
   // Actions
   connect: () => void
   disconnect: () => void
   subscribeToChat: (chatId: string) => void
   unsubscribeFromChat: (chatId: string) => void
-  sendMessage: (chatId: string, content: string) => boolean
+  sendMessage: (chatId: string, content: string, parentMessageId?: string, clientId?: string) => boolean
   sendTyping: (chatId: string, typing: boolean) => void
   markAsRead: (chatId: string) => void
   setHandlers: (handlers: {
@@ -61,6 +68,7 @@ interface ChatWebSocketState {
     onTyping?: (payload: { userId: number; typing: boolean; chatId: string }) => void
     onMessageStatusUpdate?: (message: ChatMessage, chatId: string) => void
     onMarkedRead?: (chatId: string, count: number) => void
+    onUserStatus?: (payload: { user_id: number; is_online: boolean; last_seen?: string }) => void
   }) => void
 }
 
@@ -80,7 +88,8 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
             })
           )
         } catch (error) {
-          console.error('Failed to send queued message:', error)
+          const message = (error as any)?.response?.data?.message || 'Failed to save ad';
+          console.error('Failed to save ad:', message)
         }
       })
       const newPendingMessages = new Map(state.pendingMessages)
@@ -91,7 +100,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
   const connect = () => {
     const state = get()
-    
+
     try {
       // Direct import since require might behave differently in RN bundler depending on config
       // But adhering to the original logic structure:
@@ -103,7 +112,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     } catch {
       return
     }
-    
+
     // Don't connect if already connected or connecting
     if (state.ws && (state.ws.readyState === WebSocket.CONNECTING || state.ws.readyState === WebSocket.OPEN)) {
       return
@@ -111,16 +120,16 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
     const wsUrl = buildWebSocketUrl()
     console.log('🔌 Connecting to WebSocket:', wsUrl)
-    
+
     try {
       const socket = new WebSocket(wsUrl)
       const connectionStartTime = Date.now()
       let connectionOpened = false
-      
+
       socket.onopen = () => {
         connectionOpened = true
         console.log('✅ WebSocket connected')
-        set({ 
+        set({
           isConnected: true,
           reconnectAttempts: 0,
           lastPongTime: Date.now(),
@@ -128,10 +137,11 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
         })
 
         // Mark all unread messages as delivered when user comes online
+        // Mark all unread messages as delivered when user comes online
         if (socket.readyState === WebSocket.OPEN) {
           try {
             console.log('📤 User came online, marking all messages as delivered')
-            socket.send(JSON.stringify({ 
+            socket.send(JSON.stringify({
               type: 'mark_all_delivered'
             }))
           } catch (error) {
@@ -143,7 +153,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
         const pingInterval = setInterval(() => {
           // RN doesn't have document.visibilityState, assume strictly handled by app lifecycle if needed
           // or just ping always. We'll simplify for now.
-          
+
           const currentState = get()
           if (currentState.ws?.readyState === WebSocket.OPEN) {
             try {
@@ -186,10 +196,10 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
           if (typeof event.data !== 'string') {
             return
           }
-          
+
           const payload = JSON.parse(event.data)
           const state = get()
-          
+
           if (payload.event === 'ping' && !payload.type) {
             return
           }
@@ -222,12 +232,12 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
               newSubscribed.add(subscribedChatId)
               const newPendingSubs = new Set(state.pendingSubscriptions)
               newPendingSubs.delete(subscribedChatId)
-              
+
               set({
                 subscribedChats: newSubscribed,
                 pendingSubscriptions: newPendingSubs
               })
-              
+
               console.log('Successfully subscribed to chat:', subscribedChatId)
               sendQueuedMessages(subscribedChatId)
               break
@@ -259,6 +269,14 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
             case 'typing':
               if (payload.user_id !== undefined && payload.chat_id) {
+                // Update typing status in store
+                const currentTyping = { ...get().typingStatus }
+                if (!currentTyping[payload.chat_id]) {
+                  currentTyping[payload.chat_id] = {}
+                }
+                currentTyping[payload.chat_id][payload.user_id] = payload.typing
+                set({ typingStatus: currentTyping })
+
                 state.onTyping?.({
                   userId: payload.user_id,
                   typing: payload.typing,
@@ -276,6 +294,17 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
             case 'marked_read':
               console.log(`Marked ${payload.count || 0} messages as read in chat ${payload.chat_id}`)
               state.onMarkedRead?.(payload.chat_id, payload.count || 0)
+              break
+
+            case 'user_status':
+              if (payload.user_id !== undefined) {
+                console.log(`👤 [WebSocket] User status update: ${payload.user_id} - ${payload.is_online ? 'online' : 'offline'}`)
+                state.onUserStatus?.({
+                  user_id: payload.user_id,
+                  is_online: payload.is_online,
+                  last_seen: payload.last_seen,
+                })
+              }
               break
 
             case 'all_messages_delivered':
@@ -304,7 +333,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
           reason: event.reason || 'No reason provided',
           wasClean: event.wasClean
         })
-        
+
         set({
           isConnected: false,
           subscribedChats: new Set(),
@@ -313,7 +342,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
         })
 
         const state = get()
-        
+
         if (state.pingInterval) {
           clearInterval(state.pingInterval)
           set({ pingInterval: null })
@@ -323,7 +352,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
           set({ connectionHealthCheck: null })
         }
 
-        const isAnonymousUserError = 
+        const isAnonymousUserError =
           event.code === 4001 ||
           (event.reason && (
             event.reason.toLowerCase().includes('user is anonymous') ||
@@ -333,13 +362,13 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
         if (isAnonymousUserError) {
           console.warn('🚫 Chat WebSocket: User is anonymous - logging out')
           set({ reconnectAttempts: 0 })
-          
+
           // Replaced import/toast with simple console log for now
           // We can add Alert or similar later if needed
           console.log('Account was logged out due to anonymous user error')
           return
         }
-        
+
         if (!event.wasClean && event.code !== 1000) {
           console.log('WebSocket connection error')
         }
@@ -367,13 +396,13 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
       socket.onerror = (event) => {
         const errorMessage = (event as any).message || String(event)
-        if (process.env.NODE_ENV === 'development' && 
-            (errorMessage.includes('HMR') || errorMessage.includes('unrecognized'))) {
+        if (process.env.NODE_ENV === 'development' &&
+          (errorMessage.includes('HMR') || errorMessage.includes('unrecognized'))) {
           return
         }
-        
+
         console.error('Unified chat WebSocket error:', event)
-        
+
         const state = get()
         if (state.ws) {
           const ws = state.ws
@@ -403,7 +432,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
   const disconnect = () => {
     const state = get()
-    
+
     if (state.pingInterval) {
       clearInterval(state.pingInterval)
     }
@@ -413,11 +442,11 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     if (state.reconnectTimeout) {
       clearTimeout(state.reconnectTimeout)
     }
-    
+
     if (state.ws && state.ws.readyState === WebSocket.OPEN) {
       state.ws.close(1000, 'Clean disconnect')
     }
-    
+
     set({
       ws: null,
       isConnected: false,
@@ -427,13 +456,19 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       pingInterval: null,
       connectionHealthCheck: null,
       reconnectTimeout: null,
-      reconnectAttempts: 0
+      reconnectAttempts: 0,
+      typingStatus: {},
+      onChatMessage: undefined,
+      onChatListUpdate: undefined,
+      onTyping: undefined,
+      onMessageStatusUpdate: undefined,
+      onMarkedRead: undefined,
     })
   }
 
   const subscribeToChat = (chatId: string) => {
     const state = get()
-    
+
     if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
       console.warn('WebSocket not connected, cannot subscribe to chat:', chatId)
       return
@@ -451,7 +486,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       const newPendingSubs = new Set(state.pendingSubscriptions)
       newPendingSubs.add(chatId)
       set({ pendingSubscriptions: newPendingSubs })
-      
+
       state.ws.send(
         JSON.stringify({
           type: 'subscribe',
@@ -469,7 +504,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
   const unsubscribeFromChat = (chatId: string) => {
     const state = get()
-    
+
     if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
       return
     }
@@ -494,9 +529,9 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     }
   }
 
-  const sendMessage = (chatId: string, content: string): boolean => {
+  const sendMessage = (chatId: string, content: string, parentMessageId?: string, clientId?: string): boolean => {
     const state = get()
-    
+
     if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
       console.warn('WebSocket not connected, cannot send message')
       return false
@@ -505,7 +540,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     if (!state.subscribedChats.has(chatId) && !state.pendingSubscriptions.has(chatId)) {
       console.log('Not subscribed to chat, subscribing first:', chatId)
       subscribeToChat(chatId)
-      
+
       const newPendingMessages = new Map(state.pendingMessages)
       if (!newPendingMessages.has(chatId)) {
         newPendingMessages.set(chatId, [])
@@ -532,6 +567,8 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
           type: 'message',
           chat_id: chatId,
           content,
+          parent_message_id: parentMessageId,
+          client_id: clientId,
         })
       )
       return true
@@ -543,7 +580,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
   const sendTyping = (chatId: string, typing: boolean) => {
     const state = get()
-    
+
     if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
       return
     }
@@ -567,7 +604,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
   const markAsRead = (chatId: string) => {
     const state = get()
-    
+
     if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
       console.warn('WebSocket not connected, cannot mark as read')
       return
@@ -579,6 +616,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     }
 
     try {
+      console.log(`[chatWebSocketStore] Sending mark_read for chat ${chatId}`);
       state.ws.send(
         JSON.stringify({
           type: 'mark_read',
@@ -596,6 +634,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     onTyping?: (payload: { userId: number; typing: boolean; chatId: string }) => void
     onMessageStatusUpdate?: (message: ChatMessage, chatId: string) => void
     onMarkedRead?: (chatId: string, count: number) => void
+    onUserStatus?: (payload: { user_id: number; is_online: boolean; last_seen?: string }) => void
   }) => {
     set({
       onChatMessage: handlers.onChatMessage,
@@ -603,6 +642,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       onTyping: handlers.onTyping,
       onMessageStatusUpdate: handlers.onMessageStatusUpdate,
       onMarkedRead: handlers.onMarkedRead,
+      onUserStatus: handlers.onUserStatus,
     })
   }
 
@@ -617,13 +657,15 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     pingInterval: null,
     connectionHealthCheck: null,
     lastPongTime: Date.now(),
-    
+
     onChatMessage: undefined,
     onChatListUpdate: undefined,
     onTyping: undefined,
     onMessageStatusUpdate: undefined,
     onMarkedRead: undefined,
-    
+    onUserStatus: undefined,
+    typingStatus: {},
+
     connect,
     disconnect,
     subscribeToChat,

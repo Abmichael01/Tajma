@@ -25,7 +25,7 @@ export default function AdDescription({ description, className = "" }: AdDescrip
       </AppText>
       {shouldTruncate && (
         <TouchableOpacity onPress={() => setExpanded(!expanded)} className="mt-2">
-          <AppText variant="default" weight="semibold" className="text-primary">
+          <AppText variant="default" weight="semibold" style={{ color: '#FF4F18' }}>
             {expanded ? 'See Less' : 'See More'}
           </AppText>
         </TouchableOpacity>

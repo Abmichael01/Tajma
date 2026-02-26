@@ -8,30 +8,56 @@ class MessageSerializer(serializers.ModelSerializer):
     sender = UserSummarySerializer(read_only=True)
     sender_id = serializers.IntegerField(write_only=True, required=False)
     chat = serializers.PrimaryKeyRelatedField(queryset=Chat.objects.all(), write_only=True)
+    parent_message = serializers.SerializerMethodField()
+    parent_message_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
     
     class Meta:
         model = Message
         fields = [
-            'id', 'chat', 'sender', 'sender_id', 'content', 
-            'is_read', 'read_at', 'delivered_at', 'created_at', 'updated_at'
+            'id', 'chat', 'sender', 'sender_id', 'content', 'attachment', 'message_type',
+            'is_read', 'read_at', 'delivered_at', 'created_at', 'updated_at',
+            'parent_message', 'parent_message_id', 'client_id',
+            'link_url', 'link_title', 'link_description', 'link_image'
         ]
-        read_only_fields = ['id', 'sender', 'read_at', 'delivered_at', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'sender', 'read_at', 'delivered_at', 'created_at', 'updated_at', 'parent_message', 'link_title', 'link_description', 'link_image']
     
+    def get_parent_message(self, obj):
+        if obj.parent_message:
+            # Avoid infinite recursion by not serializing the parent's parent
+            return {
+                'id': str(obj.parent_message.id),
+                'content': obj.parent_message.content,
+                'message_type': obj.parent_message.message_type,
+                'sender': UserSummarySerializer(obj.parent_message.sender).data
+            }
+        return None
+
+    def validate_attachment(self, value):
+        """Check if attachment size is within limits (20MB)"""
+        if value:
+            # 20MB = 20 * 1024 * 1024 bytes
+            max_size = 20 * 1024 * 1024
+            if value.size > max_size:
+                raise serializers.ValidationError("File size cannot exceed 20MB.")
+        return value
+
     def to_representation(self, instance):
-        """Ensure UUIDs are converted to strings"""
+        """Ensure UUIDs are converted to strings and attachments have absolute URLs"""
         data = super().to_representation(instance)
         
         # Handle chat field conversion to string UUID
-        # instance is the Message object, not self.instance (which might be a list)
         if hasattr(instance, 'chat') and instance.chat:
             data['chat'] = str(instance.chat.id)
-        elif 'chat' in data:
-            # If chat is already in data, ensure it's a string UUID
-            if isinstance(data['chat'], Chat):
-                data['chat'] = str(data['chat'].id)
-            elif data['chat'] and not isinstance(data['chat'], str):
-                # Convert to string if it's not already
-                data['chat'] = str(data['chat'])
+        
+        # Ensure absolute URL for attachment
+        if instance.attachment:
+            request = self.context.get('request')
+            if request and hasattr(request, 'build_absolute_uri'):
+                data['attachment'] = request.build_absolute_uri(instance.attachment.url)
+            else:
+                from django.conf import settings
+                base_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
+                data['attachment'] = f"{base_url}{instance.attachment.url}"
         
         return data
     
@@ -64,7 +90,8 @@ class ChatSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'participant1', 'participant1_id', 'participant2', 'participant2_id',
             'ad', 'ad_id', 'ad_title', 'ad_slug', 'ad_image', 'ad_price', 'ad_currency',
-            'created_at', 'updated_at', 'last_message_at', 'last_message', 'unread_count'
+            'created_at', 'updated_at', 'last_message_at', 'last_message', 'unread_count',
+            'is_muted'
         ]
         read_only_fields = ['id', 'participant1', 'participant2', 'created_at', 'updated_at', 'last_message_at']
     

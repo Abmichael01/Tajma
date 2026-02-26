@@ -1,4 +1,5 @@
 import apiClient from './apiClient'
+import { Ad } from './types'
 
 // Paginated response type from DRF
 interface PaginatedResponse<T> {
@@ -14,7 +15,7 @@ export const savedAdsApi = {
     
     // Handle paginated response (DRF wraps results in { results: [...], count: N })
     if (response.data && typeof response.data === 'object' && 'results' in response.data) {
-      return response.data as PaginatedResponse<any>
+      return response.data as PaginatedResponse<Ad>
     }
     
     // Handle direct array response (if pagination is disabled)
@@ -32,7 +33,7 @@ export const savedAdsApi = {
       next: null,
       previous: null,
       results: [],
-    } as PaginatedResponse<any>
+    } as PaginatedResponse<Ad>
   },
 
   async save(adId: string) {
@@ -50,4 +51,3 @@ export const savedAdsApi = {
     return response.data
   },
 }
-

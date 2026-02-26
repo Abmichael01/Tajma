@@ -1,7 +1,7 @@
 import logging
 from django.contrib.auth import get_user_model
 from django.db.models import Avg, Count, Q
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,8 +22,12 @@ class UserProfileView(APIView):
         User = get_user_model()
 
         try:
-            # First try to find by username
-            user = User.objects.get(username__iexact=slug)
+            # First try to find by ID if slug is numeric
+            if slug.isdigit():
+                user = User.objects.get(id=slug)
+            else:
+                # Then try to find by username
+                user = User.objects.get(username__iexact=slug)
         except User.DoesNotExist:
             try:
                 # Then try to find by full email
@@ -89,4 +93,44 @@ class UserProfileView(APIView):
         response_stats = calculate_response_stats_for_seller(user)
         data['response_stats'] = response_stats
         return Response(data, status=status.HTTP_200_OK)
+
+
+class UserBlockView(APIView):
+    """Endpoint to block a user."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, slug):
+        User = get_user_model()
+        try:
+            # Try to find by ID first if slug is numeric, else by username
+            if slug.isdigit():
+                user_to_block = User.objects.get(id=slug)
+            else:
+                user_to_block = User.objects.get(username__iexact=slug)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if user_to_block == request.user:
+            return Response({'detail': 'You cannot block yourself.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        request.user.blocked_users.add(user_to_block)
+        return Response({'message': f'User {user_to_block.username or user_to_block.email} blocked.'})
+
+
+class UserUnblockView(APIView):
+    """Endpoint to unblock a user."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, slug):
+        User = get_user_model()
+        try:
+            if slug.isdigit():
+                user_to_unblock = User.objects.get(id=slug)
+            else:
+                user_to_unblock = User.objects.get(username__iexact=slug)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        request.user.blocked_users.remove(user_to_unblock)
+        return Response({'message': f'User {user_to_unblock.username or user_to_unblock.email} unblocked.'})
 

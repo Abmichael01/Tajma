@@ -18,6 +18,7 @@ import { getUserFullName } from '@/utils/user'
 import { notificationsApi } from '@/api/notifications'
 import { useGetOrCreateChat } from '@/hooks/useChat'
 import { chatApi } from '@/api/chat'
+import { leadsApi } from '@/api/leads'
 import { toast } from 'sonner'
 import AdImageGallery from '@/components/ads/AdImageGallery'
 import AdProductInfo from '@/components/ads/AdProductInfo'
@@ -43,17 +44,26 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
   const [contactMessage, setContactMessage] = useState('')
   const { mutate: toggleSaveAd, isPending: isTogglingSave } = useToggleSaveAd()
   const { mutate: getOrCreateChat, isPending: isCreatingChat } = useGetOrCreateChat()
-  
+
   // Handle favorite toggle using API
   const handleToggleFavorite = (adId: string) => {
     if (isAuthenticated) {
       toggleSaveAd(adId)
+
+      // Track as lead if saving
+      if (ad && !ad.is_saved && ad.seller) {
+        leadsApi.recordInteraction({
+          seller_id: String(ad.seller.id),
+          source: 'save_ad',
+          ad_id: ad.id
+        }).catch(console.error)
+      }
     } else {
       toast.error('Please login to save ads')
       router.push('/login')
     }
   }
-  
+
   // Check if ad is saved (from API response)
   const isFavorite = (adId: string) => {
     return ad?.id === adId && ad?.is_saved === true
@@ -69,8 +79,8 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
   )
 
   // Get images from backend ad
-  const adImages = ad?.images && ad.images.length > 0 
-    ? ad.images 
+  const adImages = ad?.images && ad.images.length > 0
+    ? ad.images
     : ['https://via.placeholder.com/800x600?text=No+Image']
 
   // Reset image index when ad changes
@@ -139,13 +149,20 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
       },
       {
         onSuccess: async (chat) => {
+          // Track as lead
+          leadsApi.recordInteraction({
+            seller_id: String(ad.seller.id),
+            source: 'phone_view', // Or 'message_sent' if we add it
+            ad_id: ad.id
+          }).catch(console.error)
+
           try {
             // Send the initial message
             await chatApi.sendMessage({
               chat: chat.id,
               content: contactMessage.trim(),
             })
-            
+
             // Clear form and navigate to chat
             setContactMessage('')
             setShowContactForm(false)
@@ -168,12 +185,12 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
 
   const handleCallSeller = async () => {
     if (!ad || !ad.seller) return
-    
+
     // Only send notification if user is authenticated
     if (!isAuthenticated || !user) {
       return
     }
-    
+
     // Send notification in background when button is clicked
     console.log('🔔 Call Seller button clicked - creating notification...')
     try {
@@ -184,7 +201,7 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
         viewer: viewerName,
         adId: ad.id
       })
-      
+
       const notification = await notificationsApi.create({
         recipient: ad.seller.id,
         type: 'phone_view',
@@ -193,22 +210,19 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
         related_ad: ad.id,
         related_user: user.id,
       })
-      
+
       console.log('✅ Notification created successfully:', notification)
     } catch (error: any) {
-      // Silently handle "already sent today" errors
-      const errorMessage = error?.response?.data?.detail || error?.message || ''
-      if (errorMessage.includes('already sent today')) {
-        console.log('⏭️ Notification already sent today, skipping')
-      } else {
-        console.error('❌ Failed to notify seller:', error)
-        console.error('Error details:', {
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined
-        })
-      }
-      // Continue anyway - don't block user from seeing phone number
+      // ...
     }
+
+    // Track as lead
+    leadsApi.recordInteraction({
+      seller_id: String(ad.seller.id),
+      source: 'phone_view',
+      ad_id: ad.id
+    }).catch(console.error)
+
     setIsCallModalOpen(true)
   }
 
@@ -225,10 +239,10 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
           <Link href="/">
             <Button variant="primary">
               Browse Other Ads
-                    </Button>
+            </Button>
           </Link>
-                  </div>
-            </div>
+        </div>
+      </div>
     )
   }
 
@@ -239,7 +253,7 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
         <div className="hidden md:block mb-4 sm:mb-6">
           <BackButton />
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column - All Content (Desktop) */}
           <div className="hidden lg:flex lg:flex-col lg:col-span-2 lg:space-y-6">
@@ -252,15 +266,15 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
               onNext={nextImage}
               onThumbnailClick={setCurrentImageIndex}
             />
-            
+
             {/* Description */}
             <AdDescription description={ad.description || ''} />
-            
+
             {/* Ad Info */}
             {ad.attributes && Object.keys(ad.attributes).length > 0 && (
               <AdInfo attributes={ad.attributes} />
             )}
-            
+
             {/* Reviews Section */}
             <div className="mt-2">
               <ReviewsSection

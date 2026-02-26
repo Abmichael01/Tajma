@@ -2,6 +2,8 @@ import { View, Image, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import AppText from "@/components/ui/AppText";
+import ImageViewer from "@/components/ui/ImageViewer";
+import { resolveImageUrl } from "@/utils/imageUtils";
 
 interface AdImageGalleryProps {
   images: string[];
@@ -10,6 +12,7 @@ interface AdImageGalleryProps {
   onPrev: () => void;
   onNext: () => void;
   onThumbnailClick: (index: number) => void;
+  onShare: () => void;
 }
 
 export default function AdImageGallery({
@@ -19,34 +22,13 @@ export default function AdImageGallery({
   onPrev,
   onNext,
   onThumbnailClick,
+  onShare,
 }: AdImageGalleryProps) {
   const [imageError, setImageError] = useState(false);
-
-  // Get full image URL if it's a relative path
-  const getImageUrl = (imageUrl: string) => {
-    if (!imageUrl) return null;
-    
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-    
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-    
-    if (imageUrl.startsWith('/media/')) {
-      const path = imageUrl.replace('/media/', '');
-      return `${apiUrl}/api/media/${path}`;
-    }
-    
-    if (imageUrl.startsWith('/')) {
-      const path = imageUrl.replace(/^\//, '');
-      return `${apiUrl}/api/media/${path}`;
-    }
-    
-    return `${apiUrl}/api/media/${imageUrl}`;
-  };
+  const [viewerVisible, setViewerVisible] = useState(false);
 
   const currentImage = images[currentIndex];
-  const fullImageUrl = currentImage ? getImageUrl(currentImage) : null;
+  const fullImageUrl = resolveImageUrl(currentImage);
 
   if (images.length === 0) {
     return (
@@ -58,9 +40,13 @@ export default function AdImageGallery({
   }
 
   return (
-    <View className="bg-white border-b border-gray-200">
-      {/* Main Image */}
-      <View className="relative w-full aspect-video bg-gray-100">
+    <View className="bg-white">
+      {/* Main Image Container */}
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => setViewerVisible(true)}
+        className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden"
+      >
         {fullImageUrl && !imageError ? (
           <Image
             source={{ uri: fullImageUrl }}
@@ -74,55 +60,47 @@ export default function AdImageGallery({
           </View>
         )}
 
-        {/* Navigation Arrows */}
-        {images.length > 1 && (
-          <>
-            <TouchableOpacity
-              onPress={onPrev}
-              disabled={currentIndex === 0}
-              className={`absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 p-2 rounded-full ${
-                currentIndex === 0 ? 'opacity-50' : ''
-              }`}
-            >
-              <Ionicons name="chevron-back" size={20} color="#ffffff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={onNext}
-              disabled={currentIndex === images.length - 1}
-              className={`absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 p-2 rounded-full ${
-                currentIndex === images.length - 1 ? 'opacity-50' : ''
-              }`}
-            >
-              <Ionicons name="chevron-forward" size={20} color="#ffffff" />
-            </TouchableOpacity>
-          </>
-        )}
+        {/* Floating Actions on Gallery */}
+        <View className="absolute top-12 right-6 flex-col gap-3">
+          <TouchableOpacity
+            className="w-10 h-10 rounded-full bg-black/30 items-center justify-center backdrop-blur-md"
+            onPress={onShare}
+          >
+            <Ionicons name="share-social-outline" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
 
-        {/* Image Counter */}
+        {/* Improved Indicator dots instead of text if small, or pill if many */}
         {images.length > 1 && (
-          <View className="absolute bottom-4 right-4 bg-black/50 px-3 py-1 rounded">
-            <AppText className="text-white text-sm">
-              {currentIndex + 1} / {images.length}
-            </AppText>
+          <View className="absolute bottom-6 left-0 right-0 flex-row justify-center gap-1.5">
+            {images.map((_, i) => (
+              <View
+                key={i}
+                className={`h-1.5 rounded-full ${i === currentIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/50'}`}
+              />
+            ))}
           </View>
         )}
-      </View>
+      </TouchableOpacity>
 
       {/* Thumbnail Navigation */}
       {images.length > 1 && (
-        <View className="p-4 border-t border-gray-200">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
+        <View className="py-4 border-b border-gray-100 bg-white">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+          >
             {images.map((image, index) => {
-              const thumbnailUrl = getImageUrl(image);
+              const thumbnailUrl = resolveImageUrl(image);
               return (
                 <TouchableOpacity
                   key={index}
                   onPress={() => onThumbnailClick(index)}
-                  className={`w-20 h-20 overflow-hidden border-2 rounded ${
-                    index === currentIndex
-                      ? 'border-secondary'
-                      : 'border-gray-200'
-                  }`}
+                  className={`w-16 h-16 overflow-hidden border-2 rounded-2xl ${index === currentIndex
+                    ? 'border-[#FF4F18]'
+                    : 'border-transparent bg-gray-50'
+                    }`}
                 >
                   {thumbnailUrl ? (
                     <Image
@@ -132,7 +110,7 @@ export default function AdImageGallery({
                     />
                   ) : (
                     <View className="w-full h-full bg-gray-200 items-center justify-center">
-                      <Ionicons name="image-outline" size={20} color="#9ca3af" />
+                      <Ionicons name="image-outline" size={16} color="#9ca3af" />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -141,7 +119,15 @@ export default function AdImageGallery({
           </ScrollView>
         </View>
       )}
+
+      {/* Full Screen Image Viewer */}
+      <ImageViewer
+        images={images}
+        initialIndex={currentIndex}
+        visible={viewerVisible}
+        onClose={() => setViewerVisible(false)}
+        title={title}
+      />
     </View>
   );
 }
-

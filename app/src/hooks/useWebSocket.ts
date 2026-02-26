@@ -19,7 +19,7 @@ export const useNotificationWebSocket = () => {
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectAttempts = useRef(0)
   const maxReconnectAttempts = 5
-  
+
   const connect = useCallback(() => {
     if (!isAuthenticated || !user) {
       return
@@ -30,21 +30,24 @@ export const useNotificationWebSocket = () => {
     }
 
     const buildWebSocketUrl = (): string => {
+      if (process.env.EXPO_PUBLIC_WS_BASE_URL) {
+        return `${process.env.EXPO_PUBLIC_WS_BASE_URL.replace(/\/$/, '')}/ws/notifications/`
+      }
       const base = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000'
-      const wsBase = base.replace(/^https?/, (match) => match === 'https' ? 'wss' : 'ws')
+      const wsBase = base.replace(/^https?/, (match: string) => match === 'https' ? 'wss' : 'ws')
       return `${wsBase.replace(/\/$/, '')}/ws/notifications/`
     }
-    
+
     const wsUrl = buildWebSocketUrl()
     console.log('🔌 Connecting notification WebSocket to:', wsUrl)
-    
+
     try {
       const ws = new WebSocket(wsUrl)
-      
+
       ws.onopen = () => {
         console.log('WebSocket connected for notifications')
         reconnectAttempts.current = 0
-        
+
         const pingInterval = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'ping' }))
@@ -53,16 +56,16 @@ export const useNotificationWebSocket = () => {
           }
         }, 30000)
       }
-      
+
       ws.onmessage = async (event) => {
         try {
           const data: WebSocketMessage = JSON.parse(event.data)
-          
+
           if (data.type === 'notification' && data.notification) {
             // Dynamic import to avoid circular dependencies if any
             const { useNotificationsStore } = require('@/store/notificationsStore')
             const store = useNotificationsStore.getState()
-            
+
             const notification = data.notification
             const mappedNotification = {
               id: String(notification.id || ''),
@@ -74,21 +77,21 @@ export const useNotificationWebSocket = () => {
               adId: notification.related_ad ? String(notification.related_ad) : undefined,
               timestamp: notification.created_at || new Date().toISOString(),
             }
-            
+
             const wasAdded = store.getNotifications().some((n: any) => n.id === mappedNotification.id)
             if (!wasAdded) {
               store.addNotification(mappedNotification)
             }
-            
+
             const updatedNotifications = store.getNotifications()
             const newUnreadCount = updatedNotifications.filter((n: any) => !n.isRead).length
-            
+
             // Console log instead of toast for now
             console.log('New Notification:', notification.message)
-            
+
             queryClient.invalidateQueries({ queryKey: ['notifications'] })
             queryClient.setQueryData(['notifications', 'unread_count'], { count: newUnreadCount })
-            
+
           } else if (data.type === 'notification_count' && typeof data.count === 'number') {
             queryClient.setQueryData(['notifications', 'unread_count'], { count: data.count })
           }
@@ -96,12 +99,12 @@ export const useNotificationWebSocket = () => {
           console.error('Error parsing WebSocket message:', error)
         }
       }
-      
+
       ws.onclose = (event) => {
         if (event.wasClean && event.code === 1000) {
           return
         }
-        
+
         if (reconnectAttempts.current < maxReconnectAttempts) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000)
           reconnectAttempts.current++
@@ -110,7 +113,7 @@ export const useNotificationWebSocket = () => {
           }, delay)
         }
       }
-      
+
       wsRef.current = ws
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error)

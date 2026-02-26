@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { authApi } from '@/api/auth';
 import { useAuthStore } from '@/store/authStore';
+import { useChatWebSocketStore } from '@/store/chatWebSocketStore';
+import { useNotificationsStore } from '@/store/notificationsStore';
 import type { LoginRequest, RegisterRequest, PasswordChangeRequest, ProfileUpdateRequest } from '@/api/types';
 import { AxiosError } from 'axios';
 
@@ -26,10 +28,10 @@ export const useLogin = (redirectTo: string = '/(tabs)') => {
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (response) => {
       setAuthUser(response.user);
-      
+
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      
+
       // Navigate to specified path or home tab instantly
       router.replace(redirectTo as any);
     },
@@ -50,10 +52,10 @@ export const useRegister = () => {
     mutationFn: (data: RegisterRequest) => authApi.register(data),
     onSuccess: (response) => {
       setAuthUser(response.user);
-      
+
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      
+
       // Navigate to home
       router.replace('/(tabs)' as any);
     },
@@ -69,22 +71,32 @@ export const useLogout = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { logout: clearAuthUser } = useAuthStore();
+  const disconnectChat = useChatWebSocketStore((state) => state.disconnect);
+  const clearNotifications = useNotificationsStore((state) => state.clearAll);
 
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
+      // Disconnect and clear chat WS
+      disconnectChat();
+
+      // Clear notifications
+      clearNotifications();
+
       // Clear user from store
       clearAuthUser();
-      
+
       // Clear all queries
       queryClient.clear();
-      
+
       // Navigate to login
       router.replace('/(auth)/login' as any);
     },
     onError: (error: any) => {
       console.error('Logout error:', error);
       // Even if logout fails, clear local state
+      disconnectChat();
+      clearNotifications();
       clearAuthUser();
       queryClient.clear();
       router.replace('/(auth)/login' as any);
@@ -129,13 +141,13 @@ export const useCurrentUser = () => {
     if (query.error) {
       const error = query.error as AxiosError;
       const status = error.response?.status;
-      
+
       // Only clear auth on authentication/authorization errors AND if user is actually authenticated
       // This prevents logging out on temporary network issues or when user is already logged out
       if ((status === 401 || status === 403) && isAuthenticated && user) {
         // Check if it's a real auth error (not a network timeout or connection error)
         const isNetworkError = !error.response || error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK';
-        
+
         if (!isNetworkError) {
           console.log('Authentication error detected, logging out:', status);
           clearAuthUser();
@@ -182,10 +194,10 @@ export const useGoogleLogin = () => {
       authApi.googleCallback(code, redirectUri),
     onSuccess: (response) => {
       setAuthUser(response.user);
-      
+
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      
+
       // Navigate to home
       router.replace('/(tabs)' as any);
     },
@@ -205,7 +217,7 @@ export const useUpdateProfile = () => {
     mutationFn: (data: ProfileUpdateRequest) => authApi.updateProfile(data),
     onSuccess: (response) => {
       setAuthUser(response.user);
-      
+
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] });
       queryClient.invalidateQueries({ queryKey: ['user-profile'] });

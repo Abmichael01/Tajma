@@ -16,27 +16,28 @@ import {
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getUserFullName, getUserInitials } from '@/utils/user'
-import { 
-  User, 
-  Bell, 
-  FileText, 
-  Crown, 
-  Heart, 
-  Settings, 
+import {
+  User,
+  Bell,
+  FileText,
+  Crown,
+  Heart,
+  Settings,
   LogOut,
   ChevronDown,
   MessageSquare,
-  Shield
+  Shield,
+  Users
 } from 'lucide-react'
 
 export default function UserDropdown() {
   const { user, logout } = useAuthStore()
   const { data: chats = [] } = useChats()
   const { data: unreadNotificationData } = useUnreadNotificationCount()
-  
+
   // Calculate total unread messages from all chats
   const totalUnreadMessages = chats.reduce((total, chat) => total + (chat.unread_count || 0), 0)
-  
+
   // Get unread notification count
   const unreadNotificationCount = unreadNotificationData?.count || 0
 
@@ -54,8 +55,8 @@ export default function UserDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors"
         >
           <Avatar className="w-8 h-8">
@@ -70,7 +71,7 @@ export default function UserDropdown() {
           <ChevronDown className="w-4 h-4 text-gray-500" />
         </Button>
       </DropdownMenuTrigger>
-      
+
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="flex items-center gap-3 p-3">
           <Avatar className="w-10 h-10">
@@ -90,16 +91,16 @@ export default function UserDropdown() {
             )}
           </div>
         </DropdownMenuLabel>
-        
+
         <DropdownMenuSeparator />
-        
+
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=overview`} className="flex items-center gap-3 p-3 cursor-pointer">
             <User className="w-4 h-4 text-gray-500" />
             <span>Profile</span>
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem asChild>
           <Link href="/chat" className="flex items-center gap-3 p-3 cursor-pointer">
             <MessageSquare className="w-4 h-4 text-gray-500" />
@@ -111,7 +112,7 @@ export default function UserDropdown() {
             )}
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=notifications`} className="flex items-center gap-3 p-3 cursor-pointer">
             <Bell className="w-4 h-4 text-gray-500" />
@@ -123,28 +124,35 @@ export default function UserDropdown() {
             )}
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=ads`} className="flex items-center gap-3 p-3 cursor-pointer">
             <FileText className="w-4 h-4 text-gray-500" />
             <span>My Ads</span>
           </Link>
         </DropdownMenuItem>
-        
+
+        <DropdownMenuItem asChild>
+          <Link href="/profile/leads" className="flex items-center gap-3 p-3 cursor-pointer">
+            <Users className="w-4 h-4 text-gray-500" />
+            <span>Potential Clients</span>
+          </Link>
+        </DropdownMenuItem>
+
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=saved`} className="flex items-center gap-3 p-3 cursor-pointer">
             <Heart className="w-4 h-4 text-gray-500" />
             <span>Saved Ads</span>
           </Link>
         </DropdownMenuItem>
-        
+
         <DropdownMenuItem asChild>
           <Link href="/premium" className="flex items-center gap-3 p-3 cursor-pointer">
             <Crown className="w-4 h-4 text-primary" />
             <span className="text-primary font-medium">Premium Services</span>
           </Link>
         </DropdownMenuItem>
-        
+
         {isAdmin && (
           <>
             <DropdownMenuSeparator />
@@ -156,17 +164,17 @@ export default function UserDropdown() {
             </DropdownMenuItem>
           </>
         )}
-        
+
         <DropdownMenuSeparator />
-        
+
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=settings`} className="flex items-center gap-3 p-3 cursor-pointer">
             <Settings className="w-4 h-4 text-gray-500" />
             <span>Settings</span>
           </Link>
         </DropdownMenuItem>
-        
-        <DropdownMenuItem 
+
+        <DropdownMenuItem
           onClick={handleLogout}
           className="flex items-center gap-3 p-3 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
         >

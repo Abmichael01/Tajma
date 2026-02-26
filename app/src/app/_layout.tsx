@@ -1,12 +1,53 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { View, StyleSheet, Platform } from "react-native";
 import "../../global.css";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
-import QueryProvider from "@/providers/QueryProvider";
+import * as SplashScreen from 'expo-splash-screen';
+import * as NavigationBar from 'expo-navigation-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-export default function RootLayout() {
+import QueryProvider from "@/providers/QueryProvider";
+import { useAuthStore } from "@/store/authStore";
+import AppSplashScreen from "@/components/ui/AppText"; // Wait, earlier it was Splash? No, SplashScreen.tsx
+import AppSplashScreenComponent from "@/components/ui/SplashScreen";
+import { usePresence } from "@/hooks/usePresence";
+
+// Keep the native splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync().catch(() => {
+  /* ignore */
+});
+
+function AuthNavigationGuard() {
+  const { isAuthenticated, hasHydrated } = useAuthStore();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+
+    const inTabsGroup = segments[0] === "(tabs)";
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!isAuthenticated && inTabsGroup) {
+      router.replace("/");
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace("/home");
+    }
+  }, [isAuthenticated, hasHydrated, segments]);
+
+  return null;
+}
+
+function RootLayoutContent() {
+  const [isAppReady, setIsAppReady] = useState(false);
+  const [isSplashComplete, setIsSplashComplete] = useState(false);
+
+  // Manage user presence
+  usePresence();
+
   const [fontsLoaded, fontError] = useFonts({
     "Quicksand-Light": require("../assets/fonts/Quicksand/static/Quicksand-Light.ttf"),
     "Quicksand-Regular": require("../assets/fonts/Quicksand/static/Quicksand-Regular.ttf"),
@@ -18,31 +59,72 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      console.log('✅ Fonts loaded successfully');
-    }
-    if (fontError) {
-      console.error('❌ Font loading error:', fontError);
+    if (fontsLoaded || fontError) {
+      // Small timeout to ensure everything is settled before hiding native splash
+      const timer = setTimeout(() => {
+        setIsAppReady(true);
+        SplashScreen.hideAsync().catch(() => {
+          /* ignore */
+        });
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) {
-    console.log('⏳ Loading fonts...');
-    return null;
-  }
+  // Configure Android Navigation Bar
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      const configureNavigationBar = async () => {
+        try {
+          // Set button style to dark since app is mostly light mode
+          await NavigationBar.setButtonStyleAsync('dark');
+        } catch (e) {
+          console.warn('Failed to configure navigation bar:', e);
+        }
+      };
+      configureNavigationBar();
+    }
+  }, []);
+
+  // We mount the Stack but keep it hidden behind the overlay
+  // This allows child hooks (like useCategories) to run inside the QueryClient context
+  const showOverlay = !isSplashComplete;
 
   return (
-    <QueryProvider>
-      <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1 }}>
-          <StatusBar style="auto" />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-            }}
-          />
-        </SafeAreaView>
-      </SafeAreaProvider>
-    </QueryProvider>
+    <SafeAreaProvider>
+      <StatusBar style="dark" />
+
+      {/* Main App Content - Mounted and ready behind the overlay */}
+      <AuthNavigationGuard />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'fade',
+        }}
+      />
+
+      {/* Premium Animated Splash Overlay */}
+      {showOverlay && (
+        <View style={StyleSheet.absoluteFill} pointerEvents={isSplashComplete ? 'none' : 'auto'}>
+          {isAppReady ? (
+            <AppSplashScreenComponent onAnimationComplete={() => setIsSplashComplete(true)} />
+          ) : (
+            <View style={{ flex: 1, backgroundColor: '#FF4F18' }} />
+          )}
+        </View>
+      )}
+    </SafeAreaProvider>
   );
 }
+
+function RootLayout() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryProvider>
+        <RootLayoutContent />
+      </QueryProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+export default RootLayout;

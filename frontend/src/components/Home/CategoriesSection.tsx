@@ -15,8 +15,8 @@ export default function CategoriesSection() {
   const displayedCategories = useMemo(() => categoryTree, [categoryTree])
 
   return (
-    <div 
-      className="hidden lg:block lg:w-[300px] bg-white border border-gray-200 p-5 relative z-10 h-fit"
+    <div
+      className="hidden lg:block lg:w-[300px] bg-white border border-gray-200 rounded-lg p-5 relative z-10 h-fit"
     >
       <h3 className="font-semibold text-gray-900 mb-1">Browse Categories</h3>
       <p className="text-xs text-gray-500 mb-4">Hover to preview top subcategories.</p>
@@ -100,9 +100,9 @@ export default function CategoriesSection() {
                             />
                             <div className="flex-1">
                               <p className="font-medium">{subcategory.name}</p>
-                              {subcategory.children && subcategory.children.length > 0 && (
+                              {subcategory.hasChildren && (
                                 <p className="text-[11px] text-gray-500 flex items-center gap-1">
-                                  <ChevronRight className="w-3 h-3" /> {subcategory.children.length} more types
+                                  <ChevronRight className="w-3 h-3" /> {subcategory.children?.length || 0} more types
                                 </p>
                               )}
                             </div>

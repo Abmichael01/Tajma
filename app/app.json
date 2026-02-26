@@ -9,27 +9,27 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/logo.jpg",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#cb234a"
+      "backgroundColor": "#FF4F18"
     },
     "ios": {
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/logo.jpg",
+        "image": "./assets/splash-icon.png",
         "resizeMode": "contain",
-        "backgroundColor": "#cb234a"
+        "backgroundColor": "#FF4F18"
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#cb234a"
+        "backgroundColor": "#FF4F18"
       },
       "splash": {
-        "image": "./assets/logo.jpg",
+        "image": "./assets/splash-icon.png",
         "resizeMode": "contain",
-        "backgroundColor": "#cb234a"
+        "backgroundColor": "#FF4F18"
       }
     },
     "web": {
@@ -37,7 +37,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow Tajma to access your microphone to record and send voice notes."
+        }
+      ],
+      "expo-font",
+      "expo-video"
     ]
   }
 }

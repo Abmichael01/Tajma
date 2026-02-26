@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { 
+import {
   MapPin,
   Calendar,
   Shield,
@@ -17,10 +17,12 @@ import {
   Globe,
   Mail,
   ArrowRight,
-  FileText
+  FileText,
+  BadgeCheck
 } from 'lucide-react'
 import type { User, UserWithReviewStats, Ad, Review, ReviewStats } from '@/api/types'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import KYCModal from '../modals/KYCModal'
 
 interface ProfileHeaderProps {
   user: UserWithReviewStats
@@ -40,11 +42,11 @@ interface ProfileHeaderProps {
   onNavigate?: (section: string) => void
 }
 
-export default function ProfileHeader({ 
-  user, 
-  stats, 
-  isOwner = false, 
-  onContactClick, 
+export default function ProfileHeader({
+  user,
+  stats,
+  isOwner = false,
+  onContactClick,
   onCallClick,
   ads = [],
   adsLoading = false,
@@ -55,11 +57,12 @@ export default function ProfileHeader({
   onNavigate
 }: ProfileHeaderProps) {
   const [isBioExpanded, setIsBioExpanded] = useState(false)
+  const [isKYCModalOpen, setIsKYCModalOpen] = useState(false)
   const fullName = getUserFullName(user)
 
   // Mock bio if not provided
   const bio = user.bio || "I'm a passionate seller on Tajma Marketplace, offering quality products at great prices. With years of experience in electronics and gadgets, I ensure all my items are in excellent condition. Feel free to contact me for any questions!"
-  
+
   const shouldTruncate = bio.length > 120
   const displayBio = shouldTruncate && !isBioExpanded ? bio.slice(0, 120) + '...' : bio
 
@@ -84,20 +87,20 @@ export default function ProfileHeader({
             {getUserInitials(user)}
           </AvatarFallback>
         </Avatar>
-        
+
         <div className="flex items-center justify-center gap-2 mb-2">
           <h1 className="text-lg sm:text-xl font-bold text-gray-900">{fullName}</h1>
           {user.is_verified && (
             <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
           )}
         </div>
-        
+
         <div className="flex items-center justify-center gap-1 text-yellow-500 mb-3">
           <Star className="w-4 h-4" />
           <span className="font-bold">{stats.rating}</span>
           <span className="text-xs sm:text-sm text-gray-500 ml-1">({stats.joinedDays} days)</span>
         </div>
-        
+
         <div className="space-y-2 text-xs sm:text-sm text-gray-600">
           {user.location && (
             <div className="flex items-center justify-center gap-1">
@@ -110,7 +113,32 @@ export default function ProfileHeader({
             Joined {stats.joinedDays} days ago
           </div>
         </div>
+
+        {/* KYC Verification Button */}
+        {isOwner && !user.is_verified && (
+          <div className="mt-4">
+            <Button
+              onClick={() => setIsKYCModalOpen(true)}
+              variant="outline"
+              size="sm"
+              className="border-primary text-primary hover:bg-primary/5 gap-2"
+            >
+              <BadgeCheck className="w-4 h-4" />
+              {user.kyc_status === 'pending' ? 'Verification Pending' : 'Verify Identity'}
+            </Button>
+            {user.kyc_status === 'rejected' && (
+              <p className="text-[10px] text-red-500 mt-1">
+                Previous attempt failed. Click to try again.
+              </p>
+            )}
+          </div>
+        )}
       </div>
+
+      <KYCModal
+        isOpen={isKYCModalOpen}
+        onClose={() => setIsKYCModalOpen(false)}
+      />
 
       {/* Bio Section */}
       <div className="border-t border-gray-200 pt-4">
@@ -177,13 +205,13 @@ export default function ProfileHeader({
         <div className="border-t border-gray-200 pt-4 mt-4 space-y-2">
           {onContactClick && (
             <Button
-            onClick={onContactClick}
+              onClick={onContactClick}
               variant="secondary"
               className="w-full flex items-center justify-center gap-2 text-xs sm:text-sm"
               size="sm"
-          >
-            <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
-            Contact Seller
+            >
+              <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+              Contact Seller
             </Button>
           )}
           {user.phone && onCallClick && (
@@ -220,7 +248,7 @@ export default function ProfileHeader({
               </Button>
             )}
           </div>
-          
+
           {adsLoading ? (
             <div className="py-4 text-center text-sm text-gray-500">Loading ads...</div>
           ) : ads.length > 0 ? (
@@ -234,9 +262,9 @@ export default function ProfileHeader({
                 const formattedPrice = firstAd.price
                   ? `${firstAd.currency || 'Fr'} ${parseFloat(String(firstAd.price)).toLocaleString()}`
                   : 'Contact for price'
-                
+
                 return (
-                  <Link 
+                  <Link
                     href={`/ads/${firstAd.slug || firstAd.id}`}
                     className="block bg-gray-50 border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                   >
@@ -289,7 +317,7 @@ export default function ProfileHeader({
               </Button>
             )}
           </div>
-          
+
           {reviewsLoading ? (
             <div className="py-4 text-center text-sm text-gray-500">Loading reviews...</div>
           ) : reviews.length > 0 ? (
@@ -299,20 +327,20 @@ export default function ProfileHeader({
                 const lastReview = reviews[reviews.length - 1]
                 const formatDate = (dateString: string) => {
                   const date = new Date(dateString)
-                  return date.toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
+                  return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
                   })
                 }
-                
+
                 return (
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                     <div className="flex items-start gap-2 mb-2">
                       <Avatar className="w-8 h-8 flex-shrink-0">
-                        <AvatarImage 
-                          src={lastReview.reviewer_avatar || lastReview.reviewer?.avatar || undefined} 
-                          alt={lastReview.reviewer_name || 'User'} 
+                        <AvatarImage
+                          src={lastReview.reviewer_avatar || lastReview.reviewer?.avatar || undefined}
+                          alt={lastReview.reviewer_name || 'User'}
                         />
                         <AvatarFallback className="bg-primary/10 text-primary text-xs">
                           {(lastReview.reviewer_name || 'U').charAt(0).toUpperCase()}
@@ -327,9 +355,8 @@ export default function ProfileHeader({
                             {Array.from({ length: 5 }, (_, i) => (
                               <Star
                                 key={i}
-                                className={`w-3 h-3 ${
-                                  i < lastReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                                }`}
+                                className={`w-3 h-3 ${i < lastReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                  }`}
                               />
                             ))}
                           </div>

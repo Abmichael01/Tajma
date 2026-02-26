@@ -34,11 +34,9 @@ export const useChatMessages = (chatId?: string | null, page: number = 1) => {
     queryFn: async ({ pageParam = 1 }) => {
       if (!chatId) return { results: [], count: 0, next: null, previous: null, page: 1 }
       const data = await chatApi.listMessages(chatId, pageParam)
-      // Reverse results so oldest messages are first (for display)
-      // Backend returns newest first, but we want oldest at top, newest at bottom
       return {
         ...data,
-        results: [...data.results].reverse(),
+        results: data.results, // Keep newest first for inverted list
         page: pageParam,
       }
     },
@@ -63,7 +61,7 @@ export const useMarkChatAsRead = () => {
       // Optimistically update the chat to show as read immediately
       await queryClient.cancelQueries({ queryKey: ['chats'] })
       await queryClient.cancelQueries({ queryKey: ['chats', chatId] })
-      
+
       // Update chat list
       queryClient.setQueryData(['chats'], (oldData: any) => {
         if (!oldData) return oldData
@@ -75,7 +73,7 @@ export const useMarkChatAsRead = () => {
           return chat
         })
       })
-      
+
       // Update chat detail - just set unread_count to 0
       queryClient.setQueryData(['chats', chatId], (oldData: any) => {
         if (!oldData) return oldData
@@ -107,10 +105,9 @@ export const useOnlineStatuses = () => {
   return useQuery({
     queryKey: ['chats', 'online-status'],
     queryFn: () => chatApi.listOnlineStatuses(),
-    // Only online status uses polling (as requested) - every 30 seconds
-    refetchInterval: 30_000, 
-    refetchOnWindowFocus: false,
-    refetchOnMount: true, 
+    // ✅ WebSocket ONLY - No polling
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     refetchOnReconnect: true,
   })
 }
@@ -118,7 +115,7 @@ export const useOnlineStatuses = () => {
 export const useGetOrCreateChat = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { participant2_id: number | string; ad_id?: string | null }) => 
+    mutationFn: (payload: { participant2_id: number | string; ad_id?: string | null }) =>
       chatApi.getOrCreate(payload),
     onSuccess: (data) => {
       // Update chat list cache directly (add new chat or update existing)
@@ -137,6 +134,40 @@ export const useGetOrCreateChat = () => {
       })
       // Also update chat detail cache
       queryClient.setQueryData(['chats', data.id], data)
+    },
+  })
+}
+
+export const useClearChat = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (chatId: string) => chatApi.clearChat(chatId),
+    onSuccess: (_, chatId) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', chatId] })
+      queryClient.invalidateQueries({ queryKey: ['chats', chatId] })
+      queryClient.invalidateQueries({ queryKey: ['chats'] })
+    },
+  })
+}
+
+export const useBlockUser = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (userId: string | number) => chatApi.blockUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chats'] })
+      queryClient.invalidateQueries({ queryKey: ['messages'] })
+    },
+  })
+}
+
+export const useMuteChat = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ chatId, isMuted }: { chatId: string; isMuted: boolean }) =>
+      chatApi.muteChat(chatId, isMuted),
+    onSuccess: (_, { chatId }) => {
+      queryClient.invalidateQueries({ queryKey: ['chats', chatId] })
     },
   })
 }

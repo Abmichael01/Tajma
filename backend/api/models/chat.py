@@ -34,6 +34,7 @@ class Chat(models.Model):
     
     # Track last activity for sorting
     last_message_at = models.DateTimeField(null=True, blank=True)
+    is_muted = models.BooleanField(default=False)
     
     class Meta:
         ordering = ['-last_message_at', '-updated_at']
@@ -84,7 +85,14 @@ class Message(models.Model):
         on_delete=models.CASCADE,
         related_name='sent_messages',
     )
-    content = models.TextField()
+    MESSAGE_TYPES = [
+        ('text', 'Text'),
+        ('image', 'Image'),
+        ('audio', 'Audio'),
+        ('document', 'Document'),
+    ]
+    message_type = models.CharField(max_length=15, choices=MESSAGE_TYPES, default='text')
+    content = models.TextField(null=True, blank=True)
     is_read = models.BooleanField(default=False)
     read_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True, help_text='When message was delivered to recipient device')
@@ -92,7 +100,25 @@ class Message(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     # Optional: For future features like file attachments
-    # attachment = models.FileField(upload_to='chat_attachments/', null=True, blank=True)
+    attachment = models.FileField(upload_to='chat_attachments/', null=True, blank=True)
+    
+    # Support for replies (WhatsApp style)
+    parent_message = models.ForeignKey(
+        'self', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='replies'
+    )
+    
+    # Client-side ID for optimistic UI matching and deduplication
+    client_id = models.CharField(max_length=100, null=True, blank=True, db_index=True)
+    
+    # Link Previews
+    link_url = models.URLField(max_length=1000, null=True, blank=True)
+    link_title = models.CharField(max_length=500, null=True, blank=True)
+    link_description = models.TextField(null=True, blank=True)
+    link_image = models.URLField(max_length=1000, null=True, blank=True)
     
     class Meta:
         ordering = ['created_at']

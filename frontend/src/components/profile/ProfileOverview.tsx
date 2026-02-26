@@ -3,12 +3,12 @@
 import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { 
-  FileText, 
-  Eye, 
+import {
+  FileText,
+  Eye,
   Heart,
   MessageSquare,
-  TrendingUp, 
+  TrendingUp,
   Star,
   ShoppingBag,
   Clock,
@@ -150,6 +150,24 @@ export default function ProfileOverview({ stats, isOwner = false, userUid }: Pro
               </Button>
             </Link>
           </div>
+        </div>
+      )}
+
+      {/* KYC Promotion */}
+      {isOwner && !stats.rating && ( // Just an example condition, better check user.is_verified if we had user prop
+        <div className="bg-primary/5 border border-primary/20 p-4 sm:p-6 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+              <Shield className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900">Get Verified</h4>
+              <p className="text-sm text-gray-500">Increase your trust and sell faster by verifying your identity.</p>
+            </div>
+          </div>
+          <Link href={`/profile/${userUid}?tab=settings`}>
+            <Button size="sm">Get Started</Button>
+          </Link>
         </div>
       )}
 

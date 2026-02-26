@@ -11,6 +11,7 @@ from api.management.commands.category_seeds.fashion import FASHION_CATEGORY
 from api.management.commands.category_seeds.home_garden import HOME_GARDEN_CATEGORY
 from api.management.commands.category_seeds.beauty_health import BEAUTY_HEALTH_CATEGORY
 from api.management.commands.category_seeds.services import SERVICES_CATEGORY
+from api.management.commands.category_seeds.jobs import JOBS_CATEGORY
 
 # Combined category tree from all seed modules
 CATEGORY_TREE = [
@@ -21,6 +22,7 @@ CATEGORY_TREE = [
     HOME_GARDEN_CATEGORY,
     BEAUTY_HEALTH_CATEGORY,
     SERVICES_CATEGORY,
+    JOBS_CATEGORY,
 ]
 
 
@@ -54,6 +56,7 @@ class Command(BaseCommand):
         defaults = {
             'name': node['name'],
             'icon': node.get('icon', ''),
+            'image_url': node.get('image_url', ''),
             'category_type': node.get('type', parent.category_type if parent else 'product'),
             'custom_fields': node.get('custom_fields', []),
             'parent': parent,

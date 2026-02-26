@@ -19,6 +19,8 @@ export interface User {
   is_verified: boolean
   is_staff?: boolean
   is_superuser?: boolean
+  kyc_status?: 'none' | 'pending' | 'verified' | 'rejected' | null
+  kyc_notes?: string | null
   date_joined: string
   last_login?: string | null
 }
@@ -246,12 +248,20 @@ export interface ChatMessage {
   chat: string
   sender: User
   content: string
+  attachment?: string | null
+  message_type: 'text' | 'image' | 'audio' | 'document'
   is_read: boolean
   read_at?: string | null
   delivered_at?: string | null
   created_at: string
   updated_at: string
-  send_failed?: boolean // Track if message failed to send
+  send_failed?: boolean
+  parent_message?: ChatMessage | null
+  link_url?: string | null
+  link_title?: string | null
+  link_description?: string | null
+  link_image?: string | null
+  client_id?: string | null
 }
 
 export interface ChatSummary {
@@ -269,6 +279,7 @@ export interface ChatSummary {
   last_message_at?: string | null
   last_message?: ChatMessage | null
   unread_count: number
+  is_muted?: boolean
 }
 
 export interface ChatDetail extends ChatSummary {
@@ -290,6 +301,9 @@ export interface SendMessageRequest {
   chat: string
   content: string
   sender_id?: number
+  parent_message_id?: string
+  message_type?: 'text' | 'image' | 'audio' | 'document'
+  client_id?: string
 }
 
 export interface UserOnlineStatus {

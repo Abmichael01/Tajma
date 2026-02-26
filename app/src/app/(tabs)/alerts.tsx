@@ -1,11 +1,22 @@
-import { View, ScrollView, TouchableOpacity, RefreshControl } from "react-native";
-import { useState } from "react";
+import { View, ScrollView, TouchableOpacity, RefreshControl, FlatList, Platform } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { useState, useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AppText from "@/components/ui/AppText";
 import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useDeleteNotification } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/authStore";
 import Skeleton from "@/components/ui/Skeleton";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+
+const NOTIFICATION_TYPES = [
+  { label: 'All', value: 'all', icon: 'apps-outline' },
+  { label: 'Messages', value: 'message', icon: 'chatbubble-ellipses-outline' },
+  { label: 'Views', value: 'ad_view', icon: 'eye-outline' },
+  { label: 'Favorites', value: 'favorite', icon: 'heart-outline' },
+  { label: 'Leads', value: 'phone_view', icon: 'call-outline' },
+  { label: 'Status', value: 'ad_status', icon: 'information-circle-outline' },
+];
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -51,6 +62,13 @@ export default function AlertsScreen() {
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const deleteNotificationMutation = useDeleteNotification();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedType, setSelectedType] = useState('all');
+
+  const filteredNotifications = useMemo(() => {
+    if (!notifications) return [];
+    if (selectedType === 'all') return notifications;
+    return notifications.filter(n => n.type === selectedType);
+  }, [notifications, selectedType]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -74,11 +92,10 @@ export default function AlertsScreen() {
     if (!notification.is_read) {
       handleMarkAsRead(notification.id);
     }
-    
+
     if (notification.related_ad_slug) {
       router.push(`/ads/${notification.related_ad_slug}`);
     } else if (notification.related_user) {
-      // Navigate to user profile
       const slug = notification.related_user_name || notification.related_user;
       router.push(`/users/${slug}`);
     }
@@ -88,17 +105,17 @@ export default function AlertsScreen() {
     return (
       <View className="flex-1 bg-white items-center justify-center px-4">
         <Ionicons name="lock-closed-outline" size={64} color="#9ca3af" />
-        <AppText variant="heading" weight="bold" className="mt-4 mb-2 text-gray-900">
+        <AppText variant="heading" weight="bold" className="mt-4 mb-2 text-3xl text-gray-900">
           Sign In Required
         </AppText>
-        <AppText variant="default" className="text-gray-600 text-center mb-6">
+        <AppText variant="default" className="text-gray-600 text-center mb-6 text-lg">
           Please sign in to view your alerts and notifications.
         </AppText>
         <TouchableOpacity
           onPress={() => router.push("/(auth)/login")}
-          className="bg-primary px-6 py-3 rounded-full"
+          className="bg-primary px-8 py-4 rounded-full"
         >
-          <AppText weight="semibold" className="text-white">Sign In</AppText>
+          <AppText weight="semibold" className="text-white text-lg">Sign In</AppText>
         </TouchableOpacity>
       </View>
     );
@@ -109,144 +126,172 @@ export default function AlertsScreen() {
 
   return (
     <View className="flex-1 bg-white">
+      <StatusBar style="light" />
       {/* Header */}
-      <View className="bg-white border-b border-gray-200 px-4 py-4">
-        <View className="flex-row items-center justify-between">
-          <View>
-            <AppText variant="heading" weight="bold" className="text-gray-900">
-              Alerts
-            </AppText>
-            {unreadCount > 0 && (
-              <AppText variant="default" className="text-gray-500 mt-1">
-                {unreadCount} unread
-              </AppText>
-            )}
-          </View>
-          {hasNotifications && unreadCount > 0 && (
+      <ScreenHeader
+        title="Alerts"
+        subtitle={unreadCount > 0 ? `${unreadCount} new requests` : undefined}
+        showBackButton={false}
+      />
+
+      {/* Filter Bar & Bulk Action */}
+      <View className="bg-white border-b border-border pt-5 pb-5">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
+          className={hasNotifications && unreadCount > 0 ? "mb-5" : ""}
+        >
+          {NOTIFICATION_TYPES.map((type) => (
             <TouchableOpacity
-              onPress={handleMarkAllAsRead}
-              className="px-4 py-2 rounded-full bg-gray-100"
+              key={type.value}
+              onPress={() => setSelectedType(type.value)}
+              className={`flex-row items-center gap-2 px-4 py-2.5 rounded-full border ${selectedType === type.value
+                ? 'bg-secondary border-secondary'
+                : 'bg-white border-border'
+                }`}
             >
-              <AppText weight="medium" className="text-gray-700 text-sm">
-                Mark all read
+              <Ionicons
+                name={type.icon as any}
+                size={16}
+                color={selectedType === type.value ? 'white' : '#6b7280'}
+              />
+              <AppText
+                weight={selectedType === type.value ? 'bold' : 'medium'}
+                className={selectedType === type.value ? 'text-white' : 'text-gray-500'}
+              >
+                {type.label}
               </AppText>
             </TouchableOpacity>
-          )}
-        </View>
+          ))}
+        </ScrollView>
+
+        {hasNotifications && unreadCount > 0 && (
+          <TouchableOpacity
+            onPress={handleMarkAllAsRead}
+            className="mx-6 flex-row items-center justify-center gap-2 py-3 bg-[#FF4F18]/5 border border-[#FF4F18]/10 rounded-xl"
+          >
+            <Ionicons name="checkmark-done" size={20} color="#FF4F18" />
+            <AppText weight="bold" className="text-[#FF4F18] text-sm uppercase">
+              Mark all as read
+            </AppText>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Notifications List */}
       {isLoading ? (
-        <View className="flex-1 px-4 py-6">
-          {Array.from({ length: 5 }).map((_, idx) => (
-            <View key={idx} className="mb-4">
-              <View className="flex-row gap-3">
-                <Skeleton className="w-12 h-12 rounded-full" variant="circular" />
+        <View className="flex-1">
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <View key={idx} className="p-6 border-b border-gray-100">
+              <View className="flex-row gap-4">
+                <Skeleton className="w-14 h-14 rounded-full" variant="circular" />
                 <View className="flex-1">
-                  <Skeleton variant="text" className="w-3/4 h-5 mb-2" />
-                  <Skeleton variant="text" className="w-full h-4 mb-1" />
-                  <Skeleton variant="text" className="w-1/2 h-3" />
+                  <Skeleton variant="text" className="w-2/3 h-5 mb-3" />
+                  <Skeleton variant="text" className="w-full h-4 mb-2" />
+                  <Skeleton variant="text" className="w-1/2 h-4" />
                 </View>
               </View>
             </View>
           ))}
         </View>
-      ) : !hasNotifications ? (
-        <View className="flex-1 items-center justify-center px-4">
-          <Ionicons name="notifications-off-outline" size={64} color="#d1d5db" />
-          <AppText variant="heading" weight="semibold" className="mt-4 mb-2 text-gray-900">
-            No Alerts
-          </AppText>
-          <AppText variant="default" className="text-gray-500 text-center">
-            You're all caught up! No new notifications.
-          </AppText>
-        </View>
-      ) : (
+      ) : filteredNotifications.length === 0 ? (
         <ScrollView
           className="flex-1"
-          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#FF4F18" />
           }
         >
-          <View className="px-4 py-4">
-            {notifications.map((notification) => {
-              const icon = getNotificationIcon(notification.type);
-              return (
-                <TouchableOpacity
-                  key={notification.id}
-                  onPress={() => handleNotificationPress(notification)}
-                  className={`mb-4 p-4 rounded-xl border ${
-                    notification.is_read
-                      ? 'bg-white border-gray-100'
-                      : 'bg-blue-50 border-blue-200'
-                  }`}
-                >
-                  <View className="flex-row gap-3">
-                    {/* Icon */}
-                    <View
-                      className={`w-12 h-12 rounded-full items-center justify-center ${
-                        notification.is_read ? 'bg-gray-100' : 'bg-white'
-                      }`}
-                    >
-                      <Ionicons name={icon.name as any} size={24} color={icon.color} />
-                    </View>
+          <Ionicons name="notifications-off-outline" size={64} color="#f3f4f6" />
+          <AppText weight="medium" className="text-gray-300 mt-6 text-xl text-center">
+            {selectedType === 'all' ? 'No notifications yet' : `No ${selectedType} alerts found`}
+          </AppText>
+          {selectedType !== 'all' && (
+            <TouchableOpacity
+              onPress={() => setSelectedType('all')}
+              className="mt-4"
+            >
+              <AppText className="text-primary font-bold">Clear Filters</AppText>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={filteredNotifications}
+          keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#FF4F18" />
+          }
+          showsVerticalScrollIndicator={false}
+          className="flex-1"
+          windowSize={10}
+          maxToRenderPerBatch={10}
+          removeClippedSubviews={Platform.OS === 'android'}
+          ListFooterComponent={<View className="h-32" />}
+          renderItem={({ item: notification }) => {
+            const icon = getNotificationIcon(notification.type);
+            const isRead = notification.is_read;
 
-                    {/* Content */}
-                    <View className="flex-1">
-                      <View className="flex-row items-start justify-between gap-2 mb-1">
+            return (
+              <TouchableOpacity
+                onPress={() => handleNotificationPress(notification)}
+                activeOpacity={0.8}
+                className="p-6 bg-transparent"
+              >
+                <View className="flex-row gap-5 items-center">
+                  <View
+                    className={`w-14 h-14 rounded-full items-center justify-center ${isRead ? 'bg-gray-50' : 'bg-[#FF4F18]/5'
+                      }`}
+                  >
+                    <Ionicons
+                      name={icon.name as any}
+                      size={26}
+                      color={isRead ? '#d1d5db' : '#FF4F18'}
+                    />
+                  </View>
+
+                  <View className="flex-1">
+                    <View className="flex-row justify-between items-center mb-1">
+                      <View className="flex-1 flex-row items-center gap-2">
+                        {!isRead && (
+                          <View className="w-2.5 h-2.5 rounded-full bg-[#FF4F18]" />
+                        )}
                         <AppText
-                          weight={notification.is_read ? 'medium' : 'semibold'}
-                          className={`flex-1 ${notification.is_read ? 'text-gray-700' : 'text-gray-900'}`}
+                          weight={isRead ? 'medium' : 'bold'}
+                          className={`text-lg ${isRead ? 'text-gray-500' : 'text-[#2D2D2D]'}`}
+                          numberOfLines={1}
                         >
                           {notification.title}
                         </AppText>
-                        {!notification.is_read && (
-                          <View className="w-2 h-2 rounded-full bg-primary mt-1" />
-                        )}
                       </View>
-                      <AppText
-                        variant="default"
-                        className={`text-sm mb-2 ${notification.is_read ? 'text-gray-600' : 'text-gray-700'}`}
-                      >
-                        {notification.message}
+                      <AppText className="text-xs text-gray-400 uppercase font-bold">
+                        {formatTimeAgo(notification.created_at)}
                       </AppText>
-                      <View className="flex-row items-center justify-between">
-                        <AppText variant="default" className="text-xs text-gray-500">
-                          {formatTimeAgo(notification.created_at)}
-                        </AppText>
-                        <View className="flex-row gap-2">
-                          {!notification.is_read && (
-                            <TouchableOpacity
-                              onPress={(e) => {
-                                e.stopPropagation();
-                                handleMarkAsRead(notification.id);
-                              }}
-                              className="px-3 py-1 rounded-full bg-white"
-                            >
-                              <AppText weight="medium" className="text-xs text-gray-600">
-                                Mark read
-                              </AppText>
-                            </TouchableOpacity>
-                          )}
-                          <TouchableOpacity
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              handleDelete(notification.id);
-                            }}
-                            className="px-3 py-1 rounded-full bg-gray-100"
-                          >
-                            <Ionicons name="trash-outline" size={14} color="#6b7280" />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
                     </View>
+
+                    <AppText
+                      className={`text-base leading-5 ${isRead ? 'text-gray-400' : 'text-gray-600'}`}
+                      numberOfLines={2}
+                    >
+                      {notification.message}
+                    </AppText>
                   </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
+
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handleDelete(notification.id);
+                    }}
+                    className="p-3"
+                  >
+                    <Ionicons name="close" size={24} color="#e5e7eb" />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
       )}
     </View>
   );

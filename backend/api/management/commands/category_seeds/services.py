@@ -3,21 +3,24 @@ SERVICES_CATEGORY = {
     "name": "Services",
     "icon": "Briefcase",
     "type": "service",
+    "image_url": "/services_banner.png",
     "custom_fields": [
         {
             "name": "service_type",
             "label": "Service Type",
-            "type": "text",
+            "type": "select",
+            "options": [
+                {"value": "building", "label": "Building & Trades"},
+                {"value": "automotive", "label": "Automotive Services"},
+                {"value": "events", "label": "Events & Entertainment"},
+                {"value": "education", "label": "Education & Classes"},
+                {"value": "it", "label": "Business & IT Services"},
+                {"value": "personal", "label": "Personal Services"}
+            ],
             "required": True
         },
         {
-            "name": "company_name",
-            "label": "Company / Business Name",
-            "type": "text",
-            "required": False
-        },
-        {
-            "name": "experience",
+            "name": "experience_years",
             "label": "Years of Experience",
             "type": "number",
             "required": False
@@ -33,11 +36,43 @@ SERVICES_CATEGORY = {
                 {"value": "appointment", "label": "By Appointment"}
             ],
             "required": False
+        },
+        {
+            "name": "packages",
+            "label": "Service Packages",
+            "type": "array",
+            "children": [
+                {"name": "name", "label": "Package Name", "type": "text", "required": True},
+                {"name": "price", "label": "Price (XOF)", "type": "number", "required": True},
+                {"name": "description", "label": "Package Description", "type": "textarea"}
+            ],
+            "required": False
+        },
+        {
+            "name": "qualifications",
+            "label": "Certifications / Qualifications",
+            "type": "tags",
+            "required": False
+        },
+        {
+            "name": "service_duration",
+            "label": "Service Duration",
+            "type": "text",
+            "placeholder": "e.g. 2 hours, 3-5 days",
+            "required": False
+        },
+        {
+            "name": "service_area",
+            "label": "Service Area / Coverage",
+            "type": "tags",
+            "placeholder": "e.g. Niamey, Plateau, All Niger",
+            "required": False
         }
     ],
     "children": [
         {
             "name": "Building & Trades",
+            "image_url": "/plumbing1.jpg",
             "children": [
                 {"name": "Cleaning Services"},
                 {"name": "Electricians"},
@@ -54,6 +89,7 @@ SERVICES_CATEGORY = {
         },
         {
             "name": "Automotive Services",
+            "image_url": "/worker1.jpg",
             "children": [
                 {"name": "Auto Mechanics"},
                 {"name": "Car Wash & Detailing"},

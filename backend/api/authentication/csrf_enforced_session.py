@@ -54,36 +54,45 @@ class CSRFEnforcedSessionAuthentication(SessionAuthentication):
         """
         Authenticate the user and enforce CSRF for state-changing methods.
         """
+        import logging
+        logger = logging.getLogger(__name__)
+        
         # Get the session-based user from the underlying HttpRequest
         user = getattr(request._request, 'user', None)
         
+        logger.info(f"🔑 AUTH DEBUG: path={request.path} method={request.method}")
+        logger.info(f"🔑 USER: {user} (Authenticated={user.is_authenticated if user else 'N/A'})")
+        logger.info(f"🔑 COOKIES: {list(request._request.COOKIES.keys())}")
+        logger.info(f"🔑 HEADERS: Origin={request.META.get('HTTP_ORIGIN')}, Host={request.META.get('HTTP_HOST')}, Content-Type={request.META.get('CONTENT_TYPE')}")
+        
         if not user or not user.is_authenticated:
+            logger.warning(f"🔑 AUTH FAILED: User not authenticated for {request.path}")
             return None
         
         # Check if CSRF is exempted for this view
-        # If the view has @csrf_exempt, skip CSRF enforcement
-        # Check the request attribute set by @csrf_exempt decorator
         if getattr(request._request, '_dont_enforce_csrf_checks', False):
+            logger.info("🔑 CSRF SKIPPED: _dont_enforce_csrf_checks=True")
             return (user, None)
         
         # Also check if the view function itself has csrf_exempt
         view_func = getattr(request, 'view', None)
         if view_func and getattr(view_func, 'csrf_exempt', False):
+            logger.info("🔑 CSRF SKIPPED: view.csrf_exempt=True")
+            return (user, None)
+        
+        # Mobile app support: React Native doesn't send Referer headers.
+        if not request.META.get('HTTP_REFERER'):
+            logger.info("🔑 CSRF SKIPPED: No HTTP_REFERER (Mobile Mode)")
             return (user, None)
         
         # Enforce CSRF for state-changing HTTP methods
         if request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
             try:
+                logger.info("🔑 ENFORCING CSRF...")
                 self.enforce_csrf(request)
-            except (ImportError, AttributeError) as e:
-                # If CSRF validation method is not available, skip CSRF check
-                # This can happen if Django version doesn't support the method
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.warning(f'CSRF validation skipped due to: {e}')
-                return (user, None)
+                logger.info("🔑 CSRF PASSED")
             except Exception as e:
-                # If CSRF check fails, re-raise as PermissionDenied
+                logger.error(f"🔑 CSRF FAILED: {str(e)}")
                 from rest_framework.exceptions import PermissionDenied
                 raise PermissionDenied(str(e))
         

@@ -51,7 +51,7 @@ const convertNode = (
     slug: node.slug || node.id,
     description: node.description,
     icon: node.icon,
-    imageUrl: (node as any).imageUrl,
+    imageUrl: node.imageUrl || node.image_url,
     parentId,
     type: node.type || node.category_type || 'product', // Use type from CDN data
     status: 'active',
@@ -85,7 +85,7 @@ const normalizeNodes = (nodes: CategoryNode[]) => {
 export function useCategories(options: UseCategoriesOptions = {}) {
   const { autoFetch = true } = options
   const queryClient = useQueryClient()
-  
+
   // Use React Query to fetch and cache categories
   const { data: cdnTree, isLoading, error: queryError } = useQuery<CategoryNode[]>({
     queryKey: ['categories'],
@@ -94,11 +94,11 @@ export function useCategories(options: UseCategoriesOptions = {}) {
     staleTime: 5 * 60 * 1000, // 5 minutes - categories don't change often
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
   })
-  
+
   const [categories, setCategories] = useState<Category[]>([])
   const [categoryTree, setCategoryTree] = useState<CategoryTree[]>([])
   const [rootCategories, setRootCategories] = useState<Category[]>([])
-  
+
   const loadFromNodes = useCallback((nodes: CategoryNode[]) => {
     const { flat, tree, rootCategories } = normalizeNodes(nodes)
     setCategories(flat)
@@ -117,7 +117,7 @@ export function useCategories(options: UseCategoriesOptions = {}) {
     // Invalidate and refetch using React Query
     await queryClient.invalidateQueries({ queryKey: ['categories'] })
   }, [queryClient])
-  
+
   const loadCategoryTree = useCallback(async () => {
     // Category tree is already built from the CDN data
     // This function is kept for backward compatibility
@@ -125,22 +125,22 @@ export function useCategories(options: UseCategoriesOptions = {}) {
       loadFromNodes(cdnTree)
     }
   }, [categoryTree, cdnTree, loadFromNodes])
-  
+
   // Get category by ID
   const getCategoryById = useCallback((id: string): Category | undefined => {
     return categories.find(cat => cat.id === id)
   }, [categories])
-  
+
   // Get category by slug
   const getCategoryBySlug = useCallback((slug: string): Category | undefined => {
     return categories.find(cat => cat.slug === slug)
   }, [categories])
-  
+
   // Get subcategories
   const getSubcategories = useCallback((parentId: string): Category[] => {
     return categories.filter(cat => cat.parentId === parentId)
   }, [categories])
-  
+
   return {
     categories,
     categoryTree,

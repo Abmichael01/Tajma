@@ -74,7 +74,7 @@ export default function GoogleCallbackScreen() {
 
   return (
     <View className="flex-1 bg-white justify-center items-center">
-      <ActivityIndicator size="large" color="#cb234a" />
+      <ActivityIndicator size="large" color="#FF4F18" />
       <AppText variant="default" className="mt-4 text-gray-600">
         Setting up your account...
       </AppText>

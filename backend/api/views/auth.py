@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import login, logout
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from dj_rest_auth.views import LoginView as BaseLoginView
@@ -21,7 +21,7 @@ from api.serializers.user import (
 from api.utils.image_upload import save_uploaded_file
 
 
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(APIView):
     """User registration view"""
     permission_classes = [AllowAny]
@@ -55,29 +55,39 @@ class CSRFView(APIView):
         return Response({'csrfToken': token})
 
 
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(BaseLoginView):
     """Custom login view with CSRF protection"""
     serializer_class = UserLoginSerializer
     
     def post(self, request, *args, **kwargs):
         """Handle login"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
         user = serializer.validated_data['user']
-        login(request, user)
+        # Use the underlying Django request object for login to ensure session middleware handles it
+        login(request._request if hasattr(request, '_request') else request, user)
         
-        return Response(
+        logger.info(f"💾 LOGIN DEBUG: User {user.id} logged in")
+        logger.info(f"💾 SESSION KEY: {request.session.session_key}")
+        logger.info(f"💾 SESSION DATA: {dict(request.session.items())}")
+        
+        response = Response(
             {
                 'user': UserDetailsSerializer(user).data,
                 'message': 'Login successful.'
             },
             status=status.HTTP_200_OK
         )
+        
+        return response
 
 
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class PasswordChangeView(APIView):
     """Password change view"""
     permission_classes = [IsAuthenticated]
@@ -99,13 +109,19 @@ class PasswordChangeView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class CurrentUserView(APIView):
     """Get current authenticated user"""
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
         """Return current user details"""
+        if not request.user.is_authenticated:
+            return Response(
+                {'detail': 'Authentication credentials were not provided.'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+            
         return Response(
             {
                 'user': UserDetailsSerializer(request.user).data
@@ -114,7 +130,7 @@ class CurrentUserView(APIView):
         )
 
 
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class ProfileUpdateView(APIView):
     """User profile update view"""
     permission_classes = [IsAuthenticated]
@@ -232,7 +248,7 @@ class ProfileUpdateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
 class LogoutView(APIView):
     """Logout view"""
     permission_classes = [IsAuthenticated]

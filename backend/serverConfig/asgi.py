@@ -29,22 +29,16 @@ from api.routing import websocket_urlpatterns
 # Note: ASGIStaticFilesHandler only works in DEBUG mode
 http_handler = ASGIStaticFilesHandler(django_asgi_app)
 
-# Configure WebSocket middleware stack
-# In development, allow all origins; in production, use AllowedHostsOriginValidator
+# Configure WebSocket handler
+# AuthMiddlewareStack includes CookieMiddleware and SessionMiddleware
 if settings.DEBUG:
-    # Development: Allow all origins for WebSocket connections
     websocket_handler = AuthMiddlewareStack(
-        SessionMiddlewareStack(
-            URLRouter(websocket_urlpatterns)
-        )
+        URLRouter(websocket_urlpatterns)
     )
 else:
-    # Production: Validate origins
     websocket_handler = AllowedHostsOriginValidator(
         AuthMiddlewareStack(
-            SessionMiddlewareStack(
-                URLRouter(websocket_urlpatterns)
-            )
+            URLRouter(websocket_urlpatterns)
         )
     )
 

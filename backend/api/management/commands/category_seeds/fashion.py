@@ -3,6 +3,7 @@ FASHION_CATEGORY = {
     "name": "Fashion",
     "icon": "Shirt",
     "type": "product",
+    "image_url": "/fashion_banner.png",
     "custom_fields": [
         {
             "name": "gender",
@@ -34,6 +35,7 @@ FASHION_CATEGORY = {
     "children": [
         {
             "name": "Clothing",
+            "image_url": "/cloth1.jpg",
             "custom_fields": [
                 {
                     "name": "size",
@@ -71,6 +73,7 @@ FASHION_CATEGORY = {
         },
         {
             "name": "Shoes",
+            "image_url": "/shoe1.jpg",
             "custom_fields": [
                 {"name": "size", "label": "Shoe Size (EU)", "type": "number", "placeholder": "e.g. 42"},
                 {"name": "colour", "label": "Colour", "type": "text"},

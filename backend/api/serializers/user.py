@@ -35,8 +35,9 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'is_verified',
             'is_staff',
-            'is_superuser',
             'is_active',
+            'kyc_status',
+            'kyc_notes',
             'date_joined',
             'last_login',
         ]
@@ -169,8 +170,9 @@ class UserDetailsSerializer(serializers.ModelSerializer):
             'bio',
             'is_verified',
             'is_staff',
-            'is_superuser',
             'is_active',
+            'kyc_status',
+            'kyc_notes',
             'date_joined',
             'last_login',
         ]

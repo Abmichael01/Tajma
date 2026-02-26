@@ -26,17 +26,17 @@ interface PaginatedResponse<T> {
 export const notificationsApi = {
   async list(params?: { is_read?: boolean }) {
     const response = await apiClient.get<Notification[] | PaginatedResponse<Notification>>('/notifications/', { params })
-    
+
     // Handle paginated response
     if (response.data && typeof response.data === 'object' && 'results' in response.data) {
       return (response.data as PaginatedResponse<Notification>).results
     }
-    
+
     // Handle direct array response
     if (Array.isArray(response.data)) {
       return response.data
     }
-    
+
     return []
   },
 
@@ -62,6 +62,11 @@ export const notificationsApi = {
 
   async remove(id: string) {
     return apiClient.delete(`/notifications/${id}/`).then(() => undefined)
+  },
+
+  async create(data: { recipient: number; type: string; title: string; message: string; related_ad?: string; related_user?: number }) {
+    const response = await apiClient.post<Notification>('/notifications/', data)
+    return response.data
   },
 }
 

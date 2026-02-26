@@ -1,4 +1,5 @@
-import { View, ScrollView, TouchableOpacity, RefreshControl } from "react-native";
+import { View, ScrollView, TouchableOpacity, RefreshControl, Linking, Alert, ActivityIndicator } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,21 +11,38 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useUserAds } from "@/hooks/useAds";
 import { useSellerReviews } from "@/hooks/useReviews";
 import { useAuthStore } from "@/store/authStore";
+import { useGetOrCreateChat } from "@/hooks/useChat";
 import { AdsList, AdsListSkeleton } from "@/components/ads";
 import Skeleton from "@/components/ui/Skeleton";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import CustomAlert from "@/components/ui/CustomAlert";
+import { useAlert } from "@/hooks/useAlert";
+import { useCreateNotification } from "@/hooks/useNotifications";
+import * as Clipboard from 'expo-clipboard';
 
 type TabType = 'ads' | 'reviews';
 
 export default function UserProfileScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
+
+  if (!slug) {
+    console.warn('[UserProfileScreen] Missing slug param');
+  } else {
+    console.log('[UserProfileScreen] Fetching profile for slug:', slug);
+  }
+
   const router = useRouter();
-  const { user: currentUser } = useAuthStore();
+  const { alertConfig, showAlert, hideAlert } = useAlert();
+  const { user: currentUser, isAuthenticated } = useAuthStore();
   const { data: profile, isLoading: profileLoading, error: profileError, refetch: refetchProfile } = useUserProfile(slug);
   const userId = profile?.id ? (typeof profile.id === 'string' ? parseInt(profile.id) : profile.id) : undefined;
   const { data: adsData, isLoading: adsLoading, refetch: refetchAds } = useUserAds(userId);
   const { data: reviewsData, isLoading: reviewsLoading, refetch: refetchReviews } = useSellerReviews(userId);
   const [activeTab, setActiveTab] = useState<TabType>('ads');
   const [refreshing, setRefreshing] = useState(false);
+  const [showPhone, setShowPhone] = useState(false);
+  const { mutate: notifyUser } = useCreateNotification();
+  const { mutateAsync: getOrCreateChat, isPending: isGettingChat } = useGetOrCreateChat();
 
   const isOwner = currentUser && profile && String(currentUser.id) === String(profile.id);
   const ads = Array.isArray(adsData) ? adsData : ((adsData as any)?.results || []);
@@ -64,7 +82,12 @@ export default function UserProfileScreen() {
   if (profileLoading) {
     return (
       <View className="flex-1 bg-white">
-        <BackButton />
+        <View className="bg-primary px-6 pt-16 pb-6 shadow-sm flex-row items-center">
+          <TouchableOpacity onPress={() => router.back()} className="mr-4">
+            <Ionicons name="arrow-back" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
+          <AppText variant="heading" weight="bold" className="text-white text-3xl">Profile</AppText>
+        </View>
         <ScrollView className="flex-1">
           {/* Profile Header Skeleton */}
           <View className="bg-white border-b border-gray-200 px-4 py-8">
@@ -97,14 +120,19 @@ export default function UserProfileScreen() {
             </View>
           </View>
         </ScrollView>
-      </View>
+      </View >
     );
   }
 
   if (profileError || !profile) {
     return (
       <View className="flex-1 bg-white">
-        <BackButton />
+        <View className="bg-primary px-6 pt-16 pb-6 shadow-sm flex-row items-center">
+          <TouchableOpacity onPress={() => router.back()} className="mr-4">
+            <Ionicons name="arrow-back" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
+          <AppText variant="heading" weight="bold" className="text-white text-3xl">Profile</AppText>
+        </View>
         <View className="flex-1 items-center justify-center px-4">
           <Ionicons name="person-outline" size={64} color="#9ca3af" />
           <AppText variant="heading" weight="semibold" className="mt-4 mb-2 text-gray-900">
@@ -131,7 +159,9 @@ export default function UserProfileScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <BackButton />
+      <ScreenHeader
+        title={isOwner ? "My Profile" : userName}
+      />
 
       <ScrollView
         className="flex-1"
@@ -193,13 +223,30 @@ export default function UserProfileScreen() {
           {!isOwner && (
             <View className="flex-row gap-3">
               <Button
-                variant="default"
                 size="lg"
                 className="flex-1"
-                leftIcon={<Ionicons name="chatbubble-ellipses-outline" size={20} color="#ffffff" />}
-                onPress={() => {
-                  // TODO: Navigate to chat
-                  console.log("Contact user");
+                disabled={isGettingChat}
+                leftIcon={isGettingChat ? <ActivityIndicator color="white" size="small" /> : <Ionicons name="chatbubble-ellipses-outline" size={20} color="#ffffff" />}
+                onPress={async () => {
+                  if (!isAuthenticated) {
+                    router.push("/(auth)/login");
+                  } else if (profile.id) {
+                    try {
+                      const chat = await getOrCreateChat({
+                        participant2_id: profile.id,
+                        ad_id: null
+                      });
+                      router.push(`/messages/${chat.id}`);
+                    } catch (error) {
+                      showAlert({
+                        title: "Error",
+                        message: "Failed to start conversation. Please try again.",
+                        icon: "alert-circle-outline",
+                        iconColor: "#ef4444",
+                        buttons: [{ text: "OK" }]
+                      });
+                    }
+                  }
                 }}
               >
                 Contact
@@ -209,13 +256,26 @@ export default function UserProfileScreen() {
                   variant="secondary"
                   size="lg"
                   className="flex-1"
-                  leftIcon={<Ionicons name="call-outline" size={20} color="#ffffff" />}
+                  leftIcon={<Ionicons name={showPhone ? "call-outline" : "eye-outline"} size={20} color="#ffffff" />}
                   onPress={() => {
-                    // TODO: Implement call
-                    console.log("Call user");
+                    if (!showPhone) {
+                      setShowPhone(true);
+                      // Notify user that their number was viewed
+                      if (currentUser && profile.id && String(currentUser.id) !== String(profile.id)) {
+                        notifyUser({
+                          recipient: Number(profile.id),
+                          type: 'phone_view',
+                          title: 'Phone Number Viewed',
+                          message: `${currentUser.full_name || currentUser.username} viewed your phone number on your profile.`,
+                          related_user: Number(currentUser.id)
+                        });
+                      }
+                    } else {
+                      Linking.openURL(`tel:${profile.phone}`);
+                    }
                   }}
                 >
-                  Call
+                  {showPhone ? "Call" : "Show Number"}
                 </Button>
               )}
             </View>
@@ -229,17 +289,15 @@ export default function UserProfileScreen() {
               <TouchableOpacity
                 key={tab}
                 onPress={() => setActiveTab(tab)}
-                className={`flex-1 py-3 rounded-t-lg border-b-2 ${
-                  activeTab === tab
-                    ? 'border-primary'
-                    : 'border-transparent'
-                }`}
+                className={`flex-1 py-3 rounded-t-lg border-b-2 ${activeTab === tab
+                  ? 'border-primary'
+                  : 'border-transparent'
+                  }`}
               >
                 <AppText
                   weight={activeTab === tab ? 'semibold' : 'medium'}
-                  className={`text-center capitalize ${
-                    activeTab === tab ? 'text-primary' : 'text-gray-600'
-                  }`}
+                  className={`text-center capitalize ${activeTab === tab ? 'text-primary' : 'text-gray-600'
+                    }`}
                 >
                   {tab}
                 </AppText>
@@ -291,7 +349,7 @@ export default function UserProfileScreen() {
                   {reviews.map((review: any) => {
                     const reviewerName = review.reviewer_name || review.reviewer?.full_name || review.reviewer?.first_name || 'User';
                     const reviewerInitials = reviewerName.split(' ').map((n: string) => n.charAt(0)).join('').slice(0, 2).toUpperCase();
-                    
+
                     return (
                       <View key={review.id} className="mb-4 p-4 border border-gray-200 rounded-xl">
                         <View className="flex-row items-start gap-3 mb-3">
@@ -337,6 +395,16 @@ export default function UserProfileScreen() {
 
         </View>
       </ScrollView>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        iconColor={alertConfig.iconColor}
+        buttons={alertConfig.buttons}
+        onDismiss={hideAlert}
+      />
     </View>
   );
 }

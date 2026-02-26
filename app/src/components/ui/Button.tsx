@@ -77,12 +77,14 @@ export default function Button({
         {loading && (
           <ActivityIndicator
             size="small"
-            color={variant === "outline" || variant === "ghost" ? "#cb234a" : "#fff"}
+            color={variant === "outline" || variant === "ghost" ? "#FF4F18" : "#fff"}
           />
         )}
         {!loading && leftIcon && leftIcon}
         <AppText
           weight="semibold"
+          numberOfLines={1}
+          style={{ flexShrink: 0 }}
           className={cn(
             textVariantStyles[variant],
             textSizeStyles[size]

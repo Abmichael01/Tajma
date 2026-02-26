@@ -263,7 +263,6 @@ export default function ReviewsSection({ adId, reviewStats: providedStats, isOwn
               </AppText>
               {canReview && (
                 <Button
-                  variant="default"
                   size="lg"
                   onPress={() => setShowReviewForm(true)}
                 >
