@@ -150,6 +150,22 @@ export const chatApi = {
     const response = await apiClient.post<UserOnlineStatus>(`${onlineStatusPath}set_offline/`)
     return response.data
   },
+
+  deleteMessages: async (messageIds: string[]): Promise<void> => {
+    await apiClient.post(`${messagesPath}bulk_delete/`, { message_ids: messageIds })
+  },
+
+  clearChat: async (chatId: string): Promise<void> => {
+    await apiClient.post(`${basePath}${chatId}/clear/`)
+  },
+
+  blockUser: async (userId: string | number): Promise<void> => {
+    await apiClient.post(`/auth/profile/${userId}/block/`)
+  },
+
+  muteChat: async (chatId: string, isMuted: boolean): Promise<void> => {
+    await apiClient.post(`${basePath}${chatId}/mute/`, { is_muted: isMuted })
+  },
 }
 
 export type { ChatSummary, ChatDetail, ChatMessage, UserOnlineStatus }

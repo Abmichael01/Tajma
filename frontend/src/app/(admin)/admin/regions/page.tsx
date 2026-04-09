@@ -12,14 +12,14 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/comp
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, MapPin, CheckCircle, XCircle, Eye, Trash2, Edit } from 'lucide-react'
+import { Plus, MapPin, CheckCircle, XCircle, Eye, Trash2, Edit, ChevronRight, Home } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import apiClient from '@/api/apiClient'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function AdminRegionsPage() {
-  const { data: regions, isLoading, refetch } = useRegions()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingRegion, setEditingRegion] = useState<Region | null>(null)
@@ -27,11 +27,34 @@ export default function AdminRegionsPage() {
     name: '',
     is_active: true,
     sort_order: 0,
+    level: 1,
+    parent: null as number | null,
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [activeLevel, setActiveLevel] = useState<number | 'all'>('all')
+  const [activeParentId, setActiveParentId] = useState<number | null>(null)
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
 
-  const regionsList = regions || []
+  const { data: response, isLoading, refetch } = useRegions({
+    page,
+    search,
+    level: activeLevel,
+    parent: activeParentId,
+  })
+
+  const regionsList = response?.results || []
+  const totalCount = response?.count || 0
+
+  const activeParent = useMemo(() => {
+    if (!activeParentId) return null
+    // We might not have the active parent in the current page results
+    // For now we'll try to find it, but ideally we'd fetch it separately or pass its name
+    return regionsList.find(r => r.id === activeParentId)
+  }, [regionsList, activeParentId])
+
+  // Removed local filteredRegions useMemo as we now use backend results directly
 
   const stats = useMemo(() => {
     const total = regionsList.length
@@ -48,7 +71,7 @@ export default function AdminRegionsPage() {
       await apiClient.post('/regions/', formData)
       toast.success('Region created successfully')
       setShowCreateModal(false)
-      setFormData({ name: '', is_active: true, sort_order: 0 })
+      setFormData({ name: '', is_active: true, sort_order: 0, level: 1, parent: null })
       refetch()
     } catch (error: any) {
       if (error?.response?.data) {
@@ -132,10 +155,38 @@ export default function AdminRegionsPage() {
     setEditingRegion(region)
     setFormData({
       name: region.name,
-      is_active: true, // We'd need to get this from API
-      sort_order: 0, // We'd need to get this from API
+      is_active: true,
+      sort_order: 0,
+      level: region.level || 1,
+      parent: region.parent || null,
     })
     setShowEditModal(true)
+  }
+
+  const handleOpenCreateModal = () => {
+    const defaultLevel = activeParent ? (activeParent.level || 0) + 1 : 1
+    const finalLevel = defaultLevel > 3 ? 3 : defaultLevel
+    
+    setFormData({
+      name: '',
+      is_active: true,
+      sort_order: 0,
+      level: finalLevel,
+      parent: activeParentId,
+    })
+    setShowCreateModal(true)
+  }
+
+  const handleDrillDown = (region: Region) => {
+    setActiveParentId(region.id)
+    setActiveLevel(((region.level || 0) + 1) as any)
+    setPage(1)
+  }
+
+  const resetFilters = () => {
+    setActiveParentId(null)
+    setActiveLevel('all')
+    setPage(1)
   }
 
   const columns: Column<Region>[] = [
@@ -143,6 +194,14 @@ export default function AdminRegionsPage() {
       key: 'name',
       header: 'Name',
       sortable: true,
+      render: (region) => (
+        <button 
+          onClick={() => (region.level && region.level < 3) ? handleDrillDown(region) : null}
+          className={region.level && region.level < 3 ? "text-primary hover:underline font-medium" : "font-medium"}
+        >
+          {region.name}
+        </button>
+      )
     },
     {
       key: 'slug',
@@ -150,10 +209,24 @@ export default function AdminRegionsPage() {
       render: (region) => region.slug || '-',
     },
     {
+      key: 'level',
+      header: 'Level',
+      render: (region) => (
+        <Badge variant={region.level === 1 ? 'default' : region.level === 2 ? 'secondary' : 'outline'}>
+          {region.level === 1 ? 'Region' : region.level === 2 ? 'Dept' : 'Commune'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'parent_name',
+      header: 'Parent',
+      render: (region) => (region as any).parent_name || '-',
+    },
+    {
       key: 'adsCount',
       header: 'Ads Count',
       render: (region) => (
-        <Badge variant="outline">
+        <Badge variant="outline" className="bg-gray-50">
           {region.adsCount.toLocaleString()}
         </Badge>
       ),
@@ -166,12 +239,45 @@ export default function AdminRegionsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-medium text-gray-900">Regions</h1>
-            <p className="text-gray-600 mt-1">Manage all regions</p>
+            <p className="text-gray-600 mt-1">Manage location hierarchy</p>
           </div>
-          <Button onClick={() => setShowCreateModal(true)}>
+          <Button onClick={handleOpenCreateModal}>
             <Plus className="w-4 h-4 mr-2" />
-            New Region
+            New {activeLevel === 2 ? 'Dept' : activeLevel === 3 ? 'Commune' : 'Region'}
           </Button>
+        </div>
+
+        {/* Organization Tools */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <Tabs value={activeLevel.toString()} onValueChange={(v: string) => {
+            const nextLevel = v === 'all' ? 'all' : parseInt(v)
+            setActiveLevel(nextLevel as any)
+            setActiveParentId(null)
+            setPage(1)
+          }}>
+            <TabsList>
+              <TabsTrigger value="all">All Levels</TabsTrigger>
+              <TabsTrigger value="1">Regions</TabsTrigger>
+              <TabsTrigger value="2">Departments</TabsTrigger>
+              <TabsTrigger value="3">Communes</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-1 text-sm bg-white px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm">
+            <button onClick={resetFilters} className="text-gray-500 hover:text-primary p-1">
+              <Home className="w-4 h-4" />
+            </button>
+            <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+            <span className={!activeParent ? "font-medium text-gray-900" : "text-gray-500"}>Niger</span>
+            
+            {activeParent && (
+              <>
+                <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                <span className="font-medium text-gray-900">{activeParent.name}</span>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Statistics Cards */}
@@ -202,8 +308,32 @@ export default function AdminRegionsPage() {
           data={regionsList}
           columns={columns}
           loading={isLoading}
+          serverSide
+          total={totalCount}
+          pagination={{
+            page,
+            pageSize: 20,
+          }}
+          onParamsChange={(params) => {
+            if (params.page !== page) setPage(params.page)
+            if (params.search !== search) {
+              setSearch(params.search)
+              setPage(1)
+            }
+          }}
+          emptyMessage={activeParentId ? `No sub-locations found in ${activeParent?.name || 'this location'}` : "No regions found"}
           actions={(region) => (
             <div className="flex items-center gap-2">
+              {region.level && region.level < 3 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" onClick={() => handleDrillDown(region)}>
+                      <ChevronRight className="w-4 h-4 text-primary" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">View children</TooltipContent>
+                </Tooltip>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href={`/admin/regions/${region.slug || region.id}`}>
@@ -260,6 +390,47 @@ export default function AdminRegionsPage() {
                 {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
               </div>
               <div>
+                <Label htmlFor="level">Level *</Label>
+                <Select
+                  value={formData.level.toString()}
+                  onValueChange={(val) => setFormData({ ...formData, level: parseInt(val), parent: null })}
+                >
+                  <SelectTrigger id="level">
+                    <SelectValue placeholder="Select level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Level 1 (Region)</SelectItem>
+                    <SelectItem value="2">Level 2 (Department)</SelectItem>
+                    <SelectItem value="3">Level 3 (Commune)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.level > 1 && (
+                <div>
+                  <Label htmlFor="parent">Parent {formData.level === 2 ? 'Region' : 'Department'} *</Label>
+                  <Select
+                    value={formData.parent?.toString() || ""}
+                    onValueChange={(val) => setFormData({ ...formData, parent: parseInt(val) })}
+                  >
+                    <SelectTrigger id="parent">
+                      <SelectValue placeholder={`Select ${formData.level === 2 ? 'Region' : 'Department'}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {regionsList
+                        .filter(r => r.level === formData.level - 1)
+                        .map(parent => (
+                          <SelectItem key={parent.id} value={parent.id.toString()}>
+                            {parent.name}
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div>
                 <Label htmlFor="sort_order">Sort Order</Label>
                 <Input
                   id="sort_order"
@@ -304,6 +475,47 @@ export default function AdminRegionsPage() {
                 />
                 {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
               </div>
+              <div>
+                <Label htmlFor="edit_level">Level *</Label>
+                <Select
+                  value={formData.level.toString()}
+                  onValueChange={(val) => setFormData({ ...formData, level: parseInt(val), parent: null })}
+                >
+                  <SelectTrigger id="edit_level">
+                    <SelectValue placeholder="Select level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Level 1 (Region)</SelectItem>
+                    <SelectItem value="2">Level 2 (Department)</SelectItem>
+                    <SelectItem value="3">Level 3 (Commune)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.level > 1 && (
+                <div>
+                  <Label htmlFor="edit_parent">Parent {formData.level === 2 ? 'Region' : 'Department'} *</Label>
+                  <Select
+                    value={formData.parent?.toString() || ""}
+                    onValueChange={(val) => setFormData({ ...formData, parent: parseInt(val) })}
+                  >
+                    <SelectTrigger id="edit_parent">
+                      <SelectValue placeholder={`Select ${formData.level === 2 ? 'Region' : 'Department'}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {regionsList
+                        .filter(r => r.level === formData.level - 1 && r.id !== editingRegion?.id)
+                        .map(parent => (
+                          <SelectItem key={parent.id} value={parent.id.toString()}>
+                            {parent.name}
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="edit_sort_order">Sort Order</Label>
                 <Input

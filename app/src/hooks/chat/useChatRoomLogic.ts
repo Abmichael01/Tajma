@@ -266,6 +266,36 @@ export function useChatRoomLogic(chatId: string) {
         setSelectedMessageIds(new Set());
     }, []);
 
+    const handleDeleteSelected = useCallback(async () => {
+        if (selectedMessageIds.size === 0) return;
+
+        const idsToDelete = Array.from(selectedMessageIds);
+        try {
+            await chatApi.deleteMessages(idsToDelete);
+
+            // Optimistically update the message list
+            queryClient.setQueryData(['messages', chatId], (oldData: any) => {
+                if (!oldData) return oldData;
+                return {
+                    ...oldData,
+                    pages: oldData.pages.map((page: any) => ({
+                        ...page,
+                        results: page.results.filter((msg: any) => !idsToDelete.includes(String(msg.id)))
+                    }))
+                };
+            });
+
+            // Invalidate chats to update last message if needed
+            queryClient.invalidateQueries({ queryKey: ['chats'] });
+            
+            clearSelection();
+        } catch (error) {
+            console.error('Failed to delete messages:', error);
+            // Invalidate to restore state
+            queryClient.invalidateQueries({ queryKey: ['messages', chatId] });
+        }
+    }, [chatId, selectedMessageIds, queryClient, clearSelection]);
+
     return {
         chat,
         messages,
@@ -294,6 +324,7 @@ export function useChatRoomLogic(chatId: string) {
         selectedMessageIds,
         toggleMessageSelection,
         clearSelection,
+        handleDeleteSelected,
         user: currentUser,
     };
 }

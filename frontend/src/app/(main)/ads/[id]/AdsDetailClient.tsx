@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,8 @@ import { useAuthStore } from '@/store/authStore'
 import { useToggleSaveAd } from '@/hooks/useSavedAds'
 import ReviewsSection from '@/components/ads/ReviewsSection'
 import { useReviewStats } from '@/hooks/useReviews'
+import { useCategories } from '@/hooks/useCategories'
+import { cn } from '@/lib/utils'
 import ReportAdModal from '@/components/modals/ReportAdModal'
 import ShareAdModal from '@/components/modals/ShareAdModal'
 import CallSellerModal from '@/components/modals/CallSellerModal'
@@ -26,6 +28,7 @@ import AdDescription from '@/components/ads/AdDescription'
 import AdInfo from '@/components/ads/AdInfo'
 import AdSellerInfo from '@/components/ads/AdSellerInfo'
 import AdSafetyTips from '@/components/ads/AdSafetyTips'
+import AdMap from '@/components/ads/AdMap'
 import { useLanguage, getDefaultMessages } from '@/hooks/useLanguage'
 
 interface AdsDetailClientProps {
@@ -78,6 +81,25 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
     !!ad?.id
   )
 
+  const { categoryTree } = useCategories()
+
+  const categoryPath = useMemo(() => {
+    if (!ad?.category || !categoryTree) return null
+    
+    const findCategoryPath = (categories: any[], slug: string, path: any[] = []): any[] | null => {
+      for (const cat of categories) {
+        if (cat.slug === slug || cat.id === slug) return [...path, cat]
+        if (cat.children || cat.subcategories) {
+          const found = findCategoryPath(cat.children || cat.subcategories || [], slug, [...path, cat])
+          if (found) return found
+        }
+      }
+      return null
+    }
+    
+    return findCategoryPath(categoryTree, ad.category)
+  }, [ad?.category, categoryTree])
+
   // Get images from backend ad
   const adImages = ad?.images && ad.images.length > 0
     ? ad.images
@@ -102,7 +124,7 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
 
   // Format price
   const formattedPrice = ad?.price
-    ? `${ad.currency || 'Fr'} ${parseFloat(String(ad.price)).toLocaleString()}`
+    ? `${ad.currency || 'XOF'} ${parseFloat(String(ad.price)).toLocaleString()}`
     : 'Contact for price'
 
   // Get location from seller
@@ -247,11 +269,31 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white py-4 sm:py-8">
+    <div className="min-h-screen bg-gray-50/50 py-4 sm:py-8">
       <div className="container">
-        {/* Back Button */}
-        <div className="hidden md:block mb-4 sm:mb-6">
-          <BackButton />
+        {/* Breadcrumbs */}
+        <div className="flex flex-wrap items-center gap-y-2 gap-x-2 mb-6 sm:mb-8 text-xs sm:text-sm text-gray-400">
+          <BackButton variant="outline" className="mr-2" />
+          {categoryPath && categoryPath.map((cat, index) => (
+            <React.Fragment key={cat.slug || cat.id}>
+              {index > 0 && <span className="text-gray-300 mx-1">&gt;</span>}
+              <Link 
+                href={`/category/${cat.slug}`}
+                className="hover:text-primary transition-colors font-medium text-gray-400"
+              >
+                {cat.name}
+              </Link>
+            </React.Fragment>
+          ))}
+          {categoryPath && (
+            <>
+              <span className="text-gray-300 mx-1">&gt;</span>
+              <span className="text-primary font-medium">{ad.title}</span>
+            </>
+          )}
+          {!categoryPath && (
+             <span className="text-primary font-medium">{ad.title}</span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -273,6 +315,19 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
             {/* Ad Info */}
             {ad.attributes && Object.keys(ad.attributes).length > 0 && (
               <AdInfo attributes={ad.attributes} />
+            )}
+
+            {/* Map Section */}
+            {(ad.latitude && ad.longitude) && (
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Location</h3>
+                <AdMap 
+                  latitude={ad.latitude ?? undefined} 
+                  longitude={ad.longitude ?? undefined} 
+                  title={ad.title} 
+                  locationName={(ad.location_name || ad.location) ?? undefined} 
+                />
+              </div>
             )}
 
             {/* Reviews Section */}
@@ -334,6 +389,19 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
           {ad.attributes && Object.keys(ad.attributes).length > 0 && (
             <div className="lg:hidden mt-6">
               <AdInfo attributes={ad.attributes} />
+            </div>
+          )}
+
+          {/* Map (Mobile) */}
+          {(ad.latitude && ad.longitude) && (
+            <div className="lg:hidden mt-6 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Location</h3>
+              <AdMap 
+                latitude={ad.latitude ?? undefined} 
+                longitude={ad.longitude ?? undefined} 
+                title={ad.title} 
+                locationName={(ad.location_name || ad.location) ?? undefined} 
+              />
             </div>
           )}
 

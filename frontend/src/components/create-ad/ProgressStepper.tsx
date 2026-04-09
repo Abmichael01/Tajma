@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { CheckCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface Step {
   num: number
@@ -15,71 +16,58 @@ interface ProgressStepperProps {
   showMeta?: boolean
 }
 
-export default function ProgressStepper({ currentStep, steps, showMeta = true }: ProgressStepperProps) {
+export default function ProgressStepper({ currentStep, steps, showMeta = false }: ProgressStepperProps) {
   return (
-    <div className="mb-6 sm:mb-8">
-      {/* Steps Container with background line */}
-      <div className="relative">
-        {/* Background connecting line */}
-        <div 
-          className="absolute top-5 sm:top-6 left-0 right-0 h-0.5 bg-gray-300 z-0" 
-          style={{ marginLeft: '5%', marginRight: '5%' }}
-        />
+    <div className="mb-8">
+      {/* Steps Container */}
+      <div className="relative flex items-center justify-between">
+        {/* Continuous Background Line */}
+        <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 z-0 rounded-full" />
         
-        {/* Active progress line */}
+        {/* Active Progress Line */}
         <div 
-          className="absolute top-5 sm:top-6 h-0.5 bg-secondary z-0 transition-all duration-500"
+          className="absolute top-1/2 h-1 bg-primary -translate-y-1/2 z-0 transition-all duration-700 ease-in-out rounded-full"
           style={{ 
-            left: '5%',
-            width: `${((currentStep - 1) / (steps.length - 1)) * 90}%`
+            left: 0,
+            width: `${((currentStep - 1) / (steps.length - 1)) * 100}%`
           }}
         />
         
         {/* Steps */}
-        <div className="relative flex items-start justify-between z-10">
-          {steps.map((stepItem) => (
-            <div key={stepItem.num} className="flex flex-col items-center" style={{ flex: '1 1 0%' }}>
-              {/* Step Circle */}
-              <div className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 border-2 transition-all duration-300 bg-white rounded-lg ${
-                currentStep >= stepItem.num 
-                  ? 'border-secondary shadow-lg' 
-                  : 'border-gray-300'
-              }`}>
-                {currentStep > stepItem.num ? (
-                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
-                ) : currentStep === stepItem.num ? (
-                  <span className="text-base sm:text-lg font-bold text-secondary">{stepItem.num}</span>
+        {steps.map((stepItem, idx) => {
+          const isCompleted = currentStep > stepItem.num
+          const isActive = currentStep === stepItem.num
+          
+          return (
+            <div key={stepItem.num} className="relative z-10 flex flex-col items-center">
+              {/* Step Marker */}
+              <div className={cn(
+                "w-8 h-8 rounded-full border-4 flex items-center justify-center transition-all duration-500",
+                isCompleted ? "bg-primary border-primary" : 
+                isActive ? "bg-white border-primary scale-110 shadow-md" : 
+                "bg-white border-gray-200"
+              )}>
+                {isCompleted ? (
+                  <CheckCircle className="w-4 h-4 text-white" />
                 ) : (
-                  <span className="text-base sm:text-lg font-bold text-gray-400">{stepItem.num}</span>
+                  <div className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    isActive ? "bg-primary" : "bg-gray-300"
+                  )} />
                 )}
               </div>
               
-              {/* Step Label */}
-              <div className="mt-3 text-center max-w-[100px] sm:max-w-none px-2">
-                <p className={`text-xs sm:text-sm font-semibold transition-colors ${
-                  currentStep >= stepItem.num ? 'text-secondary' : 'text-gray-600'
-                }`}>
-                  {stepItem.label}
-                </p>
-                <p className="text-xs text-gray-500 mt-0.5 hidden sm:block">
-                  {stepItem.desc}
-                </p>
-              </div>
+              {/* Conditional Label (only for active or completed on larger screens) */}
+              <span className={cn(
+                "absolute -bottom-6 text-[10px] font-bold uppercase tracking-tighter whitespace-nowrap transition-all duration-300",
+                isActive ? "text-primary opacity-100 -translate-y-0.5" : "text-gray-400 opacity-0 sm:opacity-70"
+              )}>
+                {stepItem.label}
+              </span>
             </div>
-          ))}
-        </div>
+          )
+        })}
       </div>
-      
-      {showMeta && (
-        <div className="mt-6 flex items-center justify-between text-sm">
-          <span className="text-gray-600">
-            Step {currentStep} of {steps.length}
-          </span>
-          <span className="text-secondary font-medium">
-            {Math.round((currentStep / steps.length) * 100)}% Complete
-          </span>
-        </div>
-      )}
     </div>
   )
 }

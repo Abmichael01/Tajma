@@ -1,8 +1,11 @@
 "use client"
 
 import React, { useState } from 'react'
+import ProfileMobileNav from './ProfileMobileNav'
+import BackButton from '../ui/BackButton'
 import Link from 'next/link'
 import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,10 +21,13 @@ import {
   Mail,
   ArrowRight,
   FileText,
-  BadgeCheck
+  BadgeCheck,
+  Clock
 } from 'lucide-react'
 import type { User, UserWithReviewStats, Ad, Review, ReviewStats } from '@/api/types'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { getMediaUrl } from '@/lib/utils'
+
 import KYCModal from '../modals/KYCModal'
 
 interface ProfileHeaderProps {
@@ -78,306 +84,249 @@ export default function ProfileHeader({
   const websiteUrl = formatWebsite(user.website)
 
   return (
-    <div className="bg-white border border-gray-200 p-4 sm:p-6 mb-6">
-      {/* User Info */}
-      <div className="text-center mb-6">
-        <Avatar className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4">
-          <AvatarImage src={user.avatar || undefined} alt={fullName} />
-          <AvatarFallback className="bg-secondary text-secondary-foreground text-lg sm:text-xl">
-            {getUserInitials(user)}
-          </AvatarFallback>
-        </Avatar>
-
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900">{fullName}</h1>
-          {user.is_verified && (
-            <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-          )}
+    <div className={`overflow-hidden bg-white border border-gray-200 rounded-[32px] mb-6 shadow-sm lg:mx-0`}>
+        {/* Advanced Mesh Gradient Banner */}
+        <div className="h-32 sm:h-44 bg-[#0f1115] relative overflow-hidden group">
+          {/* Animated Mesh Elements */}
+          <motion.div 
+            animate={{
+              scale: [1, 1.2, 1],
+              x: [0, 50, 0],
+              y: [0, 30, 0],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute -top-24 -right-24 w-96 h-96 bg-primary/30 rounded-full blur-[100px]"
+          />
+          <motion.div 
+            animate={{
+              scale: [1.2, 1, 1.2],
+              x: [0, -40, 0],
+              y: [0, 50, 0],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute -bottom-32 -left-32 w-[30rem] h-[30rem] bg-primary/5 rounded-full blur-[120px]"
+          />
+          
+          {/* Glassy Overlay & Grain */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/40 via-primary/5 to-primary/20"></div>
+          <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+          
+          
+          {/* Subtle bottom fade */}
+          <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black/40 to-transparent"></div>
         </div>
 
-        <div className="flex items-center justify-center gap-1 text-yellow-500 mb-3">
-          <Star className="w-4 h-4" />
-          <span className="font-bold">{stats.rating}</span>
-          <span className="text-xs sm:text-sm text-gray-500 ml-1">({stats.joinedDays} days)</span>
-        </div>
+      <div className={`${isOwner ? "px-4" : "px-0"} sm:px-8 pb-6 sm:pb-8`}>
+        {/* User Info Container - Overlapping with cover */}
+        <div className={`relative -mt-12 sm:-mt-16 text-center flex flex-col items-center gap-4 sm:gap-6 mb-8 ${!isOwner ? "px-4" : ""}`}>
+          {/* Simplified Avatar Container */}
+          <div className="mx-auto sm:mx-0">
+            <Avatar className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-white bg-white">
+              <AvatarImage src={getMediaUrl(user.avatar)} alt={fullName} />
 
-        <div className="space-y-2 text-xs sm:text-sm text-gray-600">
-          {user.location && (
-            <div className="flex items-center justify-center gap-1">
-              <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-              {user.location}
+              <AvatarFallback className="bg-gray-950 text-white text-2xl sm:text-3xl">
+                {getUserInitials(user)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          <div className="flex-1 pb-1">
+            <div className="flex flex-col items-center gap-2 mb-3">
+              <div className="flex items-center justify-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">{fullName}</h1>
+                {user.is_verified && (
+                  <div className="flex items-center text-green-600">
+                    <Shield className="w-4 h-4 mr-1 fill-current" />
+                    <span className="text-xs font-medium">Verified</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Verified Badge and Stats in a row on mobile, separate on desktop? */}
+              <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center gap-1 text-yellow-500">
+                  <Star className="w-3.5 h-3.5 fill-current" />
+                  <span className="text-xs font-semibold">{stats.rating}</span>
+                </div>
+                <div className="text-xs text-gray-500 font-medium flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {stats.joinedDays} days on platform
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 font-medium">
+              {user.location && (
+                <div className="flex items-center gap-1.5 opacity-80">
+                  <MapPin className="w-3.5 h-3.5 text-primary" />
+                  {user.location}
+                </div>
+              )}
+              <div className="flex items-center gap-1.5 opacity-80">
+                <Calendar className="w-3.5 h-3.5 text-primary" />
+                Member since {new Date().getFullYear()}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Contact for Desktop */}
+          {!isOwner && (
+            <div className="hidden lg:flex items-center gap-3">
+              {onContactClick && (
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    onClick={onContactClick}
+                    variant="secondary"
+                    className="flex items-center gap-2 rounded-full px-6 shadow-md"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Message
+                  </Button>
+                </motion.div>
+              )}
             </div>
           )}
-          <div className="flex items-center justify-center gap-1">
-            <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-            Joined {stats.joinedDays} days ago
-          </div>
-        </div>
 
-        {/* KYC Verification Button */}
-        {isOwner && !user.is_verified && (
-          <div className="mt-4">
-            <Button
-              onClick={() => setIsKYCModalOpen(true)}
-              variant="outline"
-              size="sm"
-              className="border-primary text-primary hover:bg-primary/5 gap-2"
-            >
-              <BadgeCheck className="w-4 h-4" />
-              {user.kyc_status === 'pending' ? 'Verification Pending' : 'Verify Identity'}
-            </Button>
-            {user.kyc_status === 'rejected' && (
-              <p className="text-[10px] text-red-500 mt-1">
-                Previous attempt failed. Click to try again.
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      <KYCModal
-        isOpen={isKYCModalOpen}
-        onClose={() => setIsKYCModalOpen(false)}
-      />
-
-      {/* Bio Section */}
-      <div className="border-t border-gray-200 pt-4">
-        <h3 className="text-xs sm:text-sm font-medium text-gray-900 mb-2">About</h3>
-        <div className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-          <p>{displayBio}</p>
-          {shouldTruncate && (
-            <button
-              onClick={() => setIsBioExpanded(!isBioExpanded)}
-              className="text-secondary hover:text-secondary/80 font-medium mt-2 flex items-center gap-1 text-xs sm:text-sm"
-            >
-              {isBioExpanded ? (
-                <>
-                  <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                  See less
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
-                  See all
-                </>
-              )}
-            </button>
+          {/* Verification Call to Action for Owner */}
+          {isOwner && !user.is_verified && (
+            <div className="hidden sm:block">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => setIsKYCModalOpen(true)}
+                  variant="outline"
+                  className="border-primary/40 text-primary hover:bg-primary/5 gap-2 rounded-full px-6 bg-primary/3"
+                >
+                  <BadgeCheck className="w-4 h-4" />
+                  {user.kyc_status === 'pending' ? 'Pending Approval' : 'Verify Identity'}
+                </Button>
+              </motion.div>
+            </div>
           )}
         </div>
-      </div>
 
-      {/* Additional User Info */}
-      <div className="border-t border-gray-200 pt-4 mt-4 space-y-3">
-        {/* Location */}
-        {user.location && (
-          <div className="flex items-start gap-2 text-xs sm:text-sm text-gray-600">
-            <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-            <span>{user.location}</span>
+        <KYCModal
+          isOpen={isKYCModalOpen}
+          onClose={() => setIsKYCModalOpen(false)}
+        />
+
+        {/* Bio/About Section with Framer Motion */}
+        <div className={`border-t border-gray-200 pt-6 mt-2 ${!isOwner ? "px-4" : ""}`}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-1 h-5 bg-primary" />
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-widest leading-none pt-0.5">About Seller</h3>
           </div>
-        )}
+          <div className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-3xl">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={isBioExpanded ? 'expanded' : 'collapsed'}
+                initial={{ opacity: 0, height: 'auto' }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+              >
+                <p>
+                  {isBioExpanded ? bio : displayBio}
+                </p>
+              </motion.div>
+            </AnimatePresence>
 
-        {/* Website */}
-        {websiteUrl && (
-          <div className="flex items-start gap-2">
-            <Globe className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-            <a
+            {shouldTruncate && (
+              <button
+                onClick={() => setIsBioExpanded(!isBioExpanded)}
+                className="text-primary hover:text-primary/80 font-semibold mt-3 flex items-center gap-1 text-sm group"
+              >
+                {isBioExpanded ? (
+                  <>
+                    <ChevronUp className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" />
+                    Show less
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="w-4 h-4 transition-transform group-hover:translate-y-0.5" />
+                    Read full profile
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Links & Contact Info */}
+        <div className={`flex flex-wrap gap-x-6 gap-y-3 mt-6 text-sm text-gray-500 font-medium ${!isOwner ? "px-4" : ""}`}>
+          {websiteUrl && (
+            <Link
               href={websiteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs sm:text-sm text-secondary hover:text-secondary/80 hover:underline truncate"
+              className="flex items-center gap-2 hover:text-primary transition-colors"
             >
-              {user.website}
-            </a>
+              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:border-primary/30">
+                <Globe className="w-4 h-4" />
+              </div>
+              <span className="underline underline-offset-4">{user.website}</span>
+            </Link>
+          )}
+
+          {user.email && isOwner && (
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200">
+                <Mail className="w-4 h-4" />
+              </div>
+              <span>{user.email}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Contact Actions */}
+        {!isOwner && (
+          <div className="sm:hidden grid grid-cols-2 gap-3 mt-8 pt-6 border-t border-gray-50 px-4">
+            {onContactClick && (
+              <Button
+                onClick={onContactClick}
+                variant="secondary"
+                className="w-full flex items-center justify-center gap-2 text-xs rounded-full py-6 shadow-sm shadow-secondary/10"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Message
+              </Button>
+            )}
+            {user.phone && onCallClick && (
+              <Button
+                onClick={onCallClick}
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2 text-xs rounded-full py-6 border-gray-200"
+              >
+                <Phone className="w-4 h-4" />
+                Call
+              </Button>
+            )}
           </div>
         )}
 
-        {/* Email (only show if owner) */}
-        {user.email && isOwner && (
-          <div className="flex items-start gap-2 text-xs sm:text-sm text-gray-600">
-            <Mail className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-            <span className="truncate">{user.email}</span>
+        {/* Verification Call to Action for Owner (Mobile) */}
+        {isOwner && !user.is_verified && (
+          <div className="sm:hidden mt-8 pt-6 border-t border-gray-50">
+            <Button
+              onClick={() => setIsKYCModalOpen(true)}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2 text-sm rounded-full py-6 border-primary/20 text-primary bg-primary/3"
+            >
+              <BadgeCheck className="w-5 h-5" />
+              {user.kyc_status === 'pending' ? 'Verification Pending' : 'Verify Your Identity'}
+            </Button>
           </div>
         )}
       </div>
 
-      {/* Contact Buttons */}
-      {!isOwner && (
-        <div className="border-t border-gray-200 pt-4 mt-4 space-y-2">
-          {onContactClick && (
-            <Button
-              onClick={onContactClick}
-              variant="secondary"
-              className="w-full flex items-center justify-center gap-2 text-xs sm:text-sm"
-              size="sm"
-            >
-              <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
-              Contact Seller
-            </Button>
-          )}
-          {user.phone && onCallClick && (
-            <Button
-              onClick={onCallClick}
-              variant="outline"
-              className="w-full flex items-center justify-center gap-2 text-xs sm:text-sm"
-              size="sm"
-            >
-              <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
-              Call Seller
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Mobile: Ads Section */}
-      {!isOwner && (
-        <div className="lg:hidden border-t border-gray-200 pt-4 mt-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Ads
-            </h3>
-            {ads.length > 0 && onNavigate && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('ads')}
-                className="text-xs text-secondary hover:text-secondary/80"
-              >
-                View All
-                <ArrowRight className="w-3 h-3 ml-1" />
-              </Button>
-            )}
-          </div>
-
-          {adsLoading ? (
-            <div className="py-4 text-center text-sm text-gray-500">Loading ads...</div>
-          ) : ads.length > 0 ? (
-            <div className="space-y-3">
-              {/* Show first ad */}
-              {(() => {
-                const firstAd = ads[0]
-                const imageUrl = firstAd.images && firstAd.images.length > 0
-                  ? firstAd.images[0]
-                  : 'https://via.placeholder.com/400x300?text=No+Image'
-                const formattedPrice = firstAd.price
-                  ? `${firstAd.currency || 'Fr'} ${parseFloat(String(firstAd.price)).toLocaleString()}`
-                  : 'Contact for price'
-
-                return (
-                  <Link
-                    href={`/ads/${firstAd.slug || firstAd.id}`}
-                    className="block bg-gray-50 border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex gap-3">
-                      <div className="relative w-20 h-20 flex-shrink-0">
-                        <Image
-                          src={imageUrl}
-                          alt={firstAd.title}
-                          fill
-                          className="object-cover"
-                          sizes="80px"
-                        />
-                      </div>
-                      <div className="flex-1 py-2 pr-2 min-w-0">
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                          {firstAd.title}
-                        </h4>
-                        <p className="text-xs font-semibold text-secondary">{formattedPrice}</p>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })()}
-            </div>
-          ) : (
-            <div className="py-4 text-center text-sm text-gray-500">
-              No ads available
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Mobile: Reviews Section */}
-      {!isOwner && (
-        <div className="lg:hidden border-t border-gray-200 pt-4 mt-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Star className="w-4 h-4" />
-              Reviews
-            </h3>
-            {reviews.length > 0 && onNavigate && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('reviews')}
-                className="text-xs text-secondary hover:text-secondary/80"
-              >
-                View All
-                <ArrowRight className="w-3 h-3 ml-1" />
-              </Button>
-            )}
-          </div>
-
-          {reviewsLoading ? (
-            <div className="py-4 text-center text-sm text-gray-500">Loading reviews...</div>
-          ) : reviews.length > 0 ? (
-            <div className="space-y-3">
-              {/* Show last review */}
-              {(() => {
-                const lastReview = reviews[reviews.length - 1]
-                const formatDate = (dateString: string) => {
-                  const date = new Date(dateString)
-                  return date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })
-                }
-
-                return (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                    <div className="flex items-start gap-2 mb-2">
-                      <Avatar className="w-8 h-8 flex-shrink-0">
-                        <AvatarImage
-                          src={lastReview.reviewer_avatar || lastReview.reviewer?.avatar || undefined}
-                          alt={lastReview.reviewer_name || 'User'}
-                        />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                          {(lastReview.reviewer_name || 'U').charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-medium text-gray-900 truncate">
-                            {lastReview.reviewer_name || lastReview.reviewer?.full_name || 'Anonymous'}
-                          </span>
-                          <div className="flex items-center gap-0.5">
-                            {Array.from({ length: 5 }, (_, i) => (
-                              <Star
-                                key={i}
-                                className={`w-3 h-3 ${i < lastReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                                  }`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500">{formatDate(lastReview.created_at)}</p>
-                      </div>
-                    </div>
-                    {lastReview.comment && (
-                      <p className="text-xs text-gray-700 line-clamp-2">{lastReview.comment}</p>
-                    )}
-                  </div>
-                )
-              })()}
-            </div>
-          ) : (
-            <div className="py-4 text-center text-sm text-gray-500">
-              No reviews yet
-            </div>
-          )}
-        </div>
-      )}
+      {/* Featured Ad Shadow Highlight on side or bottom? No, let's keep it simple for now */}
     </div>
   )
 }

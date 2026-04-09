@@ -10,36 +10,28 @@ export function SearchBar({
   setSearchQuery,
   selectedRegion,
   onRegionPress,
-  onSearch
+  onFilterPress,
+  onSearch,
+  showRegion = true,
+  showFilter = true,
 }: {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectedRegion: string;
   onRegionPress: () => void;
+  onFilterPress?: () => void;
   onSearch: () => void;
+  showRegion?: boolean;
+  showFilter?: boolean;
 }) {
   return (
     <View className="flex-row gap-2">
-      {/* Region Selector Button */}
-      <TouchableOpacity
-        className="flex-row items-center justify-between gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full min-w-[140px]"
-        onPress={onRegionPress}
-      >
-        <View className="flex-row items-center gap-2 flex-1">
-          <Ionicons name="location-outline" size={20} color="#FF4F18" />
-          <AppText variant="default" className="text-gray-700" numberOfLines={1}>
-            {selectedRegion}
-          </AppText>
-        </View>
-        <Ionicons name="chevron-down" size={16} color="#9ca3af" />
-      </TouchableOpacity>
-
-      {/* Search Input */}
+      {/* Search Input Container */}
       <View className="flex-1 flex-row items-center bg-white border border-gray-300 rounded-full px-4 py-2">
         <Ionicons name="search-outline" size={20} color="#9ca3af" style={{ marginRight: 8 }} />
         <TextInput
           className="flex-1 text-base text-gray-900 py-1"
-          placeholder="What are you looking for today?"
+          placeholder="Search..."
           placeholderTextColor="#9ca3af"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -55,6 +47,29 @@ export function SearchBar({
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Region Selector Button */}
+      {showRegion && (
+        <TouchableOpacity
+          className="flex-row items-center bg-white border border-gray-300 rounded-full px-4 h-12"
+          onPress={onRegionPress}
+        >
+          <Ionicons name="location-outline" size={18} color="#FF4F18" style={{ marginRight: 4 }} />
+          <AppText weight="medium" className="text-gray-700 text-xs" numberOfLines={1}>
+            {selectedRegion}
+          </AppText>
+        </TouchableOpacity>
+      )}
+
+      {/* Filter Button */}
+      {showFilter && (
+        <TouchableOpacity
+          className="flex-row items-center justify-center p-2.5 bg-white border border-gray-300 rounded-full w-12 h-12"
+          onPress={onFilterPress}
+        >
+          <Ionicons name="options-outline" size={22} color="#FF4F18" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -64,6 +79,7 @@ interface HeroProps {
   setSearchQuery: (query: string) => void;
   selectedRegion: string;
   onRegionPress: () => void;
+  onFilterPress?: () => void;
   onSearch: () => void;
 }
 
@@ -72,6 +88,7 @@ export default function Hero({
   setSearchQuery,
   selectedRegion,
   onRegionPress,
+  onFilterPress,
   onSearch,
 }: HeroProps) {
   const insets = useSafeAreaInsets();
@@ -128,6 +145,7 @@ export default function Hero({
           selectedRegion={selectedRegion}
           onRegionPress={onRegionPress}
           onSearch={onSearch}
+          showFilter={false}
         />
       </View>
     </View>

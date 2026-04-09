@@ -221,7 +221,10 @@ def google_callback(request):
                 social_account.extra_data = user_info
                 social_account.save()
         
-        # Log the user in
+        # Log the user in — specify backend explicitly since user was obtained via
+        # User.objects.get() (not authenticate()), so user.backend is not set.
+        # Without this, login() raises ValueError if multiple backends are configured.
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request._request, user)
         
         # For mobile apps (GET request with mobile_app=true), redirect to app deep link

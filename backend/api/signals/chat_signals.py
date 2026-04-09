@@ -7,15 +7,16 @@ import logging
 import uuid
 from types import SimpleNamespace
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from api.models import Message, Chat, UserOnlineStatus
+from api.models import Message, Chat, UserOnlineStatus, Notification
 from api.serializers import MessageSerializer, ChatSerializer
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.db import models
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -127,6 +128,28 @@ def broadcast_message_on_create(sender, instance, created, **kwargs):
             
             # Also broadcast chat event to update chat list
             broadcast_chat_event_for_message(instance, message_data)
+
+            # 🚀 Create System Notification (which triggers FCM push)
+            try:
+                if instance.sender_id != recipient.id:
+                    # Check if we should send notification (rate limiting/duplicates)
+                    if Notification.should_send_notification(
+                        recipient=recipient,
+                        notification_type='message',
+                        related_user=instance.sender,
+                        related_ad=chat.ad
+                    ):
+                        Notification.objects.create(
+                            recipient=recipient,
+                            type='message',
+                            title=f'New message from {instance.sender.get_full_name()}',
+                            message=instance.content[:100] + ('...' if len(instance.content) > 100 else ''),
+                            related_user=instance.sender,
+                            related_ad=chat.ad
+                        )
+                        logger.info(f"✅ Created notification for message {instance.id} for user {recipient.id}")
+            except Exception as e:
+                logger.error(f"❌ Failed to create notification for message {instance.id}: {e}")
         else:
             # Message updated (e.g., marked as read) - broadcast status update
             # Only broadcast if read status changed
@@ -289,4 +312,19 @@ def broadcast_message_read_status(chat_id, message_ids, user_id):
                 
     except Exception as e:
         logger.error(f"Error in broadcast_message_read_status: {e}", exc_info=True)
+
+
+@receiver(post_delete, sender=Message)
+def delete_attachment_on_message_delete(sender, instance, **kwargs):
+    """
+    Delete the attachment file from storage when the message is deleted.
+    """
+    if instance.attachment:
+        try:
+            # delete() method of FileField takes 'save' argument. 
+            # We set it to False to avoid saving the model instance again.
+            instance.attachment.delete(save=False)
+            logger.info(f"✅ Successfully deleted attachment for message {instance.id}")
+        except Exception as e:
+            logger.error(f"❌ Error deleting attachment for message {instance.id}: {e}")
 

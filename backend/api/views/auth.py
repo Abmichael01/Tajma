@@ -18,6 +18,9 @@ from api.serializers.user import (
     UserLoginSerializer,
     UserUpdateSerializer,
 )
+from api.models import Review, Notification
+from api.services.response_stats import calculate_response_stats_for_seller
+from django.db.models import Avg, Count, Q
 from api.utils.image_upload import save_uploaded_file
 
 
@@ -122,12 +125,33 @@ class CurrentUserView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
             
-        return Response(
-            {
-                'user': UserDetailsSerializer(request.user).data
-            },
-            status=status.HTTP_200_OK
+        serializer = UserDetailsSerializer(request.user, context={'request': request})
+        data = serializer.data
+        
+        # Calculate review statistics
+        review_stats = Review.objects.filter(seller=request.user).aggregate(
+            total_reviews=Count('id'),
+            average_rating=Avg('rating'),
+            rating_5=Count('id', filter=Q(rating=5)),
+            rating_4=Count('id', filter=Q(rating=4)),
+            rating_3=Count('id', filter=Q(rating=3)),
+            rating_2=Count('id', filter=Q(rating=2)),
+            rating_1=Count('id', filter=Q(rating=1)),
         )
+        
+        # Round average rating
+        if review_stats['average_rating']:
+            review_stats['average_rating'] = round(float(review_stats['average_rating']), 1)
+        else:
+            review_stats['average_rating'] = 0.0
+            
+        data['review_stats'] = review_stats
+        
+        # Calculate response statistics
+        response_stats = calculate_response_stats_for_seller(request.user)
+        data['response_stats'] = response_stats
+        
+        return Response({'user': data}, status=status.HTTP_200_OK)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -201,6 +225,10 @@ class ProfileUpdateView(APIView):
                 },
                 status=status.HTTP_200_OK
             )
+        import os
+        with open("/tmp/django_errors.log", "a") as f:
+            f.write(f"Errors: {serializer.errors}\nData: {data}\n\n")
+            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self, request):

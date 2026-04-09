@@ -1,13 +1,7 @@
 "use client"
 
 import React, { useEffect, useState, useRef } from 'react'
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from '@/components/ui/dialog'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { kycApi } from '@/api/kyc'
 import { Shield, AlertCircle, CheckCircle2 } from 'lucide-react'
@@ -20,11 +14,11 @@ interface KYCModalProps {
 }
 
 declare global {
-    namespace JSX {
-        interface IntrinsicElements {
-            'smile-id-smart-camera': any
-        }
+  namespace JSX {
+    interface IntrinsicElements {
+      'smile-id-smart-camera': any
     }
+  }
 }
 
 export default function KYCModal({ isOpen, onClose }: KYCModalProps) {
@@ -80,19 +74,14 @@ export default function KYCModal({ isOpen, onClose }: KYCModalProps) {
     }, [step])
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-primary" />
-                        Identity Verification
-                    </DialogTitle>
-                    <DialogDescription>
-                        Securely verify your identity to build trust on Tajma.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div className="py-6">
+        <ResponsiveModal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Identity Verification"
+            description="Securely verify your identity to build trust on Tajma."
+            className="sm:max-w-[500px]"
+        >
+                <div className="py-2">
                     {step === 'intro' && (
                         <div className="text-center space-y-4">
                             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
@@ -139,6 +128,7 @@ export default function KYCModal({ isOpen, onClose }: KYCModalProps) {
 
                     {step === 'capturing' && tokenData && (
                         <div className="aspect-square bg-black rounded-lg overflow-hidden relative">
+                            {/* @ts-ignore */}
                             <smile-id-smart-camera
                                 ref={cameraRef}
                                 token={tokenData.token}
@@ -189,7 +179,6 @@ export default function KYCModal({ isOpen, onClose }: KYCModalProps) {
                         </div>
                     )}
                 </div>
-            </DialogContent>
-        </Dialog>
+        </ResponsiveModal>
     )
 }

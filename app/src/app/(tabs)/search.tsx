@@ -13,6 +13,8 @@ import { useRegions, Region } from "@/hooks/useRegions";
 import { useCategories } from "@/hooks/useCategories";
 import { Category } from "@/types/category";
 import CategoryModal from "@/components/ads/CategoryModal";
+import FilterModal, { FilterState } from "@/components/ads/FilterModal";
+import ScreenHeader from "@/components/ui/ScreenHeader";
 
 export default function SearchScreen() {
     const router = useRouter();
@@ -28,31 +30,55 @@ export default function SearchScreen() {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
+    const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+    const [filterState, setFilterState] = useState<FilterState>({
+        region: null,
+        category: null,
+        minPrice: "",
+        maxPrice: "",
+        condition: [],
+    });
+
     // Sync state with URL params
     useEffect(() => {
         if (params.q !== undefined) setSearchQuery(params.q);
+        
+        let newRegion = filterState.region;
+        let newCategory = filterState.category;
+
         if (params.region !== undefined && regions) {
             if (params.region === "") {
-                setSelectedRegion(null);
+                newRegion = null;
             } else {
                 const region = regions.find(r => r.slug === params.region);
-                if (region) setSelectedRegion(region);
+                if (region) newRegion = region;
             }
         }
         if (params.category !== undefined && categories) {
             if (params.category === "") {
-                setSelectedCategory(null);
+                newCategory = null;
             } else {
                 const category = categories.find(c => c.slug === params.category);
-                if (category) setSelectedCategory(category);
+                if (category) newCategory = category;
             }
         }
+
+        setFilterState(prev => ({
+            ...prev,
+            region: newRegion,
+            category: newCategory
+        }));
+        setSelectedRegion(newRegion);
+        setSelectedCategory(newCategory);
     }, [params.q, params.region, params.category, regions, categories]);
 
     const { data: ads, isLoading, refetch } = useAdsList({
         search: searchQuery,
-        region: selectedRegion?.slug,
-        category: selectedCategory?.slug || params.category,
+        region: filterState.region?.slug || selectedRegion?.slug,
+        category: filterState.category?.slug || selectedCategory?.slug || params.category,
+        min_price: filterState.minPrice || undefined,
+        max_price: filterState.maxPrice || undefined,
+        condition: filterState.condition.length > 0 ? filterState.condition.join(',') : undefined,
         status: 'published'
     });
 
@@ -62,44 +88,32 @@ export default function SearchScreen() {
 
     return (
         <View className="flex-1 bg-white">
-            <StatusBar style="light" />
-
-            {/* Standard App Header */}
-            <View className="bg-primary px-6 pt-16 pb-6 shadow-sm">
-                <View className="flex-row items-center gap-4 mb-6">
-                    <TouchableOpacity
-                        onPress={() => router.back()}
-                        className="w-10 h-10 items-center justify-center rounded-full bg-white/20"
-                    >
-                        <Ionicons name="arrow-back" size={24} color="white" />
-                    </TouchableOpacity>
-                    <AppText weight="bold" className="text-white text-3xl">
-                        Search
-                    </AppText>
-                </View>
-
+            <ScreenHeader
+                title="Search"
+                showBackButton={true}
+            >
                 <View className="flex-row gap-2">
                     <View className="flex-1">
                         <SearchBar
                             searchQuery={searchQuery}
                             setSearchQuery={setSearchQuery}
-                            selectedRegion={selectedRegion?.name || "All Regions"}
-                            onRegionPress={() => setIsRegionModalVisible(true)}
+                            selectedRegion={filterState.region?.name || "All Regions"}
+                            onRegionPress={() => setIsFilterModalVisible(true)}
                             onSearch={handleSearch}
                         />
                     </View>
                     <TouchableOpacity
-                        onPress={() => setIsCategoryModalVisible(true)}
-                        className={`w-12 h-12 items-center justify-center rounded-2xl ${selectedCategory ? 'bg-white' : 'bg-white/20'}`}
+                        onPress={() => setIsFilterModalVisible(true)}
+                        className={`w-12 h-12 items-center justify-center rounded-2xl ${filterState.category || filterState.minPrice || filterState.maxPrice || filterState.condition.length > 0 ? 'bg-white' : 'bg-white/20'}`}
                     >
                         <Ionicons
-                            name={selectedCategory ? "grid" : "grid-outline"}
+                            name="options-outline"
                             size={20}
-                            color={selectedCategory ? "#FF4F18" : "white"}
+                            color={filterState.category || filterState.minPrice || filterState.maxPrice || filterState.condition.length > 0 ? "#FF4F18" : "white"}
                         />
                     </TouchableOpacity>
                 </View>
-            </View>
+            </ScreenHeader>
 
             {/* Content Area */}
             <ScrollView
@@ -108,7 +122,7 @@ export default function SearchScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 {/* Search Context Info */}
-                {(searchQuery || selectedRegion) && (
+                {(searchQuery || filterState.region || filterState.category || filterState.minPrice || filterState.maxPrice) && (
                     <View className="px-6 py-4 flex-row items-center flex-wrap gap-2">
                         <AppText className="text-gray-400">Results for</AppText>
                         {searchQuery ? (
@@ -116,22 +130,29 @@ export default function SearchScreen() {
                                 <AppText weight="bold" className="text-secondary">"{searchQuery}"</AppText>
                             </View>
                         ) : null}
-                        {selectedRegion ? (
+                        {filterState.region ? (
                             <>
                                 <AppText className="text-gray-400">in</AppText>
                                 <View className="bg-primary/10 px-3 py-1 rounded-full">
-                                    <AppText weight="bold" className="text-primary">{selectedRegion.name}</AppText>
+                                    <AppText weight="bold" className="text-primary">{filterState.region.name}</AppText>
                                 </View>
                             </>
                         ) : null}
-                        {selectedCategory ? (
+                        {filterState.category ? (
                             <>
                                 <AppText className="text-gray-400">matching</AppText>
                                 <View className="bg-secondary/10 px-3 py-1 rounded-full">
-                                    <AppText weight="bold" className="text-secondary">{selectedCategory.name}</AppText>
+                                    <AppText weight="bold" className="text-secondary">{filterState.category.name}</AppText>
                                 </View>
                             </>
                         ) : null}
+                        {(filterState.minPrice || filterState.maxPrice) && (
+                            <View className="bg-gray-100 px-3 py-1 rounded-full">
+                                <AppText weight="bold" className="text-gray-600">
+                                    {filterState.minPrice ? `Fr ${filterState.minPrice}` : "0"} - {filterState.maxPrice ? `Fr ${filterState.maxPrice}` : "∞"}
+                                </AppText>
+                            </View>
+                        )}
                     </View>
                 )}
 
@@ -164,6 +185,13 @@ export default function SearchScreen() {
                             className="mt-8 bg-primary px-10 py-4 rounded-full shadow-md shadow-primary/30"
                             onPress={() => {
                                 setSearchQuery("");
+                                setFilterState({
+                                    region: null,
+                                    category: null,
+                                    minPrice: "",
+                                    maxPrice: "",
+                                    condition: [],
+                                });
                                 setSelectedRegion(null);
                                 setSelectedCategory(null);
                                 handleSearch();
@@ -176,18 +204,14 @@ export default function SearchScreen() {
                 <View className="h-32" />
             </ScrollView>
 
-            <RegionModal
-                visible={isRegionModalVisible}
-                onClose={() => setIsRegionModalVisible(false)}
-                onSelect={setSelectedRegion}
-                selectedRegionId={selectedRegion?.id}
-            />
-
-            <CategoryModal
-                visible={isCategoryModalVisible}
-                onClose={() => setIsCategoryModalVisible(false)}
-                onSelect={setSelectedCategory}
-                selectedCategoryId={selectedCategory?.id}
+            <FilterModal
+                visible={isFilterModalVisible}
+                onClose={() => setIsFilterModalVisible(false)}
+                onApply={(newFilters) => {
+                    setFilterState(newFilters);
+                    handleSearch();
+                }}
+                initialFilters={filterState}
             />
         </View>
     );

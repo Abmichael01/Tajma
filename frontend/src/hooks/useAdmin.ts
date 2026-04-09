@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { adminApi, type AdminStats, type PaginatedResponse, type AdminUser, type AdminAd, type AdminCategory, type AdminNotification, type AdminChat, type AdminMessage } from '@/api/admin'
+import { adminApi, type AdminStats, type PaginatedResponse, type AdminUser, type AdminAd, type AdminCategory, type AdminNotification, type AdminChat, type AdminMessage, type AdminLead } from '@/api/admin'
 import { toast } from 'sonner'
 
 // Statistics
@@ -327,6 +327,155 @@ export function useDeleteAdminMessage() {
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Failed to delete message')
     },
+  })
+}
+
+// Reports
+export function useAdminReports(params?: {
+  page?: number
+  search?: string
+  status?: string
+  report_type?: string
+  reason?: string
+}) {
+  return useQuery({
+    queryKey: ['admin', 'reports', params],
+    queryFn: () => adminApi.getReports(params),
+  })
+}
+
+export function useResolveAdminReport() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: ({ id, resolution_note }: { id: string; resolution_note: string }) =>
+      adminApi.resolveReport(id, resolution_note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      toast.success('Report resolved successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to resolve report')
+    },
+  })
+}
+
+export function useDeleteAdminReport() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: (id: string) => adminApi.deleteReport(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      toast.success('Report deleted successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to delete report')
+    },
+  })
+}
+
+export function useReplyAdminReport() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: ({ id, message }: { id: string; message: string }) =>
+      adminApi.replyReport(id, message),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      toast.success('Reply sent successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to send reply')
+    },
+  })
+}
+
+// KYC
+export function useAdminKYCs(params?: {
+  page?: number
+  search?: string
+  status?: string
+  result?: string
+}) {
+  return useQuery({
+    queryKey: ['admin', 'kyc', params],
+    queryFn: () => adminApi.getKYCs(params),
+  })
+}
+
+export function useApproveKYC() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: (id: string) => adminApi.approveKYC(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'kyc'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      toast.success('KYC approved successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to approve KYC')
+    },
+  })
+}
+
+export function useRejectKYC() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => 
+      adminApi.rejectKYC(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'kyc'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      toast.success('KYC rejected successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to reject KYC')
+    },
+  })
+}
+
+// Reviews
+export function useAdminReviews(params?: {
+  page?: number
+  search?: string
+  rating?: number
+}) {
+  return useQuery({
+    queryKey: ['admin', 'reviews', params],
+    queryFn: () => adminApi.getReviews(params),
+  })
+}
+
+export function useDeleteAdminReview() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: (id: number) => adminApi.deleteReview(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reviews'] })
+      toast.success('Review deleted successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to delete review')
+    },
+  })
+}
+
+// Leads
+export function useAdminLeads(params?: {
+  page?: number
+  search?: string
+  first_source?: string
+  last_source?: string
+  messaged?: boolean
+  ignored?: boolean
+}) {
+  return useQuery({
+    queryKey: ['admin', 'leads', params],
+    queryFn: () => adminApi.getLeads(params),
   })
 }
 

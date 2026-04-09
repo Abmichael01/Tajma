@@ -102,5 +102,12 @@ export const notificationsApi = {
   async remove(id: string) {
     return apiClient.delete(`/notifications/${id}/`).then(() => undefined)
   },
-}
 
+  /**
+   * Delete all notifications
+   */
+  async clearAll() {
+    const response = await apiClient.delete<{ message: string; count: number }>('/notifications/clear_all/')
+    return response.data
+  },
+}

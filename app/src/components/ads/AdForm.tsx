@@ -10,6 +10,8 @@ import { Category } from "@/types/category";
 import { uriToBase64 } from "@/utils/imageUtils";
 import CustomAlert from "@/components/ui/CustomAlert";
 import { useAlert } from "@/hooks/useAlert";
+import AdLocationPicker from "./AdLocationPicker";
+import { useRef } from "react";
 import {
     conditionOptions,
     transmissionOptions,
@@ -24,6 +26,8 @@ interface FormData {
     description: string;
     price: string;
     location: string;
+    latitude?: number;
+    longitude?: number;
     isNegotiable: boolean;
     contactForPrice: boolean;
     [key: string]: any;
@@ -47,6 +51,8 @@ export default function AdForm({
     const { getCategoryBySlug } = useCategories();
     const insets = useSafeAreaInsets();
     const { alertConfig, showAlert, hideAlert } = useAlert();
+    const locationPickerRef = useRef<any>(null);
+    const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
 
     const [images, setImages] = useState<string[]>(initialData?.images || []);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -59,6 +65,8 @@ export default function AdForm({
         description: initialData?.description || "",
         price: initialData?.price ? String(initialData.price) : "",
         location: initialData?.location || "",
+        latitude: initialData?.latitude,
+        longitude: initialData?.longitude,
         isNegotiable: initialData?.is_negotiable ?? true,
         contactForPrice: initialData?.price === null,
         ...(initialData?.attributes || {})
@@ -91,6 +99,16 @@ export default function AdForm({
     const handleCategorySelect = (category: Category) => {
         if (mode === 'edit') return; // Cannot change category during edit
         handleInputChange('category', category.slug);
+    };
+
+    const handleLocationSelected = (location: { latitude: number, longitude: number, location_name: string }) => {
+        setFormData(prev => ({
+            ...prev,
+            location: location.location_name,
+            latitude: location.latitude,
+            longitude: location.longitude
+        }));
+        setIsLocationPickerVisible(false);
     };
 
     const normalizeFields = (fields: any[] | string[]): any[] => {
@@ -242,6 +260,8 @@ export default function AdForm({
                 images: processedImages,
                 attributes: buildAttributes(),
                 status: "published" as const,
+                latitude: formData.latitude,
+                longitude: formData.longitude,
             };
 
             await onSubmit(payload);
@@ -275,6 +295,10 @@ export default function AdForm({
                         dynamicFields={dynamicFields}
                         onInputChange={handleInputChange}
                         onImagesChange={setImages}
+                        onOpenMapPicker={() => {
+                            setIsLocationPickerVisible(true);
+                            locationPickerRef.current?.present();
+                        }}
                     />
 
                     <View className="h-40" />
@@ -301,6 +325,17 @@ export default function AdForm({
                 iconColor={alertConfig.iconColor}
                 buttons={alertConfig.buttons}
                 onDismiss={hideAlert}
+            />
+
+            <AdLocationPicker
+                ref={locationPickerRef}
+                onClose={() => setIsLocationPickerVisible(false)}
+                onLocationSelected={handleLocationSelected}
+                initialLocation={formData.latitude ? {
+                    latitude: formData.latitude,
+                    longitude: formData.longitude!,
+                    location_name: formData.location
+                } : undefined}
             />
         </View>
     );

@@ -1,4 +1,5 @@
-import { View, ScrollView, TouchableOpacity, Image, ImageBackground, Dimensions, RefreshControl } from "react-native";
+import { View, ScrollView, TouchableOpacity, Image, Dimensions, RefreshControl } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { useRouter } from "expo-router";
@@ -10,8 +11,8 @@ import { useAlert } from "@/hooks/useAlert";
 import { useAuthStore } from "@/store/authStore";
 import { useLogout, useCurrentUser } from "@/hooks/useAuth";
 import { useUserAds } from "@/hooks/useAds";
+import { useSavedAds } from "@/hooks/useSavedAds";
 import { useKYC } from "@/hooks/useKYC";
-
 
 const { width } = Dimensions.get('window');
 
@@ -22,7 +23,8 @@ export default function ProfileScreen() {
   const { alertConfig, showAlert, hideAlert } = useAlert();
 
   const displayUser = currentUser || user;
-  const { data: recentAds, refetch: refetchAds } = useUserAds(displayUser?.id, 'published');
+  const { data: allAds, refetch: refetchAds } = useUserAds(displayUser?.id);
+  const { data: savedAdsData } = useSavedAds(1, 1);
   const { refetch: refetchUser } = useCurrentUser();
   const logoutMutation = useLogout();
 
@@ -58,7 +60,24 @@ export default function ProfileScreen() {
   const extendedUser = displayUser as any;
   const avgRating = extendedUser.review_stats?.average_rating || 0;
   const totalReviews = extendedUser.review_stats?.total_reviews || 0;
-  const listingsCount = recentAds?.length || 0;
+  
+  // Advanced Stats Calculation
+  const ads = allAds || [];
+  const totalAds = ads.length;
+  const activeAds = ads.filter((ad: any) => ad.status === 'published').length;
+  const soldItems = ads.filter((ad: any) => ad.status === 'archived').length;
+  const totalViews = ads.reduce((sum: number, ad: any) => sum + (ad.views || 0), 0);
+  const responseRate = extendedUser.response_stats?.response_rate_1h ?? 0;
+  const savedAdsCount = savedAdsData?.count || 0;
+  
+  const joinedDays = (() => {
+    if (!displayUser.date_joined) return 0;
+    const joined = new Date(displayUser.date_joined);
+    if (isNaN(joined.getTime())) return 0;
+    const diff = Date.now() - joined.getTime();
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  })();
+
 
   return (
     <View className="flex-1 bg-gray-50/50">
@@ -72,25 +91,61 @@ export default function ProfileScreen() {
         }
       >
         {/* Overscroll Background */}
-        <View className="absolute top-[-1000px] left-0 right-0 h-[1000px] bg-primary" />
+        <View className="absolute top-[-1000px] left-0 right-0 h-[1000px]" style={{ backgroundColor: '#1e1e1e' }} />
 
-        {/* Immersive Header */}
-        <ImageBackground
-          source={require("../../../assets/images/profile_header_bg.png")}
-          className="bg-primary"
-          style={{ height: 260 }}
-        >
-          <View className="absolute inset-0 bg-primary/40" />
-          <View className="pt-16 px-6 flex-row justify-between items-center">
+        {/* Immersive Mesh Gradient Header (Matches Web) */}
+        <View style={{ height: 260, backgroundColor: '#0f1115', overflow: 'hidden' }}>
+          {/* Top Right Glow */}
+          <View 
+            style={{ 
+              position: 'absolute', 
+              top: -80, 
+              right: -80, 
+              width: 240, 
+              height: 240, 
+              borderRadius: 120, 
+              backgroundColor: 'rgba(255, 79, 24, 0.25)',
+              opacity: 0.8
+            }} 
+          />
+          
+          {/* Bottom Left Glow */}
+          <View 
+            style={{ 
+              position: 'absolute', 
+              bottom: -100, 
+              left: -100, 
+              width: 300, 
+              height: 300, 
+              borderRadius: 150, 
+              backgroundColor: 'rgba(255, 79, 24, 0.08)',
+            }} 
+          />
+
+          {/* Main Gradient Overlay */}
+          <LinearGradient
+            colors={['rgba(17, 24, 39, 0.4)', 'rgba(255, 79, 24, 0.05)', 'rgba(255, 79, 24, 0.15)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ position: 'absolute', inset: 0 }}
+          />
+
+          {/* Bottom Fade */}
+          <LinearGradient
+            colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
+            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80 }}
+          />
+
+          <View className="pt-16 px-6 flex-row justify-between items-center relative z-10">
             <AppText weight="bold" className="text-white text-xl">Account</AppText>
             <TouchableOpacity
               onPress={() => router.push("/settings")}
-              className="w-10 h-10 rounded-full bg-white/20 items-center justify-center"
+              className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
             >
               <Ionicons name="settings-outline" size={22} color="white" />
             </TouchableOpacity>
           </View>
-        </ImageBackground>
+        </View>
 
         {/* Profile Info Section */}
         <View className="px-6 -mt-24">
@@ -131,10 +186,10 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Stats Bar */}
-          <View className="flex-row bg-white rounded-3xl p-6 mt-8 shadow-sm border border-gray-100 justify-between">
+          {/* Stats Bar (Restored) */}
+          <View className="flex-row bg-white rounded-[32px] p-6 mt-8 border border-gray-100 justify-between">
             {[
-              { label: 'Listings', value: listingsCount },
+              { label: 'Listings', value: totalAds },
               { label: 'Reviews', value: totalReviews },
               { label: 'Reputation', value: avgRating.toFixed(1) },
             ].map((stat, i) => (
@@ -144,10 +199,25 @@ export default function ProfileScreen() {
               </View>
             ))}
           </View>
+
+          {/* Performance Highlight Link */}
+          <TouchableOpacity 
+            onPress={() => router.push("/profile/analytics")}
+            className="mt-4 bg-white p-5 rounded-full flex-row items-center"
+          >
+            <View className="w-10 h-10 rounded-full bg-gray-50 items-center justify-center">
+                <Ionicons name="bar-chart-outline" size={22} color="#FF4F18" />
+            </View>
+            <View className="ml-4 flex-1">
+                <AppText weight="bold" className="text-gray-900">Performance Insights</AppText>
+                <AppText className="text-gray-500 text-[10px]">Track your reach and trust score</AppText>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
+          </TouchableOpacity>
         </View>
 
         {/* Content Section */}
-        <View className="mt-10">
+        <View className="mt-8">
           {/* Quick Actions List */}
           <View className="px-6 space-y-3">
             {[
@@ -160,9 +230,9 @@ export default function ProfileScreen() {
               <TouchableOpacity
                 key={item.id}
                 onPress={() => router.push(item.route as any)}
-                className="bg-white p-5 rounded-3xl border border-gray-100 flex-row items-center shadow-sm"
+                className="bg-white p-5 rounded-full flex-row items-center border border-gray-100"
               >
-                <View className="w-10 h-10 rounded-2xl bg-gray-50 items-center justify-center">
+                <View className="w-10 h-10 rounded-full bg-white items-center justify-center">
                   <Ionicons name={item.icon as any} size={22} color={item.color} />
                 </View>
                 <AppText weight="bold" className="text-gray-800 ml-4 flex-1">{item.label}</AppText>
@@ -172,7 +242,7 @@ export default function ProfileScreen() {
           </View>
 
           {/* Recent Ads Section - Visual Preview */}
-          {recentAds && recentAds.length > 0 && (
+          {ads && ads.length > 0 && (
             <View className="mt-10 mb-6">
               <View className="px-6 flex-row justify-between items-center mb-4">
                 <AppText weight="bold" className="text-gray-900 text-lg">My Recent Listings</AppText>
@@ -185,10 +255,10 @@ export default function ProfileScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingLeft: 24, paddingRight: 12 }}
               >
-                {recentAds.slice(0, 5).map((ad: any) => (
+                {ads.slice(0, 5).map((ad: any) => (
                   <TouchableOpacity
                     key={ad.id}
-                    className="mr-3 w-40 bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm"
+                    className="mr-3 w-40 bg-white rounded-2xl overflow-hidden border border-gray-100"
                     onPress={() => router.push(`/ads/${ad.slug}`)}
                   >
                     <Image source={{ uri: ad.images?.[0] }} className="w-full h-24 bg-gray-100" />
@@ -211,16 +281,18 @@ export default function ProfileScreen() {
             ].map((item, i) => (
               <TouchableOpacity
                 key={i}
-                className="flex-row items-center p-5 bg-white rounded-3xl border border-gray-100 shadow-sm"
+                className="flex-row items-center p-5 bg-white rounded-full border border-gray-100"
               >
-                <Ionicons name={item.icon as any} size={22} color="#64748b" />
-                <AppText weight="semibold" className="text-gray-700 ml-4 flex-1">{item.label}</AppText>
+                <View className="w-10 h-10 rounded-full bg-gray-50 items-center justify-center">
+                  <Ionicons name={item.icon as any} size={22} color="#64748b" />
+                </View>
+                <AppText weight="bold" className="text-gray-700 ml-4 flex-1">{item.label}</AppText>
                 <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
               </TouchableOpacity>
             ))}
             <TouchableOpacity
               onPress={handleLogout}
-              className="mt-8 flex-row items-center justify-center p-5 bg-red-50 rounded-3xl"
+              className="mt-8 flex-row items-center justify-center p-5 bg-white rounded-full border border-red-100"
             >
               <Ionicons name="log-out-outline" size={24} color="#dc2626" />
               <AppText weight="bold" className="text-red-600 ml-3">Sign Out Account</AppText>

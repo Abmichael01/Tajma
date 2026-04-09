@@ -8,12 +8,21 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 import QueryProvider from "@/providers/QueryProvider";
 import { useAuthStore } from "@/store/authStore";
 import AppSplashScreen from "@/components/ui/AppText"; // Wait, earlier it was Splash? No, SplashScreen.tsx
 import AppSplashScreenComponent from "@/components/ui/SplashScreen";
 import { usePresence } from "@/hooks/usePresence";
+import { useNotifications } from "@/hooks/useNotifications";
+import * as Sentry from 'sentry-expo';
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enableInExpoDevelopment: true,
+  debug: false,
+});
 
 // Keep the native splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -47,6 +56,9 @@ function RootLayoutContent() {
 
   // Manage user presence
   usePresence();
+  
+  // Register for Push Notifications
+  useNotifications();
 
   const [fontsLoaded, fontError] = useFonts({
     "Quicksand-Light": require("../assets/fonts/Quicksand/static/Quicksand-Light.ttf"),
@@ -120,11 +132,14 @@ function RootLayoutContent() {
 function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryProvider>
-        <RootLayoutContent />
-      </QueryProvider>
+      <BottomSheetModalProvider>
+        <QueryProvider>
+          <RootLayoutContent />
+        </QueryProvider>
+      </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
 }
 
-export default RootLayout;
+// Wrap the root layout with Sentry to catch errors
+export default Sentry.Native.wrap(RootLayout);

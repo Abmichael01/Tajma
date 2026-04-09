@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { regionsApi, Region, RegionDetail } from '@/api/regions'
 
-export const useRegions = () => {
+export const useRegions = (parentId?: number | null, level?: number) => {
   return useQuery({
-    queryKey: ['regions'],
-    queryFn: () => regionsApi.list(),
-    staleTime: 5 * 60 * 1000, // 5 minutes - regions don't change often
+    queryKey: ['regions', { parentId, level }],
+    queryFn: () => regionsApi.list(parentId, level),
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   })
 }

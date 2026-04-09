@@ -1,17 +1,10 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { useUpdateProfile, useCSRFToken, useCurrentUser } from '@/hooks/useAuth'
@@ -20,6 +13,9 @@ import { toast } from 'sonner'
 import { useRegions } from '@/hooks/useRegions'
 import { UserCircle, Phone, MapPin, Loader2 } from 'lucide-react'
 import ImageUploader from '@/components/ui/ImageUploader'
+import HierarchicalLocationPicker from '@/components/ui/HierarchicalLocationPicker'
+import { type Region } from '@/api/regions'
+import RegionSelectorModal from '@/components/modals/RegionSelectorModal'
 
 interface CompleteProfileDialogProps {
   isOpen: boolean
@@ -36,37 +32,44 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
   const { refetch: refetchUser } = useCurrentUser()
 
   const { data: regions, isLoading: regionsLoading } = useRegions()
-  const [showInlineForm, setShowInlineForm] = useState(showForm)
-  
-  // Get region ID from user location by matching region name
-  const getUserRegionId = () => {
-    if (!user?.location || !regions) return ''
-    const matchingRegion = regions.find(r => r.name === user.location)
-    return matchingRegion?.id.toString() || ''
-  }
+  const [isRegionModalOpen, setIsRegionModalOpen] = useState(false)
   
   const [formData, setFormData] = useState({
     phone: user?.phone || '',
-    region: '',
-    city: '',
-    address: '',
+    locationId: user?.location ? (regions?.results?.find((r: Region) => r.name === user.location)?.id || '') : '',
+    address: user?.address || '',
     businessName: user?.business_name || '',
     businessType: user?.business_type || '',
     website: user?.website || '',
     bio: user?.bio || ''
   })
-  const [avatarBase64, setAvatarBase64] = useState<string | null>(null)
-  const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Update region when regions are loaded
+  // Update location when regions are loaded
   useEffect(() => {
-    if (regions && user?.location && !formData.region) {
-      const regionId = getUserRegionId()
-      if (regionId) {
-        setFormData(prev => ({ ...prev, region: regionId }))
+    if (regions?.results && user?.location && !formData.locationId) {
+      const matchingRegion = regions.results.find((r: Region) => r.name === user.location)
+      if (matchingRegion) {
+        setFormData(prev => ({ 
+            ...prev, 
+            locationId: matchingRegion.id
+        }))
       }
     }
   }, [regions, user?.location])
+
+  const [showInlineForm, setShowInlineForm] = useState(showForm)
+  const [avatarBase64, setAvatarBase64] = useState<string | null>(null)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const handleLocationSelect = (id: number | null) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      locationId: id || '' 
+    }))
+    if (errors.location) {
+      setErrors(prev => ({ ...prev, location: '' }))
+    }
+  }
 
   const handleCompleteProfile = () => {
     if (showInlineForm) {
@@ -88,12 +91,6 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
     }
   }
 
-  const handleRegionChange = (value: string) => {
-    setFormData(prev => ({ ...prev, region: value }))
-    if (errors.region) {
-      setErrors(prev => ({ ...prev, region: '' }))
-    }
-  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -104,19 +101,14 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
       newErrors.phone = 'Phone number is invalid'
     }
 
-    if (!formData.region) {
-      newErrors.region = 'Region is required'
-    }
-
-    if (!formData.city.trim()) {
-      newErrors.city = 'City is required'
+    if (!formData.locationId) {
+      newErrors.location = 'Location is required'
     }
 
     if (!formData.address.trim()) {
-      newErrors.address = 'Address is required'
+      newErrors.address = 'Address / Neighborhood is required'
     }
 
-    // Validate profile image - required if user doesn't have one already
     if (!user?.avatar && !avatarBase64) {
       newErrors.avatar = 'Profile image is required'
     }
@@ -140,7 +132,7 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
     try {
       await updateProfile.mutateAsync({
         phone: formData.phone,
-        location: formData.region ? parseInt(formData.region) : undefined,
+        location: formData.locationId ? parseInt(formData.locationId.toString()) : undefined,
         address: formData.address || undefined,
         business_name: formData.businessName || undefined,
         business_type: formData.businessType || undefined,
@@ -150,9 +142,7 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
       })
 
       completeSellerSetup()
-      // Refetch user data to get latest from server
       await refetchUser()
-      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['user'] })
       toast.success('Profile completed successfully!')
       onClose()
@@ -180,177 +170,132 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto gray-50 custom-scrollbar  ">
-        <DialogHeader>
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Setup Your Profile"
+      description="Complete your profile to post ads in this category."
+      className="max-w-2xl"
+    >
+        <div className="mt-4 pb-4">
           <div className="flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mx-auto mb-4">
             <UserCircle className="w-8 h-8 text-primary" />
           </div>
-          <DialogTitle className="text-center text-xl">
-            Setup Your Profile
-          </DialogTitle>
-          <DialogDescription className="text-center text-sm mt-2 text-gray-600">
-            Complete your profile to post ads in this category.
-          </DialogDescription>
-        </DialogHeader>
 
-        {showInlineForm ? (
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Profile Image</h3>
-              <div className="mb-6">
-                <ImageUploader
-                  value={avatarBase64 || user?.avatar || undefined}
-                  onChange={(value) => {
-                    setAvatarBase64(value)
-                    if (errors.avatar) {
-                      setErrors(prev => ({ ...prev, avatar: '' }))
-                    }
-                  }}
-                  label="Profile Image"
-                  accept="image/*"
-                  maxSizeMB={5}
-                  aspectRatio="square"
-                  className={errors.avatar ? 'border-red-500' : ''}
-                />
-                {errors.avatar && <p className="mt-1 text-sm text-red-600">{errors.avatar}</p>}
-                {!user?.avatar && !avatarBase64 && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    <span className="text-red-500">*</span> Profile image is required
-                  </p>
-                )}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className={`pl-10 ${errors.phone ? 'border-red-500' : ''}`}
-                      placeholder="+227 92 64 99 99"
-                    />
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  </div>
-                  {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="region" className="block text-sm font-medium text-gray-700 mb-1">
-                    Region <span className="text-red-500">*</span>
-                  </label>
-                  {regionsLoading ? (
-                    <div className="flex items-center gap-2 py-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                      <span className="text-sm text-gray-500">Loading regions...</span>
-                    </div>
-                  ) : (
-                    <Select value={formData.region} onValueChange={handleRegionChange}>
-                      <SelectTrigger className={errors.region ? 'border-red-500' : ''}>
-                        <SelectValue placeholder="Select your region" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {regions?.map((region) => (
-                          <SelectItem key={region.id} value={region.id.toString()}>
-                            {region.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  {errors.region && <p className="mt-1 text-sm text-red-600">{errors.region}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                    City / Area <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Input
-                      id="city"
-                      name="city"
-                      type="text"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      className={`pl-10 ${errors.city ? 'border-red-500' : ''}`}
-                      placeholder="e.g., Ikeja, Surulere"
-                    />
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  </div>
-                  {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                    Address <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    id="address"
-                    name="address"
-                    type="text"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    className={errors.address ? 'border-red-500' : ''}
-                    placeholder="Street address"
+          {showInlineForm ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Profile Image</h3>
+                <div className="mb-6">
+                  <ImageUploader
+                    value={avatarBase64 || user?.avatar || undefined}
+                    onChange={(value) => {
+                      setAvatarBase64(value)
+                      if (errors.avatar) {
+                        setErrors(prev => ({ ...prev, avatar: '' }))
+                      }
+                    }}
+                    label="Profile Image"
+                    accept="image/*"
+                    maxSizeMB={5}
+                    className={errors.avatar ? 'border-red-500 rounded-3xl' : 'rounded-3xl'}
                   />
-                  {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
+                  {errors.avatar && <p className="mt-1 text-sm text-red-600">{errors.avatar}</p>}
                 </div>
               </div>
-            </div>
+              
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className={`pl-10 rounded-full h-12 ${errors.phone ? 'border-red-500' : ''}`}
+                        placeholder="+227 92 64 99 99"
+                      />
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    </div>
+                    {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
+                  </div>
 
-            <div className="flex gap-3 pt-2">
-              <Button type="submit" className="flex-1" size="default" disabled={updateProfile.isPending}>
-                {updateProfile.isPending ? 'Saving...' : 'Complete Setup'}
+                  <div className="pt-2">
+                    <HierarchicalLocationPicker
+                      onLocationSelect={handleLocationSelect}
+                      errors={{ commune: errors.location }}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+                      Neighborhood / Street Address <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      id="address"
+                      name="address"
+                      type="text"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      className={`rounded-full h-12 ${errors.address ? 'border-red-500' : ''}`}
+                      placeholder="e.g. Plateau, Rue 123"
+                    />
+                    {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Hierarchical modal is no longer needed since we use inline picker */}
+
+              <div className="flex gap-3 pt-4">
+                <Button type="submit" className="flex-1 rounded-full" size="lg" disabled={updateProfile.isPending}>
+                  {updateProfile.isPending ? 'Saving...' : 'Complete Setup'}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={onClose}
+                  variant="ghost"
+                  className="flex-1 rounded-full"
+                  size="lg"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <div className="mt-6 space-y-3 pb-4">
+              <Button
+                onClick={() => setShowInlineForm(true)}
+                className="w-full rounded-full"
+                size="lg"
+              >
+                Setup Profile Here
               </Button>
               <Button
-                type="button"
+                onClick={handleCompleteProfile}
+                variant="outline"
+                className="w-full rounded-full border-gray-200"
+                size="lg"
+              >
+                Go to Setup Page
+              </Button>
+              <Button
                 onClick={onClose}
                 variant="ghost"
-                className="flex-1"
-                size="default"
+                className="w-full rounded-full"
+                size="lg"
               >
-                Cancel
+                Maybe Later
               </Button>
             </div>
-          </form>
-        ) : (
-          <div className="mt-6 space-y-2">
-            <Button
-              onClick={() => setShowInlineForm(true)}
-              className="w-full"
-              size="default"
-            >
-              Setup Profile Here
-            </Button>
-            <Button
-              onClick={handleCompleteProfile}
-              variant="outline"
-              className="w-full"
-              size="default"
-            >
-              Go to Setup Page
-            </Button>
-            <Button
-              onClick={onClose}
-              variant="ghost"
-              className="w-full"
-              size="default"
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
-
-      </DialogContent>
-    </Dialog>
+          )}
+        </div>
+    </ResponsiveModal>
   )
 }
-

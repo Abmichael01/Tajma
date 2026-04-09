@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Modal, TouchableOpacity, Dimensions, FlatList, Image, StyleSheet, Platform, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Modal, TouchableOpacity, useWindowDimensions, FlatList, Image, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppText from './AppText';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+import { resolveImageUrl } from '@/utils/imageUtils';
 
 interface ImageViewerProps {
     images: string[];
@@ -22,54 +21,39 @@ export default function ImageViewer({
     onClose,
     title
 }: ImageViewerProps) {
+    const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const [loading, setLoading] = useState<Record<number, boolean>>({});
     const flatListRef = useRef<FlatList>(null);
+    const lastSelectedIndex = useRef(initialIndex);
 
     useEffect(() => {
         if (visible) {
             setCurrentIndex(initialIndex);
-            // Ensure flatlist scrolls to initial index after modal opens
-            setTimeout(() => {
+            lastSelectedIndex.current = initialIndex;
+            
+            // Fallback scroll to ensure sync even if contentOffset fails or settles weirdly
+            const timer = setTimeout(() => {
                 flatListRef.current?.scrollToIndex({
                     index: initialIndex,
                     animated: false,
                 });
-            }, 50);
+            }, 100);
+            return () => clearTimeout(timer);
         }
     }, [visible, initialIndex]);
-
-    const getImageUrl = (imageUrl: string) => {
-        if (!imageUrl) return "";
-
-        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-            return imageUrl;
-        }
-
-        const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-
-        if (imageUrl.startsWith('/media/')) {
-            const path = imageUrl.replace('/media/', '');
-            return `${apiUrl}/api/media/${path}`;
-        }
-
-        if (imageUrl.startsWith('/')) {
-            const path = imageUrl.replace(/^\//, '');
-            return `${apiUrl}/api/media/${path}`;
-        }
-
-        return `${apiUrl}/api/media/${imageUrl}`;
-    };
 
     const handleScroll = (event: any) => {
         const xOffset = event.nativeEvent.contentOffset.x;
         const index = Math.round(xOffset / SCREEN_WIDTH);
         if (index !== currentIndex && index >= 0 && index < images.length) {
+            lastSelectedIndex.current = index;
             setCurrentIndex(index);
         }
     };
 
     const handleThumbnailPress = (index: number) => {
+        lastSelectedIndex.current = index;
         flatListRef.current?.scrollToIndex({
             index,
             animated: true,
@@ -78,7 +62,7 @@ export default function ImageViewer({
     };
 
     const renderItem = ({ item, index }: { item: string, index: number }) => {
-        const uri = getImageUrl(item);
+        const uri = resolveImageUrl(item);
 
         return (
             <View style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT, backgroundColor: '#000' }}>
@@ -88,7 +72,7 @@ export default function ImageViewer({
                     </View>
                 )}
                 <Image
-                    source={{ uri }}
+                    source={{ uri: uri || "" }}
                     style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
                     resizeMode="contain"
                     onLoadStart={() => setLoading(prev => ({ ...prev, [index]: true }))}
@@ -142,26 +126,25 @@ export default function ImageViewer({
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
-                    initialScrollIndex={initialIndex}
+                    contentOffset={{ x: initialIndex * SCREEN_WIDTH, y: 0 }}
                     getItemLayout={(_, index) => ({
                         length: SCREEN_WIDTH,
                         offset: SCREEN_WIDTH * index,
                         index,
                     })}
-                    onScroll={handleScroll}
+                    onMomentumScrollEnd={handleScroll}
                     scrollEventThrottle={16}
                     initialNumToRender={1}
                     maxToRenderPerBatch={2}
                     windowSize={5}
                     onScrollToIndexFailed={(info) => {
-                        const wait = new Promise(resolve => setTimeout(resolve, 100));
-                        wait.then(() => {
+                        setTimeout(() => {
                             flatListRef.current?.scrollToIndex({ index: info.index, animated: false });
-                        });
+                        }, 100);
                     }}
                 />
 
-                {/* Footer Navigation (Thumbnail Strip - WhatsApp Style) */}
+                {/* Footer Navigation (Thumbnail Strip) */}
                 {images.length > 1 && (
                     <SafeAreaView edges={['bottom']} className="absolute bottom-0 left-0 right-0 z-50 bg-black/40">
                         <ScrollView
@@ -178,7 +161,7 @@ export default function ImageViewer({
                                     className={`w-14 h-14 rounded-xl overflow-hidden border-2 ${idx === currentIndex ? 'border-primary' : 'border-transparent opacity-60'}`}
                                 >
                                     <Image
-                                        source={{ uri: getImageUrl(img) }}
+                                        source={{ uri: resolveImageUrl(img) || "" }}
                                         className="w-full h-full"
                                         resizeMode="cover"
                                     />

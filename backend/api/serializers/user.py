@@ -9,6 +9,54 @@ from api.utils.image_url import build_full_image_url
 User = get_user_model()
 
 
+class PasswordResetSerializer(serializers.Serializer):
+    """
+    Serializer for password reset request.
+    Overrides default to provide custom HTML template and frontend_url context.
+    """
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        from django.contrib.auth.forms import PasswordResetForm
+        from django.contrib.auth import get_user_model
+        
+        UserModel = get_user_model()
+        
+        class CustomPasswordResetForm(PasswordResetForm):
+            def get_users(self, email):
+                """Override get_users to allow users without usable passwords (e.g. Google OAuth) to reset"""
+                email_field_name = UserModel.get_email_field_name()
+                active_users = UserModel._default_manager.filter(
+                    **{
+                        "%s__iexact" % email_field_name: email,
+                        "is_active": True,
+                    }
+                )
+                return (
+                    u for u in active_users
+                    if u.email.lower() == email.lower()
+                )
+
+        self.reset_form = CustomPasswordResetForm(data={'email': value})
+        if not self.reset_form.is_valid():
+            raise serializers.ValidationError(self.reset_form.errors)
+        return value
+
+    def save(self):
+        request = self.context.get('request')
+        opts = {
+            'use_https': request.is_secure() if request else False,
+            'from_email': getattr(settings, 'DEFAULT_FROM_EMAIL'),
+            'request': request,
+            'email_template_name': 'registration/password_reset_email.html',
+            'html_email_template_name': 'registration/password_reset_email_html.html',
+            'extra_email_context': {
+                'frontend_url': settings.FRONTEND_URL,
+            }
+        }
+        self.reset_form.save(**opts)
+
+
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model"""
     full_name = serializers.SerializerMethodField()
@@ -38,6 +86,9 @@ class UserSerializer(serializers.ModelSerializer):
             'is_active',
             'kyc_status',
             'kyc_notes',
+            'email_notifications',
+            'sms_notifications',
+            'marketing_notifications',
             'date_joined',
             'last_login',
         ]
@@ -95,6 +146,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'business_type',
             'website',
             'bio',
+            'email_notifications',
+            'sms_notifications',
+            'marketing_notifications',
         ]
         extra_kwargs = {
             'username': {'required': False},
@@ -173,6 +227,9 @@ class UserDetailsSerializer(serializers.ModelSerializer):
             'is_active',
             'kyc_status',
             'kyc_notes',
+            'email_notifications',
+            'sms_notifications',
+            'marketing_notifications',
             'date_joined',
             'last_login',
         ]
@@ -343,6 +400,9 @@ class UserSummarySerializer(serializers.ModelSerializer):
         return data
 
 
+UserMinimalSerializer = UserSummarySerializer
+
+
 class PasswordChangeSerializer(serializers.Serializer):
     """Serializer for password change"""
     
@@ -377,4 +437,3 @@ class PasswordChangeSerializer(serializers.Serializer):
         if not user.check_password(value):
             raise serializers.ValidationError('Old password is incorrect.')
         return value
-

@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { FileUp, Image as ImageIcon } from 'lucide-react'
 import DynamicFormFields from './DynamicFormFields'
 import type { CustomFieldConfig } from './DynamicFormFields'
+import { cn } from '@/lib/utils'
 
 interface DetailsStepProps {
   formData: any
@@ -47,7 +48,7 @@ export default function DetailsStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">Details & Pricing</h2>
+        <h2 className="text-lg font-medium text-gray-900">Details & Pricing</h2>
         <p className="text-sm text-gray-600 mt-1">Provide detailed information</p>
       </div>
 
@@ -77,12 +78,15 @@ export default function DetailsStep({
                       : 'Enter price'
             }
             type="text"
-            className={`pl-8 ${formData.contactForPrice ? 'bg-gray-100 cursor-not-allowed' : ''} ${errors.price ? 'border-red-500' : ''}`}
+            className={cn(
+               "pl-9 h-12 rounded-full border-gray-200 focus:border-primary focus:ring-primary/20",
+               formData.contactForPrice ? 'bg-gray-100 cursor-not-allowed opacity-50' : 'bg-gray-50/30'
+            )}
           />
         </div>
         
         <div className="mt-3 space-y-2">
-          <div className="border border-gray-200 p-3 bg-gray-50">
+          <div className="border border-gray-200 p-4 rounded-2xl bg-gray-50/50">
             <div className="flex items-center gap-2">
               <Checkbox
                 id="contactForPrice"
@@ -101,7 +105,7 @@ export default function DetailsStep({
           </div>
           
           {!formData.contactForPrice && (
-            <div className="border border-gray-200 p-3 bg-gray-50">
+            <div className="border border-gray-200 p-4 rounded-2xl bg-gray-50/50">
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="negotiable"
@@ -137,9 +141,10 @@ export default function DetailsStep({
           }
           rows={6}
           maxLength={5000}
-          className={`w-full px-3 py-2 border resize-none ${
-            errors.description ? 'border-red-500' : 'border-gray-300'
-          } focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary`}
+          className={cn(
+            "w-full px-5 py-4 border rounded-[2rem] resize-none transition-all focus:outline-none focus:ring-primary/20 focus:border-primary bg-gray-50/30",
+            errors.description ? 'border-red-500' : 'border-gray-200'
+          )}
         />
         <div className="flex justify-between items-center mt-1">
           {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
@@ -153,9 +158,10 @@ export default function DetailsStep({
             Upload Your CV <span className="text-red-500">*</span>
           </label>
           <div
-            className={`border-2 border-dashed p-6 text-center transition-colors ${
-              formData.cv_file || formData.existingCvFileName ? 'border-secondary bg-secondary/5' : 'border-gray-300'
-            }`}
+            className={cn(
+            "border-2 border-dashed p-10 text-center transition-all rounded-[2.5rem]",
+            formData.cv_file || formData.existingCvFileName ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-primary/50 bg-gray-50/50'
+          )}
           >
             <input
               type="file"
@@ -192,7 +198,7 @@ export default function DetailsStep({
         <label className="block text-sm font-medium text-gray-900 mb-2">
           Images {formData.adType === 'product' ? '(Recommended)' : '(Optional)'}
         </label>
-        <div className="border-2 border-dashed border-gray-300 p-6 text-center hover:border-secondary/50 transition-colors">
+        <div className="border-2 border-dashed border-gray-200 p-10 rounded-[2.5rem] bg-gray-50/50 text-center hover:border-primary/50 transition-all group">
           <input
             type="file"
             multiple
@@ -202,9 +208,11 @@ export default function DetailsStep({
             id="image-upload"
           />
           <label htmlFor="image-upload" className="cursor-pointer block">
-            <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-600 text-sm mb-1">Click to upload images</p>
-            <p className="text-xs text-gray-500">PNG, JPG up to 5MB each (max 10 images)</p>
+            <div className="w-16 h-16 rounded-full bg-white mx-auto mb-4 flex items-center justify-center text-gray-400 group-hover:text-primary transition-colors border border-gray-100 shadow-sm">
+                <ImageIcon className="w-8 h-8" />
+            </div>
+            <p className="text-gray-900 font-medium text-sm mb-1">Upload images</p>
+            <p className="text-xs text-gray-500">PNG, JPG up to 5MB (max 10 images)</p>
           </label>
         </div>
 

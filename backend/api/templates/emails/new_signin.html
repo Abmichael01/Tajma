@@ -1,0 +1,34 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h2>New Sign-in Detected</h2>
+    <p>Hello {{ user_name }},</p>
+    <p>We're sending this security notification to let you know that a new sign-in occurred on your Tajma account.</p>
+
+    <div class="details-table">
+        <table>
+            <tr>
+                <td>Email</td>
+                <td>{{ user_email }}</td>
+            </tr>
+            <tr>
+                <td>Time</td>
+                <td>{{ login_time|date:"F j, Y, g:i a" }}</td>
+            </tr>
+            {% if ip_address %}
+            <tr>
+                <td>IP Address</td>
+                <td>{{ ip_address }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <p>If this was you, you can safely ignore this email. If you don't recognize this activity, please secure your account immediately by changing your password.</p>
+{% endblock %}
+
+{% block cta %}
+    <div class="button-wrapper">
+        <a href="{{ site_url }}/profile/settings" class="button">Security Settings</a>
+    </div>
+{% endblock %}

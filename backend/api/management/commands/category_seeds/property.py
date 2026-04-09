@@ -24,7 +24,7 @@ PROPERTY_CATEGORY = {
         # LEVEL 2: HOUSES & APARTMENTS FOR RENT
         {
             "name": "Houses & Apartments for Rent",
-            "image_url": "/house2.jpg",
+            "image_url": "/house2.png",
             "custom_fields": [
                  {
                     "name": "bedrooms",
@@ -103,7 +103,7 @@ PROPERTY_CATEGORY = {
         # LEVEL 2: HOUSES & APARTMENTS FOR SALE
         {
             "name": "Houses & Apartments for Sale",
-            "image_url": "/house1.jpg",
+            "image_url": "/house1.png",
              "custom_fields": [
                  {
                     "name": "bedrooms",

@@ -6,6 +6,7 @@ export interface CategoryNode {
   slug: string
   icon?: string
   imageUrl?: string
+  image_url?: string
   type?: 'product' | 'service' | 'job' | 'cv'
   category_type?: 'product' | 'service' | 'job' | 'cv'
   description?: string

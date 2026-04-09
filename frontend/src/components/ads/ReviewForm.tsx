@@ -102,7 +102,7 @@ export default function ReviewForm({ adId, onSuccess, onCancel }: ReviewFormProp
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           rows={4}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+          className="w-full px-4 py-3 text-sm border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
           placeholder="Share your experience with this seller..."
           maxLength={1000}
         />

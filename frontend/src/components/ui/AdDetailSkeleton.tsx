@@ -7,12 +7,12 @@ export default function AdDetailSkeleton() {
         {/* Left Column - Images and Description */}
         <div className="lg:col-span-2 space-y-6">
           {/* Image Gallery Skeleton */}
-          <div className="bg-white border border-gray-200">
+          <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden">
             <Skeleton className="w-full h-[400px] lg:h-[500px]" />
           </div>
 
           {/* Description Skeleton */}
-          <div className="bg-white border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white border border-gray-200 p-4 sm:p-6 rounded-3xl">
             <Skeleton className="h-6 w-32 mb-4" />
             <Skeleton className="h-4 w-full mb-2" />
             <Skeleton className="h-4 w-full mb-2" />
@@ -22,7 +22,7 @@ export default function AdDetailSkeleton() {
           </div>
 
           {/* Ad Info Skeleton */}
-          <div className="bg-white border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white border border-gray-200 p-4 sm:p-6 rounded-3xl">
             <Skeleton className="h-6 w-24 mb-4" />
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
@@ -32,7 +32,7 @@ export default function AdDetailSkeleton() {
           </div>
 
           {/* Reviews Section Skeleton */}
-          <div className="bg-white border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white border border-gray-200 p-4 sm:p-6 rounded-3xl">
             <Skeleton className="h-6 w-32 mb-4" />
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
@@ -52,7 +52,7 @@ export default function AdDetailSkeleton() {
         {/* Right Column - Product Info and Seller */}
         <div className="lg:col-span-1 space-y-6">
           {/* Product Info Skeleton */}
-          <div className="bg-white border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white border border-gray-200 p-4 sm:p-6 rounded-3xl">
             <Skeleton className="h-7 w-3/4 mb-4" />
             <Skeleton className="h-8 w-40 mb-6" />
             <div className="space-y-3 mb-6">
@@ -65,7 +65,7 @@ export default function AdDetailSkeleton() {
           </div>
 
           {/* Seller Info Skeleton */}
-          <div className="bg-white border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white border border-gray-200 p-4 sm:p-6 rounded-3xl">
             <Skeleton className="h-6 w-32 mb-4" />
             <div className="flex items-center gap-3 mb-4">
               <Skeleton className="w-12 h-12 rounded-full" />
@@ -78,7 +78,7 @@ export default function AdDetailSkeleton() {
           </div>
 
           {/* Safety Tips Skeleton */}
-          <div className="bg-white border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white border border-gray-200 p-4 sm:p-6 rounded-3xl">
             <Skeleton className="h-6 w-32 mb-4" />
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />

@@ -3,13 +3,14 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, Eye, Heart, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { MapPin, Eye, Heart, ArrowUpDown, ArrowUp, ArrowDown, ShoppingBag, ArrowRight } from 'lucide-react'
 import { useToggleSaveAd } from '@/hooks/useSavedAds'
 import { useAuthStore } from '@/store/authStore'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useCategories } from '@/hooks/useCategories'
 import type { Ad } from '@/api/types'
+import { getMediaUrl } from '@/lib/utils'
 
 interface AdsListProps {
   ads: Ad[]
@@ -118,35 +119,27 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
   useEffect(() => {
     const updateColumns = () => {
       if (typeof window !== 'undefined') {
-        // For 4 columns: 1 on mobile, 2 on 420px+, 3 on 700px+, 4 on 1024px+
+        // For 4 columns: 2 on mobile/min-420, 3 on 700px+, 4 on 1024px+
         if (columns === 4) {
           if (window.innerWidth >= 1024) {
             setResponsiveColumns(4)
           } else if (window.innerWidth >= 700) {
             setResponsiveColumns(3)
-          } else if (window.innerWidth >= 420) {
-            setResponsiveColumns(2)
           } else {
-            setResponsiveColumns(1)
+            setResponsiveColumns(2)
           }
         }
-        // For 3 columns: 1 on mobile, 2 on 420px+, 3 on 700px+
+        // For 3 columns: 2 on mobile, 3 on 700px+
         else if (columns === 3) {
           if (window.innerWidth >= 700) {
             setResponsiveColumns(3)
-          } else if (window.innerWidth >= 420) {
-            setResponsiveColumns(2)
           } else {
-            setResponsiveColumns(1)
+            setResponsiveColumns(2)
           }
         }
-        // For 2 columns: 1 on mobile, 2 on 420px+
+        // For 2 columns: always 2
         else if (columns === 2) {
-          if (window.innerWidth >= 420) {
-            setResponsiveColumns(2)
-          } else {
-            setResponsiveColumns(1)
-          }
+          setResponsiveColumns(2)
         }
         // For 5 columns: use same as 4 but add xl breakpoint
         else if (columns === 5) {
@@ -156,10 +149,8 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
             setResponsiveColumns(4)
           } else if (window.innerWidth >= 700) {
             setResponsiveColumns(3)
-          } else if (window.innerWidth >= 420) {
-            setResponsiveColumns(2)
           } else {
-            setResponsiveColumns(1)
+            setResponsiveColumns(2)
           }
         }
       }
@@ -173,13 +164,13 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
   const getColumnClasses = () => {
     switch (columns) {
       case 2:
-        return "grid-cols-1 min-[420px]:grid-cols-2"
+        return "grid-cols-2 min-[420px]:grid-cols-2"
       case 3:
-        return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3"
+        return "grid-cols-2 min-[700px]:grid-cols-3"
       case 4:
-        return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-4"
+        return "grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-4"
       case 5:
-        return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5"
+        return "grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5"
       default:
         return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3"
     }
@@ -199,14 +190,12 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
   }, [sortedAds, responsiveColumns])
 
   const renderAdCard = (ad: Ad) => {
-    // Get first image or placeholder
-    const imageUrl = ad.images && ad.images.length > 0
-      ? ad.images[0]
-      : 'https://via.placeholder.com/400x300?text=No+Image'
+    // Get full image URL using the fixed utility
+    const imageUrl = getMediaUrl(ad.images?.[0])
     
     // Format price
     const formattedPrice = ad.price
-      ? `${ad.currency || 'Fr'} ${parseFloat(String(ad.price)).toLocaleString()}`
+      ? `${ad.currency || 'XOF'} ${parseFloat(String(ad.price)).toLocaleString()}`
       : 'Contact for price'
     
     // Get location from seller
@@ -218,7 +207,7 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
     
     return (
       <Link key={ad.id} href={`/ads/${ad.slug}`} className="block">
-        <div className="bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer group mb-6 break-inside-avoid">
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-primary/40 transition-all duration-200 cursor-pointer group mb-2.5 break-inside-avoid shadow-none">
         {/* Image Container */}
         <div className="relative w-full overflow-hidden">
           <Image
@@ -232,7 +221,7 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
           
           {/* Category Badge - Smaller */}
           {categoryName && (
-            <div className="absolute top-2 left-2 bg-secondary/90 text-white px-1.5 py-0.5 text-xs font-medium">
+            <div className="absolute top-2 left-2 bg-secondary/90 text-white px-2 py-0.5 rounded-full text-xs font-medium">
               {categoryName}
             </div>
           )}
@@ -292,16 +281,35 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
     )
   }
 
+  // Empty state
+  if (ads.length === 0) {
+    return (
+      <div className={`${className} py-16 flex flex-col items-center gap-4 text-center`}>
+        <ShoppingBag className="w-10 h-10 text-gray-300" strokeWidth={1.5} />
+        <div>
+          <p className="text-base font-medium text-gray-700">No ads yet</p>
+          <p className="text-sm text-gray-400 mt-1">Be the first to post something!</p>
+        </div>
+        <a
+          href="/create-ad"
+          className="mt-2 text-sm font-semibold text-primary hover:underline flex items-center gap-1"
+        >
+          Post an Ad <ArrowRight className="w-4 h-4" />
+        </a>
+      </div>
+    )
+  }
+
   return (
-    <div className={`container py-12 ${className}`}>
+    <div className={`w-full ${className}`}>
       {/* Sort Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-start gap-4 mb-4">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600">Sort by:</span>
           <div className="relative">
             <button
               onClick={() => setIsSortOpen(!isSortOpen)}
-              className="flex items-center gap-2 px-3 py-2 border border-gray-300 hover:border-secondary transition-colors text-sm whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 hover:border-secondary rounded-full transition-colors text-sm whitespace-nowrap"
             >
               {sortOptions.find(option => option.value === sortBy)?.label}
               {isSortOpen ? (
@@ -312,7 +320,7 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
             </button>
             
             {isSortOpen && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 shadow-lg z-10">
+              <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl z-10 overflow-hidden">
                 {sortOptions.map((option) => (
                   <button
                     key={option.value}
@@ -331,14 +339,10 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
             )}
           </div>
         </div>
-        
-        <div className="text-sm text-gray-500">
-          {ads.length} {ads.length === 1 ? 'ad' : 'ads'}
-        </div>
       </div>
 
       {/* Pinterest-style masonry grid */}
-      <div className={`grid ${getColumnClasses()} gap-4 sm:gap-6`}>
+      <div className={`grid ${getColumnClasses()} gap-2.5`}>
         {columnArrays.map((columnAds, columnIndex) => (
           <div key={columnIndex} className="flex flex-col">
             {columnAds.map(renderAdCard)}

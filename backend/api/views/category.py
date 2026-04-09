@@ -47,11 +47,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
             .prefetch_related('children__children__children__children')
             .order_by('sort_order', 'name')
         )
-        serializer = CategoryTreeSerializer(roots, many=True)
+        serializer = CategoryTreeSerializer(roots, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def all(self, request):
-        serializer = CategorySerializer(self.get_queryset(), many=True)
+        serializer = CategorySerializer(self.get_queryset(), many=True, context={'request': request})
         return Response(serializer.data)
 

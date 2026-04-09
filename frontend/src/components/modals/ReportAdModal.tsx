@@ -2,13 +2,8 @@
 
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -16,8 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { AlertCircle, CheckCircle } from 'lucide-react'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
+import { reportsApi } from '@/api/reports'
+import { useAuthStore } from '@/store/authStore'
 
 interface ReportAdModalProps {
   isOpen: boolean
@@ -59,8 +56,17 @@ export default function ReportAdModal({ isOpen, onClose, adId, adTitle }: Report
 
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const { user } = useAuthStore.getState()
+      
+      await reportsApi.create({
+        related_ad: adId,
+        reason: reason,
+        description: details,
+        report_type: 'ad',
+        contact_email: user?.email || undefined // Fallback for guest reports if needed
+      })
+
       setIsLoading(false)
       setIsSuccess(true)
       
@@ -70,8 +76,12 @@ export default function ReportAdModal({ isOpen, onClose, adId, adTitle }: Report
         setReason('')
         setDetails('')
         onClose()
-      }, 2000)
-    }, 1500)
+      }, 3000)
+    } catch (err: any) {
+      console.error('Report submission error:', err)
+      setError(err?.response?.data?.error || 'Failed to submit report. Please try again later.')
+      setIsLoading(false)
+    }
   }
 
   const handleClose = () => {
@@ -86,121 +96,116 @@ export default function ReportAdModal({ isOpen, onClose, adId, adTitle }: Report
 
   if (isSuccess) {
     return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="!max-w-md">
-          <div className="py-8 text-center">
-            <div className="bg-green-100 w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-10 h-10 text-green-600" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Report Submitted
-            </h3>
-            <p className="text-gray-600">
-              Thank you for helping keep Tajma Marketplace safe. We'll review this report within 24 hours.
-            </p>
+      <ResponsiveModal isOpen={isOpen} onClose={handleClose} title="Report Submitted" className="!max-w-md">
+        <div className="py-8 text-center">
+          <div className="bg-green-100 w-16 h-16 flex items-center justify-center rounded-full mx-auto mb-4">
+            <CheckCircle2 className="w-10 h-10 text-green-600" />
           </div>
-        </DialogContent>
-      </Dialog>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            Report Submitted
+          </h3>
+          <p className="text-gray-600">
+            Thank you for helping keep Tajma Marketplace safe. We'll review this report within 24 hours.
+          </p>
+        </div>
+      </ResponsiveModal>
     )
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="!max-w-2xl max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0">
-          <DialogTitle>Report This Ad</DialogTitle>
-        </DialogHeader>
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Report This Ad"
+      description="Help us understand what's wrong with this ad. Your report is anonymous."
+      className="!max-w-md"
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col">
+        <div className="mb-6 bg-gray-50 p-4 border border-gray-200 rounded-lg">
+          <p className="text-sm text-gray-600 mb-1">Reporting ad:</p>
+          <p className="font-medium text-gray-900">{adTitle}</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <div className="px-6 overflow-y-auto fancy-scrollbar flex-1 min-h-0">
-            <div className="mb-6 bg-gray-50 p-4 border border-gray-200 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Reporting ad:</p>
-              <p className="font-medium text-gray-900">{adTitle}</p>
-            </div>
-
-            <div className="space-y-5 pb-4">
-              {/* Reason Dropdown */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Why are you reporting this ad? *
-                </label>
-                <Select value={reason} onValueChange={setReason}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a reason" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {reportReasons.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>
-                        {r.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Details */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Additional Details *
-                </label>
-                <textarea
-                  value={details}
-                  onChange={(e) => setDetails(e.target.value)}
-                  rows={5}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                  placeholder="Please provide specific details about the issue..."
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  {details.length} / 500 characters
-                </p>
-              </div>
-
-              {/* Error Message */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              )}
-
-              {/* Info Box */}
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>Please note:</strong> False reports may result in account suspension. Only report ads that genuinely violate our policies.
-                </p>
-              </div>
-            </div>
+        <div className="space-y-5 mb-6">
+          {/* Reason Dropdown */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Why are you reporting this ad? *
+            </label>
+            <Select value={reason} onValueChange={setReason}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a reason" />
+              </SelectTrigger>
+              <SelectContent>
+                {reportReasons.map((r) => (
+                  <SelectItem key={r.value} value={r.value}>
+                    {r.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Actions - Fixed at bottom */}
-          <div className="px-6 pb-6 pt-4 border-t border-gray-200 flex gap-3 flex-shrink-0">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleClose}
-              disabled={isLoading}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1"
-            >
-              {isLoading ? (
-                <>
-                  <MarketplaceLoader inline size="sm" />
-                  Submitting...
-                </>
-              ) : (
-                'Submit Report'
-              )}
-            </Button>
+          {/* Details */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Additional Details *
+            </label>
+            <Textarea
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              rows={5}
+              className="w-full resize-none"
+              placeholder="Please provide specific details about the issue..."
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              {details.length} / 500 characters
+            </p>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          {/* Info Box */}
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Please note:</strong> False reports may result in account suspension. Only report ads that genuinely violate our policies.
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleClose}
+            disabled={isLoading}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="flex-1"
+          >
+            {isLoading ? (
+              <>
+                <MarketplaceLoader inline size="sm" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Report'
+            )}
+          </Button>
+        </div>
+      </form>
+    </ResponsiveModal>
   )
 }
-

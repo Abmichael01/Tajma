@@ -102,7 +102,7 @@ JOBS_CATEGORY = {
         },
         {
             "name": "Technology & IT",
-            "image_url": "/office1.jpg",
+            "image_url": "/office1.png",
             "children": [
                 {"name": "Software Developers"},
                 {"name": "IT Support Specialists"},

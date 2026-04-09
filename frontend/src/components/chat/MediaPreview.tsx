@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { X, Send } from 'lucide-react'
+import { X, SendHorizontal } from 'lucide-react'
 import Image from 'next/image'
 
 interface MediaPreviewProps {
@@ -30,6 +30,7 @@ export default function MediaPreview({ file, onClose, onSend }: MediaPreviewProp
                 <button
                     onClick={onClose}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    title="Close preview"
                 >
                     <X className="w-5 h-5 text-gray-600" />
                 </button>
@@ -38,25 +39,36 @@ export default function MediaPreview({ file, onClose, onSend }: MediaPreviewProp
             </div>
 
             {/* Image Preview */}
-            <div className="flex-1 flex items-center justify-center p-4 min-h-0 bg-gray-50">
+            <div className="flex-1 flex items-center justify-center p-4 min-h-0 bg-[#F0F2F5]">
                 <div className="relative w-full h-full flex items-center justify-center">
                     <img
                         src={previewUrl}
                         alt="Preview"
-                        className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-md"
+                        style={{ display: 'block' }}
+                        onError={(e) => {
+                            console.error("Image preview failed to load");
+                            (e.target as HTMLImageElement).src = ""; // Clear broken src
+                        }}
                     />
                 </div>
             </div>
 
-            {/* Footer / Caption Area */}
-            <div className="p-4 bg-white border-t border-gray-100">
-                <div className="max-w-3xl mx-auto flex items-end gap-3">
-                    <div className="flex-1 bg-gray-100 rounded-2xl px-4 py-2 border border-gray-200 focus-within:border-primary/50 transition-colors">
+            {/* Footer / Caption Area - Styled to match ChatInput */}
+            <div className="p-2 sm:p-2 bg-[#F5F5F5] border-t border-gray-200">
+                <div className="max-w-5xl mx-auto flex items-center gap-1">
+                    {/* Input Bubble */}
+                    <div className="flex-1 flex items-center bg-white rounded-[22px] border border-[#E5E7EB] px-3 py-0 min-h-[40px] shadow-sm transition-all focus-within:shadow-md">
                         <textarea
                             value={caption}
-                            onChange={(e) => setCaption(e.target.value)}
+                            onChange={(e) => {
+                                setCaption(e.target.value)
+                                const target = e.target as HTMLTextAreaElement
+                                target.style.height = 'auto'
+                                target.style.height = `${Math.min(target.scrollHeight, 150)}px`
+                            }}
                             placeholder="Add a caption..."
-                            className="w-full bg-transparent border-none focus:ring-0 text-gray-900 placeholder-gray-500 text-sm resize-none py-1 max-h-32 custom-scrollbar"
+                            className="w-full bg-transparent resize-none border-none outline-none focus:ring-0 text-gray-900 text-[14px] py-[9px] px-1 max-h-[150px] custom-scrollbar placeholder-gray-400 leading-normal"
                             rows={1}
                             autoFocus
                             onKeyDown={(e) => {
@@ -65,20 +77,19 @@ export default function MediaPreview({ file, onClose, onSend }: MediaPreviewProp
                                     handleSend()
                                 }
                             }}
-                            onInput={(e) => {
-                                const target = e.target as HTMLTextAreaElement
-                                target.style.height = 'auto'
-                                target.style.height = `${target.scrollHeight}px`
-                            }}
                         />
                     </div>
 
-                    <button
-                        onClick={handleSend}
-                        className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 transition-transform active:scale-95"
-                    >
-                        <Send className="w-5 h-5 ml-0.5" />
-                    </button>
+                    {/* Send Button */}
+                    <div className="flex-shrink-0 flex items-center">
+                        <button
+                            onClick={handleSend}
+                            className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:opacity-90 transition-all active:scale-90"
+                            title="Send image"
+                        >
+                            <SendHorizontal className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

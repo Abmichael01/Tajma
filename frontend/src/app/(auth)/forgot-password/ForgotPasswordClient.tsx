@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import Logo from '@/components/General/Logo'
+import { authApi } from '@/api/auth'
+import { toast } from 'sonner'
 
 export default function ForgotPasswordClient() {
   const [email, setEmail] = useState('')
@@ -32,12 +34,19 @@ export default function ForgotPasswordClient() {
     if (!validateEmail()) return
 
     setIsLoading(true)
+    setError('')
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      await authApi.resetPassword({ email })
       setIsSuccess(true)
-    }, 2000)
+    } catch (err: any) {
+      console.error('Password reset request failed:', err)
+      const message = err.response?.data?.detail || err.response?.data?.message || 'Failed to send reset instructions. Please try again.'
+      setError(message)
+      toast.error(message)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +65,7 @@ export default function ForgotPasswordClient() {
           <div className="mt-8">
             <div className="text-center">
               <div className="flex justify-center mb-4">
-                <div className="bg-green-100 p-3">
+                <div className="bg-green-100 p-3 rounded-full">
                   <CheckCircle className="w-12 h-12 text-green-600" />
                 </div>
               </div>

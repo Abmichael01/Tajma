@@ -1,50 +1,60 @@
 "use client"
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Send, Image as ImageIcon, Paperclip, ChevronDown } from 'lucide-react'
-import EmojiPicker from './EmojiPicker'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { 
+  ChevronDown
+} from 'lucide-react'
 import type { ChatSummary, ChatMessage, User, UserOnlineStatus } from '@/api/types'
-import { useAuthStore } from '@/store/authStore'
-import MessageBubble from './MessageBubble'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { useAuthStore } from '@/store/authStore'
+import MediaPreview from './MediaPreview'
 import { useChatSounds } from '@/hooks/useChatSounds'
+import { getMediaUrl } from '@/lib/utils'
 import { toast } from 'sonner'
+
+// Sub-components
+import ChatHeader from './Area/ChatHeader'
+import AdBanner from './Area/AdBanner'
+import MessageList from './Area/MessageList'
+import ChatInput from './Area/ChatInput'
+import SelectionBar from './Area/SelectionBar'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { copyToClipboard } from '@/lib/utils'
+
+type DateSeparator = {
+  type: 'date'
+  date: string
+  id: string
+}
+
+type ChatListItem = ChatMessage | DateSeparator
+
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
-// Helper function to normalize image URLs
-const normalizeImageUrl = (url: string | null | undefined): string => {
-  if (!url) return '/default-product.png'
-
-  // If already an absolute URL, return as is
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url
-  }
-
-  // If starts with /, it's already a valid relative path
-  if (url.startsWith('/')) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    return `${apiUrl}${url}`
-  }
-
-  // Otherwise, prepend API URL and add leading slash
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  return `${apiUrl}/${url}`
-}
 
 interface ChatAreaProps {
   chat: ChatSummary | null
-  participant: User | null
+  participant: User
   participantStatus?: UserOnlineStatus
-  messages: ChatMessage[]
-  isParticipantTyping?: boolean
+  messages: ChatListItem[]
+  isParticipantTyping: boolean
   isConnected?: boolean
   isLoadingMessages?: boolean
   hasMoreMessages?: boolean
-  onSendMessage: (content: string) => Promise<void> | void
+  onSendMessage: (content: string, parentMessageId?: string) => Promise<void> | void
   onSendMedia: (formData: FormData) => Promise<void> | void
   onTypingChange?: (typing: boolean) => void
   onLoadMore?: () => void
@@ -53,6 +63,7 @@ interface ChatAreaProps {
   onMarkAsRead?: () => void
   onScrollStateChange?: (isAtBottom: boolean) => void // Callback to notify parent of scroll position
   onGetScrollState?: (getState: () => boolean) => void // Callback to expose scroll check function to parent
+  onDeleteMessages?: (messageIds: string[]) => void // New prop
   chatId?: string | null // Chat ID to detect when chat changes
 }
 
@@ -74,9 +85,12 @@ export default function ChatArea({
   onMarkAsRead,
   onScrollStateChange,
   onGetScrollState,
+  onDeleteMessages,
   chatId,
 }: ChatAreaProps) {
   const [inputValue, setInputValue] = useState('')
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set())
   const [showScrollToBottom, setShowScrollToBottom] = useState(false)
   const [unreadCountBelow, setUnreadCountBelow] = useState(0)
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null)
@@ -85,8 +99,31 @@ export default function ChatArea({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [idsToDelete, setIdsToDelete] = useState<string[]>([])
+
+  const handleReply = useCallback((message: ChatMessage) => {
+    setReplyTo(message)
+    // Focus the input
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+    }
+  }, [])
+
+  const handleCancelReply = useCallback(() => {
+    setReplyTo(null)
+  }, [])
 
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const handleStartSelection = (messageId: string) => {
+    setIsSelectionMode(true)
+    setSelectedMessageIds(new Set([messageId]))
+  }
   const lastUnreadMessageRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
@@ -164,7 +201,7 @@ export default function ChatArea({
       const messageId = element.getAttribute('data-message-id')
       const message = messages.find(m => String(m.id) === messageId)
 
-      if (message && message.sender?.id !== user.id && !message.is_read) {
+      if (message && !('type' in message) && (message as ChatMessage).sender?.id !== user.id && !(message as ChatMessage).is_read) {
         const elementTop = element.offsetTop
         const elementBottom = elementTop + element.offsetHeight
 
@@ -280,7 +317,7 @@ export default function ChatArea({
                 const messageId = element.getAttribute('data-message-id')
                 const message = messages.find(m => String(m.id) === messageId)
 
-                if (message && message.sender?.id !== user?.id && !message.is_read) {
+                if (message && !('type' in message) && message.sender?.id !== user?.id && !message.is_read) {
                   const elementTop = element.offsetTop
 
                   // Check if message is below current viewport
@@ -400,7 +437,10 @@ export default function ChatArea({
 
     // Find last unread message (from other user)
     const unreadMessages = messages.filter(
-      (msg) => !msg.is_read && msg.sender?.id !== user.id
+      (m): m is ChatMessage =>
+        !('type' in m) &&
+        m.sender?.id !== user?.id &&
+        !m.is_read
     )
 
     if (unreadMessages.length === 0) return
@@ -526,14 +566,98 @@ export default function ChatArea({
     }
   }, [])
 
+  const handleToggleSelection = (id: string) => {
+    setSelectedMessageIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleCopySelected = async () => {
+    if (selectedMessageIds.size === 0) return
+    
+    // Filter out date separators and find selected messages
+    const selectedMsgs = messages.filter(m => 
+      !('type' in m) && selectedMessageIds.has(String(m.id))
+    ) as ChatMessage[]
+    
+    if (selectedMsgs.length === 0) return
+
+    // Sort by creation time to maintain conversation flow in clipboard
+    const sortedMsgs = [...selectedMsgs].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+
+    const textToCopy = sortedMsgs.map(m => {
+      const senderName = m.sender?.id === user?.id ? 'You' : (participant ? getUserFullName(participant) : 'Other')
+      const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      return `[${time}] ${senderName}: ${m.content || '[Media]'}`
+    }).join('\n')
+
+    const success = await copyToClipboard(textToCopy)
+    if (success) {
+      toast.success(`${selectedMessageIds.size} messages copied to clipboard`)
+      setIsSelectionMode(false)
+      setSelectedMessageIds(new Set())
+    } else {
+      toast.error('Failed to copy to clipboard')
+    }
+  }
+
+  const handleDeleteAction = (ids: string[]) => {
+    setIdsToDelete(ids)
+    setDeleteConfirmOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (idsToDelete.length === 0) return
+    try {
+      // Only delete messages where the current user is the sender
+      const ownMessageIds = idsToDelete.filter(id => {
+        const msg = messages.find(m => !('type' in m) && String(m.id) === String(id)) as ChatMessage | undefined
+        return msg && String(msg.sender?.id) === String(user?.id)
+      })
+
+      if (ownMessageIds.length === 0) {
+        toast.error("You can only delete your own messages")
+        setIsSelectionMode(false)
+        setSelectedMessageIds(new Set())
+        return
+      }
+
+      await onDeleteMessages?.(ownMessageIds)
+      
+      if (ownMessageIds.length < idsToDelete.length) {
+        toast.info(`Deleted ${ownMessageIds.length} of your messages. Others were skipped.`)
+      }
+      
+      setIsSelectionMode(false)
+      setSelectedMessageIds(new Set())
+    } catch (error) {
+      console.error('Failed to delete messages', error)
+      toast.error('Failed to delete messages')
+    } finally {
+      setDeleteConfirmOpen(false)
+      setIdsToDelete([])
+    }
+  }
+
+  const handleDeleteSelected = () => {
+    if (selectedMessageIds.size === 0) return
+    handleDeleteAction(Array.from(selectedMessageIds))
+  }
+
   const handleSendMessage = async (event: React.FormEvent) => {
     event.preventDefault()
     const trimmed = inputValue.trim()
     if (!trimmed) return
 
     try {
-      await onSendMessage(trimmed)
+      await onSendMessage(trimmed, replyTo?.id)
       setInputValue('')
+      setReplyTo(null)
       onTypingChange?.(false)
       // Auto-scroll to bottom when user sends their own message
       // Use requestAnimationFrame to ensure DOM is updated
@@ -583,9 +707,7 @@ export default function ChatArea({
     if (!file || !chat) return
 
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('File too large', {
-        description: 'Please select a file smaller than 20MB.'
-      })
+      toast.error('File too large')
       event.target.value = ''
       return
     }
@@ -598,12 +720,16 @@ export default function ChatArea({
 
     const formData = new FormData()
     formData.append('chat', chat.id)
-    formData.append('message_type', type === 'image' ? 'image' : 'text')
-    formData.append('content', type === 'image' ? '📷 Image' : `📎 ${file.name}`)
+    formData.append('message_type', 'text') // Since it's definitely not an image here
+    formData.append('content', `📎 ${file.name}`)
     formData.append('attachment', file)
+    if (replyTo) {
+      formData.append('parent_message_id', replyTo.id)
+    }
 
     try {
       await onSendMedia(formData)
+      setReplyTo(null)
       // Reset input
       event.target.value = ''
     } catch (error) {
@@ -614,7 +740,12 @@ export default function ChatArea({
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
+      
+      // Determine best supported MIME type
+      const mimeTypes = ['audio/webm', 'audio/mp4', 'audio/aac', 'audio/wav']
+      const supportedType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || ''
+      
+      const mediaRecorder = new MediaRecorder(stream, supportedType ? { mimeType: supportedType } : undefined)
       mediaRecorderRef.current = mediaRecorder
       audioChunksRef.current = []
 
@@ -625,23 +756,32 @@ export default function ChatArea({
       }
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        const audioBlob = new Blob(audioChunksRef.current, { type: supportedType || 'audio/webm' })
+        const extension = supportedType.includes('mp4') ? 'm4a' : supportedType.includes('webm') ? 'webm' : 'wav'
 
         if (audioBlob.size > MAX_FILE_SIZE) {
-          toast.error('Recording too large', {
-            description: 'Audio message exceeds 20MB limit.'
-          })
+          toast.error('Recording too large')
           stream.getTracks().forEach(track => track.stop())
           return
         }
 
-        if (audioBlob.size > 1000) { // Only send if more than 1s of audio approximately
+        if (audioBlob.size > 1000) { // Only send if significant audio
           const formData = new FormData()
           formData.append('chat', chat!.id)
           formData.append('message_type', 'audio')
           formData.append('content', '🎤 Audio Message')
-          formData.append('attachment', audioBlob, 'recording.webm')
-          await onSendMedia(formData)
+          formData.append('attachment', audioBlob, `recording.${extension}`)
+          if (replyTo) {
+            formData.append('parent_message_id', replyTo.id)
+          }
+          
+          try {
+            await onSendMedia(formData)
+            setReplyTo(null)
+          } catch (error) {
+            console.error('Failed to send audio recording', error)
+            toast.error('Failed to send voice message')
+          }
         }
         stream.getTracks().forEach(track => track.stop())
       }
@@ -654,7 +794,7 @@ export default function ChatArea({
       }, 1000)
     } catch (err) {
       console.error('Failed to start recording', err)
-      alert('Could not access microphone')
+      toast.error('Could not access microphone')
     }
   }
 
@@ -682,10 +822,14 @@ export default function ChatArea({
     formData.append('message_type', 'image')
     formData.append('content', caption.trim() || '📷 Image')
     formData.append('attachment', selectedMedia)
+    if (replyTo) {
+      formData.append('parent_message_id', replyTo.id)
+    }
 
     try {
       await onSendMedia(formData)
       setSelectedMedia(null)
+      setReplyTo(null)
     } catch (error) {
       console.error('Failed to send media via preview', error)
     }
@@ -738,339 +882,125 @@ export default function ChatArea({
 
   return (
     <div className="flex flex-col h-full bg-white relative">
-      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 bg-white">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          {onBack && (
-            <button onClick={onBack} className="md:hidden p-2 hover:bg-gray-100 flex-shrink-0">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
+      <ChatHeader
+        participant={participant}
+        participantStatus={participantStatus}
+        isParticipantTyping={isParticipantTyping}
+        isConnected={isConnected}
+        isSelectionMode={isSelectionMode}
+        selectedCount={selectedMessageIds.size}
+        onBack={onBack}
+        onToggleSelectionMode={setIsSelectionMode}
+        onCancelSelection={() => {
+          setIsSelectionMode(false)
+          setSelectedMessageIds(new Set())
+        }}
+        participantStatusText={participantStatusText}
+      />
 
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="relative flex-shrink-0">
-              <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
-                <AvatarImage src={participant.avatar || undefined} alt={getUserFullName(participant)} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm font-medium">
-                  {getUserInitials(participant)}
-                </AvatarFallback>
-              </Avatar>
-              {participantStatus?.is_online && (
-                <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 border-2 border-white rounded-full" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <h2 className="font-semibold text-gray-900 text-sm truncate">{getUserFullName(participant)}</h2>
-              <p className="text-xs text-gray-500 truncate">
-                {isParticipantTyping ? (
-                  <span className="flex items-center gap-1">
-                    <span className="inline-flex gap-0.5">
-                      <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
-                      <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
-                      <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
-                    </span>
-                    is typing...
-                  </span>
-                ) : (
-                  participantStatusText
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
+      <AdBanner chat={chat} />
 
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          {isConnected ? (
-            <span className="text-xs text-green-600 bg-green-50 border border-green-200 rounded-full px-2 py-1 hidden sm:inline-flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-              Connected
-            </span>
-          ) : (
-            <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1 hidden sm:inline-flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-              Reconnecting…
-            </span>
-          )}
-        </div>
-      </div>
+      <MessageList
+        messages={messages}
+        user={user}
+        participant={participant}
+        isSelectionMode={isSelectionMode}
+        selectedMessageIds={selectedMessageIds}
+        onToggleSelection={handleToggleSelection}
+        onStartSelection={handleStartSelection}
+        handleReply={handleReply}
+        onDeleteMessages={handleDeleteAction}
+        onRetryMessage={onRetryMessage}
+        messagesContainerRef={messagesContainerRef}
+        messagesEndRef={messagesEndRef}
+        isParticipantTyping={isParticipantTyping}
+        isLoadingMessages={isLoadingMessages}
+      />
 
-      {chat.ad_title && (
-        <div className="p-2 sm:p-3 border-b border-gray-200 bg-white">
-          <div className="flex items-center gap-2 sm:gap-3">
-            {chat.ad_image && (
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 overflow-hidden flex-shrink-0 rounded">
-                <Image
-                  src={normalizeImageUrl(chat.ad_image)}
-                  alt={chat.ad_title || 'Ad image'}
-                  width={48}
-                  height={48}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+      {/* Scroll Bottom Button */}
+      {showScrollToBottom && (
+        <div className="absolute bottom-16 right-6 z-20">
+          <button
+            onClick={() => scrollToBottom(true)}
+            className="bg-white text-gray-600 rounded-full w-10 h-10 shadow-lg border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-all group scale-in"
+          >
+            <ChevronDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
+            {unreadCountBelow > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-white shadow-sm">
+                {unreadCountBelow}
+              </span>
             )}
-            <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-gray-900 text-xs sm:text-sm truncate">{chat.ad_title}</h3>
-              {chat.ad_price && (
-                <p className="text-sm sm:text-lg font-bold text-primary">
-                  {chat.ad_currency || 'Fr'} {parseFloat(chat.ad_price).toLocaleString()}
-                </p>
-              )}
-            </div>
-            {chat.ad_slug && (
-              <Link href={`/ads/${chat.ad_slug}`} className="text-xs text-secondary hover:text-secondary/80 font-medium flex-shrink-0">
-                View
-              </Link>
-            )}
-          </div>
+          </button>
         </div>
       )}
 
-      <div className="flex-1 relative overflow-hidden">
-        <div
-          ref={messagesContainerRef}
-          className="h-full overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 bg-gray-50 custom-scrollbar"
-        >
-          {/* Loading indicator for older messages */}
-          {isLoadingMessages && messages && Array.isArray(messages) && messages.length > 0 && (
-            <div className="flex justify-center py-2">
-              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            </div>
-          )}
-
-          {/* Load older messages button - at top before messages */}
-          {hasMoreMessages && !isLoadingMessages && (
-            <div className="flex justify-center py-2">
-              <button
-                onClick={() => onLoadMore?.()}
-                className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1 rounded-full border border-gray-200 hover:border-gray-300"
-              >
-                Load older messages
-              </button>
-            </div>
-          )}
-
-          {messages && Array.isArray(messages) && messages.length > 0 ? (
-            <>
-              {messages.map((message) => (
-                <MessageBubble
-                  key={message.id}
-                  message={message}
-                  isOwn={message.sender?.id === user?.id}
-                  participant={participant}
-                  currentUserAvatar={user?.avatar ?? null}
-                  currentUser={user}
-                  onRetry={onRetryMessage}
-                />
-              ))}
-            </>
-          ) : !isLoadingMessages ? (
-            <div className="flex items-center justify-center h-full text-gray-500">
-              <div className="text-center">
-                <p className="text-sm">No messages yet</p>
-                <p className="text-xs text-gray-400 mt-1">Start the conversation</p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          )}
-
-          {isParticipantTyping && (
-            <div className="flex items-center gap-2">
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={participant.avatar || undefined} alt={getUserFullName(participant)} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                  {getUserInitials(participant)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="bg-white p-3 rounded-2xl rounded-tl-sm shadow-sm">
-                <div className="flex gap-1">
-                  <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
-                  <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
-                  <span className="w-1 h-1 bg-gray-500 rounded-full typing-dot" />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Scroll to bottom button (WhatsApp style) - fixed position, only shows when user scrolls up */}
-        {showScrollToBottom && (
-          <div className="absolute bottom-4 right-4 z-20">
-            <button
-              onClick={() => scrollToBottom(true)}
-              className="bg-primary text-primary-foreground rounded-full p-2.5 shadow-lg hover:bg-primary/90 transition-all animate-fade-in flex items-center justify-center relative"
-              title={unreadCountBelow > 0 ? `${unreadCountBelow} new message${unreadCountBelow > 1 ? 's' : ''}` : "Scroll to bottom"}
-            >
-              <ChevronDown className="w-5 h-5" />
-              {unreadCountBelow > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-normal rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
-                  {unreadCountBelow > 99 ? '99+' : unreadCountBelow}
-                </span>
-              )}
-            </button>
-          </div>
-        )}
-
-        {selectedMedia && (
-          <MediaPreview
-            file={selectedMedia}
-            onClose={() => setSelectedMedia(null)}
-            onSend={handleSendPreview}
-          />
-        )}
-      </div>
-
-      <div className="p-3 sm:p-4 bg-gray-50 border-t border-gray-100">
-        <form onSubmit={handleSendMessage} className="flex items-end gap-2 sm:gap-4 max-w-5xl mx-auto">
-          {/* Main Input Pill */}
-          <div className="flex-1 flex items-center gap-1 sm:gap-2 bg-white rounded-3xl border border-gray-200 px-2 sm:px-3 py-1.5 min-h-[50px] shadow-sm hover:border-gray-300 transition-colors focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/5">
-
-            {/* Action Buttons Group */}
-            <div className="flex items-center">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center flex-shrink-0"
-                title="Attach file"
-              >
-                <Paperclip className="w-5 h-5 text-gray-500" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => imageInputRef.current?.click()}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center flex-shrink-0"
-                title="Attach image"
-              >
-                <ImageIcon className="w-5 h-5 text-gray-500" />
-              </button>
-
-              <EmojiPicker
-                onEmojiSelect={(emoji) => {
-                  setInputValue((prev) => prev + emoji)
-                  const textarea = document.querySelector('textarea[placeholder="Type a message..."]') as HTMLTextAreaElement
-                  if (textarea) {
-                    textarea.focus()
-                    textarea.setSelectionRange(textarea.value.length, textarea.value.length)
-                  }
-                }}
-              />
-            </div>
-
-            {/* Textarea Area */}
-            <div className="flex-1 relative min-w-0">
-              {isRecording ? (
-                <div className="flex-1 h-[40px] flex items-center justify-between px-3 bg-red-50 rounded-xl">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-bounce" />
-                    <span className="text-sm font-semibold text-red-600">Recording {formatDuration(recordingDuration)}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (mediaRecorderRef.current) {
-                        mediaRecorderRef.current.onstop = () => {
-                          mediaRecorderRef.current = null
-                          setIsRecording(false)
-                          if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current)
-                        }
-                        mediaRecorderRef.current.stop()
-                      }
-                    }}
-                    className="text-[10px] text-red-400 font-bold uppercase hover:text-red-600 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <textarea
-                  ref={(textarea) => {
-                    if (textarea) {
-                      textarea.style.height = 'auto'
-                      const newHeight = Math.min(textarea.scrollHeight, 150)
-                      textarea.style.height = `${newHeight}px`
-                      if (textarea.scrollHeight > 150) {
-                        textarea.classList.add('has-overflow')
-                      } else {
-                        textarea.classList.remove('has-overflow')
-                      }
-                    }
-                  }}
-                  value={inputValue}
-                  onChange={(event) => {
-                    handleTypingChange(event.target.value)
-                    const textarea = event.target as HTMLTextAreaElement
-                    textarea.style.height = 'auto'
-                    const newHeight = Math.min(textarea.scrollHeight, 150)
-                    textarea.style.height = `${newHeight}px`
-                    if (textarea.scrollHeight > 150) {
-                      textarea.classList.add('has-overflow')
-                    } else {
-                      textarea.classList.remove('has-overflow')
-                    }
-                  }}
-                  placeholder="Type a message..."
-                  className="w-full bg-transparent resize-none border-none outline-none focus:ring-0 text-gray-900 text-[15px] py-2 px-1 max-h-[150px] custom-scrollbar placeholder-gray-400"
-                  rows={1}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault()
-                      handleSendMessage(event)
-                    }
-                  }}
-                  inputMode="text"
-                  autoComplete="off"
-                  autoCorrect="on"
-                  autoCapitalize="sentences"
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Send / Mic Button */}
-          {!inputValue.trim() && !isRecording ? (
-            <button
-              type="button"
-              onMouseDown={startRecording}
-              className="w-[50px] h-[50px] bg-primary text-white rounded-full flex items-center justify-center shadow hover:bg-primary/95 transition-all active:scale-95 flex-shrink-0"
-              title="Record audio"
-            >
-              <svg className="w-5 h-5 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-              </svg>
-            </button>
-          ) : (
-            <button
-              type={isRecording ? "button" : "submit"}
-              onClick={isRecording ? stopRecording : undefined}
-              disabled={!isRecording && !inputValue.trim()}
-              className={`w-[50px] h-[50px] ${isRecording ? 'bg-red-500' : 'bg-primary'} text-white rounded-full flex items-center justify-center shadow hover:opacity-90 disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none transition-all active:scale-95 flex-shrink-0`}
-              title={isRecording ? "Stop and Send" : "Send message"}
-            >
-              <Send className="w-5 h-5 ml-1" />
-            </button>
-          )}
-        </form>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf,.doc,.docx,.txt,.zip"
-          onChange={(e) => handleAttachmentChange(e, 'file')}
-          className="hidden"
+      {selectedMedia && (
+        <MediaPreview
+          file={selectedMedia}
+          onClose={() => setSelectedMedia(null)}
+          onSend={handleSendPreview}
         />
+      )}
 
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleAttachmentChange(e, 'image')}
-          className="hidden"
+      {isSelectionMode ? (
+        <SelectionBar
+          selectedCount={selectedMessageIds.size}
+          canDelete={Array.from(selectedMessageIds).every(id => {
+            const msg = messages.find(m => !('type' in m) && String(m.id) === String(id)) as ChatMessage | undefined
+            return msg && String(msg.sender?.id) === String(user?.id)
+          })}
+          onCancel={() => {
+            setIsSelectionMode(false)
+            setSelectedMessageIds(new Set())
+          }}
+          onCopy={handleCopySelected}
+          onDelete={handleDeleteSelected}
         />
-      </div>
+      ) : (
+        <ChatInput
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          replyTo={replyTo}
+          onCancelReply={handleCancelReply}
+          onSendMessage={handleSendMessage}
+          onTypingChange={handleTypingChange}
+          fileInputRef={fileInputRef}
+          imageInputRef={imageInputRef}
+          textareaRef={textareaRef}
+          isRecording={isRecording}
+          recordingDuration={recordingDuration}
+          startRecording={startRecording}
+          stopRecording={stopRecording}
+          formatDuration={formatDuration}
+          user={user!}
+          onAttachmentChange={handleAttachmentChange}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent className="rounded-3xl border-gray-100 max-w-[400px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl">
+              Delete {idsToDelete.length === 1 ? 'message' : `${idsToDelete.length} messages`}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[15px] text-gray-500">
+              This action cannot be undone. This will permanently delete your messages from this chat. Only messages sent by you will be removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2 mt-2">
+            <AlertDialogCancel className="rounded-full border-gray-200 text-gray-600 hover:bg-gray-50 h-9 px-4 text-xs font-semibold">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="rounded-full bg-red-500 hover:bg-red-600 text-white h-9 px-4 text-xs font-semibold"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

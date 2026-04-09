@@ -231,38 +231,36 @@
 /* Custom Scrollbar for Categories Section */
 .custom-scrollbar-categories {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.55 0.20 15) oklch(0.968 0.007 247.896);
+  scrollbar-color: #d1d5db transparent;
 }
 
 .custom-scrollbar-categories::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .custom-scrollbar-categories::-webkit-scrollbar-track {
-  background: oklch(0.968 0.007 247.896);
+  background: transparent;
   border-radius: 4px;
 }
 
 .custom-scrollbar-categories::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, oklch(0.55 0.20 15), oklch(0.50 0.18 15));
+  background: #d1d5db;
   border-radius: 4px;
-  border: 2px solid oklch(0.968 0.007 247.896);
   transition: all 0.2s ease;
 }
 
 .custom-scrollbar-categories::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, oklch(0.60 0.22 15), oklch(0.55 0.20 15));
-  border: 1px solid oklch(0.968 0.007 247.896);
+  background: #9ca3af;
 }
 
 /* Fancy Scrollbar for Modals */
 .fancy-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.55 0.20 15) transparent;
+  scrollbar-color: #d1d5db transparent;
 }
 
 .fancy-scrollbar::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .fancy-scrollbar::-webkit-scrollbar-track {
@@ -271,15 +269,14 @@
 }
 
 .fancy-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, oklch(0.55 0.20 15), oklch(0.50 0.18 15));
+  background: #d1d5db;
   border-radius: 4px;
-  border: 2px solid transparent;
   background-clip: padding-box;
   transition: all 0.2s ease;
 }
 
 .fancy-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, oklch(0.60 0.22 15), oklch(0.55 0.20 15));
+  background: #9ca3af;
   background-clip: padding-box;
 }
 

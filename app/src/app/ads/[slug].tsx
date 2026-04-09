@@ -1,5 +1,6 @@
 import { View, ScrollView, TouchableOpacity, Platform, Linking, Alert, ActivityIndicator, Share } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -14,16 +15,19 @@ import AdDescription from "@/components/ads/AdDescription";
 import AdInfo from "@/components/ads/AdInfo";
 import AdSellerInfo from "@/components/ads/AdSellerInfo";
 import AdSafetyTips from "@/components/ads/AdSafetyTips";
+import AdMap from "@/components/ads/AdMap";
 import { useLeads } from "@/hooks/useLeads";
 import ReviewsSection from "@/components/ads/ReviewsSection";
 import AdDetailSkeleton from "@/components/ads/AdDetailSkeleton";
 import { useReviewStats } from "@/hooks/useReviews";
 import CustomAlert from "@/components/ui/CustomAlert";
 import { useAlert } from "@/hooks/useAlert";
+import ReportAdModal from "@/components/ads/ReportAdModal";
 
 export default function AdsDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { alertConfig, showAlert, hideAlert } = useAlert();
   const { data: ad, isLoading, error } = useAdDetails(slug || "");
   const { user, isAuthenticated } = useAuthStore();
@@ -31,6 +35,7 @@ export default function AdsDetailScreen() {
   const { data: reviewStats } = useReviewStats({ ad: ad?.id }, !!ad?.id);
   const { mutateAsync: getOrCreateChat, isPending: isGettingChat } = useGetOrCreateChat();
   const { recordInteraction } = useLeads();
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Check if current user is the ad owner
   const isOwner = user && ad && user.id === ad.seller?.id;
@@ -66,6 +71,14 @@ export default function AdsDetailScreen() {
     }
   };
 
+  const handleReport = () => {
+    if (!isAuthenticated) {
+      router.push("/(auth)/login");
+    } else {
+      setIsReportModalOpen(true);
+    }
+  };
+
   if (isLoading) {
     return <AdDetailSkeleton />;
   }
@@ -94,8 +107,8 @@ export default function AdsDetailScreen() {
     <View className="flex-1 bg-white">
       <StatusBar style="dark" />
 
-      {/* Floating Back Button */}
-      <BackButton className="top-12 left-6" />
+      {/* Floating Back Button - Handles insets internally */}
+      <BackButton />
 
       <ScrollView
         className="flex-1"
@@ -111,6 +124,8 @@ export default function AdsDetailScreen() {
           onNext={() => setCurrentImageIndex(Math.min(adImages.length - 1, currentImageIndex + 1))}
           onThumbnailClick={setCurrentImageIndex}
           onShare={handleShare}
+          onReport={handleReport}
+          onIndexChange={setCurrentImageIndex}
         />
 
         {/* Product Info */}
@@ -129,6 +144,16 @@ export default function AdsDetailScreen() {
         {/* Ad Info */}
         {ad.attributes && Object.keys(ad.attributes).length > 0 && (
           <AdInfo attributes={ad.attributes} />
+        )}
+
+        {/* Map Section */}
+        {ad.latitude && ad.longitude && (
+          <AdMap 
+            latitude={ad.latitude} 
+            longitude={ad.longitude} 
+            title={ad.title} 
+            locationName={ad.location_name || ad.location} 
+          />
         )}
 
         {/* Seller Info */}
@@ -151,7 +176,7 @@ export default function AdsDetailScreen() {
       <View
         className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 flex-row gap-3 items-center"
         style={{
-          paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+          paddingBottom: Math.max(insets.bottom, 20),
           shadowColor: "#000",
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.05,
@@ -242,6 +267,12 @@ export default function AdsDetailScreen() {
         iconColor={alertConfig.iconColor}
         buttons={alertConfig.buttons}
         onDismiss={hideAlert}
+      />
+
+      <ReportAdModal
+        visible={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        ad={ad}
       />
     </View>
   );

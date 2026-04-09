@@ -350,7 +350,7 @@ export default function EditAdClient({ adId }: EditAdClientProps) {
                 errors={errors}
                 categoryTree={categoryTree}
                 categoryPath={categoryPath}
-                onCategoryLevelChange={() => {}}
+                onCategorySelect={(cat) => handleInputChange('category', cat.slug)}
                 onInputChange={handleInputChange}
                 selectedCategoryLabel={categoryLabel}
                 isEditMode

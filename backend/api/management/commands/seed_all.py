@@ -97,7 +97,8 @@ class Command(BaseCommand):
             'perf1.jpg', 'perf2.jpg', 'perf3.jpg',
             'electronics_banner.png', 'vehicles_banner.png', 'fashion_banner.png',
             'property_banner.png', 'services_banner.png', 'logo.jpg', 'logo.webp',
-            'electronics_banner_bg_1768445147615.png'
+            'electronics_banner_bg_1768445147615.png',
+            'laptop1.png', 'bike1.png', 'house1.png', 'house2.png', 'worker1.png', 'office1.png'
         ]
 
         for asset in assets:
@@ -291,7 +292,7 @@ class Command(BaseCommand):
                 'description': 'Spacious 3 bedroom flat with POP ceilings and tiles. Constant water and security.',
                 'price': Decimal('350000.00'),
                 'category': rent_cat,
-                'images': ['/house2.jpg', '/logo.webp', '/logo.jpg'],
+                'images': ['/house2.png', '/logo.webp', '/logo.jpg'],
                 'attributes': {
                     'bedrooms': 3, 'bathrooms': 3, 'furnishing': 'unfurnished',
                     'facilities': ['pop-ceiling', 'tiled-floor', 'running-water', 'security']
@@ -302,7 +303,7 @@ class Command(BaseCommand):
                 'description': 'Magnificent 5 bedroom duplex with swimming pool and gym. Fully furnished and automated.',
                 'price': Decimal('250000000.00'),
                 'category': sale_cat,
-                'images': ['/house1.jpg', '/house2.jpg', '/logo.jpg'],
+                'images': ['/house1.png', '/house2.png', '/logo.jpg'],
                 'attributes': {
                     'bedrooms': 5, 'bathrooms': 6, 'furnishing': 'furnished',
                     'facilities': ['pool', 'gym', 'electricity', 'security']
@@ -363,7 +364,7 @@ class Command(BaseCommand):
                     'condition': 'brand-new', 'processor': 'Ryzen 9', 'ram': 32, 'storage_capacity': 2000, 'storage_type': 'ssd'
                 }
             },
-            {
+            { 
                 'title': 'Nivea Radiant & Beauty Lotion - Duo Pack',
                 'description': 'Moisturizing body lotion for glowing skin. Pack of 2.',
                 'price': Decimal('12000.00'),

@@ -17,22 +17,22 @@ export default function PrivacyClient() {
                 Privacy Policy
               </h1>
             </div>
-            <p className="text-gray-600">Last updated: January 2024</p>
+            <p className="text-gray-600">Last updated: March 27, 2026</p>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="container py-12">
-        <div className="max-w-4xl mx-auto prose prose-gray max-w-none">
+        <div className="mx-auto prose prose-gray max-w-none">
           {/* Introduction */}
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Introduction</h2>
             <p className="text-gray-600 leading-relaxed mb-4">
-              At Tajma Marketplace ("we," "our," or "us"), we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
+              At Tajma Marketplace ("we," "our," or "us"), we are committed to protecting your privacy and ensuring the security of your personal information within our local community in Niger. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services to connect with buyers and sellers.
             </p>
             <p className="text-gray-600 leading-relaxed">
-              By using Tajma Marketplace, you agree to the collection and use of information in accordance with this policy. If you do not agree with our policies and practices, please do not use our services.
+              By using Tajma Marketplace, you agree to the collection and use of information in accordance with this policy. Our mission is to provide a safe and transparent environment for local commerce in Niamey and beyond.
             </p>
           </section>
 

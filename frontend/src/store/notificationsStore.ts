@@ -15,7 +15,8 @@ export interface Notification {
 
 interface NotificationsState {
   notifications: Notification[]
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp'>) => void
+  addNotification: (notification: Omit<Notification, 'timestamp'> & { id?: string }) => void
+  setNotifications: (notifications: Notification[]) => void
   markAsRead: (notificationId: string) => void
   markAllAsRead: () => void
   deleteNotification: (notificationId: string) => void
@@ -32,7 +33,7 @@ export const useNotificationsStore = create<NotificationsState>()(
       addNotification: (notification) => {
         const newNotification: Notification = {
           ...notification,
-          id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id: notification.id || `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           timestamp: new Date().toISOString(),
           isRead: notification.isRead ?? false,
         }
@@ -46,6 +47,10 @@ export const useNotificationsStore = create<NotificationsState>()(
             notifications: [newNotification, ...state.notifications]
           }
         })
+      },
+
+      setNotifications: (notifications) => {
+        set({ notifications })
       },
 
       markAsRead: (notificationId: string) => {

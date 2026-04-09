@@ -2,26 +2,29 @@
 
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import CategoryImage from '@/components/ui/CategoryImage'
 import { useCategories } from '@/hooks/useCategories'
+import { cn } from '@/lib/utils'
+import { CategoryTree } from '@/types/category'
 
 export default function CategoriesSection() {
-  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
   const { categoryTree, loading } = useCategories()
+  const [hoveredCategory, setHoveredCategory] = useState<CategoryTree | null>(null)
+  const [hoveredCategoryTop, setHoveredCategoryTop] = useState<number>(0)
 
   const displayedCategories = useMemo(() => categoryTree, [categoryTree])
 
   return (
     <div
-      className="hidden lg:block lg:w-[300px] bg-white border border-gray-200 rounded-lg p-5 relative z-10 h-fit"
+      className="hidden lg:flex flex-col lg:min-w-[260px] lg:max-w-[320px] bg-white border border-gray-200 rounded-xl p-5 relative z-30 h-full categories-section-container"
+      onMouseLeave={() => setHoveredCategory(null)}
     >
       <h3 className="font-semibold text-gray-900 mb-1">Browse Categories</h3>
-      <p className="text-xs text-gray-500 mb-4">Hover to preview top subcategories.</p>
+      <p className="text-[11px] text-gray-500 mb-4">Hover to preview top subcategories.</p>
 
-      <div className="space-y-1 custom-scrollbar-categories pr-1">
+      <div className="flex-1 space-y-0.5 custom-scrollbar-categories pr-1 overflow-y-auto min-h-0">
         {loading && (
           <div className="py-6 flex justify-center">
             <MarketplaceLoader inline size="sm" message="Loading categories..." />
@@ -33,99 +36,89 @@ export default function CategoriesSection() {
         )}
 
         {displayedCategories.map((category) => {
-          // Use the category's adsCount directly - backend already calculates total (direct + all children)
           const totalCount = category.adsCount || 0
+          const isHovered = hoveredCategory?.id === category.id
 
           return (
-            <div
-              key={category.id}
+            <div 
+              key={category.id} 
               className="relative"
-              onMouseEnter={() => setHoveredCategory(category.id)}
-              onMouseLeave={() => setHoveredCategory(null)}
+              onMouseEnter={(e) => {
+                setHoveredCategory(category)
+                const rect = e.currentTarget.getBoundingClientRect()
+                const container = e.currentTarget.closest('.categories-section-container')
+                if (container) {
+                  const containerRect = container.getBoundingClientRect()
+                  setHoveredCategoryTop(rect.top - containerRect.top)
+                }
+              }}
             >
               <Link href={`/category/${category.slug}`}>
-                <div className="flex items-center gap-3 py-2.5  border-y border-transparent hover:border-gray-200 hover:bg-white/90 cursor-pointer group w-full transition-colors">
-                  <CategoryImage
-                    imageUrl={category.imageUrl}
-                    name={category.name}
-                    size={40}
-                    className="w-10 h-10 flex-shrink-0"
+                <div className={cn(
+                  "flex items-center gap-3 py-2 px-2.5 cursor-pointer group w-full transition-all duration-200 rounded-lg",
+                  isHovered ? "bg-primary/5 translate-x-1" : "hover:bg-gray-50"
+                )}>
+                  <CategoryImage 
+                      imageUrl={category.imageUrl} 
+                      name={category.name}
+                      size={32}
+                      className="w-8 h-8 flex-shrink-0"
                   />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-800 group-hover:text-gray-900">
+                  <div className="flex-1 w-0">
+                    <p className={cn(
+                      "text-sm font-medium transition-colors truncate",
+                      isHovered ? "text-primary" : "text-gray-700 group-hover:text-primary"
+                    )}>
                       {category.name}
                     </p>
-                    <p className="text-[11px] text-gray-500">{totalCount} listings</p>
+                    <p className="text-[10px] text-gray-400 font-normal">{totalCount} listings</p>
                   </div>
+                  <ChevronRight className={cn(
+                    "w-4 h-4 transition-all duration-200",
+                    isHovered ? "text-primary opacity-100" : "text-gray-300 group-hover:text-primary opacity-0 group-hover:opacity-100"
+                  )} />
                 </div>
               </Link>
-
-              {/* Subcategories Dropdown with Framer Motion */}
-              <AnimatePresence>
-                {hoveredCategory === category.id && (
-                  <motion.div
-                    className="absolute left-full top-0 w-72 bg-white border border-gray-200  z-50 p-4 ml-1"
-                    onMouseEnter={() => setHoveredCategory(category.id)}
-                    onMouseLeave={() => setHoveredCategory(null)}
-                    initial={{ opacity: 0, x: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -10, scale: 0.95 }}
-                    transition={{
-                      duration: 0.15,
-                      ease: 'easeOut',
-                    }}
-                  >
-                    <div className="space-y-2 overflow-y-auto max-h-96 pr-1">
-                      {/* <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-gray-400">
-                        <span>{category.name}</span>
-                      </div> */}
-
-                      {(category.children || []).map((subcategory, index) => (
-                        <Link key={subcategory.id} href={`/category/${subcategory.slug}`}>
-                          <motion.div
-                            className="flex items-center gap-2 p-2 text-sm text-gray-700 hover:bg-secondary/10 hover:text-secondary cursor-pointer transition-colors  border border-transparent hover:border-secondary/30"
-                            initial={{ opacity: 0, x: -5 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{
-                              duration: 0.1,
-                              delay: index * 0.02,
-                              ease: 'easeOut',
-                            }}
-                          >
-                            <CategoryImage
-                              imageUrl={subcategory.imageUrl || category.imageUrl}
-                              name={subcategory.name}
-                              size={36}
-                              className="w-9 h-9 flex-shrink-0"
-                            />
-                            <div className="flex-1">
-                              <p className="font-medium">{subcategory.name}</p>
-                              {subcategory.hasChildren && (
-                                <p className="text-[11px] text-gray-500 flex items-center gap-1">
-                                  <ChevronRight className="w-3 h-3" /> {subcategory.children?.length || 0} more types
-                                </p>
-                              )}
-                            </div>
-                            <span className="text-xs font-semibold text-secondary bg-secondary/10 px-1.5 py-0.5">
-                              {subcategory.adsCount || 0}
-                            </span>
-                          </motion.div>
-                        </Link>
-                      ))}
-
-                      {(category.children || []).length === 0 && (
-                        <p className="text-xs text-gray-500 text-center py-4">
-                          No subcategories yet. Check back soon.
-                        </p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           )
         })}
       </div>
+
+      {/* Flyout Subcategories Menu - Now outside the overflow container */}
+      {hoveredCategory && hoveredCategory.children && hoveredCategory.children.length > 0 && (
+        <div 
+          className="absolute left-full pl-2 z-50 animate-in fade-in slide-in-from-left-2 duration-200"
+          style={{ top: hoveredCategoryTop }}
+          onMouseEnter={() => setHoveredCategory(hoveredCategory)}
+        >
+          <div className="w-64 bg-white border border-gray-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3 border-b border-gray-50 pb-2">
+              <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">{hoveredCategory.name}</span>
+              <span className="text-[10px] text-gray-400">{hoveredCategory.children?.length} subcategories</span>
+            </div>
+            <div className="grid grid-cols-1 gap-1">
+              {hoveredCategory.children?.slice(0, 10).map((sub) => (
+                <Link 
+                  key={sub.id} 
+                  href={`/category/${sub.slug}`}
+                  className="text-sm text-gray-600 hover:text-primary hover:bg-primary/5 px-2 py-1.5 rounded-md transition-all flex items-center justify-between group/sub"
+                >
+                  <span className="truncate">{sub.name}</span>
+                  <span className="text-[10px] text-gray-400 group-hover/sub:text-primary/70">{sub.adsCount || 0}</span>
+                </Link>
+              ))}
+              {hoveredCategory.children && hoveredCategory.children.length > 10 && (
+                <Link 
+                  href={`/category/${hoveredCategory.slug}`}
+                  className="text-[11px] text-primary font-medium mt-2 px-2 hover:underline"
+                >
+                  View all subcategories...
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

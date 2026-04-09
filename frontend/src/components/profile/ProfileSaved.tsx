@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Heart, MapPin, Eye, X, ShoppingBag, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSavedAdsInfinite, useUnsaveAd } from '@/hooks/useSavedAds'
+import { getMediaUrl } from '@/lib/utils'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import type { Ad } from '@/api/types'
 
@@ -31,7 +32,7 @@ export default function ProfileSaved() {
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-gray-200 p-6">
+      <div className="bg-white border border-gray-200 rounded-[32px] p-6 max-w-4xl mx-auto">
         <div className="py-12 flex items-center justify-center">
           <MarketplaceLoader size="md" message="Loading saved ads..." />
         </div>
@@ -41,7 +42,7 @@ export default function ProfileSaved() {
 
   if (isError) {
     return (
-      <div className="bg-white border border-gray-200 p-6">
+      <div className="bg-white border border-gray-200 rounded-[32px] p-6 max-w-4xl mx-auto">
         <div className="text-center py-12">
           <p className="text-gray-600 mb-4">Failed to load saved ads. Please try again.</p>
           <Button onClick={() => window.location.reload()}>
@@ -54,20 +55,24 @@ export default function ProfileSaved() {
 
   if (savedAds.length === 0) {
     return (
-      <div className="bg-white border border-gray-200 p-6">
-        <div className="text-center py-12">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-10 h-10 text-gray-400" />
+      <div className="bg-white border border-gray-200 rounded-[32px] p-6 sm:p-10 max-w-4xl mx-auto">
+        <div className="py-20 px-4 flex flex-col items-center justify-center text-center">
+          <div className="relative w-24 h-24 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm border border-gray-100 transition-transform hover:scale-105 duration-300">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/5 to-transparent opacity-50" />
+            <Heart className="w-10 h-10 text-gray-300 relative z-10" />
+            <div className="absolute -top-1 -right-1 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs font-bold border-2 border-white">
+              0
+            </div>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-xl font-black text-gray-900 mb-2 tracking-tight">
             No saved ads yet
           </h3>
-          <p className="text-gray-600 mb-6">
-            Start saving your favorite items by clicking the heart icon on any ad
+          <p className="text-gray-500 max-w-xs leading-relaxed text-sm mb-8">
+            Start saving your favorite items by clicking the heart icon on any ad to keep track of them here.
           </p>
           <Link href="/">
-            <Button>
-              <ShoppingBag className="w-5 h-5 mr-2" />
+            <Button variant="primary" size="lg" className="rounded-full px-8 shadow-md hover:shadow-lg transition-all active:scale-95">
+              <ShoppingBag className="w-4 h-4 mr-2" />
               Browse Ads
             </Button>
           </Link>
@@ -79,18 +84,16 @@ export default function ProfileSaved() {
   // Format price helper
   const formatPrice = (ad: Ad) => {
     if (ad.price) {
-      return `${ad.currency || 'Fr'} ${parseFloat(String(ad.price)).toLocaleString()}`
+      return `${ad.currency || 'XOF'} ${parseFloat(String(ad.price)).toLocaleString()}`
     }
     return 'Contact for price'
   }
 
   // Get first image or placeholder
   const getImageUrl = (ad: Ad) => {
-    if (ad.images && ad.images.length > 0) {
-      return ad.images[0]
-    }
-    return 'https://via.placeholder.com/400x300?text=No+Image'
+    return getMediaUrl(ad.images?.[0])
   }
+
 
   // Get location from seller
   const getLocation = (ad: Ad) => {
@@ -103,7 +106,7 @@ export default function ProfileSaved() {
   }
 
   return (
-    <div className="bg-white border border-gray-200 p-6 space-y-6">
+    <div className="bg-white border border-gray-200 rounded-[32px] p-4 sm:p-8 max-w-4xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -119,7 +122,7 @@ export default function ProfileSaved() {
         {savedAds.map((ad) => (
           <div
             key={ad.id}
-            className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 group relative"
+            className="bg-white border border-gray-200 rounded-[32px] overflow-hidden hover:shadow-lg transition-shadow duration-200 group relative"
           >
             <Link href={`/ads/${ad.slug || ad.id}`}>
               {/* Image Container */}

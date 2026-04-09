@@ -161,14 +161,14 @@ export default function CreateAdClient() {
     })
   }, [])
 
-  const handleCategoryLevelChange = (level: number, slug: string) => {
-    setCategoryPath((prev) => {
-      const next = prev.slice(0, level)
-      if (slug) {
-        next[level] = slug
-      }
-      return next
-    })
+  const handleCategorySelect = (category: CategoryTree, path: string[]) => {
+    setCategoryPath(path)
+    setFormData((prev) => ({
+      ...prev,
+      category: category.slug,
+      adType: category.type || prev.adType
+    }))
+    
     setErrors((prev) => {
       const next = { ...prev }
       delete next.category
@@ -200,23 +200,18 @@ export default function CreateAdClient() {
         }
       }
       
-      // Get customFields from the leaf node (last in path) - only leaf categories have customFields
-      const isLeaf = !node.children || node.children.length === 0
-      const customFieldsToUse = isLeaf 
-        ? (node.customFields || node.custom_fields || [])
-        : []
+      // Get customFields from the node (whether leaf or not)
+      const customFieldsToUse = node.customFields || node.custom_fields || []
       
       setCustomFields(customFieldsToUse)
       setFormData((prev) => {
-        const updates: Partial<FormData> = { adType: node.type || '' }
-        if (isLeaf) {
-          updates.category = node.slug
-          return { ...prev, ...updates }
+        const updates: Partial<FormData> = { 
+          adType: node.type || '',
+          category: node.slug
         }
-        if (prev.category) {
-          resetAttributeFields()
-        }
-        updates.category = ''
+        
+        // If the category actually changed, we might want to reset fields
+        // but for now let's just update the category
         return { ...prev, ...updates }
       })
     } else {
@@ -487,9 +482,9 @@ export default function CreateAdClient() {
           : 'Post an Ad'
 
   return (
-    <div className="min-h-screen bg-white py-4 sm:py-8">
-      <div className="max-w-3xl mx-auto px-4">
-        <div className="bg-white border border-gray-200 shadow-sm p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-white py-4 sm:py-8 transition-all duration-500">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="bg-white border border-gray-200 rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-10 lg:p-12 overflow-hidden shadow-none">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{currentStepTitle}</h1>
             <p className="text-gray-600 text-sm sm:text-base">
@@ -506,7 +501,7 @@ export default function CreateAdClient() {
                 errors={errors}
                 categoryTree={categoryTree}
                 categoryPath={categoryPath}
-                onCategoryLevelChange={handleCategoryLevelChange}
+                onCategorySelect={handleCategorySelect}
                 onInputChange={handleInputChange}
                 selectedCategoryLabel={
                   categoryPath.length
@@ -555,7 +550,7 @@ export default function CreateAdClient() {
                 variant="ghost"
                 onClick={handlePrevious}
                 disabled={step === 1}
-                className="order-2 sm:order-1"
+                className="order-2 sm:order-1 rounded-full h-12 px-8 font-bold text-gray-400 hover:text-gray-900 transition-all"
               >
                 Previous
               </Button>
@@ -572,7 +567,7 @@ export default function CreateAdClient() {
                     }
                   }}
                   disabled={categoriesLoading}
-                  className="order-1 sm:order-2"
+                  className="order-1 sm:order-2 rounded-full h-12 px-10 font-bold bg-primary text-white hover:bg-primary/90 transition-all active:scale-[0.98] shadow-sm"
                 >
                   {requiresSellerProfile ? 'Setup Profile' : 'Next Step'}
                 </Button>
@@ -580,7 +575,7 @@ export default function CreateAdClient() {
                 <Button 
                   type="submit" 
                   disabled={createAd.isPending || requiresSellerProfile} 
-                  className="order-1 sm:order-2"
+                  className="order-1 sm:order-2 rounded-full h-12 px-10 font-bold bg-secondary text-white hover:bg-secondary/90 transition-all active:scale-[0.98] shadow-sm"
                 >
                   {createAd.isPending ? (
                     <>

@@ -19,7 +19,7 @@ export const useCSRFToken = () => {
 };
 
 // Login hook
-export const useLogin = (redirectTo: string = '/(tabs)') => {
+export const useLogin = (redirectTo: string = '/home') => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { login: setAuthUser } = useAuthStore();

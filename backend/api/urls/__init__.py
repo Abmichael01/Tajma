@@ -9,8 +9,11 @@ from api.views.chat import ChatViewSet, MessageViewSet, UserOnlineStatusViewSet
 from api.views.saved_ad import SavedAdViewSet
 from api.views.region import RegionViewSet
 from api.views.lead import LeadViewSet
-from api.views.kyc import KYCViewSet # Added this import
+from api.views.kyc import KYCViewSet
+from api.views.payments import PaymentViewSet
 from api.views.media import serve_media
+from api.views.search import track_search
+from api.views.report import ReportViewSet, SupportMessageViewSet
 
 router = DefaultRouter()
 router.register(r'categories', CategoryViewSet, basename='category')
@@ -24,11 +27,15 @@ router.register(r'saved-ads', SavedAdViewSet, basename='saved-ad')
 router.register(r'regions', RegionViewSet, basename='region')
 router.register(r'leads', LeadViewSet, basename='lead')
 router.register(r'kyc', KYCViewSet, basename='kyc') # Added this registration
+router.register(r'payments', PaymentViewSet, basename='payment')
+router.register(r'reports', ReportViewSet, basename='report')
+router.register(r'support-messages', SupportMessageViewSet, basename='support-message')
 
 urlpatterns = [
     path('auth/', include('api.urls.auth')),
     path('admin/', include('api.urls.admin')),
-    path('media/<path:path>', serve_media, name='serve_media'),  # API endpoint for media files
+    path('media/<path:path>', serve_media, name='serve_media'),
+    path('track-search/', track_search, name='track_search'),
     path('', include(router.urls)),
 ]
 

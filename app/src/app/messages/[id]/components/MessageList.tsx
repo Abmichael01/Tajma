@@ -39,6 +39,7 @@ interface MessageListProps {
     onViewableItemsChanged: ({ viewableItems }: { viewableItems: ViewToken[] }) => void;
     onImagePress?: (imageUrl: string) => void;
     onReply?: (message: ChatMessage) => void;
+    onLongPress?: (message: ChatMessage) => void;
     searchQuery?: string;
     currentMatchIndex?: number;
     onMatchesFound?: (count: number) => void;
@@ -50,7 +51,7 @@ interface MessageListProps {
 const MessageRow = memo(({
     item, prevMsg, nextMsg, user, onReply, onImagePress,
     isFlashing, searchQuery, onReplyPress,
-    isSelectionMode, isSelected, onSelect,
+    isSelectionMode, isSelected, onSelect, onLongPress
 }: any) => {
     if (!item?.sender) return null;
 
@@ -77,6 +78,7 @@ const MessageRow = memo(({
                     isSelectionMode={isSelectionMode}
                     isSelected={isSelected}
                     onSelect={onSelect}
+                    onLongPress={onLongPress}
                 />
             </SwipeableMessage>
         </View>
@@ -105,6 +107,7 @@ const MessageList = memo(({
     onViewableItemsChanged,
     onImagePress,
     onReply,
+    onLongPress,
     searchQuery,
     currentMatchIndex = 0,
     onMatchesFound,
@@ -207,10 +210,11 @@ const MessageList = memo(({
                 isSelectionMode={isSelectionMode}
                 isSelected={selectedMessageIds?.has(String(item.id)) ?? false}
                 onSelect={handleSelect}
+                onLongPress={onLongPress}
             />
         );
     }, [messages, user, onReply, onImagePress, flashingId, searchQuery,
-        handleReplyPress, isSelectionMode, selectedMessageIds, handleSelect]);
+        handleReplyPress, isSelectionMode, selectedMessageIds, handleSelect, onLongPress]);
 
     // In inverted mode:
     //   ListHeaderComponent = visual BOTTOM → typing indicator

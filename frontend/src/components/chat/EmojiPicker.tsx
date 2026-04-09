@@ -52,6 +52,7 @@ const EMOJI_CATEGORIES = {
 
 interface EmojiPickerProps {
   onEmojiSelect: (emoji: string) => void
+  trigger?: React.ReactNode
 }
 
 // Memoized emoji button component for better performance
@@ -78,7 +79,7 @@ const EmojiButton = React.memo(({ emoji, onSelect }: { emoji: string; onSelect: 
 
 EmojiButton.displayName = 'EmojiButton'
 
-export default function EmojiPicker({ onEmojiSelect }: EmojiPickerProps) {
+export default function EmojiPicker({ onEmojiSelect, trigger }: EmojiPickerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('Frequently Used')
   const [open, setOpen] = useState(false)
 
@@ -131,13 +132,15 @@ export default function EmojiPicker({ onEmojiSelect }: EmojiPickerProps) {
     <TooltipProvider delayDuration={200}>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden md:flex items-center justify-center flex-shrink-0"
-            title="Add emoji"
-          >
-            <Smile className="w-5 h-5 text-gray-600" />
-          </button>
+          {trigger || (
+            <button
+              type="button"
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center flex-shrink-0"
+              title="Add emoji"
+            >
+              <Smile className="w-5 h-5 text-gray-600" />
+            </button>
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"

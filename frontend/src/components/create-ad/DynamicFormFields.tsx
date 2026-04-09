@@ -81,7 +81,7 @@ const TagsInput = ({
       <label className="block text-sm font-medium text-gray-900 mb-2">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-      <div className="border border-gray-300 p-2 min-h-[42px] flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-secondary/20 focus-within:border-secondary">
+      <div className="border border-gray-200 p-3 min-h-[50px] flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary rounded-[1.5rem] bg-gray-50/30 transition-all">
         {tagsValue.map((tag: string, idx: number) => (
           <span
             key={idx}
@@ -97,18 +97,18 @@ const TagsInput = ({
             </button>
           </span>
         ))}
-        <Input
-          value={tagInput}
-          onChange={(e) => setTagInput(e.target.value)}
-          onKeyDown={handleTagInputKeyDown}
-          onBlur={() => {
-            if (tagInput.trim()) {
-              handleTagAdd(tagInput)
-            }
-          }}
-          placeholder={placeholder || 'Type and press Enter or comma'}
-          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 min-w-[150px]"
-        />
+          <Input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagInputKeyDown}
+            onBlur={() => {
+              if (tagInput.trim()) {
+                handleTagAdd(tagInput)
+              }
+            }}
+            placeholder={placeholder || 'Type and press Enter or comma'}
+            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 flex-1 min-w-[150px] bg-transparent h-auto"
+          />
       </div>
       <p className="text-xs text-gray-500 mt-1">Press Enter or comma to add a tag</p>
     </div>
@@ -215,7 +215,7 @@ export default function DynamicFormFields({
               onChange={(e) => onInputChange(field.name, e.target.value)}
               placeholder={field.placeholder}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+              className="w-full px-5 py-3 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-gray-50/30 transition-all"
             />
           </div>
         )
@@ -292,7 +292,7 @@ export default function DynamicFormFields({
             )}
             
             {arrayValue.map((item: any, index: number) => (
-              <div key={index} className="border border-gray-200 p-4 space-y-3">
+              <div key={index} className="border border-gray-200 p-6 rounded-[2rem] space-y-4 bg-gray-50/30">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">{field.label} #{index + 1}</span>
                   <Button
@@ -346,7 +346,7 @@ export default function DynamicFormFields({
                             onChange={(e) => handleArrayItemChange(field.name, index, childField.name, e.target.value)}
                             placeholder={childField.placeholder}
                             rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white transition-all"
                           />
                         ) : (
                           <Input

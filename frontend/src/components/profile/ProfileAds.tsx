@@ -4,20 +4,30 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Plus, MapPin, Eye, Heart, MessageSquare, Edit, MoreVertical, FileText } from 'lucide-react'
+import { Plus, MapPin, Eye, Heart, MessageSquare, Edit, MoreVertical, FileText, Zap } from 'lucide-react'
 import AdDetailsModal from './AdDetailsModal'
+import PromoteAdModal from '@/components/modals/PromoteAdModal'
 import HorizontalAdCard from '@/components/ads/HorizontalAdCard'
+import { getMediaUrl } from '@/lib/utils'
 import type { Ad } from '@/api/types'
 
 interface ProfileAdsProps {
   ads: Ad[]
   isOwner?: boolean
   variant?: 'grid' | 'horizontal'
+  hideContainer?: boolean
 }
 
-export default function ProfileAds({ ads, isOwner = false, variant = 'grid' }: ProfileAdsProps) {
+export default function ProfileAds({ 
+  ads, 
+  isOwner = false, 
+  variant = 'grid',
+  hideContainer = false 
+}: ProfileAdsProps) {
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false)
+  const [adToPromote, setAdToPromote] = useState<Ad | null>(null)
   const [columns, setColumns] = useState(2) // Default to 2 columns for mobile
   
   // Update columns based on window size
@@ -60,15 +70,20 @@ export default function ProfileAds({ ads, isOwner = false, variant = 'grid' }: P
     }
   }
 
+  const handlePromoteClick = (ad: Ad, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setAdToPromote(ad)
+    setIsPromoteModalOpen(true)
+  }
+
   const renderAdCard = (ad: Ad) => {
     // Get first image or placeholder
-    const imageUrl = ad.images && ad.images.length > 0
-      ? ad.images[0]
-      : 'https://via.placeholder.com/400x300?text=No+Image'
+    const imageUrl = getMediaUrl(ad.images?.[0])
+
     
     // Format price
     const formattedPrice = ad.price
-      ? `${ad.currency || 'Fr'} ${parseFloat(String(ad.price)).toLocaleString()}`
+      ? `${ad.currency || 'XOF'} ${parseFloat(String(ad.price)).toLocaleString()}`
       : 'Contact for price'
     
     // Get location from seller
@@ -87,7 +102,7 @@ export default function ProfileAds({ ads, isOwner = false, variant = 'grid' }: P
                        ad.status === 'draft' ? 'bg-yellow-500' : 'bg-gray-500'
     
     const card = (
-      <div className="bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200 cursor-pointer group mb-6 break-inside-avoid">
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer group mb-6 break-inside-avoid">
         {/* Image Container */}
         <div className="relative w-full overflow-hidden">
           <Image
@@ -193,6 +208,17 @@ export default function ProfileAds({ ads, isOwner = false, variant = 'grid' }: P
                 Edit
               </Button>
             </Link>
+            
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="flex-1 text-sm bg-orange-50 text-orange-600 hover:bg-orange-100 border-orange-100"
+              onClick={(e) => handlePromoteClick(ad, e)}
+            >
+              <Zap className="w-3 h-3 mr-1" />
+              Promote
+            </Button>
+
             <Button 
               variant="ghost" 
               size="sm" 
@@ -239,21 +265,32 @@ export default function ProfileAds({ ads, isOwner = false, variant = 'grid' }: P
   // Horizontal Variant
   if (variant === 'horizontal') {
     return (
-      <div className="space-y-4">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
-              {isOwner ? 'My Ads' : 'All Ads'}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {ads.length} {ads.length === 1 ? 'ad' : 'ads'} {isOwner ? 'posted' : 'found'}
-            </p>
-          </div>
+      <div className="bg-white border border-gray-200 rounded-[32px] p-4 sm:p-8 max-w-4xl mx-auto space-y-8">
+        {/* Header Section - Cleaned up to avoid redundancy */}
+        <div className="flex items-center justify-between gap-4">
+          {!isOwner ? (
+            <div>
+              <h3 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight">
+                All Ads
+              </h3>
+              <p className="text-xs text-gray-500 font-medium tracking-tight">
+                {ads.length} {ads.length === 1 ? 'ad' : 'ads'} found
+              </p>
+            </div>
+          ) : (
+            <div className="flex-1">
+              {ads.length > 0 && (
+                 <p className="text-xs text-gray-500 font-medium tracking-[0.2em]">
+                  {ads.length} {ads.length === 1 ? 'Ad' : 'Ads'} Posted
+                </p>
+              )}
+            </div>
+          )}
+          
           {isOwner && (
             <Link href="/create-ad">
-              <Button variant="primary">
-                <Plus className="w-4 h-4 mr-2" />
+              <Button variant="primary" size="sm" className="rounded-full shadow-sm">
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
                 Post New Ad
               </Button>
             </Link>
@@ -267,19 +304,23 @@ export default function ProfileAds({ ads, isOwner = false, variant = 'grid' }: P
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white border border-gray-200">
-             <div className="w-16 h-16 bg-gray-100 flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-gray-400" />
+          <div className="py-20 px-4 flex flex-col items-center justify-center text-center bg-gray-50/50 rounded-[32px] border border-dashed border-gray-200 mt-4">
+            <div className="relative w-24 h-24 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm border border-gray-100 transition-transform hover:scale-105 duration-300">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/5 to-transparent opacity-50" />
+              <FileText className="w-10 h-10 text-gray-300 relative z-10" />
+              <div className="absolute -top-1 -right-1 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs font-bold border-2 border-white">
+                0
+              </div>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-xl font-black text-gray-900 mb-2 tracking-tight">
               {isOwner ? 'No ads posted yet' : 'No ads available'}
             </h3>
-            <p className="text-gray-600 mb-4">
-              {isOwner ? 'Start by posting your first ad' : 'This user hasn\'t posted any ads'}
+            <p className="text-gray-500 max-w-xs leading-relaxed text-sm mb-8">
+              {isOwner ? 'Start by posting your first ad to reach thousands of buyers instantly.' : 'This user hasn\'t posted any ads yet.'}
             </p>
             {isOwner && (
               <Link href="/create-ad">
-                <Button variant="primary">
+                <Button variant="primary" size="lg" className="rounded-full px-8 shadow-md hover:shadow-lg transition-all active:scale-95">
                   <Plus className="w-4 h-4 mr-2" />
                   Post Your First Ad
                 </Button>
@@ -291,58 +332,88 @@ export default function ProfileAds({ ads, isOwner = false, variant = 'grid' }: P
     )
   }
 
-  return (
-    <div className="space-y-4">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
-            {isOwner ? 'My Ads' : 'All Ads'}
-          </h3>
-          <p className="text-sm text-gray-500">
-            {ads.length} {ads.length === 1 ? 'ad' : 'ads'} {isOwner ? 'posted' : 'found'}
-          </p>
-        </div>
-        {isOwner && (
-          <Link href="/create-ad">
-            <Button variant="primary">
-              <Plus className="w-4 h-4 mr-2" />
-              Post New Ad
-            </Button>
-          </Link>
-        )}
-      </div>
-      
-      {/* Ads Grid - Pinterest Style Masonry Layout */}
-      {ads.length > 0 ? (
-        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3 gap-4 sm:gap-6">
-          {columnArrays.map((columnAds, columnIndex) => (
-            <div key={columnIndex} className="flex flex-col">
-              {columnAds.map(renderAdCard)}
+  if (ads.length === 0) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-[32px] p-6 sm:p-10 max-w-4xl mx-auto">
+        <div className="py-20 px-4 flex flex-col items-center justify-center text-center">
+          <div className="relative w-24 h-24 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm border border-gray-100 transition-transform hover:scale-105 duration-300">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/5 to-transparent opacity-50" />
+            <FileText className="w-10 h-10 text-gray-300 relative z-10" />
+            <div className="absolute -top-1 -right-1 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs font-bold border-2 border-white">
+              0
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-white border border-gray-200">
-          <div className="w-16 h-16 bg-gray-100 flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-xl font-black text-gray-900 mb-2 tracking-tight">
             {isOwner ? 'No ads posted yet' : 'No ads available'}
           </h3>
-          <p className="text-gray-600 mb-4">
-            {isOwner ? 'Start by posting your first ad' : 'This user hasn\'t posted any ads'}
+          <p className="text-gray-500 max-w-xs leading-relaxed text-sm mb-8">
+            {isOwner ? 'Start by posting your first ad to reach thousands of buyers instantly.' : 'This user hasn\'t posted any ads yet.'}
           </p>
           {isOwner && (
             <Link href="/create-ad">
-              <Button variant="primary">
+              <Button variant="primary" size="lg" className="rounded-full px-8 shadow-md hover:shadow-lg transition-all active:scale-95">
                 <Plus className="w-4 h-4 mr-2" />
                 Post Your First Ad
               </Button>
             </Link>
           )}
         </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={hideContainer ? "space-y-6" : "bg-white border border-gray-200 rounded-[32px] p-4 sm:p-8 max-w-4xl mx-auto space-y-8"}>
+      {/* Header Section - Cleaned up to avoid redundancy */}
+      {!hideContainer && (
+        <div className="flex items-center justify-between gap-4">
+          {!isOwner ? (
+            <div>
+              <h3 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight">
+                All Ads
+              </h3>
+              <p className="text-xs text-gray-500 font-medium tracking-tight">
+                {ads.length} {ads.length === 1 ? 'ad' : 'ads'} found
+              </p>
+            </div>
+          ) : (
+            <div className="flex-1">
+              {ads.length > 0 && (
+                 <p className="text-xs text-gray-500 font-bold uppercase tracking-[0.2em]">
+                  {ads.length} {ads.length === 1 ? 'Ad' : 'Ads'} Posted
+                </p>
+              )}
+            </div>
+          )}
+          
+          {isOwner && (
+            <Link href="/create-ad">
+              <Button variant="primary" size="sm" className="rounded-full shadow-sm">
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                Post New Ad
+              </Button>
+            </Link>
+          )}
+        </div>
       )}
+      
+      {/* Ads Grid - Pinterest Style Masonry Layout */}
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3 gap-4 sm:gap-6">
+        {columnArrays.map((columnAds, columnIndex) => (
+          <div key={columnIndex} className="flex flex-col">
+            {columnAds.map(renderAdCard)}
+          </div>
+        ))}
+      </div>
+      {/* Global Promotion Modal */}
+      <PromoteAdModal
+        ad={adToPromote}
+        isOpen={isPromoteModalOpen}
+        onClose={() => {
+          setIsPromoteModalOpen(false)
+          setAdToPromote(null)
+        }}
+      />
     </div>
   )
 }

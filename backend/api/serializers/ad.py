@@ -55,6 +55,9 @@ class AdSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
             'seller',
+            'location_name',
+            'latitude',
+            'longitude',
         ]
         read_only_fields = [
             'id',
@@ -185,3 +188,19 @@ class AdSerializer(serializers.ModelSerializer):
         return data
 
 
+class AdMinimalSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for Ad (used in nested serializers)"""
+    class Meta:
+        model = Ad
+        fields = ['id', 'title', 'slug', 'price', 'currency', 'status']
+        read_only_fields = fields
+
+    def to_representation(self, instance):
+        """Include the first image if available"""
+        data = super().to_representation(instance)
+        if instance.images and len(instance.images) > 0:
+            request = self.context.get('request')
+            data['image'] = build_full_image_url(instance.images[0], request)
+        else:
+            data['image'] = None
+        return data

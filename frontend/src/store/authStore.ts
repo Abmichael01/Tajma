@@ -15,6 +15,7 @@ interface AuthState {
   setLoading: (loading: boolean) => void
   completeSellerSetup: () => void
   setHasHydrated: (hydrated: boolean) => void
+  fetchUser: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -65,6 +66,16 @@ export const useAuthStore = create<AuthState>()(
 
       setHasHydrated: (hydrated) => {
         set({ hasHydrated: hydrated })
+      },
+
+      fetchUser: async () => {
+        const { authApi } = await import('@/api/auth')
+        try {
+          const user = await authApi.getCurrentUser()
+          set({ user, isAuthenticated: true })
+        } catch (error) {
+          console.error('Failed to fetch user:', error)
+        }
       }
     }),
     {

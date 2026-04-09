@@ -18,7 +18,7 @@ interface ChatWebSocketState {
   isConnected: boolean
   subscribedChats: Set<string>
   pendingSubscriptions: Set<string>
-  pendingMessages: Map<string, string[]>
+  pendingMessages: Map<string, { content: string, parentMessageId?: string }[]>
 
   // Reconnection state
   reconnectAttempts: number
@@ -40,7 +40,7 @@ interface ChatWebSocketState {
   disconnect: () => void
   subscribeToChat: (chatId: string) => void
   unsubscribeFromChat: (chatId: string) => void
-  sendMessage: (chatId: string, content: string) => boolean
+  sendMessage: (chatId: string, content: string, parentMessageId?: string) => boolean
   sendTyping: (chatId: string, typing: boolean) => void
   markAsRead: (chatId: string) => void
   setHandlers: (handlers: {
@@ -58,13 +58,14 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     const queuedMessages = state.pendingMessages.get(chatId)
     if (queuedMessages && queuedMessages.length > 0 && state.ws && state.ws.readyState === WebSocket.OPEN) {
       console.log(`Sending ${queuedMessages.length} queued messages for chat ${chatId}`)
-      queuedMessages.forEach((content) => {
+      queuedMessages.forEach((msg) => {
         try {
           state.ws!.send(
             JSON.stringify({
               type: 'message',
               chat_id: chatId,
-              content,
+              content: msg.content,
+              parent_message_id: msg.parentMessageId,
             })
           )
         } catch (error) {
@@ -530,7 +531,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     }
   }
 
-  const sendMessage = (chatId: string, content: string): boolean => {
+  const sendMessage = (chatId: string, content: string, parentMessageId?: string): boolean => {
     const state = get()
 
     if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
@@ -547,7 +548,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       if (!newPendingMessages.has(chatId)) {
         newPendingMessages.set(chatId, [])
       }
-      newPendingMessages.get(chatId)!.push(content)
+      newPendingMessages.get(chatId)!.push({ content, parentMessageId })
       set({ pendingMessages: newPendingMessages })
       return true // Return true as message is queued
     }
@@ -559,7 +560,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       if (!newPendingMessages.has(chatId)) {
         newPendingMessages.set(chatId, [])
       }
-      newPendingMessages.get(chatId)!.push(content)
+      newPendingMessages.get(chatId)!.push({ content, parentMessageId })
       set({ pendingMessages: newPendingMessages })
       return true // Return true as message is queued
     }
@@ -571,6 +572,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
           type: 'message',
           chat_id: chatId,
           content,
+          parent_message_id: parentMessageId,
         })
       )
       return true

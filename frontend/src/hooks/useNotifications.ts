@@ -111,3 +111,16 @@ export const useDeleteNotification = () => {
   })
 }
 
+/**
+ * Delete all notifications
+ */
+export const useClearAllNotifications = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => notificationsApi.clearAll(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread_count'] })
+    },
+  })
+}

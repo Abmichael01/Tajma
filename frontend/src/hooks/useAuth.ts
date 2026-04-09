@@ -182,12 +182,9 @@ export const useGoogleLogin = () => {
       authApi.googleCallback(code, redirectUri),
     onSuccess: (response) => {
       setAuthUser(response.user)
-      
-      // Invalidate and refetch user query
-      queryClient.invalidateQueries({ queryKey: ['user'] })
-      
-      // Redirect to home
-      router.push('/')
+      // Use full page reload instead of SPA navigation — ensures session cookie is
+      // fully committed before the app reinitialises (standard practice for OAuth callbacks)
+      window.location.href = '/'
     },
     onError: (error: any) => {
       console.error('Google login error:', error)

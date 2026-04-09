@@ -9,7 +9,7 @@ export default function AdsListSkeleton({ columns = 4, count = 8 }: AdsListSkele
   const getColumnClasses = () => {
     switch (columns) {
       case 2:
-        return "grid-cols-1 min-[420px]:grid-cols-2"
+        return "grid-cols-2 min-[420px]:grid-cols-2"
       case 3:
         return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3"
       case 4:
@@ -24,7 +24,7 @@ export default function AdsListSkeleton({ columns = 4, count = 8 }: AdsListSkele
   return (
     <div className={`grid ${getColumnClasses()} gap-4 sm:gap-6`}>
       {Array.from({ length: count }).map((_, index) => (
-        <div key={index} className="bg-white border border-gray-200 overflow-hidden">
+        <div key={index} className="bg-white border border-gray-200 overflow-hidden rounded-3xl">
           {/* Image Skeleton */}
           <div className="relative w-full overflow-hidden aspect-[4/3]">
             <Skeleton className="w-full h-full" />

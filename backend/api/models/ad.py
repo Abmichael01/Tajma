@@ -37,6 +37,12 @@ class Ad(models.Model):
     is_negotiable = models.BooleanField(default=False)
     attributes = models.JSONField(default=dict, blank=True)
     images = models.JSONField(default=list, blank=True)
+    
+    # Location tracking
+    location_name = models.CharField(max_length=255, blank=True, null=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='published')
     views = models.PositiveIntegerField(default=0)
     published_at = models.DateTimeField(null=True, blank=True)
@@ -45,6 +51,10 @@ class Ad(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['latitude', 'longitude']),
+            models.Index(fields=['status', '-created_at']),
+        ]
 
     def __str__(self):
         return f'{self.title} ({self.seller.email})'

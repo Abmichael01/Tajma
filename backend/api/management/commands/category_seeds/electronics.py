@@ -120,7 +120,7 @@ ELECTRONICS_CATEGORY = {
         # LEVEL 2: Computers & Laptops
         {
             "name": "Computers & Laptops",
-            "image_url": "/laptop1.jpg",
+            "image_url": "/laptop1.png",
             "icon": "Laptop",
             "custom_fields": [
                  {

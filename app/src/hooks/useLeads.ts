@@ -9,6 +9,11 @@ export function useLeads() {
         queryFn: () => leadsApi.list(),
     })
 
+    const statsQuery = useQuery({
+        queryKey: ['leads-monthly-stats'],
+        queryFn: () => leadsApi.monthlyStats(),
+    })
+
     const recordInteractionMutation = useMutation({
         mutationFn: (payload: { seller_id: string; source: LeadSource; ad_id?: string }) =>
             leadsApi.recordInteraction(payload),
@@ -24,12 +29,21 @@ export function useLeads() {
         },
     })
 
+    const markIgnoredMutation = useMutation({
+        mutationFn: (leadId: string) => leadsApi.markIgnored(leadId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['leads'] })
+        },
+    })
+
     return {
         leads: listQuery.data || [],
+        monthlyStats: statsQuery.data || [],
         isLoading: listQuery.isLoading,
         isRefetching: listQuery.isRefetching,
         refetch: listQuery.refetch,
         recordInteraction: recordInteractionMutation.mutateAsync,
         markAsMessaged: markAsMessagedMutation.mutateAsync,
+        markIgnored: markIgnoredMutation.mutateAsync,
     }
 }

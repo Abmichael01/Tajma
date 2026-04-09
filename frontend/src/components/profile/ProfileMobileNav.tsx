@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { Heart, Star, TrendingUp, Settings, FileText } from 'lucide-react'
+import { Heart, Star, TrendingUp, Settings, FileText, Users, HelpCircle } from 'lucide-react'
 
 interface ProfileMobileNavProps {
   isOwner: boolean
@@ -15,9 +15,11 @@ export default function ProfileMobileNav({ isOwner, onNavigate, currentView }: P
     ? [
         { id: 'overview', label: 'Overview', icon: TrendingUp },
         { id: 'ads', label: 'My Ads', icon: FileText },
+        { id: 'leads', label: 'Potential Clients', icon: Users },
         { id: 'saved', label: 'Saved', icon: Heart },
         { id: 'reviews', label: 'Reviews', icon: Star },
         { id: 'settings', label: 'Settings', icon: Settings },
+        { id: 'support', label: 'Support', icon: HelpCircle },
       ]
     : [
         { id: 'overview', label: 'Overview', icon: TrendingUp },
@@ -25,7 +27,7 @@ export default function ProfileMobileNav({ isOwner, onNavigate, currentView }: P
       ]
 
   return (
-    <div className="lg:hidden bg-white border border-gray-200 overflow-hidden">
+    <div className="lg:hidden bg-white border border-gray-200 rounded-3xl overflow-hidden">
       <div className="divide-y divide-gray-200">
         {navItems.map((item) => {
           const Icon = item.icon
@@ -51,4 +53,3 @@ export default function ProfileMobileNav({ isOwner, onNavigate, currentView }: P
     </div>
   )
 }
-

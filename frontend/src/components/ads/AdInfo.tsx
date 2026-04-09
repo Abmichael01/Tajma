@@ -28,7 +28,7 @@ export default function AdInfo({ attributes, className = '' }: AdInfoProps) {
         return (
           <div className="space-y-2">
             {value.map((item: any, idx: number) => (
-              <div key={idx} className="text-sm border-l-2 border-secondary/30 pl-2 py-1 bg-gray-50 rounded">
+              <div key={idx} className="text-sm border-l-2 border-secondary/30 pl-2 py-1 bg-gray-50 rounded-lg">
                 {Object.entries(item).map(([k, v]) => {
                   const childLabel = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
                   return (
@@ -50,7 +50,7 @@ export default function AdInfo({ attributes, className = '' }: AdInfoProps) {
           {value.map((item: any, idx: number) => (
             <span
               key={idx}
-              className="inline-flex items-center px-2 py-1 bg-secondary/10 text-secondary text-xs rounded-md"
+              className="inline-flex items-center px-2 py-1 bg-secondary/10 text-secondary text-xs rounded-full"
             >
               {String(item)}
             </span>
@@ -79,7 +79,7 @@ export default function AdInfo({ attributes, className = '' }: AdInfoProps) {
     // Handle booleans
     if (typeof value === 'boolean') {
       return (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
           value ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
         }`}>
           {value ? 'Yes' : 'No'}
@@ -101,7 +101,7 @@ export default function AdInfo({ attributes, className = '' }: AdInfoProps) {
   }
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-4 sm:p-6 ${className}`}>
+    <div className={`bg-white border border-gray-200 rounded-3xl p-4 sm:p-6 ${className}`}>
       <h2 className="text-lg font-medium text-gray-900 mb-4">Ad Information</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Object.entries(attributes).map(([key, value]) => {
@@ -114,9 +114,9 @@ export default function AdInfo({ attributes, className = '' }: AdInfoProps) {
             .replace(/\b\w/g, l => l.toUpperCase())
           
           return (
-            <div key={key} className="space-y-1">
-              <p className="text-sm text-gray-600 font-medium">{formattedKey}</p>
-              <div className="text-sm">
+            <div key={key} className="py-3 border-b border-gray-50 last:border-0 group">
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">{formattedKey}</p>
+              <div className="text-sm font-medium text-gray-900">
                 {formatValue(value)}
               </div>
             </div>

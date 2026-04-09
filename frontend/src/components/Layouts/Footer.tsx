@@ -39,7 +39,7 @@ export default function Footer({ className = '' }: FooterProps) {
   ]
 
   return (
-    <footer className={`bg-gray-900 text-gray-300 hidden md:block`}>
+    <footer className={`bg-secondary text-secondary-foreground hidden md:block`}>
       {/* Main Footer */}
       <div className="container py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
@@ -48,7 +48,7 @@ export default function Footer({ className = '' }: FooterProps) {
             <div className="mb-4">
               <Logo />
             </div>
-            <p className="text-sm text-gray-400 mb-6">
+            <p className="text-sm text-secondary-foreground/80 mb-6">
               Niger's trusted online marketplace. Buy, sell, and discover amazing deals every day.
             </p>
             
@@ -112,7 +112,7 @@ export default function Footer({ className = '' }: FooterProps) {
           <div>
             <h3 className="font-semibold text-white mb-4">Categories</h3>
             {categoriesLoading ? (
-              <p className="text-sm text-gray-500">Loading categories...</p>
+              <p className="text-sm text-secondary-foreground/70">Loading categories...</p>
             ) : (
               <>
                 <ul className="space-y-2 mb-3">
@@ -129,7 +129,7 @@ export default function Footer({ className = '' }: FooterProps) {
             </ul>
                 <Link 
                   href="/categories" 
-                  className="inline-flex items-center text-sm hover:text-white transition-colors border border-gray-700 hover:border-primary px-4 py-2 rounded"
+                  className="inline-flex items-center text-sm hover:text-white transition-colors border border-white/20 hover:border-white px-4 py-2 rounded-xl"
                 >
                   View All Categories
                 </Link>
@@ -139,7 +139,7 @@ export default function Footer({ className = '' }: FooterProps) {
         </div>
 
         {/* Social Links */}
-        <div className="mt-8 pt-8 border-t border-gray-800">
+        <div className="mt-8 pt-8 border-t border-white/10">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex gap-4">
               {socialLinks.map((social) => {
@@ -150,7 +150,7 @@ export default function Footer({ className = '' }: FooterProps) {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 bg-gray-800 hover:bg-primary flex items-center justify-center transition-colors"
+                    className="w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors shadow-sm"
                     aria-label={social.label}
                   >
                     <Icon className="w-5 h-5" />
@@ -159,7 +159,7 @@ export default function Footer({ className = '' }: FooterProps) {
               })}
             </div>
             
-            <p className="text-sm text-gray-400 text-center sm:text-right">
+            <p className="text-sm text-secondary-foreground/70 text-center sm:text-right">
               ©DIGIT SERVICES
             </p>
           </div>

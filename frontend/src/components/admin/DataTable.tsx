@@ -31,11 +31,14 @@ interface DataTableProps<T> {
   onDelete?: (item: T) => void
   onRowClick?: (item: T) => void
   actions?: (item: T) => React.ReactNode
+  serverSide?: boolean
+  total?: number
+  onParamsChange?: (params: { page: number; search: string; filters?: any; sort?: string; order?: 'asc' | 'desc' }) => void
   pagination?: {
     page: number
     pageSize: number
-    total: number
-    onPageChange: (page: number) => void
+    total?: number
+    onPageChange?: (page: number) => void
   }
   emptyMessage?: string
 }
@@ -51,6 +54,9 @@ export default function DataTable<T extends { id: string | number }>({
   onDelete,
   onRowClick,
   actions,
+  serverSide = false,
+  total,
+  onParamsChange,
   pagination,
   emptyMessage = 'No data available',
 }: DataTableProps<T>) {
@@ -61,24 +67,37 @@ export default function DataTable<T extends { id: string | number }>({
   // Handle search
   const handleSearch = (query: string) => {
     setSearchQuery(query)
-    if (onSearch) {
+    if (serverSide) {
+      onParamsChange?.({ 
+        page: 1, 
+        search: query, 
+        sort: sortColumn || undefined, 
+        order: sortDirection 
+      })
+    } else if (onSearch) {
       onSearch(query)
     }
   }
 
   // Handle sorting
   const handleSort = (columnKey: string) => {
-    if (sortColumn === columnKey) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortColumn(columnKey)
-      setSortDirection('asc')
+    const nextDirection = sortColumn === columnKey && sortDirection === 'asc' ? 'desc' : 'asc'
+    setSortColumn(columnKey)
+    setSortDirection(nextDirection)
+
+    if (serverSide) {
+      onParamsChange?.({ 
+        page: pagination?.page || 1, 
+        search: searchQuery, 
+        sort: columnKey, 
+        order: nextDirection 
+      })
     }
   }
 
-  // Sort data
+  // Sort data (only if not serverSide)
   const sortedData = useMemo(() => {
-    if (!sortColumn) return data
+    if (serverSide || !sortColumn) return data
 
     return [...data].sort((a, b) => {
       const aValue = (a as any)[sortColumn]
@@ -102,10 +121,11 @@ export default function DataTable<T extends { id: string | number }>({
   }, [data, sortColumn, sortDirection])
 
   // Pagination calculations
-  const totalPages = pagination ? Math.ceil(pagination.total / pagination.pageSize) : 1
+  const actualTotal = serverSide ? (total || 0) : (pagination?.total || sortedData.length)
+  const totalPages = pagination ? Math.ceil(actualTotal / pagination.pageSize) : 1
   const startItem = pagination ? (pagination.page - 1) * pagination.pageSize + 1 : 1
   const endItem = pagination
-    ? Math.min(pagination.page * pagination.pageSize, pagination.total)
+    ? Math.min(pagination.page * pagination.pageSize, actualTotal)
     : sortedData.length
 
   if (loading) {
@@ -240,13 +260,19 @@ export default function DataTable<T extends { id: string | number }>({
           <div className="text-sm text-gray-600">
             Showing <span className="font-medium text-gray-900">{startItem}</span> to{' '}
             <span className="font-medium text-gray-900">{endItem}</span> of{' '}
-            <span className="font-medium text-gray-900">{pagination.total}</span> results
+            <span className="font-medium text-gray-900">{actualTotal}</span> results
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => pagination.onPageChange(pagination.page - 1)}
+              onClick={() => {
+                if (serverSide) {
+                  onParamsChange?.({ page: pagination.page - 1, search: searchQuery, sort: sortColumn || undefined, order: sortDirection })
+                } else {
+                  pagination.onPageChange?.(pagination.page - 1)
+                }
+              }}
               disabled={pagination.page === 1}
               className="h-8 text-xs"
             >
@@ -259,7 +285,13 @@ export default function DataTable<T extends { id: string | number }>({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => pagination.onPageChange(pagination.page + 1)}
+              onClick={() => {
+                if (serverSide) {
+                  onParamsChange?.({ page: pagination.page + 1, search: searchQuery, sort: sortColumn || undefined, order: sortDirection })
+                } else {
+                  pagination.onPageChange?.(pagination.page + 1)
+                }
+              }}
               disabled={pagination.page >= totalPages}
               className="h-8 text-xs"
             >

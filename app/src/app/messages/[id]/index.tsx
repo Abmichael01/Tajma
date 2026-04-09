@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AppText from "@/components/ui/AppText";
 import ChatHeader from "@/components/chat/ChatHeader";
 import ChatInput from "@/components/chat/ChatInput";
+import BottomSheet, { BottomSheetRef } from "@/components/ui/BottomSheet";
 import { useChatRoomLogic } from "@/hooks/chat/useChatRoomLogic";
 import { useChatSounds } from "@/hooks/useChatSounds";
 import MessageList from "./components/MessageList";
@@ -16,6 +17,8 @@ import MediaPreviewModal from "@/components/chat/MediaPreviewModal";
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import { ChatMessage } from "@/api/types";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function ChatRoomScreen() {
     const { id, search: searchParam } = useLocalSearchParams<{ id: string, search?: string }>();
@@ -48,6 +51,7 @@ export default function ChatRoomScreen() {
         selectedMessageIds,
         toggleMessageSelection,
         clearSelection,
+        handleDeleteSelected,
         user: currentUser
     } = useChatRoomLogic(id!);
 
@@ -170,6 +174,56 @@ export default function ChatRoomScreen() {
         }
     };
 
+    const menuBottomSheetRef = useRef<BottomSheetRef>(null);
+    const [menuMessage, setMenuMessage] = useState<ChatMessage | null>(null);
+
+    const handleMessageLongPress = useCallback((message: ChatMessage) => {
+        setMenuMessage(message);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        menuBottomSheetRef.current?.present();
+    }, []);
+
+    const handleMenuReply = () => {
+        if (menuMessage) setReplyTo(menuMessage);
+        menuBottomSheetRef.current?.dismiss();
+    };
+
+    const handleMenuCopy = () => {
+        if (menuMessage?.content) {
+            Clipboard.setString(menuMessage.content);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+        menuBottomSheetRef.current?.dismiss();
+    };
+
+    const handleMenuSelect = () => {
+        if (menuMessage) {
+            toggleMessageSelection(String(menuMessage.id));
+        }
+        menuBottomSheetRef.current?.dismiss();
+    };
+
+    const handleMenuDelete = () => {
+        if (menuMessage) {
+            Alert.alert(
+                'Delete Message',
+                'Are you sure you want to delete this message?',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    { 
+                        text: 'Delete', 
+                        style: 'destructive', 
+                        onPress: () => {
+                            toggleMessageSelection(String(menuMessage.id));
+                            handleDeleteSelected();
+                        }
+                    }
+                ]
+            );
+        }
+        menuBottomSheetRef.current?.dismiss();
+    };
+
     return (
         <View className="flex-1 bg-white">
             <Stack.Screen options={{ headerShown: false }} />
@@ -217,7 +271,7 @@ export default function ChatRoomScreen() {
                                         text: 'Delete', style: 'destructive',
                                         onPress: () => {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                                            clearSelection();
+                                            handleDeleteSelected();
                                         },
                                     },
                                 ]
@@ -308,9 +362,63 @@ export default function ChatRoomScreen() {
                                     isSelectionMode={isSelectionMode}
                                     selectedMessageIds={selectedMessageIds}
                                     onSelectionChange={toggleMessageSelection}
+                                    onLongPress={handleMessageLongPress}
                                 />
                             </View>
                         )}
+
+                        <BottomSheet
+                            ref={menuBottomSheetRef}
+                            title="Message Options"
+                            snapPoints={['35%']}
+                            onClose={() => setMenuMessage(null)}
+                        >
+                            <View className="px-6 py-4 space-y-2">
+                                <TouchableOpacity 
+                                    onPress={handleMenuReply}
+                                    className="flex-row items-center p-4 bg-gray-50 rounded-[20px]"
+                                >
+                                    <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-4">
+                                        <Ionicons name="arrow-undo-outline" size={20} color="#FF4F18" />
+                                    </View>
+                                    <AppText weight="bold" className="text-gray-900 text-base">Reply</AppText>
+                                </TouchableOpacity>
+
+                                {menuMessage?.content && !['📷 Photo', '🎤 Voice Message', '📄 Document'].includes(menuMessage.content) && (
+                                    <TouchableOpacity 
+                                        onPress={handleMenuCopy}
+                                        className="flex-row items-center p-4 bg-gray-50 rounded-[20px]"
+                                    >
+                                        <View className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center mr-4">
+                                            <Ionicons name="copy-outline" size={20} color="#4b5563" />
+                                        </View>
+                                        <AppText weight="bold" className="text-gray-900 text-base">Copy Text</AppText>
+                                    </TouchableOpacity>
+                                )}
+
+                                <TouchableOpacity 
+                                    onPress={handleMenuSelect}
+                                    className="flex-row items-center p-4 bg-gray-50 rounded-[20px]"
+                                >
+                                    <View className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center mr-4">
+                                        <Ionicons name="checkbox-outline" size={20} color="#4b5563" />
+                                    </View>
+                                    <AppText weight="bold" className="text-gray-900 text-base">Select Multiple</AppText>
+                                </TouchableOpacity>
+
+                                {String(menuMessage?.sender?.id || menuMessage?.sender) === String(currentUser?.id) && (
+                                    <TouchableOpacity 
+                                        onPress={handleMenuDelete}
+                                        className="flex-row items-center p-4 bg-red-50 rounded-[20px]"
+                                    >
+                                        <View className="w-10 h-10 rounded-full bg-red-200 items-center justify-center mr-4">
+                                            <Ionicons name="trash-outline" size={20} color="#dc2626" />
+                                        </View>
+                                        <AppText weight="bold" className="text-red-600 text-base">Delete Message</AppText>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        </BottomSheet>
 
                         <ImageViewer
                             images={chatImages}

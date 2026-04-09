@@ -9,6 +9,7 @@ import { ChatSummary } from "@/api/types";
 import { useAuthStore } from "@/store/authStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { chatApi } from "@/api/chat";
+import { resolveImageUrl } from "@/utils/imageUtils";
 
 interface ChatListItemProps {
   chat: ChatSummary;
@@ -89,7 +90,7 @@ function ChatListItem({ chat, index = 0, onlineStatusMap }: ChatListItemProps) {
           {chat.ad_image ? (
             <>
               <Image
-                source={{ uri: chat.ad_image }}
+                source={{ uri: resolveImageUrl(chat.ad_image) ?? undefined }}
                 style={{ width: 68, height: 68 }}
                 className="rounded-2xl bg-gray-50 border border-border"
                 resizeMode="cover"

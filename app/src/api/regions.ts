@@ -4,6 +4,8 @@ export interface Region {
   id: number
   name: string
   slug?: string
+  level?: number
+  parent?: number | null
   adsCount: number
 }
 
@@ -14,8 +16,12 @@ export interface RegionDetail extends Region {
 }
 
 export const regionsApi = {
-  async list(): Promise<Region[]> {
-    const response = await apiClient.get<Region[]>('/regions/')
+  async list(parentId?: number | null, level?: number): Promise<Region[]> {
+    const params: any = {}
+    if (parentId !== undefined) params.parent = parentId
+    if (level !== undefined) params.level = level
+    
+    const response = await apiClient.get<Region[]>('/regions/', { params })
     return response.data
   },
   async get(slug: string): Promise<RegionDetail> {

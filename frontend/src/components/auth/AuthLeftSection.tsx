@@ -10,7 +10,7 @@ export default function AuthLeftSection() {
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: 'url(https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1200&q=80)'
+          backgroundImage: 'url(https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200&auto=format&fit=crop)'
         }}
       />
       

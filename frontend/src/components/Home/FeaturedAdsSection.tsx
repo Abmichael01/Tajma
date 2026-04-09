@@ -4,7 +4,9 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Eye, Heart, ArrowRight } from 'lucide-react'
+import { getMediaUrl } from '@/lib/utils'
 import type { Ad } from '@/api/types'
+
 
 interface FeaturedAdsSectionProps {
     title: string
@@ -28,7 +30,7 @@ export default function FeaturedAdsSection({
             <div className="container px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 sm:mb-8 gap-4">
                     <div>
-                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{title}</h2>
+                        <h2 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-2">{title}</h2>
                         {subtitle && <p className="text-gray-500 text-sm sm:text-base">{subtitle}</p>}
                     </div>
                     <Link href={viewAllLink} className="inline-flex items-center text-sm font-semibold text-secondary hover:text-secondary/80 transition-colors group">
@@ -44,7 +46,8 @@ export default function FeaturedAdsSection({
                                 {/* Image */}
                                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                                     <Image
-                                        src={ad.images && ad.images.length > 0 ? ad.images[0] : 'https://via.placeholder.com/400x300?text=No+Image'}
+                                        src={getMediaUrl(ad.images?.[0])}
+
                                         alt={ad.title}
                                         fill
                                         className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -55,7 +58,7 @@ export default function FeaturedAdsSection({
                                     </div>
                                     {ad.price && (
                                         <div className="absolute bottom-3 right-3 bg-secondary text-white px-2 py-1 rounded-md text-sm font-bold shadow-sm">
-                                            {ad.currency || 'Fr'} {parseFloat(String(ad.price)).toLocaleString()}
+                                            {ad.currency || 'XOF'} {parseFloat(String(ad.price)).toLocaleString()}
                                         </div>
                                     )}
                                 </div>

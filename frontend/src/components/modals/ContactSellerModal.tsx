@@ -2,12 +2,7 @@
 
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { MessageSquare, Send } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { useLanguage, getDefaultMessages } from '@/hooks/useLanguage'
@@ -70,31 +65,29 @@ export default function ContactSellerModal({
 
   if (isSuccess) {
     return (
-      <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="!max-w-md">
-          <div className="py-8 text-center">
-            <div className="bg-green-100 w-16 h-16 flex items-center justify-center mx-auto mb-4 rounded-full">
-              <MessageSquare className="w-10 h-10 text-green-600" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Message Sent!
-            </h3>
-            <p className="text-gray-600">
-              Your message has been sent to {sellerName}. They will respond soon.
-            </p>
+      <ResponsiveModal isOpen={isOpen} onClose={handleClose} title="Message Sent!">
+        <div className="py-8 text-center">
+          <div className="bg-green-100 w-16 h-16 flex items-center justify-center mx-auto mb-4 rounded-full">
+            <MessageSquare className="w-10 h-10 text-green-600" />
           </div>
-        </DialogContent>
-      </Dialog>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            Message Sent!
+          </h3>
+          <p className="text-gray-600">
+            Your message has been sent to {sellerName}. They will respond soon.
+          </p>
+        </div>
+      </ResponsiveModal>
     )
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="!max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Contact Seller</DialogTitle>
-        </DialogHeader>
-
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Contact Seller"
+      className="!max-w-2xl"
+    >
         <div className="py-4">
           <div className="mb-6 bg-gray-50 p-4 border border-gray-200 rounded-lg">
             <p className="text-sm text-gray-600 mb-1">About:</p>
@@ -168,8 +161,6 @@ export default function ContactSellerModal({
             </div>
           </form>
         </div>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   )
 }
-

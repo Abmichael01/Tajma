@@ -4,37 +4,23 @@ from django.db.models import Count, Q
 from api.models import Region, Ad
 
 
+from api.serializers.region import RegionSerializer
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 class RegionViewSet(viewsets.ModelViewSet):
     """
     ViewSet for getting regions with ad counts.
     """
     queryset = Region.objects.filter(is_active=True)
+    serializer_class = RegionSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = 'slug'
-    
-    def list(self, request):
-        """
-        Get all active regions with their ad counts.
-        Returns ALL regions (even with 0 ads).
-        """
-        regions = self.queryset.order_by('sort_order', 'name')
-        
-        # Get ad counts for each region
-        regions_with_counts = []
-        for region in regions:
-            ads_count = Ad.objects.filter(
-                seller__location=region,
-                status='published'
-            ).count()
-            
-            regions_with_counts.append({
-                'id': region.id,
-                'name': region.name,
-                'slug': region.slug,
-                'adsCount': ads_count
-            })
-        
-        return Response(regions_with_counts)
+    pagination_class = PageNumberPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name', 'slug']
+    filterset_fields = ['level', 'parent', 'is_active']
     
     def retrieve(self, request, slug=None):
         """

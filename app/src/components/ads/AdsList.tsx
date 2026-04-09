@@ -27,6 +27,7 @@ interface AdsListProps {
   columns?: 2 | 3;
   onToggleFavorite?: (adId: string) => void;
   className?: string;
+  sortBy?: SortOption;
 }
 
 type SortOption = 'newest' | 'oldest' | 'price-low' | 'price-high' | 'views' | 'title';
@@ -86,9 +87,11 @@ export default function AdsList({
   ads, 
   columns = 2, 
   onToggleFavorite,
-  className = "" 
-}: AdsListProps) {
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  className = "",
+  sortBy: externalSortBy
+}: AdsListProps & { sortBy?: SortOption }) {
+  const [internalSortBy, setInternalSortBy] = useState<SortOption>('newest');
+  const sortBy = externalSortBy || internalSortBy;
 
   // Sort ads
   const sortedAds = useMemo(() => sortAds(ads, sortBy), [ads, sortBy]);

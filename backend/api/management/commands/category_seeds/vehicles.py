@@ -173,7 +173,7 @@ VEHICLES_CATEGORY = {
         },
         {
             "name": "Motorcycles & Scooters",
-            "image_url": "/bike1.jpg",
+            "image_url": "/bike1.png",
             "custom_fields": [
                  {"name": "engine_capacity", "label": "Engine Capacity (cc)", "type": "number"},
                  {"name": "start_type", "label": "Start Type", "type": "select", "options": [{"value": "electric", "label": "Electric Start"}, {"value": "kick", "label": "Kick Start"}]}

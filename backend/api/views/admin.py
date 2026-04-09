@@ -2,11 +2,13 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
 
-from api.models import User, Ad, Category, Notification, Chat, Message
+from api.models import User, Ad, Category, Notification, Chat, Message, KYCVerification, Review, Report, Lead, SupportMessage
 from api.serializers import (
     UserSerializer,
     AdSerializer,
@@ -14,7 +16,12 @@ from api.serializers import (
     NotificationSerializer,
     ChatSerializer,
     MessageSerializer,
+    LeadSerializer,
+    AdminReportSerializer,
+    SupportMessageSerializer,
 )
+from api.serializers.kyc import KYCVerificationSerializer
+from api.serializers.review import ReviewSerializer
 
 
 class AdminPagination(PageNumberPagination):
@@ -61,37 +68,13 @@ class AdminUserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['email', 'username', 'first_name', 'last_name']
+    filterset_fields = ['is_active', 'is_seller', 'is_staff']
     lookup_field = 'id'
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Filter by is_active
-        is_active = self.request.query_params.get('is_active')
-        if is_active is not None:
-            queryset = queryset.filter(is_active=is_active.lower() == 'true')
-        
-        # Filter by is_seller
-        is_seller = self.request.query_params.get('is_seller')
-        if is_seller is not None:
-            queryset = queryset.filter(is_seller=is_seller.lower() == 'true')
-        
-        # Filter by is_staff
-        is_staff = self.request.query_params.get('is_staff')
-        if is_staff is not None:
-            queryset = queryset.filter(is_staff=is_staff.lower() == 'true')
-        
-        # Search
-        search = self.request.query_params.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(email__icontains=search) |
-                Q(username__icontains=search) |
-                Q(first_name__icontains=search) |
-                Q(last_name__icontains=search)
-            )
-        
-        return queryset.order_by('-date_joined')
+        return User.objects.all().order_by('-date_joined')
 
     def get_serializer_class(self):
         return UserSerializer
@@ -103,45 +86,18 @@ class AdminAdViewSet(viewsets.ModelViewSet):
     serializer_class = AdSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['title', 'description', 'seller__email', 'seller__username']
+    filterset_fields = {
+        'status': ['exact'],
+        'ad_type': ['exact'],
+        'category__slug': ['exact'],
+        'seller_id': ['exact'],
+    }
     lookup_field = 'id'
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Filter by status
-        status_filter = self.request.query_params.get('status')
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
-        
-        # Filter by ad_type
-        ad_type = self.request.query_params.get('ad_type')
-        if ad_type:
-            queryset = queryset.filter(ad_type=ad_type)
-        
-        # Filter by category
-        category = self.request.query_params.get('category')
-        if category:
-            queryset = queryset.filter(category__slug=category)
-        
-        # Filter by seller/user
-        seller_id = self.request.query_params.get('seller')
-        if seller_id:
-            try:
-                queryset = queryset.filter(seller_id=int(seller_id))
-            except (ValueError, TypeError):
-                pass
-        
-        # Search
-        search = self.request.query_params.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(title__icontains=search) |
-                Q(description__icontains=search) |
-                Q(seller__email__icontains=search) |
-                Q(seller__username__icontains=search)
-            )
-        
-        return queryset.order_by('-created_at')
+        return Ad.objects.select_related('seller', 'category').all().order_by('-created_at')
 
     def get_serializer_class(self):
         return AdSerializer
@@ -179,30 +135,13 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name', 'slug']
+    filterset_fields = ['is_active', 'category_type']
     lookup_field = 'id'
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Filter by is_active
-        is_active = self.request.query_params.get('is_active')
-        if is_active is not None:
-            queryset = queryset.filter(is_active=is_active.lower() == 'true')
-        
-        # Filter by category_type
-        category_type = self.request.query_params.get('category_type')
-        if category_type:
-            queryset = queryset.filter(category_type=category_type)
-        
-        # Search
-        search = self.request.query_params.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search) |
-                Q(slug__icontains=search)
-            )
-        
-        return queryset.order_by('parent__id', 'sort_order', 'name')
+        return Category.objects.select_related('parent').all().order_by('parent__id', 'sort_order', 'name')
 
     def get_serializer_class(self):
         return CategorySerializer
@@ -267,32 +206,13 @@ class AdminNotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['title', 'message', 'recipient__email', 'recipient__username']
+    filterset_fields = ['type', 'is_read']
     lookup_field = 'id'
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Filter by type
-        notification_type = self.request.query_params.get('type')
-        if notification_type:
-            queryset = queryset.filter(type=notification_type)
-        
-        # Filter by is_read
-        is_read = self.request.query_params.get('is_read')
-        if is_read is not None:
-            queryset = queryset.filter(is_read=is_read.lower() == 'true')
-        
-        # Search
-        search = self.request.query_params.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(title__icontains=search) |
-                Q(message__icontains=search) |
-                Q(recipient__email__icontains=search) |
-                Q(recipient__username__icontains=search)
-            )
-        
-        return queryset.order_by('-created_at')
+        return Notification.objects.select_related('recipient', 'related_ad', 'related_user').all().order_by('-created_at')
 
     def get_serializer_class(self):
         return NotificationSerializer
@@ -304,22 +224,12 @@ class AdminChatViewSet(viewsets.ModelViewSet):
     serializer_class = ChatSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['participant1__email', 'participant1__username', 'participant2__email', 'participant2__username']
     lookup_field = 'id'
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Search
-        search = self.request.query_params.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(participant1__email__icontains=search) |
-                Q(participant1__username__icontains=search) |
-                Q(participant2__email__icontains=search) |
-                Q(participant2__username__icontains=search)
-            )
-        
-        return queryset.order_by('-last_message_at', '-created_at')
+        return Chat.objects.select_related('participant1', 'participant2', 'ad').prefetch_related('messages').all().order_by('-last_message_at', '-created_at')
 
     def get_serializer_class(self):
         return ChatSerializer
@@ -353,27 +263,164 @@ class AdminMessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['content', 'sender__email', 'sender__username']
+    filterset_fields = ['is_read']
     lookup_field = 'id'
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        
-        # Filter by is_read
-        is_read = self.request.query_params.get('is_read')
-        if is_read is not None:
-            queryset = queryset.filter(is_read=is_read.lower() == 'true')
-        
-        # Search
-        search = self.request.query_params.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(content__icontains=search) |
-                Q(sender__email__icontains=search) |
-                Q(sender__username__icontains=search)
-            )
-        
-        return queryset.order_by('-created_at')
+        return Message.objects.select_related('chat', 'sender').all().order_by('-created_at')
 
     def get_serializer_class(self):
         return MessageSerializer
+
+
+class AdminReportViewSet(viewsets.ModelViewSet):
+    """Admin report management"""
+    queryset = Report.objects.select_related('reporter', 'reported_user', 'related_ad').all()
+    serializer_class = AdminReportSerializer
+    permission_classes = [permissions.IsAdminUser]
+    pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['description', 'reporter__email', 'reported_user__email', 'related_ad__title']
+    filterset_fields = ['status', 'report_type', 'reason']
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Report.objects.select_related('reporter', 'reported_user', 'related_ad').all().order_by('-created_at')
+
+    @action(detail=True, methods=['post'])
+    def resolve(self, request, id=None):
+        """Resolve a report"""
+        report = self.get_object()
+        report.status = 'resolved'
+        report.resolution_note = request.data.get('resolution_note', '')
+        report.resolved_by = request.user
+        report.resolved_at = timezone.now()
+        report.save()
+        
+        # Add a final message to the thread so user sees the resolution details in history
+        SupportMessage.objects.create(
+            report=report,
+            sender=request.user,
+            message=f"Ticket marked as resolved. Resolution Note: {report.resolution_note or 'Problem handled.'}",
+            is_admin_reply=True
+        )
+        
+        return Response({'status': 'resolved'})
+
+    @action(detail=True, methods=['post'])
+    def reply(self, request, id=None):
+        """Send a reply to a user report/support ticket as an admin"""
+        report = self.get_object()
+        serializer = SupportMessageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(report=report, sender=request.user, is_admin_reply=True)
+            
+            # Automatically set to Under Review if it's pending
+            if report.status == 'pending':
+                report.status = 'under_review'
+                report.save()
+                
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AdminKYCViewSet(viewsets.ModelViewSet):
+    """Admin KYC management"""
+    queryset = KYCVerification.objects.select_related('user').all()
+    serializer_class = KYCVerificationSerializer
+    permission_classes = [permissions.IsAdminUser]
+    pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['user__email', 'job_id', 'smile_user_id']
+    filterset_fields = ['status', 'result', 'country', 'document_type']
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return KYCVerification.objects.select_related('user').all().order_by('-created_at')
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, id=None):
+        """Manually approve a KYC verification"""
+        kyc = self.get_object()
+        user = kyc.user
+        
+        # Update KYC record
+        kyc.status = 'completed'
+        kyc.result = 'verified'
+        kyc.save()
+        
+        # Update User status
+        user.is_verified = True
+        user.kyc_status = 'verified'
+        user.save()
+        
+        # Notify user (Optional, but good practice)
+        Notification.objects.create(
+            recipient=user,
+            type='kyc_approved',
+            title='Identity Verified',
+            message='Your identity has been manually verified by our team. You now have full access to platform features.'
+        )
+        
+        return Response({'status': 'verified'})
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, id=None):
+        """Manually reject a KYC verification"""
+        kyc = self.get_object()
+        user = kyc.user
+        reason = request.data.get('reason', 'Verification details were unclear or invalid.')
+        
+        # Update KYC record
+        kyc.status = 'failed'
+        kyc.result = 'rejected'
+        kyc.save()
+        
+        # Update User status
+        user.is_verified = False
+        user.kyc_status = 'rejected'
+        user.kyc_notes = reason
+        user.save()
+        
+        # Notify user
+        Notification.objects.create(
+            recipient=user,
+            type='kyc_rejected',
+            title='Verification Rejected',
+            message=f'Your identity verification was rejected. Reason: {reason}'
+        )
+        
+        return Response({'status': 'rejected'})
+
+
+class AdminReviewViewSet(viewsets.ModelViewSet):
+    """Admin review management"""
+    queryset = Review.objects.select_related('reviewer', 'seller', 'ad').all()
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAdminUser]
+    pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['comment', 'reviewer__email', 'seller__email', 'ad__title']
+    filterset_fields = ['rating']
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Review.objects.select_related('reviewer', 'seller', 'ad').all().order_by('-created_at')
+
+
+class AdminLeadViewSet(viewsets.ModelViewSet):
+    """Admin lead management (interaction analytics)"""
+    queryset = Lead.objects.select_related('seller', 'client', 'ad').all()
+    serializer_class = LeadSerializer
+    permission_classes = [permissions.IsAdminUser]
+    pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['seller__email', 'seller__username', 'client__email', 'client__username', 'ad__title']
+    filterset_fields = ['first_source', 'last_source', 'messaged', 'ignored']
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return Lead.objects.select_related('seller', 'client', 'ad').all().order_by('-created_at')
 

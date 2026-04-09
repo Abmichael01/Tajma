@@ -75,5 +75,11 @@ export const authApi = {
     const response = await apiClient.patch<ProfileUpdateResponse>('/auth/profile/update/', data);
     return response.data;
   },
+  
+  // Register/Update FCM token
+  updateFCMToken: async (fcmToken: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>('/auth/fcm-token/', { fcm_token: fcmToken });
+    return response.data;
+  },
 };
 

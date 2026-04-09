@@ -295,7 +295,15 @@ export default function AdminUsersPage() {
         loading={isLoading}
         searchable
         searchPlaceholder="Search by email, username, or name..."
-        onSearch={setSearch}
+        serverSide
+        total={data?.count || 0}
+        onParamsChange={(params) => {
+          if (params.page !== page) setPage(params.page)
+          if (params.search !== search) {
+            setSearch(params.search)
+            setPage(1)
+          }
+        }}
         onRowClick={(user) => {
           window.location.href = `/admin/users/${user.id}`
         }}
@@ -303,16 +311,10 @@ export default function AdminUsersPage() {
           toast.info('Edit functionality coming soon')
         }}
         onDelete={handleDelete}
-        pagination={
-          data
-            ? {
-                page,
-                pageSize: 25,
-                total: data.count,
-                onPageChange: setPage,
-              }
-            : undefined
-        }
+        pagination={{
+            page,
+            pageSize: 25,
+        }}
         actions={(user) => {
           const isUpdating = updatingUserId === user.id
           return (

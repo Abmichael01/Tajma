@@ -162,18 +162,20 @@ export default function AdminMessagesPage() {
         loading={isLoading}
         searchable
         searchPlaceholder="Search by content or sender..."
-        onSearch={setSearch}
+        serverSide
+        total={data?.count || 0}
+        onParamsChange={(params) => {
+          if (params.page !== page) setPage(params.page)
+          if (params.search !== search) {
+            setSearch(params.search)
+            setPage(1)
+          }
+        }}
         onDelete={handleDelete}
-        pagination={
-          data
-            ? {
-                page,
-                pageSize: 25,
-                total: data.count,
-                onPageChange: setPage,
-              }
-            : undefined
-        }
+        pagination={{
+            page,
+            pageSize: 25,
+        }}
       />
     </div>
   )

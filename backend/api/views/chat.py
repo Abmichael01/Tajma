@@ -27,6 +27,7 @@ class ChatViewSet(viewsets.ModelViewSet):
     """
     
     permission_classes = [permissions.IsAuthenticated]
+    csrf_exempt = True
     
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -171,8 +172,16 @@ class MessageViewSet(viewsets.ModelViewSet):
     
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated, IsChatParticipant]
+    csrf_exempt = True
     pagination_class = MessagePagination
     
+    def perform_destroy(self, instance):
+        """Only allow users to delete their own messages"""
+        if instance.sender != self.request.user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You can only delete your own messages.")
+        instance.delete()
+
     def get_queryset(self):
         """Return messages for chats where current user is a participant"""
         chat_id = self.request.query_params.get('chat')
@@ -221,6 +230,24 @@ class MessageViewSet(viewsets.ModelViewSet):
         # Update chat's last_message_at
         message.chat.update_last_message_time()
     
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        """Delete multiple messages"""
+        message_ids = request.data.get('message_ids', [])
+        if not message_ids:
+            return Response({'detail': 'message_ids is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verify user is the sender of these messages AND participant in the chats
+        messages = Message.objects.filter(
+            id__in=message_ids,
+            sender=request.user,
+            chat__in=Chat.objects.filter(Q(participant1=request.user) | Q(participant2=request.user))
+        )
+        count = messages.count()
+        messages.delete()
+        
+        return Response({'message': f'{count} messages deleted', 'count': count})
+
     @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):
         """

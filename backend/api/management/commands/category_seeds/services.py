@@ -89,7 +89,7 @@ SERVICES_CATEGORY = {
         },
         {
             "name": "Automotive Services",
-            "image_url": "/worker1.jpg",
+            "image_url": "/worker1.png",
             "children": [
                 {"name": "Auto Mechanics"},
                 {"name": "Car Wash & Detailing"},

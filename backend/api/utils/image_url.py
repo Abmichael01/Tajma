@@ -1,38 +1,38 @@
-"""
-Utility functions for building full image URLs from request context
-"""
-from django.conf import settings
-
+from django.core.files.storage import default_storage
 
 def build_full_image_url(image_path, request=None):
     """
-    Build a full URL for an image path using the request's host.
-    This automatically works for both website and mobile app.
+    Build a full URL for an image path.
+    Supports local storage and Cloudinary.
     
     Args:
-        image_path: Relative image path (e.g., 'avatars/uuid.jpg' or '/media/avatars/uuid.jpg')
-        request: Django request object (optional, but recommended)
+        image_path: Relative image path (e.g., 'ads/uuid.jpg')
     
     Returns:
-        Full URL string (e.g., 'https://example.com/api/media/avatars/uuid.jpg')
+        Full URL or relative path string.
     """
     if not image_path:
         return None
     
-    # If it's already a full URL, return as is
+    # If it's already a full URL (external), return as is
     if image_path.startswith('http://') or image_path.startswith('https://'):
         return image_path
     
-    # Use request to build absolute URI (automatically gets host from request)
-    # Use request to build absolute URI only if it provides the required method
-    if request and hasattr(request, "build_absolute_uri"):
-        # Remove leading slash if present
-        clean_path = image_path.lstrip('/')
-        # Build full URL using request's host
-        return request.build_absolute_uri(f'/api/media/{clean_path}')
+    # If using Cloudinary, default_storage.url() returns a full URL
+    try:
+        url = default_storage.url(image_path)
+        if url.startswith('http'):
+            return url
+    except Exception:
+        pass
+
+    # Fallback/Local dev logic
+    # Strip any existing prefixes to avoid double prefixing
+    clean_path = image_path.replace('/api/media/', '', 1).replace('/media/', '', 1).lstrip('/')
     
-    # Fallback: use settings if no request (should rarely happen)
-    site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
-    clean_path = image_path.lstrip('/')
-    return f"{site_url}/api/media/{clean_path}"
+    # Always return a relative path starting with /api/media/
+    return f'/api/media/{clean_path}'
+
+
+
 

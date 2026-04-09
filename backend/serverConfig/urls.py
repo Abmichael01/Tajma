@@ -6,8 +6,11 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
-    path('api/auth/', include('dj_rest_auth.urls')),
 ]
+
+# Register custom error handlers
+handler404 = 'api.views.errors.handler404'
+handler500 = 'api.views.errors.handler500'
 
 # Serve media files in development
 if settings.DEBUG:

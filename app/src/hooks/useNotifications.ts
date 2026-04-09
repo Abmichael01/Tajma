@@ -1,76 +1,88 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { notificationsApi, type Notification } from '@/api/notifications'
-import { useAuthStore } from '@/store/authStore'
+import { useState, useEffect, useRef } from 'react';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import { Platform } from 'react-native';
+import { authApi } from '@/api/auth';
+import { useAuthStore } from '@/store/authStore';
 
-export const useNotifications = (params?: { is_read?: boolean }) => {
-  const { isAuthenticated } = useAuthStore()
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
-  return useQuery({
-    queryKey: ['notifications', params],
-    queryFn: () => notificationsApi.list(params),
-    enabled: isAuthenticated,
-    staleTime: 30 * 1000, // 30 seconds
-  })
-}
+export const useNotifications = () => {
+  const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
+  const [notification, setNotification] = useState<Notifications.Notification | undefined>();
+  const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
+  const responseListener = useRef<Notifications.EventSubscription | undefined>(undefined);
+  const { isAuthenticated } = useAuthStore();
 
-export const useUnreadNotificationCount = () => {
-  const { isAuthenticated } = useAuthStore()
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => {
+        setExpoPushToken(token);
+        if (token && isAuthenticated) {
+            authApi.updateFCMToken(token).catch(console.error);
+        }
+    });
 
-  return useQuery({
-    queryKey: ['notifications', 'unread_count'],
-    queryFn: () => notificationsApi.getUnreadCount(),
-    enabled: isAuthenticated,
-    refetchInterval: 60 * 1000, // Refetch every minute
-  })
-}
+    notificationListener.current = Notifications.addNotificationReceivedListener((notification: Notifications.Notification) => {
+      setNotification(notification);
+    });
 
-export const useNotification = (id: string, enabled = true) => {
-  return useQuery({
-    queryKey: ['notification', id],
-    queryFn: () => notificationsApi.get(id),
-    enabled: enabled && !!id,
-  })
-}
+    responseListener.current = Notifications.addNotificationResponseReceivedListener((response: Notifications.NotificationResponse) => {
+      // Handle user tapping on notification
+      console.log('Notification tapped:', response.notification.request.content.data);
+    });
 
-export const useMarkNotificationAsRead = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => notificationsApi.markAsRead(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread_count'] })
-    },
-  })
-}
+    return () => {
+      if (notificationListener.current) {
+        Notifications.removeNotificationSubscription(notificationListener.current);
+      }
+      if (responseListener.current) {
+        Notifications.removeNotificationSubscription(responseListener.current);
+      }
+    };
+  }, [isAuthenticated]);
 
-export const useMarkAllNotificationsAsRead = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: () => notificationsApi.markAllAsRead(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread_count'] })
-    },
-  })
-}
+  return { expoPushToken, notification };
+};
 
-export const useDeleteNotification = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => notificationsApi.remove(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] })
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread_count'] })
-    },
-  })
-}
-export const useCreateNotification = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (data: Parameters<typeof notificationsApi.create>[0]) => notificationsApi.create(data),
-    onSuccess: () => {
-      // No need to invalidate for the current user if they are the one creating it for someone else,
-      // but good practice if we implement multi-user local state
-    },
-  })
+async function registerForPushNotificationsAsync() {
+  let token;
+
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    });
+  }
+
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      console.warn('Failed to get push token for push notification!');
+      return;
+    }
+    
+    // Learn more about projectId here: https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
+    try {
+        token = (await Notifications.getExpoPushTokenAsync()).data;
+    } catch (e) {
+        console.error('Error getting push token:', e);
+    }
+  } else {
+    console.log('Must use physical device for Push Notifications');
+  }
+
+  return token;
 }

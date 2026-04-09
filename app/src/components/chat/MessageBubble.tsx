@@ -14,6 +14,7 @@ import { useAuthStore } from "@/store/authStore";
 import LinkPreview from "./LinkPreview";
 import AudioPlayer from "./AudioPlayer";
 import { API_BASE_URL } from "@/api/apiClient";
+import { resolveImageUrl } from "@/utils/imageUtils";
 
 // Reliable link opener — ensures scheme is always present
 const openUrl = async (url: string) => {
@@ -38,6 +39,7 @@ interface MessageBubbleProps {
   isSelectionMode?: boolean;
   isSelected?: boolean;
   onSelect?: (messageId: string) => void;
+  onLongPress?: (message: ChatMessage) => void;
 }
 
 const MessageTail = ({ isMe, color }: { isMe: boolean; color: string }) => (
@@ -93,7 +95,8 @@ const MessageBubble = React.memo(({
   isFlashing,
   isSelectionMode,
   isSelected,
-  onSelect
+  onSelect,
+  onLongPress
 }: MessageBubbleProps) => {
   const { user } = useAuthStore();
 
@@ -208,7 +211,8 @@ const MessageBubble = React.memo(({
       backgroundColor: isMe ? '#2D2D2D' : '#FFFFFF',
       borderTopLeftRadius: (!isMe && !isSameSenderAsNext) ? 4 : 18,
       borderTopRightRadius: (isMe && !isSameSenderAsNext) ? 4 : 18,
-      borderWidth: 0,
+      borderWidth: isMe ? 0 : 1,
+      borderColor: isMe ? 'transparent' : '#f3f4f6',
     }
   ]), [isMe, isSameSenderAsNext]);
 
@@ -216,9 +220,11 @@ const MessageBubble = React.memo(({
   const handleLongPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!isSelectionMode) {
+      onLongPress?.(message);
+    } else {
       onSelect?.(String(message.id));
     }
-  }, [isSelectionMode, onSelect, message.id]);
+  }, [isSelectionMode, onLongPress, onSelect, message]);
 
   const handleTap = useCallback(() => {
     // ── FIX: ignore tap if a link was just pressed ────────────────────────
@@ -255,7 +261,7 @@ const MessageBubble = React.memo(({
     <Animated.View
       style={[
         styles.outerRow,
-        { justifyContent: isMe ? 'flex-end' : 'flex-start' },
+        { justifyContent: 'flex-end' },
         isSameSenderAsNext ? { marginTop: 0 } : { marginTop: 1 },
         isSameSenderAsPrev ? { marginBottom: 0 } : { marginBottom: 2 },
         // Selection highlight — full width tinted row
@@ -291,21 +297,19 @@ const MessageBubble = React.memo(({
               <TouchableOpacity
                 activeOpacity={0.9}
                 disabled={isSelectionMode}
-                onPress={() => onImagePress?.(message.attachment!)}
+                onPress={() => onImagePress?.(resolveImageUrl(message.attachment!) || '')}
               >
-                <ImageWithAspect uri={message.attachment} />
+                <ImageWithAspect uri={resolveImageUrl(message.attachment!) || ''} />
               </TouchableOpacity>
             )}
 
             {message.message_type === 'audio' && message.attachment && (
               <View pointerEvents={isSelectionMode ? 'none' : 'auto'}>
-                {/* Build absolute URL for audio if needed */}
-                {(() => {
-                  const rawUri = message.attachment as string;
-                  const isFull = rawUri.startsWith('http') || rawUri.startsWith('file://');
-                  const fullUri = isFull ? rawUri : `${API_BASE_URL}/api/media/${rawUri.replace(/^\//, '')}`;
-                  return <AudioPlayer key={rawUri} uri={fullUri} isMe={isMe} />;
-                })()}
+                <AudioPlayer 
+                  key={message.attachment} 
+                  uri={resolveImageUrl(message.attachment) || ''} 
+                  isMe={isMe} 
+                />
               </View>
             )}
 
@@ -391,17 +395,15 @@ const styles = StyleSheet.create({
   bubbleBase: {
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 1,
+    borderWidth: 1,
+    borderColor: 'transparent', // Overridden by logic if needed, but here to maintain structural spacing
   },
   tailRight: {
     position: 'absolute', top: 0, right: -9,
     width: 11, height: 16, zIndex: 10,
   },
   tailLeft: {
+    // Other user bubble is on the right, but its tail is on the left of the bubble
     position: 'absolute', top: 0, left: -9,
     width: 11, height: 16, zIndex: 10,
   },

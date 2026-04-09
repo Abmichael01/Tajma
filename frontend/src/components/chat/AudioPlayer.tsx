@@ -1,87 +1,144 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from 'react'
-import { Play, Pause, Volume2 } from 'lucide-react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { Mic, Play, Pause, RotateCcw } from 'lucide-react'
+import { getMediaUrl } from '@/lib/utils'
+import { useAudioStore } from '@/store/audioStore'
 
 interface AudioPlayerProps {
     uri: string
     isOwn?: boolean
+    id?: string // New optional ID for unique playback tracking
 }
 
-export default function AudioPlayer({ uri, isOwn }: AudioPlayerProps) {
+export default function AudioPlayer({ uri, isOwn, id }: AudioPlayerProps) {
+    const { playingAudioId, setPlayingAudioId } = useAudioStore()
+    const playbackId = id || uri
     const [isPlaying, setIsPlaying] = useState(false)
-    const [progress, setProgress] = useState(0)
+    const [currentTime, setCurrentTime] = useState(0)
     const [duration, setDuration] = useState(0)
+    const [finished, setFinished] = useState(false)
     const audioRef = useRef<HTMLAudioElement>(null)
+    const trackRef = useRef<HTMLDivElement>(null)
 
-    const togglePlayback = () => {
-        if (audioRef.current) {
-            if (isPlaying) {
-                audioRef.current.pause()
-            } else {
-                audioRef.current.play()
-            }
-            setIsPlaying(!isPlaying)
-        }
+    const progress = duration > 0 ? currentTime / duration : 0
+
+    const formatTime = (t: number) => {
+        if (!t || isNaN(t)) return '0:00'
+        const m = Math.floor(t / 60)
+        const s = Math.floor(t % 60)
+        return `${m}:${s.toString().padStart(2, '0')}`
     }
 
-    const handleTimeUpdate = () => {
-        if (audioRef.current) {
-            const current = audioRef.current.currentTime
-            const duration = audioRef.current.duration
-            if (duration > 0) {
-                setProgress((current / duration) * 100)
-            }
+    const handlePlayPause = useCallback(() => {
+        const el = audioRef.current
+        if (!el) return
+        if (isPlaying) {
+            el.pause()
+            setIsPlaying(false)
+            setPlayingAudioId(null)
+        } else {
+            if (finished) { el.currentTime = 0; setFinished(false) }
+            el.play()
+            setIsPlaying(true)
+            setPlayingAudioId(playbackId)
         }
+    }, [isPlaying, finished, playbackId, setPlayingAudioId])
+
+    const handleTimeUpdate = () => {
+        if (audioRef.current) setCurrentTime(audioRef.current.currentTime)
     }
 
     const handleLoadedMetadata = () => {
-        if (audioRef.current) {
-            setDuration(audioRef.current.duration)
-        }
+        if (audioRef.current) setDuration(audioRef.current.duration)
     }
 
     const handleEnded = () => {
         setIsPlaying(false)
-        setProgress(0)
+        setFinished(true)
+        setCurrentTime(0)
     }
 
-    const formatTime = (time: number) => {
-        if (isNaN(time)) return '0:00'
-        const minutes = Math.floor(time / 60)
-        const seconds = Math.floor(time % 60)
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`
+    // Stop if another audio starts playing
+    useEffect(() => {
+        if (playingAudioId !== playbackId && isPlaying) {
+            audioRef.current?.pause()
+            setIsPlaying(false)
+        }
+    }, [playingAudioId, playbackId, isPlaying])
+
+    const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const el = audioRef.current
+        const track = trackRef.current
+        if (!el || !track || duration === 0) return
+        const rect = track.getBoundingClientRect()
+        const clickX = e.clientX - rect.left
+        const ratio = Math.max(0, Math.min(1, clickX / rect.width))
+        el.currentTime = ratio * duration
     }
+
+    // Colors based on ownership — matching mobile exactly
+    const primaryColor = isOwn ? 'white' : '#FF4F18'
+    const dimColor = isOwn ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.12)'
+
+    const PlayIcon = finished ? RotateCcw : isPlaying ? Pause : Play
 
     return (
-        <div className={`flex items-center gap-3 p-2 rounded-lg min-w-[200px] ${isOwn ? 'bg-primary/20' : 'bg-gray-100'}`}>
+        <div className="flex items-center gap-3 w-[260px] py-1 px-1">
+            {/* Play/Pause Button */}
             <button
-                onClick={togglePlayback}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform active:scale-95 ${isOwn ? 'bg-white text-primary' : 'bg-primary text-white'
-                    }`}
+                onClick={handlePlayPause}
+                className="w-[42px] h-[42px] rounded-full flex items-center justify-center flex-shrink-0 transition-transform active:scale-95"
+                style={{ backgroundColor: isOwn ? 'rgba(255,255,255,0.18)' : 'rgba(255,79,24,0.10)' }}
             >
-                {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} className="ml-1" fill="currentColor" />}
+                <PlayIcon size={20} style={{ color: primaryColor }} className={!isPlaying && !finished ? 'ml-0.5' : ''} />
             </button>
 
+            {/* Waveform + time */}
             <div className="flex-1 flex flex-col gap-1">
-                <div className="h-1.5 w-full bg-gray-300 rounded-full overflow-hidden">
+                {/* Track */}
+                <div
+                    ref={trackRef}
+                    className="relative h-5 flex items-center cursor-pointer"
+                    onClick={handleTrackClick}
+                >
+                    {/* Background track */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[3px] rounded-full" style={{ backgroundColor: dimColor }} />
+                    {/* Active fill */}
                     <div
-                        className={`h-full transition-all duration-100 ${isOwn ? 'bg-white' : 'bg-primary'}`}
-                        style={{ width: `${progress}%` }}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 h-[3px] rounded-full z-10 transition-[width] duration-100"
+                        style={{ width: `${progress * 100}%`, backgroundColor: primaryColor }}
+                    />
+                    {/* Scrub knob */}
+                    <div
+                        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full z-20 shadow"
+                        style={{ left: `${progress * 100}%`, backgroundColor: primaryColor }}
                     />
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-gray-500 font-medium">
-                    <span>{formatTime(audioRef.current?.currentTime || 0)}</span>
-                    <span>{formatTime(duration)}</span>
+
+                {/* Time + mic icon row */}
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-medium" style={{ color: isOwn ? 'rgba(255,255,255,0.7)' : '#6B7280' }}>
+                        {isPlaying || currentTime > 0 ? formatTime(currentTime) : formatTime(duration)}
+                    </span>
+                    <Mic size={11} style={{ color: isOwn ? 'rgba(255,255,255,0.45)' : '#9CA3AF' }} />
                 </div>
             </div>
 
             <audio
                 ref={audioRef}
-                src={uri}
+                src={getMediaUrl(uri)}
+
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
                 onEnded={handleEnded}
+                onError={(e) => {
+                    console.error('Audio playback error', e)
+                    setIsPlaying(false)
+                    if (playingAudioId === playbackId) {
+                        setPlayingAudioId(null)
+                    }
+                }}
                 className="hidden"
             />
         </div>

@@ -30,6 +30,17 @@ export const useAdsList = (params?: Record<string, any>) => {
 }
 
 /**
+ * Fetch suggested ads for the user (personalized)
+ */
+export const useSuggestedAds = () => {
+  return useQuery({
+    queryKey: ['ads', 'suggested'],
+    queryFn: () => adsApi.suggested(),
+    staleTime: 5 * 60 * 1000, // 5 minutes (recommendations don't change that often)
+  })
+}
+
+/**
  * Fetch ads belonging to a specific user
  * @param userId - The user ID to fetch ads for
  * @param status - Optional status filter (published, draft, archived)

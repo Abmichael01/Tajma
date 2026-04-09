@@ -6,9 +6,9 @@ export default function Logo() {
   return (
     <Link href="/">
         <Image 
-          src="/logo.jpg" 
-          alt="Logo" 
-          width={100} 
+          src="/logo_new.png" 
+          alt="Tajma Logo" 
+          width={150} 
           height={100} 
           className='w-auto h-8 sm:h-10' 
         />

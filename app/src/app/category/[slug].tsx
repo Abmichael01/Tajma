@@ -1,166 +1,325 @@
-import { View, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import AppText from "@/components/ui/AppText";
-import ScreenHeader from "@/components/ui/ScreenHeader";
 import { SearchBar } from "@/components/home/Hero";
 import AdsList from "@/components/ads/AdsList";
-import CategoryCard from "@/components/ads/CategoryCard";
-import { useCategories } from "@/hooks/useCategories";
+import RegionModal from "@/components/ads/RegionModal";
+import FilterModal, { FilterState } from "@/components/ads/FilterModal";
+import CategoryModal from "@/components/ads/CategoryModal";
+import FilterChips, { FilterChip } from "@/components/ads/FilterChips";
 import { useAdsList } from "@/hooks/useAds";
+import { useCategories } from "@/hooks/useCategories";
+import { useRegions, Region } from "@/hooks/useRegions";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import Breadcrumbs, { BreadcrumbItem } from "@/components/ui/Breadcrumbs";
+import SortModal, { SortOption } from "@/components/ads/SortModal";
 
 export default function CategoryDetailScreen() {
-    const { slug } = useLocalSearchParams<{ slug: string }>();
-    const router = useRouter();
-    const { getCategoryBySlug, getSubcategories, loading: categoriesLoading } = useCategories();
+  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const router = useRouter();
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { data: regions } = useRegions();
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [isExpanded, setIsExpanded] = useState(true);
+  const category = categories.find((c) => c.slug === slug);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<any>(
+    category || null,
+  );
+  const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const [filterMode, setFilterMode] = useState<"all" | "price">("all");
+  const [isSubcategoryModalVisible, setIsSubcategoryModalVisible] =
+    useState(false);
+  const [isSortModalVisible, setIsSortModalVisible] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
 
-    const category = useMemo(() => getCategoryBySlug(slug || ""), [getCategoryBySlug, slug]);
-    const subcategories = useMemo(() =>
-        category ? getSubcategories(category.id) : [],
-        [category, getSubcategories]);
+  const [filters, setFilters] = useState<FilterState>({
+    region: null,
+    category: category || null,
+    minPrice: "",
+    maxPrice: "",
+    condition: [],
+  });
 
-    const { data: ads, isLoading: adsLoading } = useAdsList({
-        category: slug,
-        search: searchQuery,
-        status: 'published'
-    });
+  useEffect(() => {
+    if (category) {
+      setFilters((prev) => ({ ...prev, category }));
+      setSelectedCategory(category);
+    }
+  }, [category]);
 
-    const isLoading = categoriesLoading || adsLoading;
+  const hasSubcategories = useMemo(() => {
+    if (!category) return false;
+    return categories.some((cat) => cat.parentId === category.id);
+  }, [category, categories]);
 
-    if (!category && !categoriesLoading) {
-        return (
-            <View className="flex-1 bg-white items-center justify-center p-6">
-                <Ionicons name="alert-circle-outline" size={64} color="#FF4F18" />
-                <AppText variant="subheading" weight="bold" className="mt-4 text-gray-900">Category Not Found</AppText>
-                <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="mt-6 bg-primary px-8 py-3 rounded-full"
-                >
-                    <AppText weight="bold" className="text-white">Go Back</AppText>
-                </TouchableOpacity>
-            </View>
-        );
+  const {
+    data: ads,
+    isLoading,
+    refetch,
+  } = useAdsList({
+    category: selectedCategory?.slug || slug || undefined,
+    search: searchQuery,
+    region: selectedRegion?.slug,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+    condition: filters.condition.join(","),
+    status: "published",
+  });
+
+  const handleSearch = () => {
+    refetch();
+  };
+
+  const handleApplyFilters = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    setSelectedRegion(newFilters.region);
+    setSelectedCategory(newFilters.category);
+    setIsFilterModalVisible(false);
+  };
+
+  const chips: FilterChip[] = [
+    {
+      id: "all",
+      label: "All Filters",
+      isActive:
+        filters.condition.length > 0 ||
+        !!filters.minPrice ||
+        !!filters.maxPrice,
+      onPress: () => {
+        setFilterMode("all");
+        setIsFilterModalVisible(true);
+      },
+      icon: "options-outline" as any,
+    },
+    {
+      id: "region",
+      label: selectedRegion?.name || "Region",
+      isActive: !!selectedRegion,
+      onPress: () => setIsRegionModalVisible(true),
+      icon: "location-outline" as any,
+    },
+    ...(hasSubcategories
+      ? [
+          {
+            id: "subcategory",
+            label: "Sub-category",
+            isActive:
+              !!selectedCategory && selectedCategory.id !== category?.id,
+            onPress: () => setIsSubcategoryModalVisible(true),
+            icon: "list-outline" as any,
+          },
+        ]
+      : []),
+    {
+      id: "price",
+      label:
+        filters.minPrice || filters.maxPrice
+          ? `Price: ${filters.minPrice}-${filters.maxPrice}`
+          : "Price",
+      isActive: !!filters.minPrice || !!filters.maxPrice,
+      onPress: () => {
+        setFilterMode("price");
+        setIsFilterModalVisible(true);
+      },
+      icon: "cash-outline" as any,
+    },
+    {
+      id: "sort",
+      label: `Sort: ${sortBy.charAt(0).toUpperCase() + sortBy.slice(1).replace("-", " ")}`,
+      isActive: sortBy !== "newest",
+      onPress: () => setIsSortModalVisible(true),
+      icon: "swap-vertical-outline" as any,
+    },
+    {
+      id: "condition",
+      label:
+        filters.condition.length > 0
+          ? `Condition: ${filters.condition.length}`
+          : "Condition",
+      isActive: filters.condition.length > 0,
+      onPress: () => {
+        setFilterMode("all");
+        setIsFilterModalVisible(true);
+      },
+      icon: "shield-checkmark-outline" as any,
+    },
+  ];
+
+  const breadcrumbItems = useMemo(() => {
+    const items: BreadcrumbItem[] = [{ id: null, name: "All" }];
+    const currentCat = selectedCategory || category;
+    if (!currentCat) return items;
+
+    const path: BreadcrumbItem[] = [];
+    let curr: any = currentCat;
+    while (curr) {
+      path.unshift({ id: curr.id, name: curr.name, slug: curr.slug });
+      const parent = categories.find((c) => c.id === curr.parentId);
+      curr = parent;
     }
 
+    return [...items, ...path];
+  }, [selectedCategory, category, categories]);
+
+  if (categoriesLoading) {
     return (
-        <View className="flex-1 bg-white">
-            <StatusBar style="light" />
-
-            <ScreenHeader title={category?.name || "Category"}>
-                <SearchBar
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    selectedRegion="All Niger"
-                    onRegionPress={() => { }} // Disabled for category-specific search for now
-                    onSearch={() => { }}
-                />
-            </ScreenHeader>
-
-            <ScrollView
-                className="flex-1"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ flexGrow: 1, paddingBottom: 40, paddingTop: 16 }}
-            >
-                {isLoading && (
-                    <View className="py-10 items-center">
-                        <ActivityIndicator size="large" color="#FF4F18" />
-                    </View>
-                )}
-
-                {!isLoading && subcategories.length > 0 && !searchQuery && (
-                    <View className="px-5 py-4 border-b border-gray-100">
-                        <TouchableOpacity
-                            onPress={() => setIsExpanded(!isExpanded)}
-                            className="flex-row items-center justify-between py-2"
-                            activeOpacity={0.7}
-                        >
-                            <View className="flex-row items-center">
-                                <Ionicons
-                                    name={isExpanded ? "chevron-down" : "chevron-forward"}
-                                    size={20}
-                                    color="#2D2D2D"
-                                />
-                                <AppText variant="default" weight="bold" className="text-gray-900 ml-2">
-                                    Subcategories in {category?.name}
-                                </AppText>
-                            </View>
-                            <View className="bg-gray-100 px-2 py-0.5 rounded-full">
-                                <AppText variant="caption" className="text-gray-500">
-                                    {subcategories.length}
-                                </AppText>
-                            </View>
-                        </TouchableOpacity>
-
-                        {isExpanded && (
-                            <View className="mt-2">
-                                {subcategories.map((sub) => (
-                                    <TouchableOpacity
-                                        key={sub.id}
-                                        onPress={() => router.push(`/category/${sub.slug}`)}
-                                        className="flex-row items-center justify-between py-4 border-b border-gray-50"
-                                        activeOpacity={0.6}
-                                    >
-                                        <View className="flex-row items-center flex-1">
-                                            <View className="w-10 h-10 bg-primary/10 rounded-xl items-center justify-center mr-4">
-                                                <Ionicons
-                                                    name={sub.icon as any || "apps-outline"}
-                                                    size={20}
-                                                    color="#FF4F18"
-                                                />
-                                            </View>
-                                            <View className="flex-1">
-                                                <AppText variant="default" weight="semibold" className="text-gray-900">
-                                                    {sub.name}
-                                                </AppText>
-                                                <AppText variant="caption" className="text-gray-500">
-                                                    {sub.adsCount || 0} ads
-                                                </AppText>
-                                            </View>
-                                        </View>
-                                        <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        )}
-                    </View>
-                )}
-
-                <View className="mt-4">
-                    {!isLoading && (
-                        <View className="flex-row items-center justify-between mb-2 px-5">
-                            <AppText variant="default" weight="bold" className="text-gray-900">
-                                {searchQuery ? `Search results in ${category?.name}` : `Listings in ${category?.name}`}
-                            </AppText>
-                            {ads && ads.length > 0 && (
-                                <AppText variant="caption" className="text-gray-500">
-                                    {ads.length} items
-                                </AppText>
-                            )}
-                        </View>
-                    )}
-
-                    {!isLoading && ads && ads.length > 0 ? (
-                        <AdsList ads={ads as any} columns={2} />
-                    ) : !isLoading && (
-                        <View className="py-20 items-center">
-                            <View className="w-20 h-20 bg-gray-50 rounded-full items-center justify-center mb-4">
-                                <Ionicons name="search-outline" size={32} color="#cbd5e1" />
-                            </View>
-                            <AppText weight="bold" className="text-gray-900 text-lg">No listings found</AppText>
-                            <AppText className="text-gray-500 text-center px-10 mt-1">
-                                {searchQuery
-                                    ? `No matches for "${searchQuery}" in this category.`
-                                    : "There are no active listings in this category yet."}
-                            </AppText>
-                        </View>
-                    )}
-                </View>
-            </ScrollView>
-        </View>
+      <View className="flex-1 bg-white justify-center items-center">
+        <ActivityIndicator size="large" color="#FF4F18" />
+      </View>
     );
+  }
+
+  return (
+    <View className="flex-1 bg-white">
+      <StatusBar style="light" />
+
+      <ScreenHeader 
+        title={selectedCategory?.name || category?.name || "Category"} 
+        showBackButton={true}
+      >
+        <SearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedRegion={selectedRegion?.name || "All Regions"}
+          onRegionPress={() => setIsRegionModalVisible(true)}
+          onFilterPress={() => setIsFilterModalVisible(true)}
+          onSearch={handleSearch}
+          showRegion={false}
+          showFilter={false}
+        />
+      </ScreenHeader>
+
+      {/* Horizontal Filter Chips */}
+      <FilterChips
+        chips={chips}
+        onClearAll={() => {
+          setFilters({
+            region: null,
+            category: category || null,
+            minPrice: "",
+            maxPrice: "",
+            condition: [],
+          });
+          setSelectedRegion(null);
+          setSelectedCategory(category);
+          handleSearch();
+        }}
+      />
+
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {isLoading ? (
+          <View className="flex-1 justify-center items-center py-20">
+            <ActivityIndicator size="large" color="#FF4F18" />
+            <AppText className="text-gray-500 mt-4">Loading ads...</AppText>
+          </View>
+        ) : ads && ads.length > 0 ? (
+          <View>
+            <Breadcrumbs
+              items={breadcrumbItems}
+              onPress={(item: BreadcrumbItem) => {
+                if (!item.id) {
+                  router.push("/search");
+                  return;
+                }
+                const cat = categories.find((c) => c.id === item.id);
+                setSelectedCategory(cat || null);
+                setFilters((prev) => ({ ...prev, category: cat || null }));
+              }}
+              className="mt-4 px-6"
+            />
+            <AdsList ads={ads as any} sortBy={sortBy} />
+          </View>
+        ) : (
+          <View className="flex-1 items-center justify-center py-20 px-10">
+            <View className="w-24 h-24 bg-gray-50 rounded-full items-center justify-center mb-6 border border-gray-100">
+              <Ionicons name="apps-outline" size={48} color="#cbd5e1" />
+            </View>
+            <AppText
+              variant="subheading"
+              weight="bold"
+              className="text-center text-gray-900 mb-2"
+            >
+              No ads found
+            </AppText>
+            <AppText className="text-center text-gray-500 leading-5">
+              We couldn't find any ads in this category matching your filters.
+            </AppText>
+            <TouchableOpacity
+              className="mt-8 bg-primary px-10 py-4 rounded-full shadow-md shadow-primary/30"
+              onPress={() => {
+                setFilters({
+                  region: null,
+                  category: category || null,
+                  minPrice: "",
+                  maxPrice: "",
+                  condition: [],
+                });
+                setSelectedRegion(null);
+                setSelectedCategory(category);
+                handleSearch();
+              }}
+            >
+              <AppText weight="bold" className="text-white">
+                Clear Filters
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        )}
+        <View className="h-32" />
+      </ScrollView>
+
+      <RegionModal
+        visible={isRegionModalVisible}
+        onClose={() => setIsRegionModalVisible(false)}
+        onSelect={(region) => {
+          setSelectedRegion(region);
+          setFilters((prev) => ({ ...prev, region }));
+        }}
+        selectedRegionId={selectedRegion?.id}
+      />
+
+      <FilterModal
+        visible={isFilterModalVisible}
+        onClose={() => setIsFilterModalVisible(false)}
+        onApply={handleApplyFilters}
+        initialFilters={filters}
+        mode={filterMode}
+      />
+
+      <CategoryModal
+        visible={isSubcategoryModalVisible}
+        onClose={() => setIsSubcategoryModalVisible(false)}
+        onSelect={(cat) => {
+          setSelectedCategory(cat);
+          setFilters((prev) => ({
+            ...prev,
+            category: cat || category || null,
+          }));
+        }}
+        selectedCategoryId={selectedCategory?.id}
+        parentId={category?.id}
+      />
+
+      <SortModal
+        visible={isSortModalVisible}
+        onClose={() => setIsSortModalVisible(false)}
+        onSelect={setSortBy}
+        currentSort={sortBy}
+      />
+    </View>
+  );
 }

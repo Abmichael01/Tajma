@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
-import { cn } from '@/lib/utils'
+import { cn, getMediaUrl } from '@/lib/utils'
 
 interface CategoryImageProps {
   imageUrl?: string | null
@@ -22,38 +22,10 @@ export default function CategoryImage({
   const [imageError, setImageError] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
 
-  // Get full image URL if it's a relative path
-  const getImageUrl = () => {
-    if (!imageUrl) return null
-    
-    // If it's already a full URL, return as-is
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl
-    }
-    
-    // If it's a relative path, construct full URL using API media endpoint
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    
-    // If it starts with /media/, convert to API endpoint
-    if (imageUrl.startsWith('/media/')) {
-      const path = imageUrl.replace('/media/', '')
-      return `${apiUrl}/api/media/${path}`
-    }
-    
-    // If it's just a path starting with /, try API endpoint
-    if (imageUrl.startsWith('/')) {
-      const path = imageUrl.replace(/^\//, '')
-      return `${apiUrl}/api/media/${path}`
-    }
-    
-    // Relative path (e.g., 'categories/uuid.jpg'), use API endpoint
-    return `${apiUrl}/api/media/${imageUrl}`
-  }
-
-  const fullImageUrl = getImageUrl()
+  const fullImageUrl = getMediaUrl(imageUrl || undefined)
 
   // Show skeleton if no image or error
-  if (!fullImageUrl || imageError) {
+  if (!fullImageUrl || fullImageUrl.includes('placeholder.com') || imageError) {
     return (
       <div
         className={cn(

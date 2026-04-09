@@ -1,14 +1,16 @@
 "use client"
 
 import React from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { 
   TrendingUp,
   FileText,
   Heart,
   Bell,
   Settings,
-  Star
+  Star,
+  Users,
+  HelpCircle
 } from 'lucide-react'
 
 interface Tab {
@@ -24,6 +26,7 @@ interface ProfileTabsProps {
 export default function ProfileTabs({ isOwner = false }: ProfileTabsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   const tabFromUrl = searchParams.get('tab')
   // For visitors, never allow 'overview' tab - default to 'ads'
   const activeTab = tabFromUrl === 'overview' && !isOwner 
@@ -36,8 +39,10 @@ export default function ProfileTabs({ isOwner = false }: ProfileTabsProps) {
     ] : []),
     { id: 'ads', label: isOwner ? 'My Ads' : 'Ads', icon: FileText },
     ...(isOwner ? [
+      { id: 'leads', label: 'Leads', icon: Users },
       { id: 'saved', label: 'Saved', icon: Heart },
       { id: 'notifications', label: 'Notifications', icon: Bell },
+      { id: 'support', label: 'Support', icon: HelpCircle },
       { id: 'settings', label: 'Settings', icon: Settings }
     ] : [
       { id: 'reviews', label: 'Reviews', icon: Star }
@@ -47,7 +52,7 @@ export default function ProfileTabs({ isOwner = false }: ProfileTabsProps) {
   const handleTabChange = (tabId: string) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', tabId)
-    router.push(`?${params.toString()}`, { scroll: false })
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
     
     // Scroll to top with multiple attempts to ensure it works
     const scrollToTop = () => {
@@ -68,7 +73,7 @@ export default function ProfileTabs({ isOwner = false }: ProfileTabsProps) {
   }
 
   return (
-    <div className="bg-white border border-gray-200">
+    <div className="border border-gray-200 bg-white rounded-md overflow-hidden">
       <div className="flex border-b border-gray-200 overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon

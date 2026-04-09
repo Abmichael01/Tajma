@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { useCategories } from '@/hooks/useCategories'
-import { cn } from '@/lib/utils'
+import { cn, getMediaUrl } from '@/lib/utils'
 
 interface CategoryCardProps {
   category: {
@@ -21,35 +21,7 @@ function CategoryCard({ category }: CategoryCardProps) {
   const [imageError, setImageError] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
 
-  // Get full image URL if it's a relative path
-  const getImageUrl = () => {
-    if (!category.imageUrl) return null
-    
-    // If it's already a full URL, return as-is
-    if (category.imageUrl.startsWith('http://') || category.imageUrl.startsWith('https://')) {
-      return category.imageUrl
-    }
-    
-    // If it's a relative path, construct full URL using API media endpoint
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    
-    // If it starts with /media/, convert to API endpoint
-    if (category.imageUrl.startsWith('/media/')) {
-      const path = category.imageUrl.replace('/media/', '')
-      return `${apiUrl}/api/media/${path}`
-    }
-    
-    // If it's just a path starting with /, try API endpoint
-    if (category.imageUrl.startsWith('/')) {
-      const path = category.imageUrl.replace(/^\//, '')
-      return `${apiUrl}/api/media/${path}`
-    }
-    
-    // Relative path (e.g., 'categories/uuid.jpg'), use API endpoint
-    return `${apiUrl}/api/media/${category.imageUrl}`
-  }
-
-  const fullImageUrl = getImageUrl()
+  const fullImageUrl = getMediaUrl(category.imageUrl || undefined)
 
   return (
     <Link
@@ -61,7 +33,7 @@ function CategoryCard({ category }: CategoryCardProps) {
         {imageLoading && (
           <div className="absolute inset-0 bg-gray-200 animate-pulse" />
         )}
-        {fullImageUrl && !imageError ? (
+        {fullImageUrl && !fullImageUrl.includes('placeholder.com') && !imageError ? (
           <Image
             src={fullImageUrl}
             alt={category.name ? `${category.name} category` : 'Category'}
@@ -112,7 +84,7 @@ export default function CategoryGrid() {
       <div className="container">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Browse Categories</h2>
+            <h2 className="text-lg font-medium text-gray-900">Browse Categories</h2>
             <p className="text-xs text-gray-500">Live data from the marketplace taxonomy.</p>
           </div>
           <Link

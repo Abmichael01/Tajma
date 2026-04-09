@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -22,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { requestCategory } from '@/services/categoryService'
 import { CategoryType } from '@/types/category'
 import { useCategories } from '@/hooks/useCategories'
-import { getCategoryIcon } from '@/utils/categoryIcons'
+import CategoryImage from '@/components/ui/CategoryImage'
 import { useAuthStore } from '@/store/authStore'
 
 interface CategoryRequestModalProps {
@@ -119,15 +119,14 @@ export default function CategoryRequestModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Request New Category</DialogTitle>
-          <DialogDescription>
-            Can't find the right category? Request a new one and our team will review it.
-          </DialogDescription>
-        </DialogHeader>
-
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Request New Category"
+      description="Can't find the right category? Request a new one and our team will review it."
+      className="max-w-2xl"
+    >
+        <div className="py-2 overflow-y-auto max-h-[80vh] custom-scrollbar">
         {isSuccess ? (
           <div className="py-8 text-center">
             <div className="text-6xl mb-4">✅</div>
@@ -198,11 +197,15 @@ export default function CategoryRequestModal({
                   <SelectItem value="">None (Main Category)</SelectItem>
                   {rootCategories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
-                      {cat.icon && (
-                        <span className="inline-block mr-2">
-                          {getCategoryIcon(cat.icon, "w-4 h-4", 18)}
-                        </span>
-                      )} {cat.name}
+                      <div className="flex items-center gap-2">
+                        <CategoryImage 
+                          imageUrl={cat.imageUrl} 
+                          name={cat.name} 
+                          size={24} 
+                          className="w-6 h-6 rounded-md"
+                        />
+                        <span>{cat.name}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -279,8 +282,8 @@ export default function CategoryRequestModal({
             </div>
           </form>
         )}
-      </DialogContent>
-    </Dialog>
+        </div>
+    </ResponsiveModal>
   )
 }
 

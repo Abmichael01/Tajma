@@ -3,7 +3,8 @@
 import React, { useState, useRef, useCallback } from 'react'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { cn, getMediaUrl } from '@/lib/utils'
+
 
 interface ImageUploaderProps {
   value?: string // Current image URL or base64 string
@@ -12,7 +13,7 @@ interface ImageUploaderProps {
   maxSizeMB?: number
   accept?: string
   label?: string
-  aspectRatio?: 'square' | 'wide' | 'auto'
+  aspectRatio?: 'square' | 'video' | 'auto'
 }
 
 export default function ImageUploader({
@@ -22,7 +23,7 @@ export default function ImageUploader({
   maxSizeMB = 5,
   accept = 'image/*',
   label = 'Category Image',
-  aspectRatio = 'square',
+  aspectRatio = 'auto',
 }: ImageUploaderProps) {
   const [preview, setPreview] = useState<string | null>(value || null)
   const [isDragging, setIsDragging] = useState(false)
@@ -116,12 +117,6 @@ export default function ImageUploader({
     }
   }, [value])
 
-  const aspectRatioClass = {
-    square: 'aspect-square',
-    wide: 'aspect-video',
-    auto: 'aspect-auto',
-  }[aspectRatio]
-
   return (
     <div className={cn('space-y-2', className)}>
       {label && (
@@ -143,11 +138,17 @@ export default function ImageUploader({
       >
         {preview ? (
           <div className="relative group">
-            <div className={cn('relative overflow-hidden rounded-lg', aspectRatioClass)}>
+            <div className={cn(
+                "relative overflow-hidden rounded-lg flex items-center justify-center bg-gray-50/50",
+                aspectRatio === 'square' ? 'aspect-square' : aspectRatio === 'video' ? 'aspect-video' : 'max-h-64'
+            )}>
               <img
-                src={preview}
+                src={getMediaUrl(preview)}
                 alt="Preview"
-                className="w-full h-full object-cover"
+                className={cn(
+                    "w-full h-full",
+                    aspectRatio === 'auto' ? "max-h-64 object-contain mx-auto" : "object-cover"
+                )}
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
             </div>

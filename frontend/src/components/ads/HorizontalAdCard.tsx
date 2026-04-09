@@ -12,6 +12,8 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
+import { getMediaUrl } from '@/lib/utils'
+
 
 interface HorizontalAdCardProps {
   ad: Ad
@@ -20,13 +22,12 @@ interface HorizontalAdCardProps {
 
 export default function HorizontalAdCard({ ad, isOwner = false }: HorizontalAdCardProps) {
   // Get first image or placeholder
-  const imageUrl = ad.images && ad.images.length > 0
-    ? ad.images[0]
-    : 'https://via.placeholder.com/400x300?text=No+Image'
+  const imageUrl = getMediaUrl(ad.images?.[0])
+
   
   // Format price
   const formattedPrice = ad.price
-    ? `${ad.currency || 'Fr'} ${parseFloat(String(ad.price)).toLocaleString()}`
+    ? `${ad.currency || 'XOF'} ${parseFloat(String(ad.price)).toLocaleString()}`
     : 'Contact for price'
   
   // Get location

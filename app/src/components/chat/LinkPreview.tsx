@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Linking, Platform, StyleSheet } from 'react-nat
 import { Image } from 'expo-image';
 import AppText from '../ui/AppText';
 import { Ionicons } from '@expo/vector-icons';
+import { resolveImageUrl } from '@/utils/imageUtils';
 
 interface LinkPreviewProps {
     url: string;
@@ -58,7 +59,7 @@ export default function LinkPreview({ url, title, description, image, isMe }: Li
         >
             {image ? (
                 <Image
-                    source={{ uri: image }}
+                    source={{ uri: resolveImageUrl(image) || undefined }}
                     style={[styles.previewImage, { aspectRatio: aspectRatio || 16 / 9 }]}
                     contentFit="cover"
                     transition={200}

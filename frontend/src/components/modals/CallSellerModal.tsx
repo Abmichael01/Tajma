@@ -2,13 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { Phone, Copy, CheckCircle } from 'lucide-react'
 
 interface CallSellerModalProps {
@@ -52,16 +46,14 @@ export default function CallSellerModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="!max-w-md">
-        <DialogHeader>
-          <DialogTitle>Contact Number</DialogTitle>
-          <DialogDescription>
-            Contact {sellerName} directly using the phone number below
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="py-6">
+    <ResponsiveModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Contact Number"
+      description={`Contact ${sellerName} directly using the phone number below`}
+      className="!max-w-md"
+    >
+        <div className="py-2">
           <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg mb-6 text-center">
             <p className="text-sm text-gray-600 mb-2">Phone Number</p>
             <p className="text-2xl font-bold text-gray-900">{phoneNumber}</p>
@@ -98,8 +90,7 @@ export default function CallSellerModal({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   )
 }
 

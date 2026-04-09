@@ -6,8 +6,20 @@ class Region(models.Model):
     """
     Region model representing regions in Niger.
     """
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, blank=True)
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='children'
+    )
+    level = models.PositiveIntegerField(
+        default=1,
+        help_text="1: Region, 2: Department, 3: Commune"
+    )
+    p_code = models.CharField(max_length=50, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)

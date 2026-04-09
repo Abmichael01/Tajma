@@ -2,11 +2,12 @@
 Authentication URL patterns
 """
 from django.urls import path
+from dj_rest_auth.views import PasswordResetView, PasswordResetConfirmView
 from api.views.auth import RegisterView, CSRFView, PasswordChangeView, LoginView, ProfileUpdateView, CurrentUserView, LogoutView
-from api.views.profile import UserProfileView, UserBlockView, UserUnblockView
+from api.views.profile import UserProfileView, UserBlockView, UserUnblockView, UserFCMTokenView
 from api.views.google_auth import google_login, google_callback
 
-app_name = 'auth'
+# app_name = 'auth'  # Removed to avoid shadowing dj_rest_auth and fix NoReverseMatch
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
@@ -19,9 +20,14 @@ urlpatterns = [
     path('profile/<slug:slug>/', UserProfileView.as_view(), name='profile-detail'),
     path('profile/<slug:slug>/block/', UserBlockView.as_view(), name='user-block'),
     path('profile/<slug:slug>/unblock/', UserUnblockView.as_view(), name='user-unblock'),
+    path('fcm-token/', UserFCMTokenView.as_view(), name='update-fcm-token'),
+    
+    # Password Reset
+    path('password/reset/', PasswordResetView.as_view(), name='password_reset'),
+    path('password/reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm_base'),
+    path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     
     # Google OAuth (using django-allauth adapter)
     path('google/', google_login, name='google-login'),
     path('google/callback/', google_callback, name='google-callback'),
 ]
-

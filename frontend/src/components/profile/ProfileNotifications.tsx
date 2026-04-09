@@ -7,7 +7,8 @@ import { useInitializeNotifications } from '@/hooks/useInitializeNotifications'
 import { 
   useMarkNotificationAsRead,
   useMarkAllNotificationsAsRead,
-  useDeleteNotification
+  useDeleteNotification,
+  useClearAllNotifications
 } from '@/hooks/useNotifications'
 import { 
   Bell, 
@@ -43,6 +44,7 @@ export default function ProfileNotifications() {
   const markAsReadMutation = useMarkNotificationAsRead()
   const markAllAsReadMutation = useMarkAllNotificationsAsRead()
   const deleteNotificationMutation = useDeleteNotification()
+  const clearAllMutation = useClearAllNotifications()
 
   const getNotificationIcon = (type: string) => {
     const iconClass = "w-5 h-5"
@@ -124,45 +126,47 @@ export default function ProfileNotifications() {
 
   const handleClearAll = () => {
     if (confirm('Are you sure you want to clear all notifications? This will delete all notifications.')) {
-      // Delete all notifications one by one
-      const deletePromises = notifications.map(notif => 
-        deleteNotificationMutation.mutateAsync(notif.id)
-      )
-      
-      Promise.all(deletePromises)
-        .then(() => {
+      clearAllMutation.mutate(undefined, {
+        onSuccess: () => {
           useNotificationsStore.getState().clearAll()
           toast.success('All notifications cleared')
-        })
-        .catch(() => {
-          toast.error('Failed to clear some notifications')
-        })
+        },
+        onError: () => {
+          toast.error('Failed to clear all notifications')
+        }
+      })
     }
   }
 
   if (notifications.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Bell className="w-10 h-10 text-gray-400" />
+      <div className="bg-white border border-gray-200 rounded-[32px] p-6 sm:p-10 max-w-4xl mx-auto">
+        <div className="py-20 px-4 flex flex-col items-center justify-center text-center">
+          <div className="relative w-24 h-24 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm border border-gray-100 transition-transform hover:scale-105 duration-300">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/5 to-transparent opacity-50" />
+            <Bell className="w-10 h-10 text-gray-300 relative z-10" />
+            <div className="absolute -top-1 -right-1 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs font-bold border-2 border-white">
+              0
+            </div>
+          </div>
+          <h3 className="text-xl font-black text-gray-900 mb-2 tracking-tight">
+            No notifications yet
+          </h3>
+          <p className="text-gray-500 max-w-xs leading-relaxed text-sm">
+            You'll see notifications here when there's activity on your account, like messages, views, or favorites.
+          </p>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          No notifications yet
-        </h3>
-        <p className="text-gray-600">
-          You'll see notifications here when there's activity on your account
-        </p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white border border-gray-200 rounded-[32px] p-4 sm:p-8 max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-xl font-medium text-gray-900 tracking-tight">Notifications</h3>
+          <p className="text-sm font-medium text-gray-500">
             {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
           </p>
         </div>
@@ -174,7 +178,7 @@ export default function ProfileNotifications() {
               onClick={handleMarkAllAsRead}
               disabled={markAllAsReadMutation.isPending}
               size="sm"
-              className="gap-2"
+              className="gap-2 rounded-full border-gray-200 font-medium h-9 px-4 text-xs"
             >
               <CheckCircle2 className="w-4 h-4" />
               Mark all read
@@ -184,9 +188,9 @@ export default function ProfileNotifications() {
             <Button
               variant="outline"
               onClick={handleClearAll}
-              disabled={deleteNotificationMutation.isPending}
+              disabled={clearAllMutation.isPending}
               size="sm"
-              className="gap-2 text-destructive hover:text-destructive"
+              className="gap-2 text-destructive hover:text-destructive rounded-full border-gray-200 font-medium h-9 px-4 text-xs"
             >
               <Trash2 className="w-4 h-4" />
               Clear All
@@ -196,29 +200,23 @@ export default function ProfileNotifications() {
       </div>
 
       {/* Notifications List */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {notifications.map((notification) => (
           <div
             key={notification.id}
-            className={`bg-white border rounded-lg p-4 transition-all group ${
-              !notification.isRead 
-                ? 'border-primary/30 bg-primary/5 shadow-sm' 
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
+            className="group transition-all border-b border-gray-100 pb-2.5 last:border-0"
           >
-            <div className="flex gap-4">
+            <div className="flex gap-3 p-0.5">
               {/* Icon */}
               <div className="flex-shrink-0">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  !notification.isRead ? 'bg-primary/10' : 'bg-gray-100'
-                }`}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-50 border border-gray-100">
                   {getNotificationIcon(notification.type)}
                 </div>
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
+                <div className="flex items-start justify-between gap-2 mb-0.5">
                   <div className="flex-1">
                     <Link
                       href={notification.link || '#'}
@@ -233,8 +231,8 @@ export default function ProfileNotifications() {
                         }
                       }}
                     >
-                      <p className={`text-sm font-medium text-gray-900 ${
-                        !notification.isRead ? 'font-semibold' : ''
+                      <p className={`text-sm text-gray-900 ${
+                        !notification.isRead ? 'font-medium' : 'font-normal'
                       }`}>
                         {notification.title}
                       </p>
@@ -244,23 +242,23 @@ export default function ProfileNotifications() {
                     <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1.5"></span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                <p className="text-xs text-gray-500 mb-1.5 line-clamp-2">
                   {notification.message}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-[10px] text-gray-400 font-normal">
                     {formatTimeAgo(notification.timestamp)}
                   </span>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-2 transition-opacity">
                     {!notification.isRead && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={(e) => handleMarkAsRead(notification.id, e)}
                         disabled={markAsReadMutation.isPending}
-                        className="h-7 px-2 text-xs"
+                        className="h-7 px-3 text-[10px] font-medium rounded-full bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                        <CheckCircle2 className="w-3 h-3 mr-1 text-green-600" />
                         Mark read
                       </Button>
                     )}
@@ -269,9 +267,9 @@ export default function ProfileNotifications() {
                       size="sm"
                       onClick={(e) => handleDeleteNotification(notification.id, e)}
                       disabled={deleteNotificationMutation.isPending}
-                      className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                      className="h-7 w-7 p-0 flex items-center justify-center rounded-full bg-gray-50 border border-gray-100 hover:bg-red-50 hover:border-red-100 hover:text-red-500 transition-colors"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>

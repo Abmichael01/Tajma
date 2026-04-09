@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getUserFullName, getUserInitials } from '@/utils/user'
+import { getUserFullName, getUserInitials, normalizeAvatarUrl } from '@/utils/user'
 import {
   User,
   Bell,
@@ -25,7 +25,7 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  MessageSquare,
+  MessageCircleMore,
   Shield,
   Users
 } from 'lucide-react'
@@ -60,7 +60,7 @@ export default function UserDropdown() {
           className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors"
         >
           <Avatar className="w-8 h-8">
-            <AvatarImage src={user.avatar || undefined} alt={displayName} />
+            <AvatarImage src={normalizeAvatarUrl(user.avatar)} alt={displayName} />
             <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
               {userInitials}
             </AvatarFallback>
@@ -75,7 +75,7 @@ export default function UserDropdown() {
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="flex items-center gap-3 p-3">
           <Avatar className="w-10 h-10">
-            <AvatarImage src={user.avatar || undefined} alt={displayName} />
+            <AvatarImage src={normalizeAvatarUrl(user.avatar)} alt={displayName} />
             <AvatarFallback className="bg-secondary text-secondary-foreground">
               {userInitials}
             </AvatarFallback>
@@ -103,10 +103,10 @@ export default function UserDropdown() {
 
         <DropdownMenuItem asChild>
           <Link href="/chat" className="flex items-center gap-3 p-3 cursor-pointer">
-            <MessageSquare className="w-4 h-4 text-gray-500" />
+            <MessageCircleMore className="w-4 h-4 text-gray-500" />
             <span>Messages</span>
             {totalUnreadMessages > 0 && (
-              <span className="ml-auto bg-secondary text-secondary-foreground text-xs min-w-5 h-5 px-1 flex items-center justify-center font-semibold rounded-full">
+              <span className="ml-auto bg-primary text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center font-bold rounded-full">
                 {totalUnreadMessages > 9 ? '9+' : totalUnreadMessages}
               </span>
             )}
@@ -118,7 +118,7 @@ export default function UserDropdown() {
             <Bell className="w-4 h-4 text-gray-500" />
             <span>Notifications</span>
             {unreadNotificationCount > 0 && (
-              <span className="ml-auto bg-secondary text-secondary-foreground text-xs min-w-5 h-5 px-1 flex items-center justify-center font-semibold rounded-full">
+              <span className="ml-auto bg-primary text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center font-bold rounded-full">
                 {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
               </span>
             )}

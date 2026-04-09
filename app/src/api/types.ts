@@ -180,7 +180,6 @@ export interface Review {
   seller: number
   rating: 1 | 2 | 3 | 4 | 5
   comment: string
-  is_verified_purchase: boolean
   helpful_count: number
   created_at: string
   updated_at: string

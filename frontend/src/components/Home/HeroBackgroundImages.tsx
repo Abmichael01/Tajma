@@ -3,6 +3,8 @@
 import React from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { getMediaUrl } from '@/lib/utils'
+
 
 interface HeroBackgroundImagesProps {
     images: Array<{
@@ -63,8 +65,9 @@ export default function HeroBackgroundImages({ images }: HeroBackgroundImagesPro
                 >
                     <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32">
                         <Image
-                            src={image.url}
+                            src={getMediaUrl(image.url)}
                             alt={image.alt}
+
                             fill
                             className="object-cover rounded-2xl shadow-lg"
                             sizes="(max-width: 640px) 80px, (max-width: 768px) 96px, (max-width: 1024px) 112px, 128px"

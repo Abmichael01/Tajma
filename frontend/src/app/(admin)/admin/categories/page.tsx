@@ -401,21 +401,23 @@ export default function AdminCategoriesPage() {
         loading={isLoading}
         searchable
         searchPlaceholder="Search by name or slug..."
-        onSearch={setSearch}
+        serverSide
+        total={data?.count || 0}
+        onParamsChange={(params) => {
+          if (params.page !== page) setPage(params.page)
+          if (params.search !== search) {
+            setSearch(params.search)
+            setPage(1)
+          }
+        }}
         onRowClick={(category) => {
           window.location.href = `/admin/categories/${category.id}`
         }}
         onDelete={handleDelete}
-        pagination={
-          data
-            ? {
-                page,
-                pageSize: 25,
-                total: data.count,
-                onPageChange: setPage,
-              }
-            : undefined
-        }
+        pagination={{
+            page,
+            pageSize: 25,
+        }}
         actions={(category) => (
           <div className="flex items-center justify-end gap-1.5">
             <Tooltip>

@@ -17,14 +17,14 @@ export default function TermsClient() {
                 Terms & Conditions
               </h1>
             </div>
-            <p className="text-gray-600">Last updated: January 2024</p>
+            <p className="text-gray-600">Last updated: March 27, 2026</p>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="container py-12">
-        <div className="max-w-4xl mx-auto prose prose-gray max-w-none">
+        <div className="mx-auto prose prose-gray max-w-none">
           {/* Introduction */}
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Introduction</h2>

@@ -2,12 +2,7 @@
 
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { 
   Check, 
   Copy, 
@@ -118,13 +113,13 @@ export default function ShareAdModal({ isOpen, onClose, adId, adTitle }: ShareAd
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="!max-w-md max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle>Share This Ad</DialogTitle>
-        </DialogHeader>
-
-        <div className="py-4 overflow-y-auto flex-1 min-h-0 faint-gray-scrollbar">
+    <ResponsiveModal 
+      isOpen={isOpen} 
+      onClose={onClose}
+      title="Share This Ad"
+      className="!max-w-md"
+    >
+        <div className="py-2 overflow-y-auto flex-1 min-h-0 faint-gray-scrollbar">
           {/* Ad Title */}
           <div className="mb-6 pb-6 border-b border-gray-200">
             <p className="font-medium text-gray-900 line-clamp-2">{adTitle}</p>
@@ -219,8 +214,7 @@ export default function ShareAdModal({ isOpen, onClose, adId, adTitle }: ShareAd
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   )
 }
 

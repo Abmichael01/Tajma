@@ -10,6 +10,16 @@ interface PaginatedResponse<T> {
 }
 
 export const adsApi = {
+  async suggested() {
+    const response = await apiClient.get<Ad[]>('/ads/suggested/')
+    return response.data
+  },
+
+  async trackSearch(query: string) {
+    if (!query) return
+    await apiClient.post('/track-search/', { q: query })
+  },
+
   async list(params?: Record<string, any>) {
     const response = await apiClient.get<Ad[] | PaginatedResponse<Ad>>('/ads/', { params })
     

@@ -1,5 +1,6 @@
 from .auth import RegisterView, CSRFView, PasswordChangeView, LoginView, ProfileUpdateView
-from .profile import UserProfileView
+from .profile import UserProfileView, UserBlockView, UserUnblockView
+from .search import track_search
 
 __all__ = [
     'RegisterView',
@@ -8,5 +9,7 @@ __all__ = [
     'LoginView',
     'ProfileUpdateView',
     'UserProfileView',
+    'UserBlockView',
+    'UserUnblockView',
+    'track_search',
 ]
-

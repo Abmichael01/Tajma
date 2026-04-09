@@ -1,14 +1,15 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { MapPin, Check, Loader2 } from 'lucide-react'
-import { useRegions } from '@/hooks/useRegions'
+import React, { useState, useEffect } from 'react'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
+import { MapPin, Check, Loader2, ArrowLeft, ChevronRight } from 'lucide-react'
+import { useRegions, Region } from '@/hooks/useRegions'
 
 interface RegionSelectorModalProps {
   isOpen: boolean
   onClose: () => void
   selectedRegion: string
-  onSelectRegion: (region: string) => void
+  onSelectRegion: (region: Region | null) => void
 }
 
 export default function RegionSelectorModal({ 
@@ -17,89 +18,169 @@ export default function RegionSelectorModal({
   selectedRegion,
   onSelectRegion 
 }: RegionSelectorModalProps) {
-  const { data: regions, isLoading, error } = useRegions()
+  const [currentLevel, setCurrentLevel] = useState(1)
+  const [parentId, setParentId] = useState<number | null>(null)
+  const [selectionHistory, setSelectionHistory] = useState<{ id: number | null, name: string, level: number }[]>([])
   
-  const handleSelectRegion = (regionName: string) => {
-    onSelectRegion(regionName)
-    onClose()
+  const { data: response, isLoading, error } = useRegions({ 
+    parent: parentId, 
+    level: currentLevel as 1 | 2 | 3 | 'all',
+  })
+
+  const regions = response?.results || []
+
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentLevel(1)
+      setParentId(null)
+      setSelectionHistory([])
+    }
+  }, [isOpen])
+  
+  const handleSelectRegion = (region: Region | null) => {
+    if (region && region.level && region.level < 3) {
+      setSelectionHistory([...selectionHistory, { id: parentId, name: region.name, level: currentLevel }])
+      setParentId(region.id)
+      setCurrentLevel((region.level as number) + 1)
+    } else {
+      onSelectRegion(region)
+      onClose()
+    }
+  }
+
+  const handleBack = () => {
+    if (selectionHistory.length > 0) {
+      const last = selectionHistory[selectionHistory.length - 1]
+      setParentId(last.id)
+      setCurrentLevel(last.level)
+      setSelectionHistory(selectionHistory.slice(0, -1))
+    }
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="!max-w-4xl w-[95vw] p-0 gap-0 max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="p-4 sm:p-6 md:p-8 pb-3 sm:pb-4 flex-shrink-0">
-          <DialogTitle className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900">
-            Select Region in Niger
-          </DialogTitle>
-        </DialogHeader>
+    <ResponsiveModal 
+      isOpen={isOpen} 
+      onClose={onClose}
+      title={currentLevel === 1 ? "Select Region in Niger" : currentLevel === 2 ? "Select Department" : "Select Commune"}
+      className="max-w-4xl"
+    >
+        <div className="py-2 overflow-y-auto custom-scrollbar max-h-[70vh]">
+          {/* Navigation & Breadcrumbs */}
+          <div className="flex items-center gap-4 mb-6">
+            {selectionHistory.length > 0 && (
+              <button 
+                onClick={handleBack}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Go back"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
+            
+            <div className="flex items-center flex-wrap gap-1 text-sm text-gray-500">
+              <span className="cursor-pointer hover:text-secondary" onClick={() => {
+                setCurrentLevel(1)
+                setParentId(null)
+                setSelectionHistory([])
+              }}>Niger</span>
+              {selectionHistory.map((item, index) => (
+                <React.Fragment key={index}>
+                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                  <span 
+                    className="cursor-pointer hover:text-secondary max-w-[120px] truncate"
+                    onClick={() => {
+                        const newHistory = selectionHistory.slice(0, index)
+                        setSelectionHistory(newHistory)
+                        setParentId(item.id)
+                        setCurrentLevel(item.level)
+                    }}
+                  >{item.name}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
 
-        <div className="p-4 sm:p-6 md:p-8 pt-0 overflow-y-auto custom-scrollbar">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-secondary animate-spin" />
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-red-600 mb-2">Failed to load regions</p>
-              <p className="text-sm text-gray-500">Please try again later</p>
+              <p className="text-red-600 mb-2">Failed to load locations</p>
+              <button onClick={() => onClose()} className="text-sm text-secondary hover:underline">Please try again later</button>
             </div>
           ) : (
             <>
-              {/* All Regions Option */}
+              {/* Contextual "All" Option */}
               <div
-                onClick={() => handleSelectRegion('All Regions')}
-                className={`flex items-center justify-between p-3 sm:p-4 md:p-5 border border-gray-200 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer transition-all mb-4 sm:mb-6 rounded-xl ${
-                  selectedRegion === 'All Regions' ? 'bg-secondary/10 border-secondary' : 'bg-white'
+                onClick={() => {
+                    if (currentLevel === 1) handleSelectRegion(null)
+                    else {
+                        const parent = selectionHistory[selectionHistory.length-1]
+                        handleSelectRegion({ id: parent.id!, name: parent.name, level: parent.level } as Region)
+                    }
+                }}
+                className={`flex items-center justify-between p-3 sm:p-4 border border-gray-200 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer transition-all mb-6 rounded-xl ${
+                  (currentLevel === 1 && selectedRegion === 'All Regions') || (currentLevel > 1 && selectedRegion === selectionHistory[selectionHistory.length-1]?.name) ? 'bg-secondary/10 border-secondary' : 'bg-white'
                 }`}
               >
-                <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                   <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-secondary flex-shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-semibold text-base sm:text-lg text-gray-900">All Regions</p>
-                    <p className="text-xs sm:text-sm text-gray-500">Search everywhere in Niger</p>
+                    <p className="font-semibold text-base sm:text-lg text-gray-900">
+                      {currentLevel === 1 ? 'All of Niger' : `All of ${selectionHistory[selectionHistory.length-1]?.name}`}
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {currentLevel === 1 ? 'Search across the entire country' : `Search all areas in this ${currentLevel === 2 ? 'region' : 'department'}`}
+                    </p>
                   </div>
                 </div>
-                {selectedRegion === 'All Regions' && (
+                {((currentLevel === 1 && selectedRegion === 'All Regions') || (currentLevel > 1 && selectedRegion === selectionHistory[selectionHistory.length-1]?.name)) && (
                   <Check className="w-5 h-5 sm:w-6 sm:h-6 text-secondary flex-shrink-0" />
                 )}
               </div>
 
-              {/* Regions Grid - 2 cols mobile, 3 cols desktop */}
-              {regions && regions.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4">
+              {/* Grid - 2 cols mobile, 3 cols desktop */}
+              {regions.length > 0 ? (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {regions.map((region) => (
                     <div
-                      key={region.name}
-                      onClick={() => handleSelectRegion(region.name)}
-                      className={`flex items-center justify-between p-3 sm:p-4 md:p-5 border border-gray-200 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer transition-all rounded-xl ${
+                      key={region.id}
+                      onClick={() => handleSelectRegion(region)}
+                      className={`flex items-center justify-between p-3 sm:p-4 border border-gray-200 hover:border-secondary/50 hover:bg-secondary/5 cursor-pointer transition-all rounded-xl group ${
                         selectedRegion === region.name ? 'bg-secondary/10 border-secondary' : 'bg-white'
                       }`}
                     >
-                      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0 flex-1">
-                        <MapPin className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-secondary flex-shrink-0" />
+                      <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                        <MapPin className="w-4 h-4 sm:w-5 text-secondary flex-shrink-0" />
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-sm sm:text-base text-gray-900 truncate">{region.name}</p>
-                          <p className="text-xs sm:text-sm text-gray-500">
+                          <p className="text-[10px] sm:text-xs text-gray-500">
                             {region.adsCount.toLocaleString()} ads
                           </p>
                         </div>
                       </div>
-                      {selectedRegion === region.name && (
-                        <Check className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-secondary flex-shrink-0 ml-1 sm:ml-2" />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {selectedRegion === region.name && (
+                            <Check className="w-4 h-4 text-secondary flex-shrink-0" />
+                        )}
+                        {region.level && region.level < 3 && (
+                            <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-secondary group-hover:translate-x-1 transition-all" />
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No regions available</p>
+                <div className="text-center py-20 bg-gray-50 rounded-2xl">
+                  <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">No subdivisions found</p>
                 </div>
               )}
             </>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   )
 }
-

@@ -6,26 +6,9 @@ import { Check, CheckCheck, Clock } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import type { ChatSummary, ChatMessage, User, UserOnlineStatus } from '@/api/types'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { getMediaUrl } from '@/lib/utils'
 
-// Helper function to normalize image URLs
-const normalizeImageUrl = (url: string | null | undefined): string => {
-  if (!url) return '/default-product.png'
-  
-  // If already an absolute URL, return as is
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url
-  }
-  
-  // If starts with /, it's already a valid relative path
-  if (url.startsWith('/')) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    return `${apiUrl}${url}`
-  }
-  
-  // Otherwise, prepend API URL and add leading slash
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  return `${apiUrl}/${url}`
-}
+
 
 interface ConversationListProps {
   conversations?: ChatSummary[]
@@ -168,44 +151,48 @@ export default function ConversationList({
                 <div
                   key={chat.id}
                   onClick={() => onSelectConversation(chat.id)}
-                  className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${isActive ? 'bg-gray-100' : ''}`}
+                  className={`p-3 cursor-pointer transition-colors ${String(chat.id) === String(activeConversationId) ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="relative flex-shrink-0 w-12 h-12">
+                  <div className="flex items-start gap-2.5">
+                    <div className="relative flex-shrink-0 w-11 h-11">
                       {/* Ad image as main square image */}
                       {chat.ad_image ? (
                         <Image
-                          src={normalizeImageUrl(chat.ad_image)}
+                          src={getMediaUrl(chat.ad_image)}
                           alt={chat.ad_title || 'Ad image'}
-                          width={48}
-                          height={48}
-                          className="w-12 h-12 object-cover"
+                          width={44}
+                          height={44}
+                          className="w-11 h-11 object-cover rounded-lg"
+                          unoptimized
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-11 h-11 rounded-lg bg-gray-200 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                         </div>
                       )}
                       
                       {/* User avatar positioned on ad image at bottom-right corner (like badge/sub on image) */}
-                      <div className="absolute bottom-4 left-[60%] w-6 h-6 rounded-full border-2 border-white bg-white relative z-10 transform">
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white bg-white z-10 font-medium">
                         <Avatar className="w-full h-full">
-                          <AvatarImage src={participant?.avatar || undefined} alt={participant ? getUserFullName(participant) : 'Participant'} />
-                          <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-medium">
+                          <AvatarImage 
+                            src={getMediaUrl(participant?.avatar)} 
+                            alt={participant ? getUserFullName(participant) : 'Participant'} 
+                          />
+                          <AvatarFallback className="bg-primary/10 text-primary text-[8px] font-bold">
                             {participant ? getUserInitials(participant) : 'U'}
                           </AvatarFallback>
                         </Avatar>
                         {/* Online status indicator at bottom-right corner of user avatar (same pattern: -bottom-1 -right-1) */}
                         {participantStatus?.is_online && (
-                          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full z-20" />
+                          <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full z-20" />
                         )}
                       </div>
                     </div>
-
+ 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center justify-between mb-0.5">
                         <h3
                           className={`text-sm truncate ${
                             chat.unread_count > 0 ? 'text-gray-900' : 'text-gray-700'
@@ -213,21 +200,21 @@ export default function ConversationList({
                         >
                           {participant ? getUserFullName(participant) : 'Unknown user'}
                         </h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className="text-sm text-gray-400">
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <span className="text-[11px] text-gray-400 font-normal">
                             {formatTime(lastMessage?.created_at || chat.last_message_at)}
                           </span>
                           {chat.unread_count > 0 && (
-                            <span className="bg-primary text-primary-foreground text-sm px-2 py-1 rounded-full min-w-[20px] text-center">
-                              {chat.unread_count}
+                            <span className="bg-primary text-primary-foreground text-[10px] w-4.5 h-4.5 flex items-center justify-center rounded-full font-medium shrink-0">
+                              {chat.unread_count > 9 ? '9+' : chat.unread_count}
                             </span>
                           )}
                         </div>
                       </div>
-
+ 
                       {chat.ad_title && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-bold text-gray-900 truncate">{truncateText(chat.ad_title, 40)}</span>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[13px] font-bold text-gray-800 truncate">{truncateText(chat.ad_title, 40)}</span>
                         </div>
                       )}
 
@@ -247,14 +234,21 @@ export default function ConversationList({
                               chat.unread_count > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'
                             }`}
                           >
-                            {lastMessage?.content ? (
-                              <>
-                                {isOwnMessage && <span className="text-gray-400">You: </span>}
-                                {truncateText(lastMessage.content, isOwnMessage ? 55 : 60)}
-                              </>
-                            ) : (
-                              'No messages yet'
-                            )}
+                            {(() => {
+                              if (!lastMessage) return 'No messages yet'
+                              
+                              let content = lastMessage.content
+                              if (lastMessage.message_type === 'image') content = '📷 Photo'
+                              else if (lastMessage.message_type === 'audio') content = '🎤 Voice Message'
+                              else if (!content) content = 'Sent a message'
+
+                              return (
+                                <>
+                                  {isOwnMessage && <span className="text-gray-400">You: </span>}
+                                  {truncateText(content, isOwnMessage ? 55 : 60)}
+                                </>
+                              )
+                            })()}
                           </span>
                         )}
                         {isOwnMessage && (

@@ -6,6 +6,7 @@ from asgiref.sync import async_to_sync
 
 from api.models import Notification
 from api.serializers import NotificationSerializer
+from api.services.fcm_service import fcm_service
 
 logger = logging.getLogger(__name__)
 
@@ -90,4 +91,20 @@ def send_notification_via_websocket(sender, instance, created, **kwargs):
             logger.info(f"✅ Unread count sent: {unread_count}")
         except Exception as e:
             logger.error(f"❌ Failed to send unread count via WebSocket: {e}", exc_info=True)
+
+        # 🚀 Send via FCM Push Notification
+        try:
+            logger.info(f"🚀 Sending FCM push notification to user {instance.recipient.id}...")
+            fcm_service.send_to_user(
+                user=instance.recipient,
+                title=instance.title,
+                body=instance.message,
+                data={
+                    'notification_id': str(instance.id),
+                    'type': instance.type,
+                    'ad_id': str(instance.related_ad.id) if instance.related_ad else '',
+                }
+            )
+        except Exception as e:
+            logger.error(f"❌ Failed to send FCM notification: {e}")
 

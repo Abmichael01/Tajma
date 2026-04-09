@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { useState } from "react";
 import AppText from "./AppText";
 import { cn } from "@/utils/cn";
+import { resolveImageUrl } from "@/utils/imageUtils";
 
 interface AvatarProps {
   src?: string | null;
@@ -29,40 +30,7 @@ const getInitials = (name?: string, email?: string): string => {
   return "U";
 };
 
-// Helper function to normalize avatar URL
-const normalizeAvatarUrl = (url?: string | null): string | null => {
-  if (!url || url.trim() === '') return null;
 
-  const trimmedUrl = url.trim();
-
-  // If it's already a full URL, return as-is
-  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
-    return trimmedUrl;
-  }
-
-  // If it's a relative path, construct full URL using API media endpoint
-  const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-
-  // If it starts with /api/media/, just prepend the base URL
-  if (trimmedUrl.startsWith('/api/media/')) {
-    return `${apiUrl}${trimmedUrl}`;
-  }
-
-  // If it starts with /media/, convert to API endpoint
-  if (trimmedUrl.startsWith('/media/')) {
-    const path = trimmedUrl.replace('/media/', '');
-    return `${apiUrl}/api/media/${path}`;
-  }
-
-  // If it's just a path starting with /, try API endpoint
-  if (trimmedUrl.startsWith('/')) {
-    const path = trimmedUrl.replace(/^\//, '');
-    return `${apiUrl}/api/media/${path}`;
-  }
-
-  // Relative path (e.g., 'avatars/uuid.jpg'), use API endpoint
-  return `${apiUrl}/api/media/${trimmedUrl}`;
-};
 
 export default function Avatar({
   src,
@@ -74,7 +42,7 @@ export default function Avatar({
   onPress,
 }: AvatarProps) {
   const [imageError, setImageError] = useState(false);
-  const normalizedSrc = normalizeAvatarUrl(src);
+  const normalizedSrc = resolveImageUrl(src);
   const showImage = normalizedSrc && !imageError;
   const initials = fallback || getInitials(alt);
 

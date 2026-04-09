@@ -17,10 +17,14 @@ export interface User {
   website?: string | null
   bio?: string | null
   is_verified: boolean
+  kyc_status?: 'none' | 'pending' | 'verified' | 'rejected'
   is_staff?: boolean
   is_superuser?: boolean
   date_joined: string
   last_login?: string | null
+  email_notifications: boolean
+  sms_notifications: boolean
+  marketing_notifications: boolean
 }
 
 // Auth response types
@@ -60,6 +64,17 @@ export interface PasswordChangeRequest {
   new_password_confirm: string
 }
 
+export interface PasswordResetRequest {
+  email: string
+}
+
+export interface PasswordResetConfirmRequest {
+  uid: string
+  token: string
+  new_password1: string
+  new_password2: string
+}
+
 export interface CSRFResponse {
   csrfToken: string
 }
@@ -76,6 +91,9 @@ export interface ProfileUpdateRequest {
   business_type?: string
   website?: string
   bio?: string
+  email_notifications?: boolean
+  sms_notifications?: boolean
+  marketing_notifications?: boolean
 }
 
 export interface ProfileUpdateResponse {
@@ -133,6 +151,10 @@ export interface Ad {
   created_at: string
   updated_at: string
   seller: User & { response_stats?: ResponseStats }
+  location_name?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  location?: string | null
 }
 
 export interface CreateAdRequest {
@@ -145,6 +167,10 @@ export interface CreateAdRequest {
   attributes?: Record<string, any>
   images?: string[]
   status?: 'draft' | 'published'
+  location?: string
+  location_name?: string
+  latitude?: number
+  longitude?: number
 }
 
 export interface UpdateAdRequest {
@@ -178,7 +204,6 @@ export interface Review {
   seller: number
   rating: 1 | 2 | 3 | 4 | 5
   comment: string
-  is_verified_purchase: boolean
   helpful_count: number
   created_at: string
   updated_at: string
@@ -253,7 +278,14 @@ export interface ChatMessage {
   delivered_at?: string | null
   created_at: string
   updated_at: string
-  send_failed?: boolean // Track if message failed to send
+  send_failed?: boolean
+  client_id?: string
+  parent_message?: {
+    id: string
+    content: string
+    message_type: 'text' | 'image' | 'audio'
+    sender?: User
+  } | null
 }
 
 export interface ChatSummary {
@@ -300,6 +332,8 @@ export interface UserOnlineStatus {
   last_seen: string | null
 }
 
+export type LeadSource = 'phone_view' | 'profile_view' | 'save_ad'
+
 export interface Lead {
   id: string
   seller: number
@@ -312,16 +346,27 @@ export interface Lead {
     avatar: string | null
     phone: string | null
   }
-  ad?: string | null
+  ad?: string
   ad_detail?: {
     id: string
     title: string
     price: string
     images: string[]
   }
-  source: 'phone_view' | 'profile_view' | 'save_ad'
+  first_source: LeadSource
+  first_source_display: string
+  last_source: LeadSource
+  last_source_display: string
+  sources_used: LeadSource[]   // all unique actions: ["save_ad", "phone_view"]
+  interaction_count: number
   messaged: boolean
+  ignored: boolean
   created_at: string
-  updated_at: string
+  last_interacted_at: string
 }
 
+export interface LeadMonthlyStats {
+  month: string           // "2026-03"
+  new_leads: number
+  total_interactions: number
+}

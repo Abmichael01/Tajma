@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import AppText from "@/components/ui/AppText";
+import { resolveImageUrl } from "@/utils/imageUtils";
 
 interface Ad {
   id: string;
@@ -60,30 +61,7 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
     }
   };
 
-  // Get full image URL if it's a relative path
-  const getImageUrl = () => {
-    if (!imageUrl) return null;
-
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-      return imageUrl;
-    }
-
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-
-    if (imageUrl.startsWith('/media/')) {
-      const path = imageUrl.replace('/media/', '');
-      return `${apiUrl}/api/media/${path}`;
-    }
-
-    if (imageUrl.startsWith('/')) {
-      const path = imageUrl.replace(/^\//, '');
-      return `${apiUrl}/api/media/${path}`;
-    }
-
-    return `${apiUrl}/api/media/${imageUrl}`;
-  };
-
-  const fullImageUrl = getImageUrl();
+  const fullImageUrl = resolveImageUrl(imageUrl);
 
   return (
     <Pressable

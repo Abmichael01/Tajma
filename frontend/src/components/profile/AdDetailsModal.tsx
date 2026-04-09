@@ -4,12 +4,8 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { getMediaUrl } from '@/lib/utils'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { 
   MapPin, 
   Eye, 
@@ -34,27 +30,26 @@ export default function AdDetailsModal({ ad, isOpen, onClose, isOwner = false }:
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
   
   // Get first image or placeholder
-  const imageUrl = ad.images && ad.images.length > 0
-    ? ad.images[0]
-    : 'https://via.placeholder.com/400x300?text=No+Image'
+  const imageUrl = getMediaUrl(ad.images?.[0])
+
   
   // Format price
   const formattedPrice = ad.price
-    ? `${ad.currency || 'Fr'} ${parseFloat(String(ad.price)).toLocaleString()}`
+    ? `${ad.currency || 'XOF'} ${parseFloat(String(ad.price)).toLocaleString()}`
     : 'Contact for price'
   
   // Get location from seller
   const location = ad.seller?.location || 'Location not specified'
   
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="!max-w-5xl w-[95vw] max-h-[90vh] p-0 overflow-hidden gap-0">
-        <DialogHeader className="p-4 sm:p-6 pb-0">
-          <DialogTitle>Ad Details</DialogTitle>
-        </DialogHeader>
-        
-        {/* Scrollable Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-120px)] p-4 sm:p-6 custom-scrollbar">
+    <>
+      <ResponsiveModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Ad Details"
+      className="!max-w-5xl"
+    >
+        <div className="py-2 overflow-y-auto max-h-[80vh] custom-scrollbar">
           {/* Image */}
           <div className="relative w-full mb-6">
             <Image
@@ -164,8 +159,8 @@ export default function AdDetailsModal({ ad, isOpen, onClose, isOwner = false }:
             )}
           </div>
         </div>
-      </DialogContent>
-      
+      </ResponsiveModal>
+
       {/* Share Modal */}
       <ShareAdModal
         isOpen={isShareModalOpen}
@@ -173,7 +168,7 @@ export default function AdDetailsModal({ ad, isOpen, onClose, isOwner = false }:
         adId={ad.id}
         adTitle={ad.title}
       />
-    </Dialog>
+    </>
   )
 }
 

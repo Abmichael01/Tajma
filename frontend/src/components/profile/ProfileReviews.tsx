@@ -17,13 +17,15 @@ interface ProfileReviewsProps {
   reviewStats?: ReviewStats
   isLoading?: boolean
   isOwner?: boolean
+  hideContainer?: boolean
 }
 
 export default function ProfileReviews({ 
   reviews, 
   reviewStats,
   isLoading = false,
-  isOwner = false 
+  isOwner = false,
+  hideContainer = false 
 }: ProfileReviewsProps) {
   const markHelpful = useMarkReviewHelpful()
 
@@ -75,11 +77,36 @@ export default function ProfileReviews({
     )
   }
 
+  if (reviews.length === 0) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-[32px] p-6 sm:p-10 max-w-4xl mx-auto">
+        <div className="py-20 px-4 flex flex-col items-center justify-center text-center">
+          <div className="relative w-24 h-24 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm border border-gray-100 transition-transform hover:scale-105 duration-300">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/5 to-transparent opacity-50" />
+            <Star className="w-10 h-10 text-gray-300 relative z-10" />
+            <div className="absolute -top-1 -right-1 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 text-xs font-bold border-2 border-white">
+              0
+            </div>
+          </div>
+          <h3 className="text-xl font-black text-gray-900 mb-2 tracking-tight">
+            {isOwner ? 'No reviews yet' : 'No reviews available'}
+          </h3>
+          <p className="text-gray-500 max-w-xs leading-relaxed text-sm">
+            {isOwner 
+              ? 'Your reputation starts here! Reviews will appear once buyers rate your items.' 
+              : 'This user hasn\'t received any reviews yet.'
+            }
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
+    <div className={hideContainer ? "space-y-8" : "bg-white border border-gray-200 rounded-[32px] p-4 sm:p-8 max-w-4xl mx-auto space-y-8"}>
       {/* Reviews Summary */}
       {stats.total_reviews > 0 && (
-        <div className="bg-white border border-gray-200 p-6">
+        <div className="bg-white border border-gray-200 p-6 rounded-[32px]">
           <div className="flex items-center gap-6">
             <div className="text-center">
               <div className="text-3xl font-bold text-gray-900 mb-1">
@@ -129,92 +156,72 @@ export default function ProfileReviews({
           <h3 className="text-lg font-semibold text-gray-900">Reviews</h3>
         </div>
 
-        {reviews.length > 0 ? (
-          <div className="space-y-3 lg:space-y-4">
-            {reviews.map((review) => (
-              <div key={review.id} className="bg-white border border-gray-200 p-3 lg:p-4">
-                <div className="flex items-start gap-3">
-                  <Avatar className="w-10 h-10 flex-shrink-0">
-                    <AvatarImage 
-                      src={review.reviewer_avatar || review.reviewer?.avatar || undefined} 
-                      alt={review.reviewer_name || review.reviewer?.full_name || 'User'} 
-                    />
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-                      {review.reviewer 
-                        ? (review.reviewer.first_name && review.reviewer.last_name
-                            ? `${review.reviewer.first_name.charAt(0)}${review.reviewer.last_name.charAt(0)}`.toUpperCase()
-                            : review.reviewer.full_name
-                              ? review.reviewer.full_name.split(' ').map((n: string) => n.charAt(0)).join('').slice(0, 2).toUpperCase()
-                              : (review.reviewer_name || 'U').charAt(0).toUpperCase())
-                        : (review.reviewer_name || 'U').charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+        <div className="space-y-3 lg:space-y-4">
+          {reviews.map((review) => (
+            <div key={review.id} className="bg-white border border-gray-200 p-3 lg:p-4 rounded-[32px]">
+              <div className="flex items-start gap-3">
+                <Avatar className="w-10 h-10 flex-shrink-0">
+                  <AvatarImage 
+                    src={review.reviewer_avatar || review.reviewer?.avatar || undefined} 
+                    alt={review.reviewer_name || review.reviewer?.full_name || 'User'} 
+                  />
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                    {review.reviewer 
+                      ? (review.reviewer.first_name && review.reviewer.last_name
+                          ? `${review.reviewer.first_name.charAt(0)}${review.reviewer.last_name.charAt(0)}`.toUpperCase()
+                          : review.reviewer.full_name
+                            ? review.reviewer.full_name.split(' ').map((n: string) => n.charAt(0)).join('').slice(0, 2).toUpperCase()
+                            : (review.reviewer_name || 'U').charAt(0).toUpperCase())
+                      : (review.reviewer_name || 'U').charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <Link 
+                      href={`/profile/${review.reviewer.username || review.reviewer.email?.split('@')[0] || 'profile'}`}
+                      className="font-medium text-gray-900 hover:text-primary text-sm lg:text-base"
+                    >
+                      {review.reviewer_name || review.reviewer.full_name}
+                    </Link>
+                    <div className="flex items-center gap-1">
+                      {renderStars(review.rating)}
+                    </div>
+                    <span className="text-xs lg:text-sm text-gray-500 flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {formatDate(review.created_at)}
+                    </span>
+                  </div>
                   
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <Link 
-                        href={`/profile/${review.reviewer.username || review.reviewer.email?.split('@')[0] || 'profile'}`}
-                        className="font-medium text-gray-900 hover:text-primary text-sm lg:text-base"
-                      >
-                        {review.reviewer_name || review.reviewer.full_name}
-                      </Link>
-                      <div className="flex items-center gap-1">
-                        {renderStars(review.rating)}
-                      </div>
-                      <span className="text-xs lg:text-sm text-gray-500 flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(review.created_at)}
-                      </span>
-                      {review.is_verified_purchase && (
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                          Verified Purchase
-                        </span>
+                  {review.comment && (
+                    <p className="text-sm lg:text-base text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
+                  )}
+                  
+                  <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm text-gray-500">
+                    <Link 
+                      href={`/ads/${review.ad_slug}`}
+                      className="text-primary hover:underline break-words"
+                    >
+                      View Ad: {review.ad_title}
+                    </Link>
+                    
+                    <button 
+                      onClick={() => toggleHelpful(review.id)}
+                      disabled={markHelpful.isPending}
+                      className="flex items-center gap-1 hover:text-primary transition-colors disabled:opacity-50 ml-auto lg:ml-0"
+                    >
+                      <ThumbsUp className="w-4 h-4" />
+                      <span className="hidden sm:inline">Helpful</span>
+                      {review.helpful_count > 0 && (
+                        <span>({review.helpful_count})</span>
                       )}
-                    </div>
-                    
-                    {review.comment && (
-                      <p className="text-sm lg:text-base text-gray-700 mb-3 leading-relaxed">{review.comment}</p>
-                    )}
-                    
-                    <div className="flex flex-wrap items-center gap-3 lg:gap-4 text-xs lg:text-sm text-gray-500">
-                      <Link 
-                        href={`/ads/${review.ad_slug}`}
-                        className="text-primary hover:underline break-words"
-                      >
-                        View Ad: {review.ad_title}
-                      </Link>
-                      
-                      <button 
-                        onClick={() => toggleHelpful(review.id)}
-                        disabled={markHelpful.isPending}
-                        className="flex items-center gap-1 hover:text-primary transition-colors disabled:opacity-50 ml-auto lg:ml-0"
-                      >
-                        <ThumbsUp className="w-4 h-4" />
-                        <span className="hidden sm:inline">Helpful</span>
-                        {review.helpful_count > 0 && (
-                          <span>({review.helpful_count})</span>
-                        )}
-                      </button>
-                    </div>
+                    </button>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-4xl mb-4">⭐</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {isOwner ? 'No reviews yet' : 'No reviews available'}
-            </h3>
-            <p className="text-gray-600">
-              {isOwner 
-                ? 'Reviews will appear here once buyers rate your items' 
-                : 'This user hasn\'t received any reviews yet'
-              }
-            </p>
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

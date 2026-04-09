@@ -27,7 +27,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             'seller',
             'rating',
             'comment',
-            'is_verified_purchase',
             'helpful_count',
             'created_at',
             'updated_at',

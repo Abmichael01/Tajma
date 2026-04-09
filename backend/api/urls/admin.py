@@ -9,6 +9,9 @@ from api.views.admin import (
     AdminNotificationViewSet,
     AdminChatViewSet,
     AdminMessageViewSet,
+    AdminReportViewSet,
+    AdminKYCViewSet,
+    AdminReviewViewSet,
 )
 
 router = DefaultRouter()
@@ -19,6 +22,9 @@ router.register(r'categories', AdminCategoryViewSet, basename='admin-category')
 router.register(r'notifications', AdminNotificationViewSet, basename='admin-notification')
 router.register(r'chats', AdminChatViewSet, basename='admin-chat')
 router.register(r'messages', AdminMessageViewSet, basename='admin-message')
+router.register(r'reports', AdminReportViewSet, basename='admin-report')
+router.register(r'kyc', AdminKYCViewSet, basename='admin-kyc')
+router.register(r'reviews', AdminReviewViewSet, basename='admin-review')
 
 urlpatterns = router.urls
 

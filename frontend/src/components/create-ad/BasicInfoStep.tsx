@@ -1,6 +1,7 @@
 "use client"
 
 import React from 'react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -9,16 +10,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Check } from 'lucide-react'
+import CategoryPicker from './CategoryPicker'
 import AdTypeIndicator from './AdTypeIndicator'
-import { getCategoryIcon } from '@/utils/categoryIcons'
+import CategoryImage from '@/components/ui/CategoryImage'
 import type { CategoryTree } from '@/types/category'
+import { cn } from '@/lib/utils'
 
 interface BasicInfoStepProps {
   formData: any
   errors: any
   categoryTree: CategoryTree[]
   categoryPath: string[]
-  onCategoryLevelChange: (level: number, slug: string) => void
+  onCategorySelect: (category: CategoryTree, path: string[]) => void
   onInputChange: (field: any, value: any) => void
   selectedCategoryLabel?: string
   isEditMode?: boolean
@@ -29,117 +33,60 @@ export default function BasicInfoStep({
   errors,
   categoryTree,
   categoryPath,
-  onCategoryLevelChange,
+  onCategorySelect,
   onInputChange,
   selectedCategoryLabel,
   isEditMode = false
 }: BasicInfoStepProps) {
-  const levelConfigs = React.useMemo(() => {
-    const configs: Array<{ level: number; options: CategoryTree[]; value: string }> = []
-    let options = categoryTree
-    let depth = 0
+  const [isChangingCategory, setIsChangingCategory] = React.useState(false)
 
-    if (!options.length) return configs
-
-    while (options && options.length) {
-      const value = categoryPath[depth] || ''
-      configs.push({ level: depth, options, value })
-
-      if (!value) break
-      const selectedNode = options.find((node) => node.slug === value)
-      if (selectedNode && selectedNode.children && selectedNode.children.length) {
-        options = selectedNode.children
-        depth += 1
-        continue
+  const selectedCategory = React.useMemo(() => {
+    if (!formData.category || !categoryTree.length) return null
+    
+    const findNode = (nodes: CategoryTree[], slug: string): CategoryTree | null => {
+      for (const node of nodes) {
+        if (node.slug === slug) return node
+        if (node.children?.length) {
+          const found = findNode(node.children, slug)
+          if (found) return found
+        }
       }
-      return configs
+      return null
     }
-
-    const lastConfig = configs[configs.length - 1]
-    const lastNode =
-      lastConfig && lastConfig.value
-        ? lastConfig.options.find((node) => node.slug === lastConfig.value)
-        : null
-
-    if (lastNode && lastNode.children && lastNode.children.length) {
-      configs.push({
-        level: configs.length,
-        options: lastNode.children,
-        value: categoryPath[configs.length] || '',
-      })
-    }
-
-    if (configs.length === 0) {
-      configs.push({ level: 0, options: categoryTree, value: '' })
-    }
-
-    return configs
-  }, [categoryTree, categoryPath])
-
-  const isLeafSelected = Boolean(formData.category)
+    
+    return findNode(categoryTree, formData.category)
+  }, [formData.category, categoryTree])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Title & Introduction */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Basic Information</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            {isEditMode ? 'Update your ad information' : 'Tell us about what you are posting'}
+          <h2 className="text-xl font-medium text-gray-900">Basic Information</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {isEditMode ? 'Update your ad details' : 'Tell us about what you are posting'}
           </p>
         </div>
         {formData.adType && <AdTypeIndicator adType={formData.adType} />}
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-2">
-          Category <span className="text-red-500">*</span>
-        </label>
-        {isEditMode ? (
-          <div className="px-3 py-2 border border-gray-300 bg-gray-50 text-gray-700">
-            {selectedCategoryLabel || '—'}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {levelConfigs.map(({ level, options, value }) => (
-              <Select
-                key={level}
-                value={value}
-                onValueChange={(selected) => onCategoryLevelChange(level, selected)}
-              >
-                <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
-                  <SelectValue
-                    placeholder={level === 0 ? 'Select category' : 'Select subcategory'}
-                  />
-                </SelectTrigger>
-                <SelectContent className="max-h-72">
-                  {options.map((option) => (
-                    <SelectItem key={option.slug} value={option.slug}>
-                      <span className="flex items-center gap-2">
-                        {option.icon && (
-                          <span className="flex-shrink-0">
-                            {getCategoryIcon(option.icon, 'w-4 h-4', 18)}
-                          </span>
-                        )}
-                        {option.name}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ))}
-          </div>
-        )}
-        {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-2">
-          {formData.adType === 'cv'
-            ? 'Professional Title'
-            : formData.adType === 'job'
-              ? 'Job Title'
-              : 'Ad Title'}{' '}
-          <span className="text-red-500">*</span>
+      {/* 1. Ad Title (First, matching mobile) */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium text-gray-600 flex items-center justify-between">
+          <span>
+            {formData.adType === 'cv'
+                ? 'Professional Title'
+                : formData.adType === 'job'
+                ? 'Job Title'
+                : 'Ad Title'}{' '}
+            <span className="text-red-500 font-normal">*</span>
+          </span>
+          <span className={cn(
+             "text-[10px] font-medium transition-colors",
+             formData.title.length > 90 ? "text-orange-500" : "text-gray-300"
+          )}>
+            {formData.title.length}/100
+          </span>
         </label>
         <Input
           value={formData.title}
@@ -153,15 +100,74 @@ export default function BasicInfoStep({
                   ? 'e.g., Professional Plumbing Services'
                   : 'e.g., iPhone 14 Pro Max 256GB'
           }
-          className={errors.title ? 'border-red-500' : ''}
+          className={cn(
+            "h-14 px-6 rounded-full text-base font-medium border-gray-200 focus:border-primary focus:ring-primary/20 transition-all shadow-none",
+            errors.title ? 'border-red-500 bg-red-50/30' : 'bg-gray-50/30'
+          )}
           maxLength={100}
         />
-        <div className="flex justify-between items-center mt-1">
-          {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
-          <p className="text-xs text-gray-500 ml-auto">{formData.title.length}/100</p>
-        </div>
+        {errors.title && <p className="text-red-500 text-xs font-medium px-2">{errors.title}</p>}
+      </div>
+
+      {/* 2. Category Selection */}
+      <div className="space-y-4">
+        <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+          Category <span className="text-red-500 font-normal">*</span>
+          {formData.category && !isChangingCategory && (
+             <Button 
+                type="button" 
+                variant="link" 
+                size="sm" 
+                onClick={() => setIsChangingCategory(true)}
+                className="h-auto p-0 text-xs text-primary font-medium hover:text-primary/80"
+             >
+                Change
+             </Button>
+          )}
+        </label>
+        
+        {isEditMode || (formData.category && !isChangingCategory) ? (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+             <div className="flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-[2.5rem] shadow-none hover:bg-gray-50/50 transition-all group">
+                <CategoryImage 
+                    imageUrl={selectedCategory?.imageUrl} 
+                    name={selectedCategory?.name}
+                    size={48} 
+                    className="w-12 h-12 rounded-full border border-gray-100 shadow-sm"
+                />
+                <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-medium text-gray-400 tracking-tight">Selected Category</p>
+                    <p className="text-base font-medium text-gray-900 truncate">
+                        {selectedCategoryLabel || '—'}
+                    </p>
+                </div>
+                {(isEditMode || formData.category) && !isChangingCategory && (
+                    <Button 
+                        type="button"
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setIsChangingCategory(true)}
+                        className="text-xs font-medium text-primary hover:bg-primary/5 rounded-full px-4"
+                    >
+                        Edit
+                    </Button>
+                )}
+             </div>
+          </div>
+        ) : (
+          <div className="animate-in fade-in duration-500">
+            <CategoryPicker 
+                categoryTree={categoryTree}
+                initialPath={categoryPath}
+                onSelect={(cat: CategoryTree, path: string[]) => {
+                    onCategorySelect(cat, path)
+                    setIsChangingCategory(false)
+                }}
+            />
+          </div>
+        )}
+        {errors.category && <p className="text-red-500 text-xs font-medium bg-red-50 py-2.5 px-5 rounded-full inline-block">{errors.category}</p>}
       </div>
     </div>
   )
 }
-

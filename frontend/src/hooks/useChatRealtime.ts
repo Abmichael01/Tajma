@@ -797,9 +797,9 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
 
   // Wrapper functions
   const sendMessage = useCallback(
-    (content: string): boolean => {
+    (content: string, parentMessageId?: string): boolean => {
       if (activeConversationId) {
-        return sendMessageRaw(activeConversationId, content)
+        return sendMessageRaw(activeConversationId, content, parentMessageId)
       }
       return false
     },

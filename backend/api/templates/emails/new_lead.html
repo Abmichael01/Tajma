@@ -1,0 +1,33 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h2>New Lead Received!</h2>
+    <p>Hello {{ user_name }},</p>
+    <p>Great news! You have a new potential customer on <strong>Tajma</strong>. 
+    Someone has expressed interest in your listing.</p>
+
+    <div class="details-table">
+        <table>
+            <tr>
+                <td>Source</td>
+                <td>{{ lead_source }}</td>
+            </tr>
+            <tr>
+                <td>Item</td>
+                <td>{{ ad_title|default:"Your Listings" }}</td>
+            </tr>
+            <tr>
+                <td>Time</td>
+                <td>{{ lead_time|date:"F j, Y, g:i a" }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <p>Responsive communication helps you close deals faster. Reach out to them or check your dashboard for more details.</p>
+{% endblock %}
+
+{% block cta %}
+    <div class="button-wrapper">
+        <a href="{{ site_url }}/profile/leads" class="button">View Leads Dashboard</a>
+    </div>
+{% endblock %}

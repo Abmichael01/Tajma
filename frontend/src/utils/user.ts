@@ -14,6 +14,9 @@ export interface FlexibleUser {
   is_seller_account_setup?: boolean;
   phone?: string | null;
   location?: string | null;
+  email_notifications?: boolean;
+  sms_notifications?: boolean;
+  marketing_notifications?: boolean;
   // Add other fields as needed for specific contexts
 }
 
@@ -50,36 +53,14 @@ export const getUserInitials = (user: FlexibleUser | User) => {
   return initials.toUpperCase() || 'U'
 }
 
+import { getMediaUrl } from '@/lib/utils'
+
 /**
  * Normalize avatar URL to full URL using API media endpoint
  * Handles relative paths, absolute paths, and full URLs
  */
 export const normalizeAvatarUrl = (avatarUrl: string | null | undefined): string | undefined => {
   if (!avatarUrl) return undefined
-  
-  // If already a full URL, return as is
-  if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
-    return avatarUrl
-  }
-  
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  
-  // If it starts with /api/media/, it's already properly formatted
-  if (avatarUrl.startsWith('/api/media/')) {
-    return `${apiUrl}${avatarUrl}`
-  }
-  
-  // If it starts with /media/, convert to API endpoint
-  if (avatarUrl.startsWith('/media/')) {
-    const path = avatarUrl.replace('/media/', '')
-    return `${apiUrl}/api/media/${path}`
-  }
-  
-  // If it starts with /, prepend API URL
-  if (avatarUrl.startsWith('/')) {
-    return `${apiUrl}${avatarUrl}`
-  }
-  
-  // Relative path (e.g., 'avatars/uuid.jpg'), use API media endpoint
-  return `${apiUrl}/api/media/${avatarUrl}`
+  return getMediaUrl(avatarUrl)
 }
+

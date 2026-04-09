@@ -10,8 +10,9 @@ import { useAuthStore } from "@/store/authStore";
 import { useUserAds, useDeleteAd, useUpdateAd } from "@/hooks/useAds";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import HorizontalAdCard from "@/components/ads/HorizontalAdCard";
+import PromoteAdModal from "@/components/ads/PromoteAdModal";
 
-function MyAdItem({ ad }: { ad: any }) {
+function MyAdItem({ ad, onPromote }: { ad: any, onPromote: (ad: any) => void }) {
   const router = useRouter();
   const deleteAd = useDeleteAd(ad.slug || ad.id);
   const updateAd = useUpdateAd(ad.slug || ad.id);
@@ -67,6 +68,14 @@ function MyAdItem({ ad }: { ad: any }) {
         </TouchableOpacity>
 
         <TouchableOpacity
+          onPress={() => onPromote(ad)}
+          className="flex-1 flex-row items-center justify-center py-2.5 rounded-xl bg-orange-50 border border-orange-100"
+        >
+          <Ionicons name="flash-outline" size={16} color="#FF4F18" />
+          <AppText weight="bold" className="text-primary ml-1.5 text-sm">Promote</AppText>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           onPress={handleDelete}
           disabled={deleteAd.isPending}
           className="w-12 h-10 items-center justify-center rounded-xl bg-red-50 border border-red-100"
@@ -93,6 +102,8 @@ export default function MyAdsScreen() {
   const { user } = useAuthStore();
   const { data: adsData, isLoading, refetch, isRefetching } = useUserAds(user?.id);
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'archived' | 'draft'>('all');
+  const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [adToPromote, setAdToPromote] = useState<any>(null);
 
   const ads = Array.isArray(adsData) ? adsData : ((adsData as any)?.results || []);
 
@@ -100,6 +111,11 @@ export default function MyAdsScreen() {
   const filteredAds = statusFilter === 'all'
     ? ads
     : ads.filter((ad: any) => ad.status === statusFilter);
+
+  const handlePromotePress = (ad: any) => {
+    setAdToPromote(ad);
+    setIsPromoteModalOpen(true);
+  };
 
   const handleCreateAd = () => {
     router.push("/(tabs)/add");
@@ -119,7 +135,7 @@ export default function MyAdsScreen() {
         rightElement={
           <TouchableOpacity
             onPress={handleCreateAd}
-            className="w-10 h-10 bg-white rounded-2xl items-center justify-center shadow-md transform rotate-[-5deg]"
+            className="w-10 h-10 bg-white rounded-full items-center justify-center border border-gray-100"
           >
             <Ionicons name="add" size={24} color="#FF4F18" />
           </TouchableOpacity>
@@ -134,7 +150,7 @@ export default function MyAdsScreen() {
         <FlatList
           data={filteredAds}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <MyAdItem ad={item} />}
+          renderItem={({ item }) => <MyAdItem ad={item} onPromote={handlePromotePress} />}
           className="flex-1"
           contentContainerStyle={{ paddingTop: 20, paddingBottom: 60 }}
           refreshControl={
@@ -203,7 +219,7 @@ export default function MyAdsScreen() {
               </AppText>
               <TouchableOpacity
                 onPress={handleCreateAd}
-                className="bg-[#FF4F18] px-10 py-4 rounded-2xl flex-row items-center shadow-xl"
+                className="bg-[#FF4F18] px-10 py-4 rounded-full flex-row items-center"
               >
                 <Ionicons name="add" size={24} color="white" className="mr-2" />
                 <AppText weight="bold" className="text-white text-lg">Create Listing</AppText>
@@ -215,6 +231,16 @@ export default function MyAdsScreen() {
           removeClippedSubviews={Platform.OS === 'android'}
         />
       )}
+
+      {/* Promotion Modal */}
+      <PromoteAdModal
+        ad={adToPromote}
+        visible={isPromoteModalOpen}
+        onClose={() => {
+          setIsPromoteModalOpen(false);
+          setAdToPromote(null);
+        }}
+      />
     </View>
   );
 }

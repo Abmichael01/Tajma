@@ -1,0 +1,33 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h2>A Lead Came Back!</h2>
+    <p>Hello {{ user_name }},</p>
+    <p><strong>{{ client_name }}</strong> just interacted with your listing again on <strong>Tajma</strong>.
+    This is a great time to reach out!</p>
+
+    <div class="details-table">
+        <table>
+            <tr>
+                <td>Action</td>
+                <td>{{ lead_source }}</td>
+            </tr>
+            <tr>
+                <td>Item</td>
+                <td>{{ ad_title|default:"Your Listings" }}</td>
+            </tr>
+            <tr>
+                <td>Total Interactions</td>
+                <td>{{ interaction_count }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <p>Buyers who keep coming back are serious. Don't let this one slip away!</p>
+{% endblock %}
+
+{% block cta %}
+    <div class="button-wrapper">
+        <a href="{{ site_url }}/profile/leads" class="button">View Leads Dashboard</a>
+    </div>
+{% endblock %}

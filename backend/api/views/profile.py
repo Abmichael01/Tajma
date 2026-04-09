@@ -134,3 +134,26 @@ class UserUnblockView(APIView):
         request.user.blocked_users.remove(user_to_unblock)
         return Response({'message': f'User {user_to_unblock.username or user_to_unblock.email} unblocked.'})
 
+
+class UserFCMTokenView(APIView):
+    """Endpoint to update FCM device token for push notifications."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        token = request.data.get('fcm_token')
+        if not token:
+            return Response(
+                {'detail': 'FCM token is required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = request.user
+        user.fcm_device_token = token
+        user.save(update_fields=['fcm_device_token'])
+
+        logger.info(f"✅ FCM token updated for user {user.id}")
+        return Response(
+            {'message': 'FCM token updated successfully.'},
+            status=status.HTTP_200_OK
+        )
+

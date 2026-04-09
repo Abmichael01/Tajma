@@ -9,6 +9,7 @@ import UserDropdown from '../ui/UserDropdown'
 import NotificationDropdown from '../ui/NotificationDropdown'
 import LanguageSwitcher from '../ui/LanguageSwitcher'
 import SearchModal from '../modals/SearchModal'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { useSavedAds } from '@/hooks/useSavedAds'
 import { useChats } from '@/hooks/useChat'
@@ -19,7 +20,7 @@ import {
   X, 
   Plus, 
   Heart, 
-  MessageSquare,
+  MessageCircleMore,
   Search,
   ChevronLeft,
   ChevronRight
@@ -27,17 +28,25 @@ import {
 import { useCategories } from '@/hooks/useCategories'
 import CategoryImage from '@/components/ui/CategoryImage'
 import { useLocation } from '@/hooks/useLocation'
+import { useLocationStore } from '@/store/locationStore'
+import RegionSelectorModal from '../modals/RegionSelectorModal'
 
 export default function Navbar() {
     const pathname = usePathname()
     const isChatPage = pathname === '/chat'
+    const router = useRouter()
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
     const { isAuthenticated, user } = useAuthStore()
     const { data: savedAdsData } = useSavedAds(undefined, undefined)
     const { data: chats = [] } = useChats()
     const { rootCategories, loading: categoriesLoading, error: categoriesError } = useCategories()
     const { getLocationString, getShortLocationString, loading: locationLoading } = useLocation()
+    // Location State
+    const { selectedRegion, setSelectedRegion } = useLocationStore()
+    const [isRegionModalOpen, setIsRegionModalOpen] = useState(false)
+
     // Get count from paginated response or calculate from results
     const favoritesCount = savedAdsData?.count ?? (savedAdsData?.results?.length || 0)
     // Calculate total unread messages from all chats
@@ -50,6 +59,14 @@ export default function Navbar() {
     const [canScrollRight, setCanScrollRight] = useState(false)
     const [isHovered, setIsHovered] = useState(false)
     const marqueeIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+
+    const handleSearch = (e?: React.FormEvent) => {
+        if (e) e.preventDefault()
+        const params = new URLSearchParams()
+        if (searchQuery.trim()) params.append('q', searchQuery.trim())
+        router.push(`/search?${params.toString()}`)
+    }
 
     const updateCategoryScrollShadows = () => {
         const el = categoriesScrollRef.current
@@ -152,25 +169,32 @@ export default function Navbar() {
     return (
         <header className='bg-white sticky top-0 z-50'>
             {/* Top Bar */}
-            <div className='bg-secondary text-secondary-foreground py-2 text-xs sm:text-sm'>
+            <div className='bg-secondary text-secondary-foreground py-2 text-xs sm:text-sm border-b border-white/10'>
                 <div className='container flex justify-between items-center'>
                     <div className='flex items-center gap-2 sm:gap-4'>
                         <span className='hidden sm:inline'>Welcome to Tajma Marketplace</span>
                         <span className='sm:hidden'>Tajma Marketplace</span>
-                        <div className='flex items-center gap-1 sm:gap-2'>
-                            <MapPin className='w-3 h-3 sm:w-4 sm:h-4' />
+                        <button 
+                            onClick={() => setIsRegionModalOpen(true)}
+                            className='flex items-center gap-1 sm:gap-2 hover:text-primary transition-colors cursor-pointer group'
+                        >
+                            <MapPin className='w-3 h-3 sm:w-4 sm:h-4 group-hover:animate-bounce' />
                             {!locationLoading ? (
                                 <>
-                                    <span className='hidden xs:inline sm:inline'>{getLocationString()}</span>
-                                    <span className='xs:hidden sm:hidden'>{getShortLocationString()}</span>
+                                    <span className='hidden xs:inline sm:inline'>
+                                        {selectedRegion === 'All Regions' ? getLocationString() : selectedRegion}
+                                    </span>
+                                    <span className='xs:hidden sm:hidden'>
+                                        {selectedRegion === 'All Regions' ? getShortLocationString() : selectedRegion.split(',')[0]}
+                                    </span>
                                 </>
                             ) : (
                                 <span className='text-xs'>Loading...</span>
                             )}
-                        </div>
+                        </button>
                     </div>
                     <div className='hidden sm:flex items-center gap-4'>
-                        <Link href='/help' className='hover:underline'>Help</Link>
+                        <Link href='/contact' className='hover:underline'>Contact Support</Link>
                         <Link href='/create-ad' className='hover:underline'>Sell</Link>
                         <Link href='/' className='hover:underline'>Buy</Link>
                     </div>
@@ -178,30 +202,51 @@ export default function Navbar() {
             </div>
 
             {/* Main Navbar */}
-            <div className='container py-2 sm:py-4'>
+            <div className='border-b border-gray-100'>
+                <div className='container py-2 sm:py-4'>
                 <div className='flex justify-between items-center gap-4'>
                     {/* Logo */}
                     <div className='flex items-center flex-shrink-0'>
                         <Logo />
                     </div>
 
-                    {/* Spacer */}
-                    <div className='flex-1'></div>
+                    {/* Search Bar - Desktop */}
+                    <div className='hidden md:block flex-1 max-w-xl mx-4 lg:mx-8 relative'>
+                        <form onSubmit={handleSearch} className="relative w-full">
+                            <input
+                                type="text"
+                                placeholder="Search for ads..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-gray-100 hover:bg-gray-200 focus:bg-white border border-transparent focus:border-primary/20 
+                                transition-colors px-5 py-2.5 rounded-full outline-none text-sm text-gray-900"
+                            />
+                            <button 
+                                type="submit"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-primary transition-colors bg-white rounded-full shadow-sm"
+                            >
+                                <Search className='w-4 h-4' />
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Spacer for Mobile */}
+                    <div className='flex-1 md:hidden'></div>
 
                     {/* User Actions */}
                     <div className='flex items-center gap-1 sm:gap-2'>
-                        {/* Search Icon */}
+                        {/* Search Icon - Mobile Only */}
                         <Button 
                             variant="ghost" 
                             size="icon" 
                             onClick={() => setIsSearchModalOpen(true)}
-                            className="hidden sm:flex"
+                            className="hidden sm:flex md:hidden"
                         >
                             <Search className='w-5 h-5' />
                         </Button>
 
                         {/* Language Switcher */}
-                        <div className="hidden sm:block">
+                        <div className="flex items-center">
                             <LanguageSwitcher />
                         </div>
                         {!isAuthenticated ? (
@@ -234,21 +279,29 @@ export default function Navbar() {
                                     <Search className='w-5 h-5' />
                                 </Button>
                                 <Link href={`/profile/${profileSlug}?tab=saved`} className="relative hidden lg:block">
-                                    <Button variant="ghost" size="icon">
-                                        <Heart className='w-5 h-5' />
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="w-10 h-10 rounded-full border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all"
+                                    >
+                                        <Heart className='w-5 h-5 text-gray-700' />
                                     </Button>
                                     {favoritesCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center font-semibold z-10 rounded-full">
+                                        <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] min-w-[20px] h-[20px] px-1 flex items-center justify-center font-bold z-10 rounded-full border-2 border-white shadow-sm">
                                             {favoritesCount > 9 ? '9+' : favoritesCount}
                                         </span>
                                     )}
                                 </Link>
-                                <Link href="/chat" className="hidden lg:block relative">
-                                    <Button variant="ghost" size="icon">
-                                        <MessageSquare className='w-5 h-5' />
+                                <Link href="/chat" className="relative hidden lg:block">
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="w-10 h-10 rounded-full border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all"
+                                    >
+                                        <MessageCircleMore className='w-5 h-5 text-gray-700' />
                                     </Button>
                                     {totalUnreadMessages > 0 && (
-                                        <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center font-semibold z-10 rounded-full">
+                                        <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] min-w-[20px] h-[20px] px-1 flex items-center justify-center font-bold z-10 rounded-full border-2 border-white shadow-sm">
                                             {totalUnreadMessages > 9 ? '9+' : totalUnreadMessages}
                                         </span>
                                     )}
@@ -260,25 +313,13 @@ export default function Navbar() {
                             </div>
                         )}
 
-                        {/* Mobile Menu Button */}
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className='lg:hidden ml-1 relative'
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        >
-                            <div className="flex flex-col gap-1 w-5 h-5 items-center justify-center">
-                                <span className={`block h-0.5 w-5 bg-current transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
-                                <span className={`block h-0.5 w-5 bg-current transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
-                                <span className={`block h-0.5 w-5 bg-current transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
-                            </div>
-                        </Button>
                     </div>
                 </div>
             </div>
+        </div>
 
             {/* Categories Bar - Hidden on Mobile */}
-            <div className='border-t bg-gray-50 hidden md:block'>
+            <div className='border-t border-b border-gray-100 bg-gray-50 hidden md:block'>
                 <div className='container py-2 sm:py-3 relative h-full'>
                     <div 
                         className="relative flex items-center h-full"
@@ -376,54 +417,19 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Menu Overlay */}
-            {isMobileMenuOpen && (
-                <div 
-                    className='lg:hidden fixed inset-0 bg-black/50 animate-fadeIn z-[60]'
-                    style={{ top: 'var(--navbar-height, 64px)' }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                />
-            )}
-
-            {/* Mobile Menu - Slide from Right */}
-            <div 
-                className={`lg:hidden fixed right-0 top-0 bottom-0 w-[280px] bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 ease-out z-[70] ${
-                    isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-                }`}
-                style={{ 
-                    top: 'var(--navbar-height, 64px)',
-                    height: 'calc(100vh - var(--navbar-height, 64px))',
-                }}
-            >
-                <div className='h-full overflow-y-auto px-4 py-6 space-y-6'>
-                    {/* Login/Register */}
-                    {!isAuthenticated ? (
-                        <div className='flex flex-col gap-2'>
-                            <AuthButton />
-                        </div>
-                    ) : null}
-
-                    {/* Quick Links */}
-                    <div className='space-y-1 border-t pt-3'>
-                        <Link href='/help' className='block py-3 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Help & Support</Link>
-                        <Link href='/about' className='block py-3 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
-                        <Link href='/contact' className='block py-3 px-3 text-gray-600 hover:text-secondary hover:bg-gray-50 rounded' onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
-                    </div>
-
-                    {/* Language Switcher */}
-                    <div className='border-t pt-3'>
-                        <div className='flex items-center justify-between px-3'>
-                            <span className='text-sm text-gray-600'>Language</span>
-                            <LanguageSwitcher />
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Search Modal */}
             <SearchModal 
                 isOpen={isSearchModalOpen} 
                 onClose={() => setIsSearchModalOpen(false)} 
+            />
+
+            {/* Region Selector Modal (Drawer on Mobile) */}
+            <RegionSelectorModal
+                isOpen={isRegionModalOpen}
+                onClose={() => setIsRegionModalOpen(false)}
+                selectedRegion={selectedRegion}
+                onSelectRegion={(region) => setSelectedRegion(region?.name || 'All Regions')}
             />
         </header>
     )

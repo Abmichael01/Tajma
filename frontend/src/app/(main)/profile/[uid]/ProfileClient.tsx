@@ -126,6 +126,12 @@ export default function ProfileClient({ uid }: ProfileClientProps) {
 
   const handleLocalUpdate = (updates: Partial<User>) => {
     setCurrentProfile((prev) => (prev ? { ...prev, ...updates } : prev))
+    
+    // Also update global auth store if this is the owner's profile
+    // This ensures navbar and other global components update instantly
+    if (isOwner) {
+      useAuthStore.getState().updateUser(updates)
+    }
   }
 
   if (!currentProfile && isLoading) {
@@ -134,7 +140,7 @@ export default function ProfileClient({ uid }: ProfileClientProps) {
 
   if (!currentProfile || error) {
     return (
-      <div className="bg-white min-h-screen">
+      <div className="bg-gray-50/50 min-h-screen">
         <div className="container py-8">
           <div className="text-center py-12">
             <UserX className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -152,12 +158,7 @@ export default function ProfileClient({ uid }: ProfileClientProps) {
   }
 
   return (
-    <div className="bg-white min-h-screen">
-      <div className="container pt-4 sm:pt-6">
-        <div className="hidden md:block">
-          <BackButton />
-        </div>
-      </div>
+    <div className="bg-gray-50/50 min-h-screen">
       <ProfileLayout
         user={currentProfile}
         profileSlug={getProfileSlug(currentProfile)}
@@ -185,7 +186,7 @@ export default function ProfileClient({ uid }: ProfileClientProps) {
 
 function ProfileSkeleton() {
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-gray-50/50 min-h-screen">
       <div className="container py-8 animate-pulse">
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="w-full lg:w-80 flex-shrink-0 space-y-4">

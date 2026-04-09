@@ -197,11 +197,6 @@ export default function ReviewsSection({ adId, reviewStats: providedStats, isOwn
                         <AppText variant="default" weight="medium" className="text-gray-900">
                           {reviewerName}
                         </AppText>
-                        {review.is_verified_purchase && (
-                          <View className="bg-green-100 px-2 py-0.5 rounded-full">
-                            <AppText variant="caption" className="text-green-800">Verified Purchase</AppText>
-                          </View>
-                        )}
                       </View>
 
                       <View className="flex-row items-center gap-2 mb-2">

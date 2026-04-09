@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -12,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useUpdateProfile, useChangePassword } from '@/hooks/useAuth'
 import { useRegions } from '@/hooks/useRegions'
+import type { Region } from '@/api/regions'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
@@ -22,7 +24,11 @@ import {
   EyeOff,
   Lock,
   CheckCircle,
-  X
+  X,
+  User as UserIcon,
+  Bell,
+  AlertTriangle,
+  ChevronRight
 } from 'lucide-react'
 import type { User, ProfileUpdateResponse } from '@/api/types'
 import { getUserFullName, getUserInitials, normalizeAvatarUrl } from '@/utils/user'
@@ -43,6 +49,9 @@ const profileSchema = z.object({
     .or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
   address: z.string().max(500, 'Address is too long').optional().or(z.literal('')),
+  email_notifications: z.boolean(),
+  sms_notifications: z.boolean(),
+  marketing_notifications: z.boolean(),
 })
 
 const passwordSchema = z
@@ -75,8 +84,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
 
   // Get region ID from user location by matching region name
   const getUserRegionId = () => {
-    if (!user?.location || !regions) return ''
-    const matchingRegion = regions.find(r => r.name === user.location)
+    if (!user?.location || !regions?.results) return ''
+    const matchingRegion = regions.results.find((r: Region) => r.name === user.location)
     return matchingRegion?.id.toString() || ''
   }
 
@@ -89,6 +98,9 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
       phone: user.phone || '',
       location: getUserRegionId(),
       address: user.address || '',
+      email_notifications: user.email_notifications ?? true,
+      sms_notifications: user.sms_notifications ?? false,
+      marketing_notifications: user.marketing_notifications ?? true,
     },
   })
 
@@ -110,32 +122,25 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
       phone: user.phone || '',
       location: regionId,
       address: user.address || '',
+      email_notifications: user.email_notifications ?? true,
+      sms_notifications: user.sms_notifications ?? false,
+      marketing_notifications: user.marketing_notifications ?? true,
     })
     setAvatarPreview(user.avatar || null)
     setAvatarFile(null)
   }, [user, profileForm, regions])
 
-  const profileFieldNames: Array<keyof ProfileFormValues> = ['first_name', 'last_name', 'phone', 'location', 'address']
+  const profileFieldNames: Array<keyof ProfileFormValues> = ['first_name', 'last_name', 'phone', 'location', 'address', 'email_notifications', 'sms_notifications', 'marketing_notifications']
   const passwordFieldNames: Array<keyof PasswordFormValues> = ['old_password', 'new_password', 'new_password_confirm']
 
   const handleProfileSubmit = profileForm.handleSubmit(async (values) => {
-    console.log('📝 Profile form submit started')
-    console.log('📝 Form values:', values)
-    console.log('📝 Avatar file state:', {
-      hasAvatarFile: avatarFile !== null,
-      fileName: avatarFile?.name,
-      fileSize: avatarFile?.size,
-      fileType: avatarFile?.type
-    })
-    
     try {
       // If avatar file is present, use FormData; otherwise use JSON
       const hasAvatarFile = avatarFile !== null
-      
+
       let response: ProfileUpdateResponse
-      
+
       if (hasAvatarFile) {
-        console.log('📤 Using FormData for file upload')
         // Use FormData for file upload
         const formData = new FormData()
         formData.append('first_name', values.first_name.trim())
@@ -149,25 +154,15 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
         if (values.address?.trim()) {
           formData.append('address', values.address.trim())
         }
+        formData.append('email_notifications', values.email_notifications.toString())
+        formData.append('sms_notifications', values.sms_notifications.toString())
+        formData.append('marketing_notifications', values.marketing_notifications.toString())
         formData.append('avatar', avatarFile)
-        
-        // Log FormData contents
-        console.log('📤 FormData created with fields:')
-        for (const [key, value] of formData.entries()) {
-          if (value instanceof File) {
-            console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`)
-          } else {
-            console.log(`  ${key}: ${value}`)
-          }
-        }
-        
+
         // Make FormData request directly
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
         const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
-        
-        console.log('📤 Sending FormData request to:', `${API_BASE_URL}/api/auth/profile/update/`)
-        console.log('📤 CSRF Token:', csrfToken ? 'Present' : 'Missing')
-        
+
         const formDataResponse = await fetch(`${API_BASE_URL}/api/auth/profile/update/`, {
           method: 'PATCH',
           credentials: 'include',
@@ -176,22 +171,14 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
           },
           body: formData,
         })
-        
-        console.log('📥 Response status:', formDataResponse.status, formDataResponse.statusText)
-        
+
         if (!formDataResponse.ok) {
           const errorData = await formDataResponse.json()
-          console.error('❌ Profile update error:', errorData)
           throw { response: { data: errorData } }
         }
-        
+
         response = await formDataResponse.json()
-        console.log('✅ Profile update success:', {
-          userAvatar: response?.user?.avatar,
-          message: response?.message
-        })
       } else {
-        console.log('📤 Using JSON payload (no file upload)')
         // Use JSON payload (no file upload)
         const payload = {
           first_name: values.first_name.trim(),
@@ -199,68 +186,52 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
           phone: values.phone?.trim() || undefined,
           location: values.location ? parseInt(values.location) : undefined,
           address: values.address?.trim() || undefined,
+          email_notifications: values.email_notifications,
+          sms_notifications: values.sms_notifications,
+          marketing_notifications: values.marketing_notifications,
         }
-        
-        console.log('📤 JSON payload:', payload)
+
         response = await updateProfile.mutateAsync(payload)
-        console.log('✅ Profile update success (JSON):', {
-          userAvatar: response?.user?.avatar,
-          message: response?.message
-        })
       }
       toast.success('Profile updated successfully')
       
       // Get region name for display
-      const selectedRegion = regions?.find(r => r.id === (values.location ? parseInt(values.location) : undefined))
+      const selectedRegion = regions?.results?.find((r: Region) => r.id === (values.location ? parseInt(values.location) : undefined))
       const locationDisplay = selectedRegion?.name || ''
-      
+
       profileForm.reset({
-        first_name: values.first_name,
-        last_name: values.last_name,
+        ...values,
         username: user.username || '',
-        phone: values.phone || '',
-        location: values.location || '',
-        address: values.address || '',
       })
-      
-      // Update avatar preview with the new avatar URL from response
-      // The useEffect will also sync when user prop updates, but update immediately here
-      console.log('🔄 Updating avatar preview from response:', response?.user?.avatar)
+
       if (response?.user?.avatar) {
         setAvatarPreview(response.user.avatar)
-        console.log('✅ Avatar preview updated')
       } else if (!response?.user?.avatar) {
-        // If avatar was removed, clear preview
-        console.log('🗑️ Avatar removed, clearing preview')
         setAvatarPreview(null)
       }
-      
-      // Reset avatar file state if it was updated
+
       if (avatarFile) {
-        console.log('🔄 Resetting avatar file state')
         setAvatarFile(null)
       }
-      
-      const userPatch: Partial<User> = {
-        first_name: values.first_name.trim(),
-        last_name: values.last_name.trim(),
-        // Username is not updated - users cannot change their username
-      }
 
-      userPatch.phone = values.phone?.trim() || null
-      userPatch.location = locationDisplay || null
-      userPatch.address = values.address?.trim() || null
+      // Ensure we use the full user object from response if available
+      const updatedUser = response?.user || response
       
-      // Include updated avatar in the user patch
-      if (response?.user?.avatar) {
-        userPatch.avatar = response.user.avatar
+      // Construct a clean update object from the response
+      const userPatch: Partial<User> = {
+        first_name: updatedUser.first_name || values.first_name.trim(),
+        last_name: updatedUser.last_name || values.last_name.trim(),
+        phone: updatedUser.phone || values.phone?.trim() || null,
+        location: updatedUser.location || locationDisplay || null,
+        address: updatedUser.address || values.address?.trim() || null,
+        avatar: updatedUser.avatar || null,
+        email_notifications: updatedUser.email_notifications ?? values.email_notifications,
+        sms_notifications: updatedUser.sms_notifications ?? values.sms_notifications,
+        marketing_notifications: updatedUser.marketing_notifications ?? values.marketing_notifications,
       }
 
       onUpdateUser?.(userPatch)
-      console.log('✅ Profile update completed successfully')
     } catch (error: any) {
-      console.error('❌ Profile update failed:', error)
-      console.error('❌ Error response:', error.response?.data)
       const apiErrors = error.response?.data || {}
       Object.entries(apiErrors).forEach(([key, value]) => {
         if (profileFieldNames.includes(key as keyof ProfileFormValues)) {
@@ -279,48 +250,28 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    console.log('🖼️ Avatar file selected:', {
-      fileName: file?.name,
-      fileSize: file?.size,
-      fileType: file?.type,
-      hasFile: !!file
-    })
-    
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
-        console.error('❌ Invalid file type:', file.type)
         toast.error('Please select an image file')
         return
       }
 
-      // Validate file size (5MB max)
       const maxSize = 5 * 1024 * 1024
       if (file.size > maxSize) {
-        console.error('❌ File too large:', file.size, 'bytes')
         toast.error('Image size must be less than 5MB')
         return
       }
 
-      // Store the file object (will be sent as FormData)
-      console.log('✅ Setting avatar file state')
       setAvatarFile(file)
-      
-      // Create preview from file immediately
+
       const reader = new FileReader()
       reader.onload = (event) => {
         const base64 = event.target?.result as string
-        console.log('✅ Avatar preview created, base64 length:', base64?.length)
-        console.log('✅ Base64 preview starts with:', base64?.substring(0, 30))
         if (base64) {
           setAvatarPreview(base64)
-          console.log('✅ Avatar preview state updated')
-        } else {
-          console.error('❌ Base64 string is empty')
         }
       }
-      reader.onerror = (error) => {
-        console.error('❌ Failed to read image file:', error)
+      reader.onerror = () => {
         toast.error('Failed to read image file')
       }
       reader.readAsDataURL(file)
@@ -370,88 +321,107 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
 
   const fullName = getUserFullName(user)
 
+  const sectionContainer = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  }
+
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900">Account Settings</h3>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="flex items-end justify-between px-2">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Account Settings</h2>
+          <p className="text-sm text-gray-500 font-medium">Manage your personal information and preferences</p>
+        </div>
+      </div>
       
-      <div className="bg-white border border-gray-200 p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex flex-col items-center gap-2">
-            {(() => {
-              const avatarSrc = avatarPreview 
-                ? (avatarPreview.startsWith('data:') ? avatarPreview : normalizeAvatarUrl(avatarPreview))
-                : (user.avatar ? normalizeAvatarUrl(user.avatar) : null)
-              
-              if (avatarSrc) {
+      {/* Profile Information Section */}
+      <motion.div
+        variants={sectionContainer}
+        className="bg-white border border-gray-200 p-6 sm:p-8 rounded-[32px]"
+      >
+        <div className="flex flex-col sm:flex-row items-center gap-6 mb-8 pb-8 border-b border-gray-50">
+          <div className="relative group">
+            <div className="relative flex flex-col items-center gap-3">
+              {(() => {
+                const avatarSrc = avatarPreview 
+                  ? (avatarPreview.startsWith('data:') ? avatarPreview : normalizeAvatarUrl(avatarPreview))
+                  : (user.avatar ? normalizeAvatarUrl(user.avatar) : null)
+                
                 return (
-                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100">
-                    <img
-                      src={avatarSrc}
-                      alt={fullName}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.error('❌ Avatar image failed to load')
-                        const target = e.target as HTMLImageElement
-                        target.style.display = 'none'
-                      }}
-                      onLoad={() => {
-                        console.log('✅ Avatar image loaded successfully')
-                      }}
-                    />
-                  </div>
+                  <Avatar className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-white bg-gray-100 ring-1 ring-gray-100">
+                    {avatarSrc ? (
+                      <AvatarImage
+                        src={avatarSrc}
+                        alt={fullName}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-secondary text-white text-2xl w-full h-full flex items-center justify-center">
+                        {getUserInitials(user)}
+                      </AvatarFallback>
+                    )}
+                    
+                    {/* Hover Overlay */}
+                    <button
+                      type="button"
+                      onClick={handleAvatarClick}
+                      className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity duration-300 text-white z-10"
+                    >
+                      <Camera className="w-6 h-6 mb-1" />
+                      <span className="text-[10px] font-semibold">Change</span>
+                    </button>
+                  </Avatar>
                 )
-              }
-              
-              return (
-                <Avatar className="w-16 h-16">
-                  <AvatarFallback className="bg-secondary text-secondary-foreground text-lg">
-                    {getUserInitials(user)}
-                  </AvatarFallback>
-                </Avatar>
-              )
-            })()}
-            <button
-              type="button"
-              onClick={handleAvatarClick}
-              className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <Camera className="w-3 h-3" />
-              <span>Change Photo</span>
-            </button>
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              className="hidden"
-            />
+              })()}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+              {avatarFile && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  className="text-[10px] font-semibold text-red-500 hover:text-red-600"
+                >
+                  Discard Changes
+                </button>
+              )}
+            </div>
           </div>
-          <div>
-            <h4 className="text-lg font-medium text-gray-900">{fullName}</h4>
-            <p className="text-gray-600">{user.email}</p>
-            {user.is_verified && (
-              <span className="inline-flex items-center gap-1 text-sm text-green-600 mt-1">
-                <Shield className="w-4 h-4" />
-                Verified Account
-              </span>
+          
+          <div className="text-center sm:text-left">
+            <h4 className="text-xl font-semibold text-gray-900 tracking-tight">{fullName}</h4>
+            <p className="text-gray-500 font-medium text-sm">{user.email}</p>
+            {user.is_verified ? (
+              <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100 mt-2">
+                <Shield className="w-3.5 h-3.5" />
+                Verified Seller
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 mt-2">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Verification Required
+              </div>
             )}
           </div>
         </div>
         
 
         <Form {...profileForm}>
-          <form onSubmit={handleProfileSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleProfileSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={profileForm.control}
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      First Name <span className="text-red-500">*</span>
-                    </FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">First Name</FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="Enter first name" {...field} />
+                      <Input type="text" placeholder="Enter first name" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -462,41 +432,33 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      Last Name <span className="text-red-500">*</span>
-                    </FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">Last Name</FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="Enter last name" {...field} />
+                      <Input type="text" placeholder="Enter last name" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-semibold text-gray-500 mb-2.5">
                   Username
                 </label>
                 <Input 
                   type="text" 
                   value={user.username || ''} 
                   disabled 
-                  className="bg-gray-50 cursor-not-allowed" 
+                  className="bg-gray-100/50 cursor-not-allowed rounded-full border-gray-100 h-12 italic text-gray-400" 
                 />
-                <p className="mt-1 text-xs text-gray-500">Username cannot be changed</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <Input type="email" value={user.email} disabled className="bg-gray-50 cursor-not-allowed" />
-                <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
               </div>
               <FormField
                 control={profileForm.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">Phone Number</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="+227 92 64 99 99" {...field} />
+                      <Input type="tel" placeholder="+227 92 64 99 99" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -507,23 +469,23 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Region</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">Business Region</FormLabel>
                     <FormControl>
                       {regionsLoading ? (
-                        <div className="flex items-center gap-2 py-2">
-                          <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                          <span className="text-sm text-gray-500">Loading regions...</span>
+                        <div className="flex items-center gap-2 py-3 bg-gray-50/30 rounded-full border border-gray-100 px-4 h-12">
+                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                          <span className="text-xs text-gray-400 font-medium">Loading regions...</span>
                         </div>
                       ) : (
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12">
                             <SelectValue placeholder="Select your region" />
                           </SelectTrigger>
-                          <SelectContent>
-                            {regions?.map((region) => (
+                          <SelectContent className="rounded-2xl border-gray-200">
+                            {regions?.results?.map((region: Region) => (
                               <SelectItem key={region.id} value={region.id.toString()}>
                                 {region.name}
                               </SelectItem>
@@ -541,9 +503,9 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">Physical Address</FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="e.g., 123 Main Street" {...field} />
+                      <Input type="text" placeholder="e.g., 123 Main Street" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -551,87 +513,115 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
               />
             </div>
             
-            <div className="flex gap-3 mt-6">
-              <Button 
-                type="submit" 
-                variant="primary"
-                disabled={updateProfile.isPending || profileForm.formState.isSubmitting}
-              >
-                {updateProfile.isPending || profileForm.formState.isSubmitting ? (
-                  <>
-                    <MarketplaceLoader inline size="sm" white />
-                    <span className="ml-2">Saving...</span>
-                  </>
-                ) : (
-                  'Save Changes'
-                )}
-              </Button>
+            <div className="flex items-center gap-4 mt-8 pt-6 border-t border-gray-50">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button 
+                  type="submit" 
+                  variant="primary"
+                  className="rounded-full px-10 h-12 font-semibold text-sm"
+                  disabled={updateProfile.isPending || profileForm.formState.isSubmitting}
+                >
+                  {updateProfile.isPending || profileForm.formState.isSubmitting ? (
+                    <>
+                      <MarketplaceLoader inline size="sm" white />
+                      <span className="ml-2">Saving...</span>
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              </motion.div>
               <Button 
                 type="button" 
                 variant="ghost"
+                className="rounded-full px-8 h-12 text-xs font-semibold text-gray-400 hover:text-gray-900"
                 onClick={() => {
                   const regionId = getUserRegionId()
                   profileForm.reset({
                     first_name: user.first_name || '',
                     last_name: user.last_name || '',
-                    username: user.username || '', // Keep for form state but not editable
+                    username: user.username || '',
                     phone: user.phone || '',
                     location: regionId,
                     address: user.address || '',
+                    email_notifications: user.email_notifications ?? true,
+                    sms_notifications: user.sms_notifications ?? false,
+                    marketing_notifications: user.marketing_notifications ?? true,
                   })
                 }}
               >
-                Cancel
+                Reset
               </Button>
             </div>
           </form>
         </Form>
-      </div>
+      </motion.div>
 
-      {/* Change Password Section */}
-      <div className="bg-white border border-gray-200 p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Lock className="w-5 h-5 text-gray-700" />
-          <h4 className="text-lg font-semibold text-gray-900">Change Password</h4>
+      {/* Security & Password Section */}
+      <motion.div
+        variants={sectionContainer}
+        className="bg-white border border-gray-200 p-6 sm:p-8 rounded-[32px]"
+      >
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 rounded-2xl bg-secondary/5 border border-secondary/10 flex items-center justify-center text-secondary">
+            <Lock className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-lg font-semibold text-gray-900 tracking-tight">Security & Privacy</h4>
+            <p className="text-xs text-gray-500 font-medium">Keep your account safe with a strong password</p>
+          </div>
         </div>
 
-        {passwordSuccess && (
-          <div className="mb-6 bg-green-50 border border-green-200 p-4 flex items-start gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-green-900">Password changed successfully!</p>
-              <p className="text-sm text-green-700 mt-1">Your password has been updated.</p>
-            </div>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {passwordSuccess && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              className="bg-green-50 border border-green-100 p-4 rounded-2xl flex items-start gap-3 overflow-hidden"
+            >
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-green-900 text-sm">Security updated!</p>
+                <p className="text-xs text-green-700 mt-0.5 font-medium">Your password has been changed successfully.</p>
+              </div>
+            </motion.div>
+          )}
 
-        {passwordError && (
-          <div className="mb-6 bg-red-50 border border-red-200 p-4">
-            <p className="text-sm text-red-700">{passwordError}</p>
-          </div>
-        )}
+          {passwordError && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-start gap-3 overflow-hidden"
+            >
+              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-red-700 font-medium">{passwordError}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <Form {...passwordForm}>
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          <form onSubmit={handlePasswordSubmit} className="space-y-5 max-w-2xl">
             <FormField
               control={passwordForm.control}
               name="old_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Current Password</FormLabel>
+                  <FormLabel className="text-xs font-semibold text-gray-500">Current Password</FormLabel>
                   <div className="relative">
                     <FormControl>
                       <Input
                         {...field}
                         type={showCurrentPassword ? 'text' : 'password'}
-                        className="pr-10"
-                        placeholder="Enter current password"
+                        className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 pr-12"
+                        placeholder="••••••••"
                       />
                     </FormControl>
                     <button
                       type="button"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-primary transition-colors"
                     >
                       {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -641,142 +631,194 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
               )}
             />
 
-            <FormField
-              control={passwordForm.control}
-              name="new_password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>New Password</FormLabel>
-                  <div className="relative">
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type={showNewPassword ? 'text' : 'password'}
-                        className="pr-10"
-                        placeholder="Enter new password"
-                      />
-                    </FormControl>
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={passwordForm.control}
-              name="new_password_confirm"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm New Password</FormLabel>
-                  <div className="relative">
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        className="pr-10"
-                        placeholder="Confirm new password"
-                      />
-                    </FormControl>
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex gap-3 pt-2">
-              <Button 
-                type="submit" 
-                variant="primary"
-                disabled={changePassword.isPending || passwordForm.formState.isSubmitting}
-              >
-                {changePassword.isPending || passwordForm.formState.isSubmitting ? (
-                  <>
-                    <MarketplaceLoader inline size="sm" white />
-                    <span className="ml-2">Updating...</span>
-                  </>
-                ) : (
-                  'Update Password'
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <FormField
+                control={passwordForm.control}
+                name="new_password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-gray-500">New Password</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type={showNewPassword ? 'text' : 'password'}
+                          className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 pr-12"
+                          placeholder="••••••••"
+                        />
+                      </FormControl>
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-primary transition-colors"
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </Button>
-              <Button 
-                type="button" 
-                variant="ghost"
-                onClick={() => {
-                  passwordForm.reset({
-                    old_password: '',
-                    new_password: '',
-                    new_password_confirm: '',
-                  })
-                  setPasswordError(null)
-                }}
-              >
-                Cancel
-              </Button>
+              />
+
+              <FormField
+                control={passwordForm.control}
+                name="new_password_confirm"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-gray-500">Confirm New Password</FormLabel>
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 pr-12"
+                          placeholder="••••••••"
+                        />
+                      </FormControl>
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-primary transition-colors"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="pt-4">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button 
+                  type="submit" 
+                  variant="secondary"
+                  className="rounded-full px-10 h-12 font-semibold text-sm"
+                  disabled={changePassword.isPending || passwordForm.formState.isSubmitting}
+                >
+                  {changePassword.isPending || passwordForm.formState.isSubmitting ? (
+                    <>
+                      <MarketplaceLoader inline size="sm" white />
+                      <span className="ml-2">Updating...</span>
+                    </>
+                  ) : (
+                    'Update Password'
+                  )}
+                </Button>
+              </motion.div>
             </div>
           </form>
         </Form>
-      </div>
+      </motion.div>
 
-      {/* Preferences Section */}
-      <div className="bg-white border border-gray-200 p-6">
-        <h4 className="text-lg font-semibold text-gray-900 mb-6">Notification Preferences</h4>
+      {/* Notifications Section */}
+      <motion.div
+        variants={sectionContainer}
+        className="bg-white border border-gray-200 p-6 sm:p-8 rounded-[32px]"
+      >
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary">
+            <Bell className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-lg font-semibold text-gray-900 tracking-tight">Notification Preferences</h4>
+            <p className="text-xs text-gray-500 font-medium">Control how and when you hear from us</p>
+          </div>
+        </div>
         
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-gray-900">Email Notifications</p>
-              <p className="text-sm text-gray-600">Receive email updates about your ads and messages</p>
-            </div>
-            <Checkbox defaultChecked />
-          </div>
-
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div>
-              <p className="font-medium text-gray-900">SMS Notifications</p>
-              <p className="text-sm text-gray-600">Get text alerts for important updates</p>
-            </div>
-            <Checkbox />
-          </div>
-
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div>
-              <p className="font-medium text-gray-900">Marketing Communications</p>
-              <p className="text-sm text-gray-600">Receive promotional offers and news</p>
-            </div>
-            <Checkbox defaultChecked />
-          </div>
+        <div className="space-y-1">
+          <Form {...profileForm}>
+            <form onSubmit={handleProfileSubmit}>
+              <FormField
+                control={profileForm.control}
+                name="marketing_notifications"
+                render={({ field }) => (
+                  <div className="flex items-center justify-between py-5 border-b border-gray-50">
+                    <div className="max-w-md">
+                      <p className="font-semibold text-gray-900 text-sm mb-0.5">Marketing & Offers</p>
+                      <p className="text-xs text-gray-400 font-medium">Stay updated with promotional offers and platform news</p>
+                    </div>
+                    <Checkbox 
+                      checked={field.value} 
+                      onCheckedChange={field.onChange}
+                      className="w-6 h-6 rounded-lg border-gray-200" 
+                    />
+                  </div>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="email_notifications"
+                render={({ field }) => (
+                  <div className="flex items-center justify-between py-5 border-b border-gray-50">
+                    <div className="max-w-md">
+                      <p className="font-semibold text-gray-900 text-sm mb-0.5">Email Notifications</p>
+                      <p className="text-xs text-gray-400 font-medium">Receive updates about your ads and messages via email</p>
+                    </div>
+                    <Checkbox 
+                      checked={field.value} 
+                      onCheckedChange={field.onChange}
+                      className="w-6 h-6 rounded-lg border-gray-200" 
+                    />
+                  </div>
+                )}
+              />
+              <FormField
+                control={profileForm.control}
+                name="sms_notifications"
+                render={({ field }) => (
+                  <div className="flex items-center justify-between py-5">
+                    <div className="max-w-md">
+                      <p className="font-semibold text-gray-900 text-sm mb-0.5">SMS Notifications</p>
+                      <p className="text-xs text-gray-400 font-medium">Get critical alerts directly to your phone via SMS</p>
+                    </div>
+                    <Checkbox 
+                      checked={field.value} 
+                      onCheckedChange={field.onChange}
+                      className="w-6 h-6 rounded-lg border-gray-200" 
+                    />
+                  </div>
+                )}
+              />
+              
+              <div className="mt-8 pt-6 border-t border-gray-50">
+                <Button 
+                  type="submit"
+                  variant="outline" 
+                  className="rounded-full px-8 h-10 text-xs font-semibold border-gray-200 hover:bg-gray-50"
+                  disabled={updateProfile.isPending || profileForm.formState.isSubmitting}
+                >
+                  {updateProfile.isPending || profileForm.formState.isSubmitting ? 'Saving...' : 'Save Preferences'}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </div>
+      </motion.div>
 
-        <div className="flex gap-3 mt-6">
-          <Button variant="primary">Save Preferences</Button>
+      {/* Account Management / Danger Zone */}
+      <motion.div
+        variants={sectionContainer}
+        className="bg-red-50/30 border border-red-100 p-6 sm:p-8 rounded-[32px]"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
+              <X className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold text-red-900 tracking-tight">Deactivate Account</h4>
+              <p className="text-xs text-red-700 font-medium max-w-sm">
+                Once you delete your account, all your data including active listings will be permanently removed.
+              </p>
+            </div>
+          </div>
+          <Button variant="ghost" className="rounded-full px-8 border border-red-200 text-red-600 hover:bg-red-100 hover:text-red-700 font-semibold text-xs transition-colors h-12">
+            Delete Profile
+          </Button>
         </div>
-      </div>
-
-      {/* Danger Zone */}
-      <div className="bg-red-50 border border-red-200 p-6">
-        <h4 className="text-lg font-semibold text-red-900 mb-2">Danger Zone</h4>
-        <p className="text-sm text-red-700 mb-4">
-          Once you delete your account, there is no going back. Please be certain.
-        </p>
-        <Button variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-100">
-          Delete Account
-        </Button>
-      </div>
+      </motion.div>
     </div>
   )
 }

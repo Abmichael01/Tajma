@@ -12,6 +12,10 @@ import {
   ChevronRight as LucideChevronRight,
   Globe2,
   MapPin,
+  AlertCircle,
+  ShieldCheck,
+  Star,
+  MousePointer2,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
@@ -41,6 +45,12 @@ const menuItems = [
     isAnimated: true,
   },
   {
+    label: "Leads",
+    href: "/admin/leads",
+    icon: MousePointer2,
+    isAnimated: false,
+  },
+  {
     label: "Categories",
     href: "/admin/categories",
     icon: Folders,
@@ -68,6 +78,24 @@ const menuItems = [
     label: "Messages",
     href: "/admin/messages",
     icon: Mail,
+    isAnimated: false,
+  },
+  {
+    label: "Reports",
+    href: "/admin/reports",
+    icon: AlertCircle,
+    isAnimated: false,
+  },
+  {
+    label: "KYC Requests",
+    href: "/admin/kyc",
+    icon: ShieldCheck,
+    isAnimated: false,
+  },
+  {
+    label: "Reviews",
+    href: "/admin/reviews",
+    icon: Star,
     isAnimated: false,
   },
   {

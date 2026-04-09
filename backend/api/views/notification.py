@@ -20,6 +20,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     - Destroy: Delete notification
     """
     
+    csrf_exempt = True
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
     
@@ -127,3 +128,12 @@ class NotificationViewSet(viewsets.ModelViewSet):
         
         return Response({'count': count})
 
+    @action(detail=False, methods=['delete', 'post'])
+    def clear_all(self, request):
+        """Delete all notifications for current user"""
+        count = Notification.objects.filter(recipient=request.user).delete()[0]
+        
+        return Response({
+            'message': f'{count} notifications deleted',
+            'count': count
+        }, status=status.HTTP_200_OK)

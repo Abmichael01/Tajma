@@ -7,7 +7,9 @@ import { useAdReviews, useMarkReviewHelpful } from '@/hooks/useReviews'
 import { useAuthStore } from '@/store/authStore'
 import type { Review, ReviewStats } from '@/api/types'
 import { getUserInitials } from '@/utils/user'
+import { getMediaUrl } from '@/lib/utils'
 import ReviewForm from './ReviewForm'
+
 
 interface ReviewsSectionProps {
   adId: string
@@ -98,7 +100,7 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
 
   if (isLoading) {
     return (
-      <div className="bg-white border border-gray-200 p-6">
+      <div className="bg-white border border-gray-200 p-6 rounded-3xl">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-gray-200 rounded w-1/3"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2"></div>
@@ -108,7 +110,7 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
   }
 
   return (
-    <div className="bg-white border border-gray-200 p-6">
+    <div className="bg-white border border-gray-200 p-6 rounded-3xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -127,7 +129,7 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
         {canReview && (
           <button 
             onClick={() => setShowReviewForm(true)}
-            className="text-sm text-primary hover:text-primary/80 font-medium"
+            className="text-sm text-primary hover:text-primary/80 font-medium px-4 py-1.5 rounded-full hover:bg-primary/5 transition-colors"
           >
             Write a Review
           </button>
@@ -149,7 +151,7 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
 
       {/* Rating Breakdown */}
       {stats.total_reviews > 0 && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="mb-6 p-4 bg-gray-50 rounded-3xl">
           <h4 className="font-medium text-gray-900 mb-3">Rating Breakdown</h4>
           <div className="space-y-2">
             {[5, 4, 3, 2, 1].map((rating) => {
@@ -190,9 +192,10 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
                   {/* Avatar */}
                   <Avatar className="w-10 h-10 flex-shrink-0">
                     <AvatarImage 
-                      src={review.reviewer_avatar || review.reviewer?.avatar || undefined} 
+                      src={getMediaUrl(review.reviewer_avatar || review.reviewer?.avatar)} 
                       alt={review.reviewer_name || review.reviewer?.full_name || 'User'} 
                     />
+
                     <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
                       {review.reviewer 
                         ? (review.reviewer.first_name && review.reviewer.last_name
@@ -210,11 +213,6 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
                       <h4 className="font-medium text-gray-900">
                         {review.reviewer_name || review.reviewer.full_name}
                       </h4>
-                      {review.is_verified_purchase && (
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                          Verified Purchase
-                        </span>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-2 mb-2">
@@ -232,7 +230,7 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
                       <button
                         onClick={() => toggleHelpful(review.id)}
                         disabled={markHelpful.isPending}
-                        className="flex items-center gap-1 text-sm transition-colors text-gray-500 hover:text-primary disabled:opacity-50"
+                        className="flex items-center gap-1 text-sm transition-colors text-gray-500 hover:text-primary disabled:opacity-50 px-3 py-1 rounded-full hover:bg-gray-100"
                       >
                         <ThumbsUp className="w-4 h-4" />
                         <span>Helpful</span>
@@ -252,7 +250,7 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
             <div className="mt-6 text-center">
               <button
                 onClick={() => setShowAll(!showAll)}
-                className="text-primary hover:text-primary/80 font-medium"
+                className="text-primary hover:text-primary/80 font-medium px-6 py-2 rounded-full border border-primary/20 hover:border-primary/40 transition-all"
               >
                 {showAll ? 'Show Less' : `Show All ${stats.total_reviews} Reviews`}
               </button>
@@ -276,7 +274,7 @@ export default function ReviewsSection({ adId, reviewStats, isOwner = false }: R
               {canReview && (
                 <button 
                   onClick={() => setShowReviewForm(true)}
-                  className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+                  className="bg-primary text-primary-foreground px-6 py-2 rounded-full hover:bg-primary/90 transition-colors"
                 >
                   Write First Review
                 </button>

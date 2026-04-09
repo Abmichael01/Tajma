@@ -4,16 +4,15 @@ import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
 import { Ad } from "@/api/types";
 
+import { resolveImageUrl } from "@/utils/imageUtils";
+
 interface HorizontalAdCardProps {
   ad: Ad;
   showStatus?: boolean;
 }
 
 export default function HorizontalAdCard({ ad, showStatus = false }: HorizontalAdCardProps) {
-  const imageUrl =
-    ad.images && ad.images.length > 0
-      ? ad.images[0]
-      : "https://via.placeholder.com/400x300?text=No+Image";
+  const imageUrl = resolveImageUrl(ad.images?.[0] || null) || "https://via.placeholder.com/400x300?text=No+Image";
 
   const formattedPrice = ad.price
     ? `${ad.currency || "Fr"} ${parseFloat(String(ad.price)).toLocaleString()}`
@@ -31,7 +30,7 @@ export default function HorizontalAdCard({ ad, showStatus = false }: HorizontalA
   return (
     <Link href={`/ads/${ad.slug || ad.id}`} asChild>
       <TouchableOpacity
-        className="flex-row bg-white rounded-2xl mb-3 overflow-hidden border border-gray-100 shadow-sm"
+        className="flex-row bg-white rounded-xl mb-3 overflow-hidden border border-gray-100"
         activeOpacity={0.7}
       >
         {/* Image Section */}

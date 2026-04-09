@@ -60,6 +60,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     website = models.URLField(blank=True)
     bio = models.TextField(blank=True)
     
+    # Notification Preferences
+    email_notifications = models.BooleanField(default=True)
+    sms_notifications = models.BooleanField(default=False)
+    marketing_notifications = models.BooleanField(default=True)
+    fcm_device_token = models.CharField(max_length=255, blank=True, null=True)
+    
     # Status fields
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

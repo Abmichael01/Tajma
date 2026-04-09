@@ -151,6 +151,104 @@ export interface AdminMessage {
   read_at?: string | null
 }
 
+export interface AdminReport {
+  id: string
+  reporter?: number | null
+  reporter_details?: {
+    id: number
+    email: string
+    full_name?: string
+  } | null
+  report_type: 'ad' | 'user' | 'support' | 'feedback'
+  related_ad?: string | null
+  related_ad_details?: {
+    id: string
+    title: string
+  } | null
+  reported_user?: number | null
+  reported_user_details?: {
+    id: number
+    email: string
+  } | null
+  reason: string
+  description: string
+  contact_email?: string | null
+  reporter_email?: string | null
+  status: 'pending' | 'under_review' | 'resolved' | 'dismissed'
+  resolution_note?: string | null
+  resolved_at?: string | null
+  resolved_by?: number | null
+  resolved_by_details?: {
+    id: number
+    email: string
+  } | null
+  messages?: any[]
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminKYC {
+  id: string
+  user: number
+  user_details?: {
+    id: number
+    email: string
+    full_name?: string
+  } | null
+  job_id: string
+  smile_user_id: string
+  document_type?: string | null
+  country: string
+  status: 'pending' | 'completed' | 'failed'
+  result?: 'verified' | 'rejected' | 'unclear' | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminReview {
+  id: number
+  ad: string
+  ad_title?: string | null
+  reviewer: {
+    id: number
+    email: string
+    full_name?: string
+    avatar?: string | null
+  }
+  rating: number
+  comment: string
+  helpful_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface AdminLead {
+  id: string
+  seller: number
+  client: number
+  client_detail: {
+    id: number
+    email: string
+    full_name?: string
+    avatar?: string | null
+  }
+  ad: string | null
+  ad_detail: {
+    id: string
+    title: string
+  } | null
+  first_source: string
+  first_source_display: string
+  last_source: string
+  last_source_display: string
+  sources_used: string[]
+  interaction_count: number
+  messaged: boolean
+  ignored: boolean
+  created_at: string
+  last_interacted_at: string
+}
+
 // Admin API functions
 export const adminApi = {
   // Statistics
@@ -303,6 +401,77 @@ export const adminApi = {
 
   deleteMessage: async (id: string): Promise<void> => {
     await apiClient.delete(`/admin/messages/${id}/`)
+  },
+
+  // Reports
+  getReports: async (params?: {
+    page?: number
+    search?: string
+    status?: string
+    report_type?: string
+    reason?: string
+  }): Promise<PaginatedResponse<AdminReport>> => {
+    const response = await apiClient.get('/admin/reports/', { params })
+    return response.data
+  },
+
+  resolveReport: async (id: string, resolution_note: string): Promise<void> => {
+    await apiClient.post(`/admin/reports/${id}/resolve/`, { resolution_note })
+  },
+
+  deleteReport: async (id: string): Promise<void> => {
+    await apiClient.delete(`/admin/reports/${id}/`)
+  },
+  
+  replyReport: async (id: string, message: string): Promise<any> => {
+    const response = await apiClient.post(`/admin/reports/${id}/reply/`, { message })
+    return response.data
+  },
+
+  // KYC
+  getKYCs: async (params?: {
+    page?: number
+    search?: string
+    status?: string
+    result?: string
+  }): Promise<PaginatedResponse<AdminKYC>> => {
+    const response = await apiClient.get('/admin/kyc/', { params })
+    return response.data
+  },
+
+  approveKYC: async (id: string): Promise<void> => {
+    await apiClient.post(`/admin/kyc/${id}/approve/`)
+  },
+
+  rejectKYC: async (id: string, reason: string): Promise<void> => {
+    await apiClient.post(`/admin/kyc/${id}/reject/`, { reason })
+  },
+
+  // Reviews
+  getReviews: async (params?: {
+    page?: number
+    search?: string
+    rating?: number
+  }): Promise<PaginatedResponse<AdminReview>> => {
+    const response = await apiClient.get('/admin/reviews/', { params })
+    return response.data
+  },
+
+  deleteReview: async (id: number): Promise<void> => {
+    await apiClient.delete(`/admin/reviews/${id}/`)
+  },
+
+  // Leads
+  getLeads: async (params?: {
+    page?: number
+    search?: string
+    first_source?: string
+    last_source?: string
+    messaged?: boolean
+    ignored?: boolean
+  }): Promise<PaginatedResponse<AdminLead>> => {
+    const response = await apiClient.get('/admin/leads/', { params })
+    return response.data
   },
 }
 

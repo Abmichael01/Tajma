@@ -15,7 +15,7 @@ export function transformBackendAdToFrontend(backendAd: BackendAd): FrontendAd {
         : parseFloat(String(backendAd.price))
       
       if (!isNaN(priceValue) && priceValue > 0) {
-        formattedPrice = `${backendAd.currency || 'Fr'} ${Math.floor(priceValue).toLocaleString()}`
+        formattedPrice = `${backendAd.currency || 'XOF'} ${Math.floor(priceValue).toLocaleString()}`
       }
     } catch (e) {
       console.warn('Error formatting price:', e, backendAd.price)

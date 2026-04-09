@@ -40,35 +40,35 @@ export default function ReviewStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">Review</h2>
+        <h2 className="text-lg font-medium text-gray-900">Review</h2>
         <p className="text-sm text-gray-600 mt-1">Review your listing before publishing</p>
       </div>
 
       <div className=" ">
-        <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <h3 className="text-base font-medium text-gray-900 mb-4 flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-secondary" />
           Review Your {formData.adType === 'cv' ? 'CV Post' : formData.adType === 'service' ? 'Service Listing' : 'Ad'}
         </h3>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="border border-gray-200 p-4 sm:col-span-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Category</p>
-            <p className="text-base text-gray-900">
+          <div className="border border-gray-200 p-5 rounded-2xl bg-gray-50/30">
+            <p className="text-[10px] font-medium text-gray-400 mb-1">Category</p>
+            <p className="text-base font-medium text-gray-900">
               {categoryPath.length > 0
                 ? categoryPath.map((node) => node.name).join(' / ')
                 : selectedCategoryLabel || 'Not selected'}
             </p>
           </div>
 
-          <div className="border border-gray-200 p-4 sm:col-span-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Title</p>
-            <p className="text-base text-gray-900">{formData.title}</p>
+          <div className="border border-gray-200 p-5 rounded-2xl bg-gray-50/30 sm:col-span-2">
+            <p className="text-[10px] font-medium text-gray-400 mb-1">Title</p>
+            <p className="text-base font-medium text-gray-900">{formData.title}</p>
           </div>
 
           {formData.price && (
-            <div className="border border-gray-200 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Price</p>
-              <p className="text-base text-gray-900">
+            <div className="border border-gray-200 p-5 rounded-2xl bg-gray-50/30">
+              <p className="text-[10px] font-medium text-gray-400 mb-1">Price</p>
+              <p className="text-base font-medium text-gray-900">
                 Fr {parseInt(formData.price, 10).toLocaleString()}{' '}
                 {formData.isNegotiable && (
                   <span className="text-sm text-gray-500">(Negotiable)</span>
@@ -78,16 +78,16 @@ export default function ReviewStep({
           )}
 
           {formData.adType !== 'cv' && (
-            <div className="border border-gray-200 p-4 sm:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Images</p>
+            <div className="border border-gray-200 p-5 rounded-[2rem] bg-gray-50/30 sm:col-span-2">
+              <p className="text-[10px] font-medium text-gray-400 mb-3">Images</p>
               {formData.images && formData.images.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {imagePreviews.map((preview: string, index: number) => (
-                    <div key={index} className="relative aspect-square">
+                    <div key={index} className="relative aspect-square rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
                       <img
                         src={preview}
                         alt={`Preview ${index + 1}`}
-                        className="w-full h-full object-cover border border-gray-200"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   ))}
@@ -99,26 +99,26 @@ export default function ReviewStep({
           )}
 
           {formData.adType === 'cv' && (
-            <div className="border border-gray-200 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">CV File</p>
-              <p className="text-base text-gray-900">
+            <div className="border border-gray-200 p-5 rounded-2xl bg-gray-50/30">
+              <p className="text-[10px] font-medium text-gray-400 mb-1">CV File</p>
+              <p className="text-base font-medium text-gray-900">
                 {formData.cv_file?.name || formData.existingCvFileName || 'Not uploaded'}
               </p>
             </div>
           )}
 
           {formData.description && (
-            <div className="border border-gray-200 p-4 sm:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Description</p>
-              <p className="text-sm text-gray-900 whitespace-pre-wrap">{formData.description}</p>
+            <div className="border border-gray-200 p-5 rounded-[2rem] bg-gray-50/30 sm:col-span-2">
+              <p className="text-[10px] font-medium text-gray-400 mb-2">Description</p>
+              <p className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">{formData.description}</p>
             </div>
           )}
 
           {/* Attributes Section */}
           {Object.keys(attributes).length > 0 && (
-            <div className="border border-gray-200 p-4 sm:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">Attributes</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="border border-gray-200 p-5 rounded-[2rem] bg-gray-50/30 sm:col-span-2">
+              <p className="text-[10px] font-medium text-gray-400 mb-4">Attributes</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {Object.entries(attributes).map(([key, value]) => {
                   // Skip cv_file_name as it's already shown in CV File section
                   if (key === 'cv_file_name') return null
@@ -139,15 +139,16 @@ export default function ReviewStep({
                     // Handle array of objects (for array type fields)
                     if (value.length > 0 && typeof value[0] === 'object') {
                       displayValue = (
-                        <div className="space-y-2">
+                        <div className="space-y-3 mt-1">
                           {value.map((item: any, idx: number) => (
-                            <div key={idx} className="text-sm text-gray-700 border-l-2 border-secondary/30 pl-2">
+                            <div key={idx} className="text-xs text-gray-700 bg-white border border-gray-100 p-3 rounded-xl">
                               {Object.entries(item).map(([k, v]) => {
                                 const childField = fieldConfig?.children?.find(f => f.name === k)
                                 const childLabel = childField?.label || k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
                                 return (
-                                  <div key={k} className="text-xs">
-                                    <span className="font-medium">{childLabel}:</span> {String(v || 'N/A')}
+                                  <div key={k} className="flex justify-between items-center py-1 border-b border-gray-50 last:border-0">
+                                    <span className="font-medium text-gray-400">{childLabel}</span> 
+                                    <span className="font-medium text-gray-900">{String(v || '—')}</span>
                                   </div>
                                 )
                               })}
@@ -166,9 +167,9 @@ export default function ReviewStep({
                   }
                   
                   return (
-                    <div key={key} className="border-l-2 border-secondary/20 pl-3 py-1">
-                      <p className="text-xs font-medium text-gray-600 mb-1">{label}</p>
-                      <p className="text-sm text-gray-900">{displayValue}</p>
+                    <div key={key} className="bg-white border border-gray-100 p-4 rounded-xl shadow-sm">
+                      <p className="text-[10px] font-medium text-gray-400 mb-1">{label}</p>
+                      <p className="text-sm font-medium text-gray-900">{displayValue}</p>
                     </div>
                   )
                 })}
@@ -178,16 +179,18 @@ export default function ReviewStep({
         </div>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 p-4">
-        <div className="flex gap-3">
-          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-900">
-            <p className="font-medium mb-1">Before you post:</p>
-            <ul className="list-disc list-inside space-y-1 text-xs">
-              <li>Ensure all information is accurate and complete</li>
-              <li>Check that your profile contact details are up to date</li>
-              <li>Make sure images are clear and relevant</li>
-              <li>Review our posting guidelines and terms</li>
+      <div className="bg-gray-50 border border-gray-200 p-6 rounded-[2rem]">
+        <div className="flex gap-4">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+             <Info className="w-5 h-5" />
+          </div>
+          <div className="text-sm text-gray-600">
+            <p className="font-medium text-gray-900 mb-2">Before you post:</p>
+            <ul className="space-y-1.5 text-xs">
+              <li className="flex items-center gap-2">• Ensure all information is accurate and complete</li>
+              <li className="flex items-center gap-2">• Check that your profile contact details are up to date</li>
+              <li className="flex items-center gap-2">• Make sure images are clear and relevant</li>
+              <li className="flex items-center gap-2">• Review our posting guidelines and terms</li>
             </ul>
           </div>
         </div>

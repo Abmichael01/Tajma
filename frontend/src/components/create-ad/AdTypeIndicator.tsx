@@ -18,7 +18,7 @@ export default function AdTypeIndicator({ adType }: AdTypeIndicatorProps) {
   const { icon: Icon, label, color } = config[adType]
   
   return (
-    <div className={`inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-sm font-medium ${color}`}>
+    <div className={`inline-flex items-center gap-2 px-4 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-sm font-medium ${color}`}>
       <Icon className="w-4 h-4" />
       {label}
     </div>

@@ -1,11 +1,13 @@
-"use client"
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, X, Clock, TrendingUp } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Search, X, Clock, Loader2, DollarSign, Tag } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { adsApi } from '@/api/ads'
+import { Ad } from '@/api/types'
+import { getMediaUrl } from '@/lib/utils'
+import Image from 'next/image'
 
 interface SearchModalProps {
   isOpen: boolean
@@ -13,39 +15,57 @@ interface SearchModalProps {
 }
 
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [recentSearches, setRecentSearches] = useState<string[]>([])
-  const router = useRouter()
+  const [suggestions, setSuggestions] = useState<Ad[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Load recent searches from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('recentSearches')
     if (saved) {
       setRecentSearches(JSON.parse(saved))
     }
-  }, [isOpen])
+  }, [])
 
-  const popularSearches = [
-    'iPhone 15 Pro',
-    'Toyota Camry',
-    'Apartment in Lekki',
-    'Software Developer',
-    'Wedding Dress',
-    'Gaming Laptop'
-  ]
+  // Live Suggestions Logic
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    if (searchQuery.trim().length < 2) {
+      setSuggestions([])
+      setIsSearching(false)
+      return
+    }
+
+    setIsSearching(true)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const results = await adsApi.list({ q: searchQuery, page_size: 5 })
+        setSuggestions(results as Ad[])
+      } catch (error) {
+        console.error('Search error:', error)
+      } finally {
+        setIsSearching(false)
+      }
+    }, 400)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [searchQuery])
 
   const handleSearch = (query: string) => {
     if (!query.trim()) return
-
+    
     // Save to recent searches
-    const updated = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5)
-    setRecentSearches(updated)
-    localStorage.setItem('recentSearches', JSON.stringify(updated))
-
-    // Navigate to search page
-    router.push(`/search?q=${encodeURIComponent(query)}`)
+    const newRecent = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5)
+    setRecentSearches(newRecent)
+    localStorage.setItem('recentSearches', JSON.stringify(newRecent))
+    
     onClose()
-    setSearchQuery('')
+    router.push(`/search?q=${encodeURIComponent(query)}`)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -53,117 +73,132 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     handleSearch(searchQuery)
   }
 
-  const clearRecentSearches = () => {
-    setRecentSearches([])
-    localStorage.removeItem('recentSearches')
-  }
-
-  const removeRecentSearch = (query: string) => {
-    const updated = recentSearches.filter(s => s !== query)
-    setRecentSearches(updated)
-    localStorage.setItem('recentSearches', JSON.stringify(updated))
+  const removeRecent = (query: string) => {
+    const newRecent = recentSearches.filter(s => s !== query)
+    setRecentSearches(newRecent)
+    localStorage.setItem('recentSearches', JSON.stringify(newRecent))
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 custom-scrollbar max-h-[85vh]">
-        <DialogHeader className="p-4 sm:p-6 pb-0">
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">
-            What are you looking for?
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="p-4 sm:p-6">
+    <ResponsiveModal 
+      isOpen={isOpen} 
+      onClose={onClose}
+      title="What are you looking for?"
+      className="max-w-2xl"
+    >
+        <div className="py-2">
           {/* Search Input */}
           <form onSubmit={handleSubmit} className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="relative group">
               <Input
-                type="text"
-                placeholder="Search for anything..."
+                autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 py-6 text-base"
-                autoFocus
+                placeholder="Search for items, brands..."
+                className="h-14 pl-14 pr-4 text-lg rounded-2xl border-gray-200 focus:border-primary/30 transition-all shadow-sm"
               />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
+              <div className="absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
+                {isSearching ? (
+                   <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Search className="w-5 h-5" />
+                )}
+              </div>
             </div>
           </form>
 
-          {/* Recent Searches */}
-          {recentSearches.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                  <Clock className="w-4 h-4" />
-                  Recent Searches
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearRecentSearches}
-                  className="text-xs text-secondary hover:text-secondary"
-                >
-                  Clear All
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {recentSearches.map((query, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between gap-2 p-2 hover:bg-gray-50 group cursor-pointer"
-                    onClick={() => handleSearch(query)}
-                  >
-                    <div className="flex items-center gap-2 flex-1">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-700">{query}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        removeRecentSearch(query)
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 transition-opacity"
-                    >
-                      <X className="w-4 h-4 text-gray-500" />
-                    </button>
+          <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            {/* Live Suggestions */}
+            {searchQuery.trim().length >= 2 && (
+              <div>
+                <h3 className="text-[10px] font-black text-gray-400 mb-4 flex items-center gap-2 uppercase tracking-[0.2em]">
+                  <Tag className="w-3.5 h-3.5" />
+                  Product Suggestions
+                </h3>
+                
+                {suggestions.length > 0 ? (
+                  <div className="space-y-3">
+                    {suggestions.map((ad) => (
+                      <button
+                        key={ad.id}
+                        onClick={() => {
+                          onClose()
+                          router.push(`/ads/${ad.slug}`)
+                        }}
+                        className="w-full flex items-center gap-4 p-3 rounded-2xl border border-gray-100 hover:border-primary/20 hover:bg-primary/5 transition-all text-left group"
+                      >
+                        <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                          {ad.images?.[0] ? (
+                            <Image
+                              src={getMediaUrl(ad.images[0])}
+                              alt={ad.title}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <Tag className="w-6 h-6" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-gray-900 text-sm truncate group-hover:text-primary transition-colors">
+                            {ad.title}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-primary font-black text-xs">
+                              {ad.currency} {ad.price ? Number(ad.price).toLocaleString() : 'Negotiable'}
+                            </span>
+                            {ad.category_details?.name && (
+                              <span className="text-[10px] text-gray-400 font-medium truncate">
+                                • {ad.category_details.name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                ))}
+                ) : !isSearching ? (
+                  <div className="py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                    <p className="text-sm text-gray-400 font-medium">No direct matches found</p>
+                    <p className="text-[10px] text-gray-300 mt-1">Try a different keyword or check categories</p>
+                  </div>
+                ) : null}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Popular Searches */}
-          <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-3">
-              <TrendingUp className="w-4 h-4" />
-              Popular Searches
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {popularSearches.map((query, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => handleSearch(query)}
-                  className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-secondary/10 hover:text-secondary border border-gray-200 hover:border-secondary/30 transition-colors"
-                >
-                  {query}
-                </button>
-              ))}
-            </div>
+            {/* Recent Searches - Only show if no suggestions */}
+            {searchQuery.trim().length < 2 && recentSearches.length > 0 && (
+              <div>
+                <h3 className="text-[10px] font-black text-gray-400 mb-4 flex items-center gap-2 uppercase tracking-[0.2em]">
+                  <Clock className="w-3.5 h-3.5" />
+                  Recent Searches
+                </h3>
+                <div className="flex flex-col gap-1">
+                  {recentSearches.map((query) => (
+                    <div key={query} className="flex items-center justify-between group">
+                      <button
+                        onClick={() => handleSearch(query)}
+                        className="flex-1 text-left py-3 px-4 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors flex items-center gap-3"
+                      >
+                        <Clock className="w-4 h-4 text-gray-300" />
+                        <span className="text-sm font-medium">{query}</span>
+                      </button>
+                      <button 
+                        onClick={() => removeRecent(query)}
+                        className="p-3 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+    </ResponsiveModal>
   )
 }
 

@@ -10,6 +10,8 @@ import { getUserFullName } from '@/utils/user'
 import { leadsApi } from '@/api/leads'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
+import { getMediaUrl } from '@/lib/utils'
+
 
 interface AdSellerInfoProps {
   seller: User & { response_stats?: ResponseStats }
@@ -49,13 +51,14 @@ export default function AdSellerInfo({
   }
 
   return (
-    <div className={`bg-white border border-gray-200 p-4 sm:p-6 ${className}`}>
+    <div className={`bg-white border border-gray-200 p-4 sm:p-6 rounded-3xl ${className}`}>
       <h3 className="font-semibold text-gray-900 mb-4">Seller Information</h3>
 
       <div className="flex items-center gap-3 mb-4">
         {seller.avatar ? (
           <Image
-            src={seller.avatar}
+            src={getMediaUrl(seller.avatar)}
+
             alt={sellerName}
             width={48}
             height={48}

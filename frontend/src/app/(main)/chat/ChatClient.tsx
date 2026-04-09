@@ -13,6 +13,7 @@ import { chatApi } from '@/api/chat'
 import type { ChatMessage, ChatSummary, User, UserOnlineStatus } from '@/api/types'
 import { useQueryClient } from '@tanstack/react-query'
 import { useChatSounds } from '@/hooks/useChatSounds'
+import { toast } from 'sonner'
 
 function ChatClientContent() {
   const router = useRouter()
@@ -50,8 +51,8 @@ function ChatClientContent() {
     isFetchingNextPage,
   } = useChatMessages(activeConversationId)
 
-  // Flatten all pages into a single array
-  const messages: ChatMessage[] = useMemo(() => {
+  // Flatten all pages into a single array and group by date
+  const messages = useMemo(() => {
     if (!messagesData?.pages || !Array.isArray(messagesData.pages)) return []
 
     // Combine all pages and sort by created_at (oldest first)
@@ -61,10 +62,27 @@ function ChatClientContent() {
 
     if (!Array.isArray(allMessages) || allMessages.length === 0) return []
 
-    return allMessages.sort((a, b) => {
+    const sortedMessages = allMessages.sort((a, b) => {
       if (!a?.created_at || !b?.created_at) return 0
       return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     })
+
+    const items: any[] = []
+    let lastDate: string | null = null
+
+    for (let i = 0; i < sortedMessages.length; i++) {
+      const msg = sortedMessages[i]
+      const dateObj = new Date(msg.created_at)
+      const dateStr = dateObj.toDateString()
+
+      if (dateStr !== lastDate) {
+        items.push({ type: 'date', date: dateStr, id: `date-${msg.id}` })
+        lastDate = dateStr
+      }
+      items.push(msg)
+    }
+
+    return items
   }, [messagesData])
 
   // Note: No refetch needed - WebSocket updates messages cache for ALL chats (WhatsApp pattern)
@@ -221,7 +239,7 @@ function ChatClientContent() {
     router.push(`/chat?id=${conversationId}`, { scroll: false })
   }
 
-  const handleSendMessage = useCallback(async (content: string) => {
+  const handleSendMessage = useCallback(async (content: string, parentMessageId?: string) => {
     if (!activeConversationId || !content.trim() || !isConnected) {
       if (!isConnected) {
         console.warn('Cannot send message: WebSocket not connected')
@@ -249,6 +267,20 @@ function ChatClientContent() {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       send_failed: false,
+      parent_message: parentMessageId ? (() => {
+        const allMsgs = messages.filter((m): m is ChatMessage => !('type' in m))
+        const pm = allMsgs.find(m => String(m.id) === parentMessageId)
+        return pm ? {
+          id: pm.id,
+          content: pm.content,
+          message_type: pm.message_type,
+          sender: pm.sender,
+        } : {
+          id: parentMessageId,
+          content: '...',
+          message_type: 'text',
+        }
+      })() : null,
     }
 
     if (isRecipientOnline) {
@@ -348,7 +380,7 @@ function ChatClientContent() {
         throw new Error('WebSocket not connected')
       }
 
-      const sent = sendWebSocketMessage(messageContent)
+      const sent = sendWebSocketMessage(messageContent, parentMessageId)
       if (sent === false) {
         throw new Error('Failed to send message via WebSocket')
       }
@@ -376,9 +408,9 @@ function ChatClientContent() {
             if (m.id === tempId) return false
             const sameContent = String(m.content).trim() === messageContent
             const sameSender = m.sender?.id === user?.id
-            const messageTime = new Date(m.created_at).getTime()
+            const mTime = new Date(m.created_at).getTime()
             const optimisticTime = new Date(optimisticMessage.created_at).getTime()
-            const withinTimeWindow = Math.abs(messageTime - optimisticTime) < 60000 // 60 seconds
+            const withinTimeWindow = Math.abs(mTime - optimisticTime) < 60000 // 60 seconds
             return sameContent && sameSender && withinTimeWindow && !String(m.id).startsWith('temp-')
           })
 
@@ -549,7 +581,7 @@ function ChatClientContent() {
     })
 
     // Resend the message (this will create a new optimistic message)
-    handleSendMessage(message.content)
+    handleSendMessage(message.content, message.parent_message?.id)
   }, [activeConversationId, handleSendMessage, queryClient, isConnected])
 
   const handleTypingChange = useCallback((typing: boolean) => {
@@ -606,6 +638,36 @@ function ChatClientContent() {
   // bottomNavHeight will be 0 on desktop (since bottom nav is hidden with md:hidden)
   const availableHeight = `calc(100vh - ${navbarHeight}px - ${bottomNavHeight}px)`
 
+  const handleDeleteMessages = useCallback(async (messageIds: string[]) => {
+    if (!activeConversationId) return
+
+    try {
+      console.log(`[Delete] Deleting ${messageIds.length} messages:`, messageIds)
+      await chatApi.deleteMessages(messageIds)
+      
+      // Optimistically update the message list
+      queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            results: page.results.filter((msg: ChatMessage) => !messageIds.includes(String(msg.id)))
+          }))
+        }
+      })
+      
+      // Force refresh for both to ensure consistency
+      await queryClient.invalidateQueries({ queryKey: ['messages', activeConversationId] })
+      await queryClient.invalidateQueries({ queryKey: ['chats'] })
+      
+    } catch (error) {
+      console.error('Failed to delete messages:', error)
+      toast.error('Failed to delete messages')
+      queryClient.invalidateQueries({ queryKey: ['messages', activeConversationId] })
+    }
+  }, [activeConversationId, queryClient])
+
   return (
     <div
       className="bg-white fixed inset-x-0 container px-0 md:px-0 overflow-hidden"
@@ -633,9 +695,10 @@ function ChatClientContent() {
 
         {/* Chat Area */}
         <div className={`${showMobileChat ? 'w-full' : 'hidden'} md:flex md:flex-1 flex-col h-full overflow-hidden`}>
-          <ChatArea
-            chat={activeChat}
-            participant={activeParticipant}
+          {activeParticipant ? (
+            <ChatArea
+              chat={activeChat}
+              participant={activeParticipant}
             participantStatus={participantStatus}
             messages={messages}
             isParticipantTyping={isParticipantTyping}
@@ -643,6 +706,7 @@ function ChatClientContent() {
             isLoadingMessages={messagesLoading || isFetchingNextPage}
             hasMoreMessages={hasNextPage || false}
             onSendMessage={handleSendMessage}
+            onDeleteMessages={handleDeleteMessages}
             onSendMedia={async (formData) => {
               if (!activeConversationId || !isConnected) return
 
@@ -716,6 +780,11 @@ function ChatClientContent() {
             }}
             chatId={activeConversationId}
           />
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-[#F2F2F2] text-gray-400">
+              Select a conversation to start chatting
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
       </div>

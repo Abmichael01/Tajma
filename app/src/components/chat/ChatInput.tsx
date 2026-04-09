@@ -243,15 +243,17 @@ export default function ChatInput({
     const startRecording = useCallback(async (autoLock: boolean) => {
         if (isPreparingRef.current || isProcessRef.current || recorder.isRecording) return;
         isPreparingRef.current = true;
-        // Do not force dismiss keyboard; let user record with keyboard up!
-
+        
         try {
+            // Re-request permissions just in case
             const { status } = await requestRecordingPermissionsAsync();
             if (status !== "granted") {
                 Alert.alert("Permission Required", "Microphone access is needed to record voice messages.");
                 resetUI();
                 return;
             }
+
+            // Important: Set audio mode for recording BEFORE preparing
             await setAudioModeAsync({
                 allowsRecording: true,
                 playsInSilentMode: true,
@@ -259,16 +261,22 @@ export default function ChatInput({
                 shouldPlayInBackground: false,
             });
 
+            await recorder.prepareToRecordAsync();
+            
+            // Final check before starting
+            if (isProcessRef.current) {
+                isPreparingRef.current = false;
+                return;
+            }
+
             hStart();
             setIsRecording(true);
             micScale.value = withSpring(1.3, { damping: 10, stiffness: 150 });
 
-            await recorder.prepareToRecordAsync();
             await recorder.record();
             recStartRef.current = Date.now();
 
             if (autoLock) {
-                // Single-tap: snap to locked UI right away
                 setIsLocked(true);
                 isLockedSV.value = true;
                 micScale.value = withSpring(1, { damping: 14 });
@@ -276,7 +284,8 @@ export default function ChatInput({
                 micY.value = withSpring(0);
             }
         } catch (err) {
-            console.error("[ChatInput] startRecording:", err);
+            console.error("[ChatInput] startRecording failed:", err);
+            Alert.alert("Recording Error", "Could not start voice recording. Please try again.");
             resetUI();
         } finally {
             isPreparingRef.current = false;

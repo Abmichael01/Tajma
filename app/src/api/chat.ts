@@ -227,6 +227,10 @@ export const chatApi = {
   muteChat: async (chatId: string, isMuted: boolean): Promise<void> => {
     await apiClient.post(`${basePath}${chatId}/mute/`, { is_muted: isMuted })
   },
+
+  deleteMessages: async (messageIds: string[]): Promise<void> => {
+    await apiClient.post(`${messagesPath}bulk_delete/`, { message_ids: messageIds })
+  },
 }
 
 export type { ChatSummary, ChatDetail, ChatMessage, UserOnlineStatus }

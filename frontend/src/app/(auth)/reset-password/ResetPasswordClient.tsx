@@ -8,11 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Eye, EyeOff, Lock, CheckCircle, Check } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import Logo from '@/components/General/Logo'
+import { authApi } from '@/api/auth'
+import { toast } from 'sonner'
 
 export default function ResetPasswordClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
+  const uid = searchParams.get('uid')
   
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -49,14 +52,33 @@ export default function ResetPasswordClient() {
     e.preventDefault()
     
     if (!validateForm()) return
+    if (!uid || !token) {
+      toast.error('Invalid or missing reset token.')
+      return
+    }
 
     setIsLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      await authApi.confirmPasswordReset({
+        uid,
+        token,
+        new_password1: formData.password,
+        new_password2: formData.confirmPassword
+      })
       setIsSuccess(true)
-    }, 2000)
+      toast.success('Password reset successfully')
+    } catch (err: any) {
+      console.error('Password reset confirmation failed:', err)
+      const message = err.response?.data?.detail || 
+                      err.response?.data?.message || 
+                      Object.values(err.response?.data || {}).flat()[0] as string ||
+                      'Failed to reset password. The link may have expired.'
+      toast.error(message)
+      setErrors({ form: message })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,7 +114,7 @@ export default function ResetPasswordClient() {
   const passwordStrength = getPasswordStrength()
 
   // Check if token is valid (in real app, validate with API)
-  if (!token) {
+  if (!token || !uid) {
     return (
       <div className="w-full flex flex-col justify-center py-12 px-6 lg:px-12 xl:px-16">
         <div className="mx-auto w-full max-w-md">
@@ -103,7 +125,7 @@ export default function ResetPasswordClient() {
           <div className="mt-8">
             <div className="text-center">
               <div className="flex justify-center mb-4">
-                <div className="bg-red-100 p-3">
+                <div className="bg-red-100 p-3 rounded-full">
                   <Lock className="w-12 h-12 text-red-600" />
                 </div>
               </div>
@@ -147,7 +169,7 @@ export default function ResetPasswordClient() {
           <div className="mt-8">
             <div className="text-center">
               <div className="flex justify-center mb-4">
-                <div className="bg-green-100 p-3">
+                <div className="bg-green-100 p-3 rounded-full">
                   <CheckCircle className="w-12 h-12 text-green-600" />
                 </div>
               </div>

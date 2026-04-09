@@ -1,9 +1,10 @@
 from rest_framework import permissions, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from django.db.models import Q, F
+from django.db.models import Q, F, Count
+from rest_framework.decorators import action
 
-from api.models import Ad, AdView, Category
+from api.models import Ad, AdView, Category, SavedAd, SearchQuery
 from api.serializers import AdSerializer
 
 
@@ -21,9 +22,11 @@ class AdViewSet(viewsets.ModelViewSet):
     )
     serializer_class = AdSerializer
     lookup_field = 'slug'
+    from rest_framework.pagination import PageNumberPagination
+    pagination_class = PageNumberPagination
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['list', 'retrieve', 'suggested']:
             permission_classes = [permissions.AllowAny]
         elif self.action in ['create']:
             permission_classes = [permissions.IsAuthenticated]
@@ -164,7 +167,79 @@ class AdViewSet(viewsets.ModelViewSet):
             # If a generic location string is provided, try to match region name
             qs = qs.filter(seller__location__name__icontains=seller_location)
         
+        # Filter by condition (in attributes)
+        condition = self.request.query_params.get('condition')
+        if condition:
+            # Handle list of conditions if provided (e.g., ?condition=new,used)
+            if ',' in condition:
+                conditions = [c.strip() for c in condition.split(',')]
+                condition_q = Q()
+                for c in conditions:
+                    condition_q |= Q(attributes__condition__icontains=c)
+                qs = qs.filter(condition_q)
+            else:
+                qs = qs.filter(attributes__condition__icontains=condition)
+        
         return qs
+
+    @action(detail=False, methods=['get'])
+    def suggested(self, request):
+        """
+        Return suggested ads based on user interests.
+        Heuristic:
+        1. Top categories from AdViews (last 30 days)
+        2. Top categories from SavedAds
+        3. Simple diversity/randomization for fresh discovery
+        """
+        user = request.user
+        interest_categories = []
+
+        if user.is_authenticated:
+            # 1. Get categories from recently viewed ads
+            viewed_cats = (
+                AdView.objects.filter(user=user)
+                .values('ad__category_id')
+                .annotate(count=Count('ad__category_id'))
+                .order_by('-count')[:3]
+            )
+            interest_categories.extend([vc['ad__category_id'] for vc in viewed_cats])
+
+            # 2. Get categories from saved ads
+            saved_cats = (
+                SavedAd.objects.filter(user=user)
+                .values('ad__category_id')
+                .annotate(count=Count('ad__category_id'))
+                .order_by('-count')[:2]
+            )
+            interest_categories.extend([sc['ad__category_id'] for sc in saved_cats])
+            
+            # 3. Get relevant categories from search history
+            recent_searches = SearchQuery.objects.filter(user=user).order_by('-created_at')[:5]
+            for search in recent_searches:
+                matching_cats = Category.objects.filter(
+                    Q(name__icontains=search.query) | Q(slug__icontains=search.query)
+                ).values_list('id', flat=True)
+                interest_categories.extend(list(matching_cats))
+
+        # Distinct categories
+        interest_categories = list(set(interest_categories))
+
+        # Query for ads
+        if interest_categories:
+            # Logic: Ads in interest categories + any recently published promoted ads
+            qs = Ad.objects.filter(
+                Q(category_id__in=interest_categories) | Q(views__gt=50), # Highly viewed as fallback
+                status='published'
+            ).exclude(seller=user if user.is_authenticated else None)
+        else:
+            # Fallback: Just return recent published ads
+            qs = Ad.objects.filter(status='published')
+
+        # Limit and order
+        qs = qs.select_related('seller', 'category').order_by('?')[:12]
+        
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         serializer.save()

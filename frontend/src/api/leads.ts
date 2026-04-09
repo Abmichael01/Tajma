@@ -1,5 +1,6 @@
 import apiClient from './apiClient'
-import { Lead } from './types' // I'll add this to types.ts
+import { Lead, LeadMonthlyStats } from './types'
+export type { Lead, LeadMonthlyStats }
 
 export type LeadSource = 'phone_view' | 'profile_view' | 'save_ad'
 
@@ -25,5 +26,14 @@ export const leadsApi = {
 
     markAsMessaged: async (leadId: string): Promise<void> => {
         await apiClient.patch(`${basePath}${leadId}/mark_messaged/`)
+    },
+
+    markIgnored: async (leadId: string): Promise<void> => {
+        await apiClient.patch(`${basePath}${leadId}/mark_ignored/`)
+    },
+
+    monthlyStats: async (): Promise<LeadMonthlyStats[]> => {
+        const response = await apiClient.get<LeadMonthlyStats[]>(`${basePath}monthly-stats/`)
+        return response.data
     },
 }

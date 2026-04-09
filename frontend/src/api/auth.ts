@@ -9,6 +9,8 @@ import type {
   CSRFResponse,
   ProfileUpdateRequest,
   ProfileUpdateResponse,
+  PasswordResetRequest,
+  PasswordResetConfirmRequest,
 } from './types'
 
 // Auth API functions
@@ -66,6 +68,17 @@ export const authApi = {
   // Update user profile
   updateProfile: async (data: ProfileUpdateRequest): Promise<ProfileUpdateResponse> => {
     const response = await apiClient.patch<ProfileUpdateResponse>('/auth/profile/update/', data)
+    return response.data
+  },
+
+  // Password Reset
+  resetPassword: async (data: PasswordResetRequest): Promise<{ detail: string }> => {
+    const response = await apiClient.post<{ detail: string }>('/auth/password/reset/', data)
+    return response.data
+  },
+
+  confirmPasswordReset: async (data: PasswordResetConfirmRequest): Promise<{ detail: string }> => {
+    const response = await apiClient.post<{ detail: string }>('/auth/password/reset/confirm/', data)
     return response.data
   },
 }

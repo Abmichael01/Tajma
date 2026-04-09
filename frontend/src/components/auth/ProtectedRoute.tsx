@@ -19,26 +19,15 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated, isLoading, user } = useAuthStore()
-  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true)
-
-  // Wait for persisted state to load (Zustand persist needs a moment to hydrate)
-  useEffect(() => {
-    // Give Zustand persist a moment to restore state from localStorage
-    const timer = setTimeout(() => {
-      setIsCheckingAuth(false)
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [])
+  const { isAuthenticated, isLoading, user, hasHydrated } = useAuthStore()
 
   useEffect(() => {
-    // Only redirect if we've finished checking auth and user is not authenticated
-    // Also check if user exists, as persisted state might have user but isAuthenticated might be delayed
-    if (!isCheckingAuth && !isLoading && !isAuthenticated && !user) {
+    // Only redirect if store has hydrated and user is confirmed not authenticated
+    // and we're not currently loading user data from backend
+    if (hasHydrated && !isLoading && !isAuthenticated && !user) {
       router.push(redirectTo)
     }
-  }, [isAuthenticated, isLoading, isCheckingAuth, user, router, redirectTo])
+  }, [isAuthenticated, isLoading, hasHydrated, user, router, redirectTo])
 
   // Determine which loading component to use
   const getLoadingComponent = () => {
@@ -60,7 +49,7 @@ export default function ProtectedRoute({
   }
 
   // Show loading while checking auth or waiting for persisted state to load
-  if (isLoading || isCheckingAuth) {
+  if (isLoading || !hasHydrated) {
     return getLoadingComponent()
   }
 
