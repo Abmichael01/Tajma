@@ -92,14 +92,25 @@ SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 
 # Django Channels Configuration
 if ENVIRONMENT == 'production':
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                "hosts": [(os.getenv('REDIS_HOST', '127.0.0.1'), int(os.getenv('REDIS_PORT', 6379)))],
+    redis_url = os.getenv('REDIS_URL')
+    if redis_url:
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels_redis.core.RedisChannelLayer',
+                'CONFIG': {
+                    "hosts": [redis_url],
+                },
             },
-        },
-    }
+        }
+    else:
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels_redis.core.RedisChannelLayer',
+                'CONFIG': {
+                    "hosts": [(os.getenv('REDIS_HOST', '127.0.0.1'), int(os.getenv('REDIS_PORT', 6379)))],
+                },
+            },
+        }
 else:
     CHANNEL_LAYERS = {
         'default': {

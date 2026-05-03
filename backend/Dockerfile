@@ -27,8 +27,8 @@ RUN pip install poetry>=1.8.0
 # Copy dependency files
 COPY pyproject.toml poetry.lock* ./
 
-# Install dependencies (without dev)
-RUN poetry lock && poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR
+# Install dependencies
+RUN poetry lock && poetry install --no-root --no-interaction --no-ansi && rm -rf $POETRY_CACHE_DIR
 
 # -- Stage 2: Final Runtime --
 FROM python:3.11-slim-bullseye AS runtime
