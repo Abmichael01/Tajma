@@ -65,10 +65,15 @@ class AdViewSet(viewsets.ModelViewSet):
         # Filter by category slug - include all child categories
         category_slug = self.request.query_params.get('category')
         if category_slug:
+            # print(f"DEBUG: Filtering by category slug: {category_slug}")
             try:
-                # Get the category by slug
+                # Get the category by slug (try exact match first, then case-insensitive)
                 category = Category.objects.filter(slug=category_slug, is_active=True).first()
+                if not category:
+                    category = Category.objects.filter(slug__iexact=category_slug, is_active=True).first()
+                
                 if category:
+                    # print(f"DEBUG: Found category: {category.name} (ID: {category.id})")
                     # Get all descendant category IDs (including the category itself)
                     def get_descendant_ids(cat):
                         """Recursively get all descendant category IDs"""
@@ -79,14 +84,20 @@ class AdViewSet(viewsets.ModelViewSet):
                         return ids
                     
                     category_ids = get_descendant_ids(category)
+                    # print(f"DEBUG: Category IDs to filter: {category_ids}")
                     # Filter ads by category or any of its descendants
                     qs = qs.filter(category_id__in=category_ids)
                 else:
+                    # print(f"DEBUG: Category slug '{category_slug}' not found as Category object. Falling back to slug filter.")
                     # Fallback to exact match if category not found
-                    qs = qs.filter(category__slug=category_slug)
-            except Exception:
+                    qs = qs.filter(category__slug__iexact=category_slug)
+            except Exception as e:
+                # print(f"DEBUG: Error in category filtering: {str(e)}")
                 # Fallback to exact match on any error
                 qs = qs.filter(category__slug=category_slug)
+        else:
+            pass
+            # print("DEBUG: No category slug provided in query params.")
         
         # Search filter
         search = self.request.query_params.get('search')
@@ -126,14 +137,25 @@ class AdViewSet(viewsets.ModelViewSet):
             
             qs = qs.filter(search_q)
         
-        # Filter by status
-        status = self.request.query_params.get('status')
-        if status:
-            qs = qs.filter(status=status)
-        elif self.action in ['list', 'retrieve'] and not is_owner_query:
-            # Default to published ads for public list/retrieve, unless owner is viewing their own ads
-            qs = qs.filter(status='published')
-        # If owner is querying their own ads without status filter, show all statuses
+        # Filter by status. Public users may only see published ads; owners can
+        # see their own unpublished ads, and staff can see all statuses.
+        requested_status = self.request.query_params.get('status')
+        user = self.request.user
+        is_staff = bool(user.is_authenticated and user.is_staff)
+        can_view_unpublished = is_staff or is_owner_query
+
+        if requested_status:
+            if can_view_unpublished:
+                qs = qs.filter(status=requested_status)
+            else:
+                qs = qs.filter(status='published')
+        elif self.action in ['list', 'retrieve']:
+            if is_staff:
+                pass
+            elif user.is_authenticated:
+                qs = qs.filter(Q(status='published') | Q(seller=user))
+            else:
+                qs = qs.filter(status='published')
         
         # Filter by price range
         min_price = self.request.query_params.get('min_price')
@@ -241,6 +263,13 @@ class AdViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'])
+    def featured(self, request):
+        """Return only featured ads for homepage/ carousels"""
+        qs = Ad.objects.filter(is_featured=True, status='published').select_related('seller', 'category')[:10]
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         serializer.save()
 
@@ -312,5 +341,4 @@ class AdViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
-
 

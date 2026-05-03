@@ -17,13 +17,13 @@ interface ProfileClientProps {
 }
 
 const getProfileSlug = (profile: User) => {
-  return profile.username || profile.email.split('@')[0]
+  return String(profile.username || profile.id)
 }
 
 export default function ProfileClient({ uid }: ProfileClientProps) {
   const { user, isAuthenticated } = useAuthStore()
   const ownerSlug = useMemo(
-    () => (user ? user.username || user.email.split('@')[0] : null),
+    () => (user ? String(user.username || user.id) : null),
     [user]
   )
   const isOwner = !!(isAuthenticated && ownerSlug && ownerSlug === uid)

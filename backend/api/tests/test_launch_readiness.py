@@ -39,10 +39,9 @@ class LaunchReadinessTest(TestCase):
         """
         env = os.getenv('ENV', 'development')
         if env == 'development':
-            from django.core.files.storage import FileSystemStorage
-            from django.core.files.storage import get_storage_class
-            storage_class = get_storage_class()
-            self.assertTrue(issubclass(storage_class, FileSystemStorage))
+            from django.core.files.storage import FileSystemStorage, storages
+            storage = storages['default']
+            self.assertTrue(isinstance(storage, FileSystemStorage))
 
     def test_well_known_assets_presence(self):
         """Verify the deep link assets are in place (checked via backend test for convenience)"""

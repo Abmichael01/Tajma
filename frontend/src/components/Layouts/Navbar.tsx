@@ -7,6 +7,7 @@ import { Button } from '../ui/button'
 import AuthButton from '../ui/AuthButton'
 import UserDropdown from '../ui/UserDropdown'
 import NotificationDropdown from '../ui/NotificationDropdown'
+import { Skeleton } from '../ui/skeleton'
 import LanguageSwitcher from '../ui/LanguageSwitcher'
 import SearchModal from '../modals/SearchModal'
 import { useRouter } from 'next/navigation'
@@ -51,7 +52,7 @@ export default function Navbar() {
     const favoritesCount = savedAdsData?.count ?? (savedAdsData?.results?.length || 0)
     // Calculate total unread messages from all chats
     const totalUnreadMessages = chats.reduce((total, chat) => total + (chat.unread_count || 0), 0)
-    const profileSlug = user ? (user.username || user.email?.split('@')[0] || 'profile') : 'profile'
+    const profileSlug = user ? (user.username || user.id || 'profile') : 'profile'
 
     // Horizontal scroll shadows for categories bar
     const categoriesScrollRef = useRef<HTMLDivElement | null>(null)
@@ -367,9 +368,14 @@ export default function Navbar() {
                             }}
                         >
                         {categoriesLoading && (
-                            <span className="text-xs sm:text-sm text-gray-400">
-                                Loading categories...
-                            </span>
+                          <div className="flex items-center gap-6 overflow-hidden">
+                            {[...Array(8)].map((_, i) => (
+                              <div key={i} className="flex items-center gap-2 flex-shrink-0">
+                                <Skeleton className="w-7 h-7 rounded-full" />
+                                <Skeleton className="h-4 w-16 sm:w-20 rounded-full" />
+                              </div>
+                            ))}
+                          </div>
                         )}
                         {!categoriesLoading && categoriesError && (
                             <span className="text-xs sm:text-sm text-red-500">

@@ -42,6 +42,27 @@ class MessageSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("File size cannot exceed 20MB.")
         return value
 
+    def validate_chat(self, value):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if not user or not user.is_authenticated:
+            raise serializers.ValidationError("Authentication is required.")
+        if value.participant1_id != user.id and value.participant2_id != user.id:
+            raise serializers.ValidationError("You are not a participant in this chat.")
+        return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        parent_message_id = attrs.get('parent_message_id')
+        chat = attrs.get('chat') or getattr(self.instance, 'chat', None)
+
+        if parent_message_id and chat:
+            if not Message.objects.filter(id=parent_message_id, chat=chat).exists():
+                raise serializers.ValidationError({
+                    'parent_message_id': 'Parent message must belong to the same chat.'
+                })
+        return attrs
+
     def to_representation(self, instance):
         """Ensure UUIDs are converted to strings and attachments have absolute URLs"""
         data = super().to_representation(instance)
@@ -225,4 +246,3 @@ class UserOnlineStatusSerializer(serializers.ModelSerializer):
         model = UserOnlineStatus
         fields = ['user', 'is_online', 'last_seen']
         read_only_fields = ['user', 'is_online', 'last_seen']
-

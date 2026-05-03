@@ -25,13 +25,26 @@ interface ReportAdModalProps {
 
 const reportReasons = [
   { value: 'scam', label: 'Scam or Fraud' },
-  { value: 'fake', label: 'Fake or Counterfeit Items' },
-  { value: 'inappropriate', label: 'Inappropriate Content' },
-  { value: 'spam', label: 'Spam or Duplicate Listing' },
+  { value: 'counterfeit', label: 'Fake or Counterfeit Items' },
+  { value: 'offensive', label: 'Inappropriate Content' },
+  { value: 'spam', label: 'Spam or Harassment' },
+  { value: 'duplicate', label: 'Duplicate Listing' },
+  { value: 'wrong_category', label: 'Wrong Category' },
   { value: 'prohibited', label: 'Prohibited Items' },
-  { value: 'misleading', label: 'Misleading Information' },
   { value: 'other', label: 'Other' },
 ]
+
+const getReportErrorMessage = (error: any) => {
+  const data = error?.response?.data
+  if (data?.error) return data.error
+  if (data?.detail) return data.detail
+  if (data && typeof data === 'object') {
+    const firstValue = Object.values(data)[0]
+    if (Array.isArray(firstValue) && firstValue[0]) return String(firstValue[0])
+    if (typeof firstValue === 'string') return firstValue
+  }
+  return 'Failed to submit report. Please try again later.'
+}
 
 export default function ReportAdModal({ isOpen, onClose, adId, adTitle }: ReportAdModalProps) {
   const [reason, setReason] = useState('')
@@ -79,7 +92,7 @@ export default function ReportAdModal({ isOpen, onClose, adId, adTitle }: Report
       }, 3000)
     } catch (err: any) {
       console.error('Report submission error:', err)
-      setError(err?.response?.data?.error || 'Failed to submit report. Please try again later.')
+      setError(getReportErrorMessage(err))
       setIsLoading(false)
     }
   }

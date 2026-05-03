@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { Bell, BellRing, CheckCircle, XCircle } from 'lucide-react'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 export default function AdminNotificationsPage() {
   const searchParams = useSearchParams()
@@ -33,6 +34,10 @@ export default function AdminNotificationsPage() {
   const { data: stats } = useAdminStats()
   const updateNotification = useUpdateAdminNotification()
   const deleteNotification = useDeleteAdminNotification()
+  
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [notificationToDelete, setNotificationToDelete] = useState<AdminNotification | null>(null)
 
   // Calculate stats
   const notificationsStats = useMemo(() => {
@@ -60,11 +65,16 @@ export default function AdminNotificationsPage() {
   }
 
   const handleDelete = async (notification: AdminNotification) => {
-    if (!confirm(`Are you sure you want to delete this notification?`)) {
-      return
-    }
+    setNotificationToDelete(notification)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!notificationToDelete) return
     try {
-      await deleteNotification.mutateAsync(notification.id)
+      await deleteNotification.mutateAsync(notificationToDelete.id)
+      setShowDeleteDialog(false)
+      setNotificationToDelete(null)
     } catch (error) {
       // Error handled by mutation
     }
@@ -168,7 +178,7 @@ export default function AdminNotificationsPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
             value={isReadFilter || 'all'}
@@ -237,6 +247,16 @@ export default function AdminNotificationsPage() {
             {notification.is_read ? 'Mark Unread' : 'Mark Read'}
           </button>
         )}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title="Delete Notification?"
+        description="Are you sure you want to delete this notification? This action cannot be undone and will remove the record permanently."
+        isLoading={deleteNotification.isPending}
       />
     </div>
   )

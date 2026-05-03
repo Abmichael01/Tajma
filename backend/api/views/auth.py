@@ -161,46 +161,22 @@ class ProfileUpdateView(APIView):
     
     def patch(self, request):
         """Update user profile (partial update)"""
-        print("=" * 50)
-        print("🔵 ProfileUpdateView.patch() called")
-        print(f"🔵 Request method: {request.method}")
-        print(f"🔵 Content-Type: {request.content_type}")
-        print(f"🔵 User: {request.user.email if request.user.is_authenticated else 'Anonymous'}")
-        print(f"🔵 request.FILES keys: {list(request.FILES.keys())}")
-        print(f"🔵 request.data keys: {list(request.data.keys())}")
-        
         # Handle FormData file uploads - process file uploads before serializer
         data = request.data.copy()
         
         # If avatar is in request.FILES (FormData upload), process it first
         if 'avatar' in request.FILES:
-            print("📁 Avatar file found in request.FILES")
             uploaded_file = request.FILES['avatar']
-            print(f"📁 File name: {uploaded_file.name}")
-            print(f"📁 File size: {uploaded_file.size} bytes")
-            print(f"📁 Content type: {uploaded_file.content_type}")
             try:
                 # Save uploaded file and get path
-                print("💾 Saving uploaded file...")
                 saved_path = save_uploaded_file(uploaded_file, folder='avatars')
-                print(f"✅ File saved to: {saved_path}")
                 # Pass the saved path to serializer (it will handle it as URL/path)
                 data['avatar'] = saved_path
-                print(f"📝 Set data['avatar'] = {saved_path}")
             except Exception as e:
-                print(f"❌ Error saving uploaded file: {str(e)}")
-                import traceback
-                traceback.print_exc()
                 return Response(
                     {'avatar': [f'Failed to process avatar file: {str(e)}']},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-        else:
-            print("⚠️ No avatar file in request.FILES")
-            if 'avatar' in request.data:
-                print(f"📝 Avatar in request.data: {type(request.data['avatar'])}")
-        
-        print(f"📝 Data to serialize: {data}")
         serializer = UserUpdateSerializer(
             request.user,
             data=data,
@@ -225,10 +201,6 @@ class ProfileUpdateView(APIView):
                 },
                 status=status.HTTP_200_OK
             )
-        import os
-        with open("/tmp/django_errors.log", "a") as f:
-            f.write(f"Errors: {serializer.errors}\nData: {data}\n\n")
-            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def put(self, request):
@@ -288,4 +260,3 @@ class LogoutView(APIView):
             {'message': 'Logout successful.'},
             status=status.HTTP_200_OK
         )
-

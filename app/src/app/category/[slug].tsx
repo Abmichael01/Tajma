@@ -5,7 +5,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import AppText from "@/components/ui/AppText";
@@ -15,9 +15,9 @@ import RegionModal from "@/components/ads/RegionModal";
 import FilterModal, { FilterState } from "@/components/ads/FilterModal";
 import CategoryModal from "@/components/ads/CategoryModal";
 import FilterChips, { FilterChip } from "@/components/ads/FilterChips";
-import { useAdsList } from "@/hooks/useAds";
+import { useAdsInfiniteList } from "@/hooks/useAds";
 import { useCategories } from "@/hooks/useCategories";
-import { useRegions, Region } from "@/hooks/useRegions";
+import type { Region } from "@/hooks/useRegions";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import Breadcrumbs, { BreadcrumbItem } from "@/components/ui/Breadcrumbs";
 import SortModal, { SortOption } from "@/components/ads/SortModal";
@@ -26,7 +26,6 @@ export default function CategoryDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const { categories, loading: categoriesLoading } = useCategories();
-  const { data: regions } = useRegions();
 
   const category = categories.find((c) => c.slug === slug);
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,21 +62,45 @@ export default function CategoryDetailScreen() {
   }, [category, categories]);
 
   const {
-    data: ads,
+    data: adsData,
     isLoading,
     refetch,
-  } = useAdsList({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAdsInfiniteList({
     category: selectedCategory?.slug || slug || undefined,
     search: searchQuery,
     region: selectedRegion?.slug,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
+    min_price: filters.minPrice || undefined,
+    max_price: filters.maxPrice || undefined,
     condition: filters.condition.join(","),
     status: "published",
   });
 
+  const ads = adsData?.pages.flatMap((page) => page.results) || [];
+  const loadingMoreRef = useRef(false);
+
   const handleSearch = () => {
     refetch();
+  };
+
+  const handleLoadMore = (event: any) => {
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const distanceFromBottom =
+      contentSize.height - (layoutMeasurement.height + contentOffset.y);
+
+    if (
+      distanceFromBottom < 600 &&
+      hasNextPage &&
+      !isFetchingNextPage &&
+      !loadingMoreRef.current
+    ) {
+      loadingMoreRef.current = true;
+      fetchNextPage().finally(() => {
+        loadingMoreRef.current = false;
+      });
+    }
   };
 
   const handleApplyFilters = (newFilters: FilterState) => {
@@ -183,8 +206,8 @@ export default function CategoryDetailScreen() {
     <View className="flex-1 bg-white">
       <StatusBar style="light" />
 
-      <ScreenHeader 
-        title={selectedCategory?.name || category?.name || "Category"} 
+      <ScreenHeader
+        title={selectedCategory?.name || category?.name || "Category"}
         showBackButton={true}
       >
         <SearchBar
@@ -220,13 +243,15 @@ export default function CategoryDetailScreen() {
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
+        onScroll={handleLoadMore}
+        scrollEventThrottle={16}
       >
         {isLoading ? (
           <View className="flex-1 justify-center items-center py-20">
             <ActivityIndicator size="large" color="#FF4F18" />
             <AppText className="text-gray-500 mt-4">Loading ads...</AppText>
           </View>
-        ) : ads && ads.length > 0 ? (
+        ) : ads.length > 0 ? (
           <View>
             <Breadcrumbs
               items={breadcrumbItems}
@@ -242,6 +267,11 @@ export default function CategoryDetailScreen() {
               className="mt-4 px-6"
             />
             <AdsList ads={ads as any} sortBy={sortBy} />
+            {isFetchingNextPage && (
+              <View className="py-6">
+                <ActivityIndicator size="small" color="#FF4F18" />
+              </View>
+            )}
           </View>
         ) : (
           <View className="flex-1 items-center justify-center py-20 px-10">
@@ -256,7 +286,9 @@ export default function CategoryDetailScreen() {
               No ads found
             </AppText>
             <AppText className="text-center text-gray-500 leading-5">
-              We couldn't find any ads in this category matching your filters.
+              {
+                "We couldn't find any ads in this category matching your filters."
+              }
             </AppText>
             <TouchableOpacity
               className="mt-8 bg-primary px-10 py-4 rounded-full shadow-md shadow-primary/30"

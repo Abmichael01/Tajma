@@ -1,121 +1,192 @@
-"use client"
-
-import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+"use client";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const banners = [
-  {
-    id: 1,
-    image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop", 
-    title: "Discover Amazing Deals",
-    subtitle: "Shop electronics, fashion, cars, and more from trusted sellers.",
-    cta: "Start Shopping",
-    href: "/search",
-    tag: "Premium Selection",
-    gradientClass: "bg-gradient-to-r from-primary via-primary/95 sm:via-primary/80 to-transparent text-white"
+  { 
+    id: 1, 
+    image: "/hero-images/electronics.png", 
+    mobileImage: "/hero-images/electronics-mobile.png",
+    href: "/category/electronics" 
   },
-  {
-    id: 2,
-    image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=2070&auto=format&fit=crop", 
-    title: "Upgrade Your Tech",
-    subtitle: "Find the best premium gadgets at unbeatable prices.",
-    cta: "Explore Tech",
-    href: "/category/electronics",
-    tag: "Latest Gadgets",
-    gradientClass: "bg-gradient-to-r from-secondary via-secondary/95 sm:via-secondary/80 to-transparent text-white"
+  { 
+    id: 2, 
+    image: "/hero-images/vehicles.png", 
+    mobileImage: "/hero-images/vehicles-mobile.png",
+    href: "/category/vehicles" 
   },
-  {
-    id: 3,
-    image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=2070&auto=format&fit=crop", 
-    title: "Step into Style",
-    subtitle: "Exclusive offers on the latest sneakers and fashion items.",
-    cta: "Shop Fashion",
-    href: "/category/fashion",
-    tag: "Trending Styles",
-    gradientClass: "bg-gradient-to-r from-gray-900 via-gray-900/95 sm:via-gray-900/80 to-transparent text-white"
+  { 
+    id: 3, 
+    image: "/hero-images/fashion.png", 
+    mobileImage: "/hero-images/fashion-mobile.png",
+    href: "/category/fashion" 
   },
-  {
-    id: 4,
-    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=2070&auto=format&fit=crop", 
-    title: "Transform Your Home",
-    subtitle: "Premium furniture and interior appliances delivered right to you.",
-    cta: "Upgrade Home",
-    href: "/category/home-furniture",
-    tag: "Home Interior",
-    gradientClass: "bg-gradient-to-r from-primary via-primary/95 sm:via-primary/80 to-transparent text-white"
-  }
-]
+  { 
+    id: 4, 
+    image: "/hero-images/real-estate.png", 
+    mobileImage: "/hero-images/real-estate-mobile.png",
+    href: "/category/real-estate" 
+  },
+  { 
+    id: 5, 
+    image: "/hero-images/furniture.png", 
+    mobileImage: "/hero-images/furniture-mobile.png",
+    href: "/category/home-furniture-garden" 
+  },
+];
 
 export default function Hero() {
-    const [currentSlide, setCurrentSlide] = useState(0)
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [direction, setDirection] = useState(0);
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % banners.length)
-        }, 6500)
-        return () => clearInterval(timer)
-    }, [])
+  useEffect(() => {
+    const timer = setInterval(() => {
+      paginate(1);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, []);
 
-    return (
-        <div className="relative w-full h-[320px] sm:h-[400px] md:h-[420px] bg-gray-900 rounded-3xl overflow-hidden group shadow border border-gray-100">
-            {banners.map((banner, index) => (
-                <div 
-                    key={banner.id}
-                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-                >
-                    {/* The Image Overlay (Placed to the right seamlessly on larger screens) */}
-                    <div className="absolute inset-0 w-full sm:w-[70%] sm:left-[30%]">
-                      <Image
-                          src={banner.image}
-                          alt={banner.title}
-                          fill
-                          className="object-cover object-center"
-                          unoptimized
-                          priority={index === 0}
-                      />
-                    </div>
-                    
-                    {/* The Sweeping Content Gradient */}
-                    <div className={`absolute inset-0 flex flex-col justify-center p-8 lg:p-12 z-10 ${banner.gradientClass}`}>
-                        <div className={`max-w-xl transform transition-all duration-700 ease-out delay-100 ${index === currentSlide ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-                            <span className="inline-block py-1.5 px-3 rounded-full bg-white/20 backdrop-blur-sm text-white text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] mb-4 sm:mb-6 w-fit">
-                                {banner.tag}
-                            </span>
-                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-3 sm:mb-4 text-white leading-[1.1] tracking-tight max-w-sm sm:max-w-none">
-                                {banner.title}
-                            </h2>
-                            <p className="text-sm sm:text-base mb-6 sm:mb-8 text-white/90 font-medium max-w-[90%] leading-relaxed drop-shadow-sm">
-                                {banner.subtitle}
-                            </p>
-                            <Link 
-                                href={banner.href}
-                                className="inline-flex items-center justify-center bg-white text-gray-900 font-bold py-3 sm:py-3.5 px-6 sm:px-8 rounded-full hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 group/cta w-fit"
-                            >
-                                {banner.cta}
-                                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2 transition-transform group-hover/cta:translate-x-1" />
-                            </Link>
-                        </div>
-                    </div>
+  const paginate = (newDirection: number) => {
+    setDirection(newDirection);
+    setCurrentSlide(
+      (prev) => (prev + newDirection + banners.length) % banners.length,
+    );
+  };
+
+  const variants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? "100%" : "-100%",
+      opacity: 0,
+      scale: 1.05,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? "100%" : "-100%",
+      opacity: 0,
+      scale: 0.95,
+      transition: {
+        x: { duration: 0.8, ease: [0.32, 0.72, 0, 1] as const },
+        opacity: { duration: 0.4 },
+        scale: { duration: 0.8 },
+      },
+    }),
+  };
+
+  const swipeConfidenceThreshold = 10000;
+  const swipePower = (offset: number, velocity: number) => {
+    return Math.abs(offset) * velocity;
+  };
+
+  return (
+    <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden group shadow-sm border border-gray-200 bg-gray-50">
+      <div className="grid grid-cols-1 grid-rows-1">
+        <AnimatePresence initial={false} custom={direction}>
+          <motion.div
+            key={currentSlide}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{
+              x: { duration: 0.85, ease: [0.32, 0.72, 0, 1] as const },
+              opacity: { duration: 0.5 },
+              scale: { duration: 0.85, ease: [0.32, 0.72, 0, 1] as const },
+            }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={1}
+            onDragEnd={(e, { offset, velocity }) => {
+              const swipe = swipePower(offset.x, velocity.x);
+              if (swipe < -swipeConfidenceThreshold) {
+                paginate(1);
+              } else if (swipe > swipeConfidenceThreshold) {
+                paginate(-1);
+              }
+            }}
+            className="col-start-1 row-start-1 w-full cursor-grab active:cursor-grabbing"
+          >
+            <Link href={banners[currentSlide].href} className="block w-full overflow-hidden">
+              <motion.div
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                className="w-full"
+              >
+                {/* Desktop Image */}
+                <div className={banners[currentSlide].mobileImage ? "hidden sm:block" : "block"}>
+                  <Image
+                    src={banners[currentSlide].image}
+                    alt={`Banner ${currentSlide + 1}`}
+                    width={1600}
+                    height={600}
+                    className="w-full h-auto block"
+                    priority
+                  />
                 </div>
-            ))}
-
-            {/* Premium Slide Indicators */}
-            <div className="absolute bottom-6 left-8 lg:left-12 flex gap-2 z-20">
-                {banners.map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => setCurrentSlide(index)}
-                        className={`h-2 rounded-full transition-all duration-500 ease-out shadow-sm ${
-                          index === currentSlide 
-                            ? 'bg-white w-8 shadow-[0_0_10px_rgba(255,255,255,0.8)]' 
-                            : 'bg-white/40 w-2 hover:bg-white/70'
-                        }`}
-                        aria-label={`Go to slide ${index + 1}`}
+                
+                {/* Mobile Image */}
+                {banners[currentSlide].mobileImage && (
+                  <div className="sm:hidden">
+                    <Image
+                      src={banners[currentSlide].mobileImage}
+                      alt={`Banner ${currentSlide + 1} Mobile`}
+                      width={800}
+                      height={1000}
+                      className="w-full h-auto block"
+                      priority
                     />
-                ))}
-            </div>
-        </div>
-    )
+                  </div>
+                )}
+              </motion.div>
+            </Link>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Navigation Controls */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-4 right-4 flex justify-between z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button
+          onClick={() => paginate(-1)}
+          className="p-2 sm:p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white hover:bg-white hover:text-black transition-all"
+        >
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
+        <button
+          onClick={() => paginate(1)}
+          className="p-2 sm:p-3 rounded-full bg-black/20 backdrop-blur-md border border-white/10 text-white hover:bg-white hover:text-black transition-all"
+        >
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+        </button>
+      </div>
+
+      {/* Progress Indicators */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2.5 z-20">
+        {banners.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => {
+              setDirection(index > currentSlide ? 1 : -1);
+              setCurrentSlide(index);
+            }}
+            className={`h-1.5 rounded-full transition-all duration-500 ${
+              index === currentSlide
+                ? "bg-white w-10 shadow-lg"
+                : "bg-white/30 w-1.5 hover:bg-white/60"
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }

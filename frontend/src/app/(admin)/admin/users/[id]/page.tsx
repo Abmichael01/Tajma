@@ -105,7 +105,7 @@ export default function AdminUserDetailPage() {
         const imageUrl = getImageUrl(ad.images?.[0])
         const isLocalhost = imageUrl ? (imageUrl.includes('localhost') || imageUrl.includes('127.0.0.1')) : false
         return (
-          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+          <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
             {imageUrl ? (
               <Image
                 src={imageUrl}
@@ -224,10 +224,10 @@ export default function AdminUserDetailPage() {
       {/* User Details Sections */}
       <div className="space-y-6">
         {/* Basic Information */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="text-sm font-medium text-gray-900 mb-4">Basic Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Avatar</p>
               <Avatar className="w-16 h-16">
                 <AvatarImage src={user.avatar || undefined} alt={userName} />
@@ -236,15 +236,15 @@ export default function AdminUserDetailPage() {
                 </AvatarFallback>
               </Avatar>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Email</p>
               <p className="text-sm font-medium text-gray-900">{user.email}</p>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Username</p>
               <p className="text-sm font-medium text-gray-900">{user.username || '-'}</p>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Full Name</p>
               <p className="text-sm font-medium text-gray-900">
                 {user.first_name && user.last_name
@@ -252,25 +252,25 @@ export default function AdminUserDetailPage() {
                   : '-'}
               </p>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Is Seller</p>
               <Badge variant={user.is_seller ? 'default' : 'outline'}>
                 {user.is_seller ? 'Yes' : 'No'}
               </Badge>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Is Staff</p>
               <Badge variant={user.is_staff ? 'default' : 'outline'}>
                 {user.is_staff ? 'Yes' : 'No'}
               </Badge>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Is Active</p>
               <Badge variant={user.is_active ? 'default' : 'destructive'}>
                 {user.is_active ? 'Active' : 'Inactive'}
               </Badge>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Is Superuser</p>
               <Badge variant={user.is_superuser ? 'default' : 'outline'}>
                 {user.is_superuser ? 'Yes' : 'No'}
@@ -280,17 +280,17 @@ export default function AdminUserDetailPage() {
         </div>
 
         {/* Timestamps */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="text-sm font-medium text-gray-900 mb-4">Timestamps</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Date Joined</p>
               <p className="text-sm font-medium text-gray-900">
                 {new Date(user.date_joined).toLocaleString()}
               </p>
             </div>
             {user.last_login && (
-              <div className="border border-gray-200 rounded-lg p-4">
+              <div className="border border-gray-200 rounded-xl p-4">
                 <p className="text-sm text-gray-500 mb-2">Last Login</p>
                 <p className="text-sm font-medium text-gray-900">
                   {new Date(user.last_login).toLocaleString()}
@@ -301,7 +301,7 @@ export default function AdminUserDetailPage() {
         </div>
 
         {/* User Ads */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-medium text-gray-900">User Ads</h2>
             <Select

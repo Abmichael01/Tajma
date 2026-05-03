@@ -275,12 +275,13 @@ export default function ProfileScreen() {
           {/* Support Section */}
           <View className="px-6 mt-8 pb-32 space-y-3">
             {[
-              { label: 'Help & Support', icon: 'help-circle-outline' },
-              { label: 'Legal Terms', icon: 'document-text-outline' },
-              { label: 'Share App', icon: 'share-social-outline' },
+              { label: 'Help & Support', icon: 'help-circle-outline', route: '/profile/support' },
+              { label: 'Legal Terms', icon: 'document-text-outline', route: '/legal' },
+              { label: 'Share App', icon: 'share-social-outline', route: '/share' },
             ].map((item, i) => (
               <TouchableOpacity
                 key={i}
+                onPress={() => item.route && router.push(item.route as any)}
                 className="flex-row items-center p-5 bg-white rounded-full border border-gray-100"
               >
                 <View className="w-10 h-10 rounded-full bg-gray-50 items-center justify-center">

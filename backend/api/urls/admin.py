@@ -6,6 +6,7 @@ from api.views.admin import (
     AdminUserViewSet,
     AdminAdViewSet,
     AdminCategoryViewSet,
+    AdminPromotionPackageViewSet,
     AdminNotificationViewSet,
     AdminChatViewSet,
     AdminMessageViewSet,
@@ -19,6 +20,7 @@ router.register(r'stats', AdminStatsViewSet, basename='admin-stats')
 router.register(r'users', AdminUserViewSet, basename='admin-user')
 router.register(r'ads', AdminAdViewSet, basename='admin-ad')
 router.register(r'categories', AdminCategoryViewSet, basename='admin-category')
+router.register(r'promotion-packages', AdminPromotionPackageViewSet, basename='admin-promotion-package')
 router.register(r'notifications', AdminNotificationViewSet, basename='admin-notification')
 router.register(r'chats', AdminChatViewSet, basename='admin-chat')
 router.register(r'messages', AdminMessageViewSet, basename='admin-message')
@@ -27,7 +29,6 @@ router.register(r'kyc', AdminKYCViewSet, basename='admin-kyc')
 router.register(r'reviews', AdminReviewViewSet, basename='admin-review')
 
 urlpatterns = router.urls
-
 
 
 

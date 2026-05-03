@@ -108,7 +108,7 @@ export default function AdProductInfo({
   }
 
   return (
-    <div className={`bg-white border border-gray-200 p-4 sm:p-6 rounded-3xl ${className}`}>
+    <div className={`bg-white border border-gray-200 p-4 sm:p-6 rounded-xl ${className}`}>
       <div className="flex items-start justify-between gap-3 mb-4">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 leading-tight flex-1">{ad.title}</h1>
         <button
@@ -160,7 +160,7 @@ export default function AdProductInfo({
       {isOwner ? (
         <>
           {/* Owner Stats */}
-          <div className="bg-gray-50 border border-gray-200 p-4 rounded-3xl mb-4">
+          <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl mb-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Ad Statistics
@@ -268,7 +268,7 @@ export default function AdProductInfo({
                     value={contactMessage}
                     onChange={(e) => onContactMessageChange(e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
                     placeholder="Type your message here..."
                     required
                   />

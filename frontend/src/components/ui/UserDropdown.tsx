@@ -48,7 +48,7 @@ export default function UserDropdown() {
   const handleLogout = () => {
     logout()
   }
-  const profileSlug = user.username || user.email?.split('@')[0] || 'profile'
+  const profileSlug = user.username || user.id || 'profile'
   const displayName = getUserFullName(user)
   const userInitials = getUserInitials(user)
 

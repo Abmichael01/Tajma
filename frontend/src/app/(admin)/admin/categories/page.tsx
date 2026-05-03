@@ -26,6 +26,8 @@ import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { useAdminStats } from '@/hooks/useAdmin'
 import { useMemo } from 'react'
 import ImageUploader from '@/components/ui/ImageUploader'
+import CategoryEditDialog from '@/components/admin/CategoryEditDialog'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 export default function AdminCategoriesPage() {
   const searchParams = useSearchParams()
@@ -54,6 +56,11 @@ export default function AdminCategoriesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null)
+  
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [categoryToDelete, setCategoryToDelete] = useState<AdminCategory | null>(null)
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -67,7 +74,7 @@ export default function AdminCategoriesPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   
-  // Custom fields builder state
+  // Custom fields builder state (for creation)
   interface CustomField {
     id: string
     name: string
@@ -109,11 +116,16 @@ export default function AdminCategoriesPage() {
   }
 
   const handleDelete = async (category: AdminCategory) => {
-    if (!confirm(`Are you sure you want to delete category "${category.name}"?`)) {
-      return
-    }
+    setCategoryToDelete(category)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!categoryToDelete) return
     try {
-      await deleteCategory.mutateAsync(category.id)
+      await deleteCategory.mutateAsync(categoryToDelete.id)
+      setShowDeleteDialog(false)
+      setCategoryToDelete(null)
     } catch (error) {
       // Error handled by mutation
     }
@@ -217,68 +229,9 @@ export default function AdminCategoriesPage() {
     }
   }
 
-  const [editFormData, setEditFormData] = useState({
-    name: '',
-    description: '',
-    parent_id: null as number | null,
-    category_type: 'product' as 'product' | 'service' | 'job' | 'cv',
-    image_url: '',
-    sort_order: 0,
-    is_active: true,
-  })
-  const [editErrors, setEditErrors] = useState<Record<string, string>>({})
-
   const handleOpenEditModal = (category: AdminCategory) => {
     setEditingCategory(category)
-    setEditErrors({})
-    setEditFormData({
-      name: category.name,
-      description: category.description || '',
-      parent_id: category.parent_id ?? null,
-      category_type: category.category_type,
-      image_url: category.image_url || '',
-      sort_order: category.sort_order ?? 0,
-      is_active: category.is_active,
-    })
     setShowEditModal(true)
-  }
-
-  const handleUpdateCategory = async () => {
-    if (!editingCategory) return
-
-    setEditErrors({})
-
-    try {
-      await updateCategory.mutateAsync({
-        id: editingCategory.id,
-        data: {
-          name: editFormData.name.trim(),
-          description: editFormData.description.trim() || undefined,
-          parent_id: editFormData.parent_id || undefined,
-          category_type: editFormData.category_type,
-          image_url: editFormData.image_url.trim() || undefined,
-          sort_order: editFormData.sort_order,
-          is_active: editFormData.is_active,
-        },
-      })
-      setShowEditModal(false)
-      setEditingCategory(null)
-    } catch (error: any) {
-      if (error?.response?.data) {
-        const fieldErrors: Record<string, string> = {}
-        Object.keys(error.response.data).forEach((key) => {
-          const value = error.response.data[key]
-          if (Array.isArray(value)) {
-            fieldErrors[key] = value[0]
-          } else if (typeof value === 'string') {
-            fieldErrors[key] = value
-          }
-        })
-        if (Object.keys(fieldErrors).length > 0) {
-          setEditErrors(fieldErrors)
-        }
-      }
-    }
   }
 
   const columns: Column<AdminCategory>[] = [
@@ -361,7 +314,7 @@ export default function AdminCategoriesPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
             value={isActiveFilter || 'all'}
@@ -633,7 +586,7 @@ export default function AdminCategoriesPage() {
               )}
 
               {customFields.length === 0 && (
-                <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <div className="border border-dashed border-gray-300 rounded-xl p-6 text-center">
                   <p className="text-sm text-gray-500">No custom fields added yet</p>
                   <p className="text-xs text-gray-400 mt-1">
                     Click "Add Field" to create custom fields for this category
@@ -645,7 +598,7 @@ export default function AdminCategoriesPage() {
                 {customFields.map((field, index) => (
                   <div
                     key={field.id}
-                    className="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50"
+                    className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50"
                   >
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm font-medium text-gray-900">
@@ -773,19 +726,19 @@ export default function AdminCategoriesPage() {
                         <div className="space-y-2">
                           {(field.options || []).map((option, optIndex) => (
                             <div key={optIndex} className="flex items-center gap-2">
-                              <Input
-                                value={option}
-                                onChange={(e) => {
-                                  const updated = [...customFields]
-                                  if (!updated[index].options) {
-                                    updated[index].options = []
-                                  }
-                                  updated[index].options![optIndex] = e.target.value
-                                  setCustomFields(updated)
-                                }}
-                                placeholder={`Option ${optIndex + 1}`}
-                                className="h-9 flex-1"
-                              />
+                                <Input
+                                  value={typeof option === 'object' && option !== null ? ((option as any).label || (option as any).value || JSON.stringify(option)) : option}
+                                  onChange={(e) => {
+                                    const updated = [...customFields]
+                                    if (!updated[index].options) {
+                                      updated[index].options = []
+                                    }
+                                    updated[index].options![optIndex] = e.target.value
+                                    setCustomFields(updated)
+                                  }}
+                                  placeholder={`Option ${optIndex + 1}`}
+                                  className="h-9 flex-1"
+                                />
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -823,7 +776,7 @@ export default function AdminCategoriesPage() {
                             Add Option
                           </Button>
                         </div>
-                        {(!field.options || field.options.length === 0 || field.options.every(opt => !opt.trim())) && (
+                        {(!field.options || field.options.length === 0 || field.options.every(opt => !String(opt || '').trim())) && (
                           <p className="text-xs text-amber-600">
                             At least one option is required for select fields
                           </p>
@@ -869,164 +822,21 @@ export default function AdminCategoriesPage() {
       </Dialog>
 
       {/* Edit Category Modal */}
-      <Dialog open={showEditModal} onOpenChange={(open) => {
-        setShowEditModal(open)
-        if (!open) {
-          setEditingCategory(null)
-        }
-      }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-          <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
-            <DialogDescription>
-              Update this category. Changes will reflect wherever the category is used.
-            </DialogDescription>
-          </DialogHeader>
+      <CategoryEditDialog
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        category={editingCategory}
+      />
 
-          {editingCategory && (
-            <div className="space-y-4 py-4">
-              {/* Name */}
-              <div className="space-y-2">
-                <Label htmlFor="edit_name">
-                  Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="edit_name"
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  placeholder="Category name"
-                  className={editErrors.name ? 'border-red-500' : ''}
-                />
-                {editErrors.name && <p className="text-sm text-red-600">{editErrors.name}</p>}
-              </div>
-
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="edit_description">Description</Label>
-                <Textarea
-                  id="edit_description"
-                  value={editFormData.description}
-                  onChange={(e) =>
-                    setEditFormData({ ...editFormData, description: e.target.value })
-                  }
-                  placeholder="Category description"
-                  rows={3}
-                />
-              </div>
-
-              {/* Parent Category */}
-              <div className="space-y-2">
-                <Label htmlFor="edit_parent_id">Parent Category</Label>
-                <Select
-                  value={editFormData.parent_id?.toString() || 'none'}
-                  onValueChange={(value) =>
-                    setEditFormData({
-                      ...editFormData,
-                      parent_id: value === 'none' ? null : parseInt(value),
-                    })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select parent category (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None (Root Category)</SelectItem>
-                    {allCategories
-                      .filter((cat) => cat.id !== editingCategory.id)
-                      .map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id.toString()}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Category Type */}
-              <div className="space-y-2">
-                <Label htmlFor="edit_category_type">
-                  Category Type <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={editFormData.category_type}
-                  onValueChange={(value: 'product' | 'service' | 'job' | 'cv') =>
-                    setEditFormData({ ...editFormData, category_type: value })
-                  }
-                >
-                  <SelectTrigger className={editErrors.category_type ? 'border-red-500' : ''}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="service">Service</SelectItem>
-                    <SelectItem value="job">Job</SelectItem>
-                    <SelectItem value="cv">CV</SelectItem>
-                  </SelectContent>
-                </Select>
-                {editErrors.category_type && (
-                  <p className="text-sm text-red-600">{editErrors.category_type}</p>
-                )}
-              </div>
-
-              {/* Category Image */}
-              <div className="space-y-2">
-                <ImageUploader
-                  value={editFormData.image_url}
-                  onChange={(value) =>
-                    setEditFormData({ ...editFormData, image_url: value || '' })
-                  }
-                  label="Category Image"
-                  maxSizeMB={5}
-                  aspectRatio="square"
-                />
-                <p className="text-xs text-gray-500">
-                  Upload an image for this category. If no image is provided, a skeleton
-                  placeholder will be shown.
-                </p>
-              </div>
-
-              {/* Sort Order */}
-              <div className="space-y-2">
-                <Label htmlFor="edit_sort_order">Sort Order</Label>
-                <Input
-                  id="edit_sort_order"
-                  type="number"
-                  value={editFormData.sort_order}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      sort_order: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  min="0"
-                />
-              </div>
-
-              {/* Status */}
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="edit_is_active"
-                  checked={editFormData.is_active}
-                  onCheckedChange={(checked) =>
-                    setEditFormData({ ...editFormData, is_active: !!checked })
-                  }
-                />
-                <label htmlFor="edit_is_active" className="text-sm text-gray-700">
-                  Active
-                </label>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateCategory}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title={`Delete Category: ${categoryToDelete?.name}?`}
+        description="Are you sure you want to delete this category? This will also remove all associations, but it will fail if there are ads currently in this category."
+        isLoading={deleteCategory.isPending}
+      />
     </div>
   )
 }
-

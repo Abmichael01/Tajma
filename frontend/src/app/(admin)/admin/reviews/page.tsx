@@ -12,11 +12,16 @@ import { Label } from '@/components/ui/label'
 import { Star, Trash2, User, ExternalLink, CheckCircle, Eye, MessageSquare, Calendar, MessageCircle, AlertCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 export default function AdminReviewsPage() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [selectedReview, setSelectedReview] = useState<AdminReview | null>(null)
+  
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [reviewToDelete, setReviewToDelete] = useState<AdminReview | null>(null)
 
   const { data: response, isLoading, refetch } = useAdminReviews({
     page,
@@ -29,12 +34,21 @@ export default function AdminReviewsPage() {
   const totalCount = response?.count || 0
 
   const handleDelete = async (review: AdminReview) => {
-    if (!confirm('Are you sure you want to delete this review?')) return
-    
+    setReviewToDelete(review)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!reviewToDelete) return
     try {
-      await deleteMutation.mutateAsync(review.id)
+      await deleteMutation.mutateAsync(reviewToDelete.id)
+      setShowDeleteDialog(false)
+      setReviewToDelete(null)
+      setSelectedReview(null)
       refetch()
-    } catch (error) {}
+    } catch (error) {
+      // Error handled by mutation
+    }
   }
 
   const columns: Column<AdminReview>[] = [
@@ -209,6 +223,16 @@ export default function AdminReviewsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title="Delete Review?"
+        description="Are you sure you want to delete this user review? This action cannot be undone and the review will be removed from the listing permanently."
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }

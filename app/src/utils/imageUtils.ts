@@ -1,4 +1,5 @@
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
+
 import { API_BASE_URL } from '@/api/apiClient';
 
 /**
@@ -9,7 +10,7 @@ import { API_BASE_URL } from '@/api/apiClient';
 export const uriToBase64 = async (uri: string): Promise<string> => {
     try {
         const base64 = await FileSystem.readAsStringAsync(uri, {
-            encoding: FileSystem.EncodingType.Base64,
+            encoding: 'base64',
         });
 
         // Determine the extension to add the correct header

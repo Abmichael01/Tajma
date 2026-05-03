@@ -35,13 +35,21 @@ class Ad(models.Model):
     price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     currency = models.CharField(max_length=8, default='XOF')
     is_negotiable = models.BooleanField(default=False)
-    attributes = models.JSONField(default=dict, blank=True)
+    attributes = models.JSONField(
+        default=dict, 
+        blank=True,
+        help_text='Dynamic attributes matching the Category custom_fields schema.'
+    )
     images = models.JSONField(default=list, blank=True)
     
     # Location tracking
     location_name = models.CharField(max_length=255, blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
+    # Premium/Promotion Denormalization
+    is_featured = models.BooleanField(default=False, db_index=True)
+    promotion_rank = models.PositiveIntegerField(default=0, db_index=True)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='published')
     views = models.PositiveIntegerField(default=0)
@@ -50,10 +58,10 @@ class Ad(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-promotion_rank', '-published_at', '-created_at']
         indexes = [
             models.Index(fields=['latitude', 'longitude']),
-            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['status', '-promotion_rank', '-published_at']),
         ]
 
     def __str__(self):

@@ -43,9 +43,11 @@ function ChatListItem({ chat, index = 0, onlineStatusMap }: ChatListItemProps) {
     }
   }, [chat.id, index, queryClient]);
 
-  const otherParticipant = chat.participant1.id === user?.id
+  const otherParticipant = chat.participant1?.id === user?.id
     ? chat.participant2
     : chat.participant1;
+
+  if (!otherParticipant) return null;
 
   const isOnline = onlineStatusMap?.get(String(otherParticipant.id)) ?? false;
 
@@ -71,43 +73,43 @@ function ChatListItem({ chat, index = 0, onlineStatusMap }: ChatListItemProps) {
 
   const isOwnMessage = chat.last_message?.sender?.id === user?.id;
 
-  const truncate = (text: string, maxLength: number) => {
+  const truncate = (text: string | null | undefined, maxLength: number) => {
     if (!text) return '';
     return text.length <= maxLength ? text : `${text.substring(0, maxLength)}...`;
   };
 
-  const hasUnread = chat.unread_count > 0;
+  const hasUnread = (chat.unread_count ?? 0) > 0;
 
   return (
     <TouchableOpacity
       onPress={handlePress}
-      activeOpacity={0.8}
-      className="px-6 py-3.5 bg-transparent"
+      activeOpacity={0.7}
+      className="px-5 py-4 bg-white border-b border-gray-50"
     >
-      <View className="flex-row items-center gap-5">
+      <View className="flex-row items-center gap-4">
         {/* Ad Image / Participant Avatar Combination */}
-        <View className="relative flex-shrink-0" style={{ width: 68, height: 68 }}>
+        <View className="relative flex-shrink-0" style={{ width: 60, height: 60 }}>
           {chat.ad_image ? (
             <>
               <Image
                 source={{ uri: resolveImageUrl(chat.ad_image) ?? undefined }}
-                style={{ width: 68, height: 68 }}
-                className="rounded-2xl bg-gray-50 border border-border"
+                style={{ width: 60, height: 60 }}
+                className="rounded-2xl bg-slate-50 border border-slate-100"
                 resizeMode="cover"
               />
               {/* User Avatar Overlay */}
               <View
-                className="absolute -bottom-1 -right-1 rounded-full border-2 border-white shadow-lg bg-white items-center justify-center overflow-hidden"
-                style={{ width: 38, height: 38 }}
+                className="absolute -bottom-1 -right-1 rounded-full border-2 border-white shadow-sm bg-white items-center justify-center overflow-hidden"
+                style={{ width: 34, height: 34 }}
               >
                 <Avatar
                   src={otherParticipant.avatar}
                   alt={otherParticipant.full_name || otherParticipant.username || "User"}
-                  size={32}
+                  size={30}
                 />
               </View>
               {isOnline && (
-                <View className="absolute top-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full z-10" />
+                <View className="absolute top-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full z-10" />
               )}
             </>
           ) : (
@@ -115,10 +117,11 @@ function ChatListItem({ chat, index = 0, onlineStatusMap }: ChatListItemProps) {
               <Avatar
                 src={otherParticipant.avatar}
                 alt={otherParticipant.full_name || otherParticipant.username || "User"}
-                size={68}
+                size={60}
+                className="border border-slate-50 shadow-sm"
               />
               {isOnline && (
-                <View className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full z-10" />
+                <View className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full z-10" />
               )}
             </>
           )}
@@ -126,40 +129,41 @@ function ChatListItem({ chat, index = 0, onlineStatusMap }: ChatListItemProps) {
 
         {/* Chat Info */}
         <View className="flex-1 justify-center min-w-0">
-          <View className="flex-row justify-between items-center mb-0.5">
+          <View className="flex-row justify-between items-center mb-1">
             <AppText
               weight={hasUnread ? "bold" : "semibold"}
-              className={`text-[17px] ${hasUnread ? 'text-[#000]' : 'text-[#111b21]'}`}
+              className={`text-[17px] ${hasUnread ? 'text-slate-900' : 'text-slate-800'}`}
               numberOfLines={1}
             >
               {otherParticipant.full_name || otherParticipant.username}
             </AppText>
-            <AppText className={`text-xs ${hasUnread ? 'text-[#25D366] font-semibold' : 'text-gray-500'}`}>
+            <AppText className={`text-[11px] ${hasUnread ? 'text-primary font-bold' : 'text-slate-400 font-medium'}`}>
               {formatTime(chat.last_message?.created_at || chat.last_message_at)}
             </AppText>
           </View>
 
           {chat.ad_title && (
-            <AppText
-              className="text-xs font-bold mb-0.5 text-primary uppercase"
-              numberOfLines={1}
-            >
-              {truncate(chat.ad_title, 35)}
-            </AppText>
+            <View className="bg-slate-50 self-start px-2 py-0.5 rounded-md mb-1.5 border border-slate-100">
+              <AppText
+                className="text-[10px] font-bold text-slate-500 uppercase tracking-tight"
+                numberOfLines={1}
+              >
+                {truncate(chat.ad_title, 30)}
+              </AppText>
+            </View>
           )}
 
           <View className="flex-row items-center justify-between">
-            <View className="flex-1 flex-row items-center gap-1 mr-2">
+            <View className="flex-1 flex-row items-center gap-1.5 mr-3">
               {isOwnMessage && chat.last_message && (
                 <Ionicons
                   name={chat.last_message.is_read ? "checkmark-done" : "checkmark"}
                   size={16}
-                  color={chat.last_message.is_read ? "#34B7F1" : "#9ca3af"}
-                  style={{ marginRight: 2 }}
+                  color={chat.last_message.is_read ? "#FF4F18" : "#94A3B8"}
                 />
               )}
               <AppText
-                className={`text-[15px] leading-5 flex-1 ${hasUnread ? 'text-[#111b21] font-medium' : 'text-[#667781]'}`}
+                className={`text-[14px] leading-5 flex-1 ${hasUnread ? 'text-slate-900 font-semibold' : 'text-slate-500 font-medium'}`}
                 numberOfLines={1}
               >
                 {(() => {
@@ -175,8 +179,8 @@ function ChatListItem({ chat, index = 0, onlineStatusMap }: ChatListItemProps) {
             </View>
 
             {hasUnread && (
-              <View className="bg-[#25D366] px-1.5 py-0.5 rounded-full min-w-[20px] h-[20px] items-center justify-center">
-                <AppText className="text-white text-[11px] font-bold">
+              <View className="bg-primary px-2 py-0.5 rounded-full min-w-[20px] h-[20px] items-center justify-center shadow-sm shadow-primary/20">
+                <AppText className="text-white text-[10px] font-bold">
                   {chat.unread_count}
                 </AppText>
               </View>

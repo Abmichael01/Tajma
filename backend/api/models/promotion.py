@@ -49,6 +49,18 @@ class Promotion(models.Model):
 
     def save(self, *args, **kwargs):
         # Auto-deactivate if expired
-        if self.end_at and self.end_at < timezone.now():
+        now = timezone.now()
+        if self.end_at and self.end_at < now:
             self.is_active = False
+            
         super().save(*args, **kwargs)
+        
+        # Update associated Ad denormalized fields if active
+        if self.is_active and self.start_at <= now:
+            ad = self.ad
+            if self.promotion_type == 'featured':
+                ad.is_featured = True
+                ad.promotion_rank = max(ad.promotion_rank, 100)
+            elif self.promotion_type == 'boost':
+                ad.promotion_rank = max(ad.promotion_rank, 50)
+            ad.save(update_fields=['is_featured', 'promotion_rank'])

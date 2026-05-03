@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { MessageSquare, CheckCircle, Circle } from 'lucide-react'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 export default function AdminMessagesPage() {
   const searchParams = useSearchParams()
@@ -28,6 +29,10 @@ export default function AdminMessagesPage() {
 
   const { data: stats } = useAdminStats()
   const deleteMessage = useDeleteAdminMessage()
+  
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [messageToDelete, setMessageToDelete] = useState<AdminMessage | null>(null)
 
   // Calculate stats
   const messagesStats = useMemo(() => {
@@ -44,11 +49,16 @@ export default function AdminMessagesPage() {
   }, [data, stats, isReadFilter])
 
   const handleDelete = async (message: AdminMessage) => {
-    if (!confirm(`Are you sure you want to delete this message?`)) {
-      return
-    }
+    setMessageToDelete(message)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!messageToDelete) return
     try {
-      await deleteMessage.mutateAsync(message.id)
+      await deleteMessage.mutateAsync(messageToDelete.id)
+      setShowDeleteDialog(false)
+      setMessageToDelete(null)
     } catch (error) {
       // Error handled by mutation
     }
@@ -140,7 +150,7 @@ export default function AdminMessagesPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
         <Select
           value={isReadFilter || 'all'}
           onValueChange={(value) => setIsReadFilter(value === 'all' ? undefined : value)}
@@ -176,6 +186,16 @@ export default function AdminMessagesPage() {
             page,
             pageSize: 25,
         }}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title="Delete Message?"
+        description="Are you sure you want to delete this specific message? This action will permanently remove it from the chat history. This action cannot be undone."
+        isLoading={deleteMessage.isPending}
       />
     </div>
   )

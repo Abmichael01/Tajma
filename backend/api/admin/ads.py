@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Count, Q
 from django.conf import settings
-from api.models import Ad, Category, Region, SavedAd
+from api.models import Ad, Category, Region, SavedAd, Review, SearchQuery
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -12,16 +12,25 @@ class CategoryAdmin(admin.ModelAdmin):
     ordering = ('parent__id', 'sort_order', 'name')
     prepopulated_fields = {'slug': ('name',)}
     autocomplete_fields = ['parent']
+    
+    fieldsets = (
+        ('Basic Information', {'fields': ('name', 'slug', 'parent', 'category_type', 'is_active', 'sort_order')}),
+        ('Appearance', {'fields': ('icon', 'image_url', 'description')}),
+        ('Dynamic Attributes', {
+            'fields': ('custom_fields',),
+            'description': 'Define custom fields for ads in this category (JS array of objects).'
+        }),
+    )
 
 @admin.register(Ad)
 class AdAdmin(admin.ModelAdmin):
     list_display = (
-        'title', 'seller', 'category', 'ad_type', 
-        'price_display', 'status', 'views', 
-        'created_at', 'published_at', 'image_preview',
+        'featured_status', 'title', 'seller', 'category', 'ad_type', 
+        'price_display', 'status', 'promotion_rank',
+        'views', 'created_at', 'image_preview',
     )
     list_filter = (
-        'status', 'ad_type', 'category', 
+        'status', 'is_featured', 'ad_type', 'category', 
         'is_negotiable', 'created_at', 'published_at',
     )
     search_fields = ('title', 'description', 'seller__email', 'seller__username', 'slug')
@@ -39,8 +48,8 @@ class AdAdmin(admin.ModelAdmin):
         ('Basic Information', {'fields': ('id', 'slug', 'title', 'description', 'seller', 'category', 'ad_type')}),
         ('Pricing', {'fields': ('price', 'currency', 'is_negotiable')}),
         ('Media', {'fields': ('images', 'image_preview')}),
-        ('Attributes', {'fields': ('attributes',), 'classes': ('collapse',)}),
-        ('Status & Metadata', {'fields': ('status', 'views', 'published_at', 'created_at', 'updated_at')}),
+        ('Attributes', {'fields': ('attributes',)}),
+        ('Status & Metadata', {'fields': ('status', 'is_featured', 'promotion_rank', 'views', 'published_at', 'created_at', 'updated_at')}),
     )
     
     def price_display(self, obj):
@@ -62,6 +71,19 @@ class AdAdmin(admin.ModelAdmin):
                 return format_html('<img src="{}" style="max-width: 100px; max-height: 100px; object-fit: cover;" />', image_url)
         return "No image"
     image_preview.short_description = 'Preview'
+    
+    def featured_status(self, obj):
+        if obj.is_featured:
+            return format_html(
+                '<span style="color: #d4af37; font-weight: bold; border: 1px solid #d4af37; padding: 2px 6px; borderRadius: 4px;">★ FEATURED</span>'
+            )
+        if obj.promotion_rank == 50:
+            return format_html(
+                '<span style="color: #2563eb; font-weight: bold; border: 1px solid #2563eb; padding: 2px 6px; borderRadius: 4px;">↑ BOOSTED</span>'
+            )
+        return format_html('<span style="color: #94a3b8;">Standard</span>')
+    featured_status.short_description = 'Tier'
+    featured_status.admin_order_field = 'is_featured'
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('seller', 'category', 'category__parent')
@@ -100,12 +122,25 @@ class RegionAdmin(admin.ModelAdmin):
         return getattr(obj, 'ad_count_val', 0)
     ad_count.short_description = 'Ads Count'
 
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('id', 'ad', 'reviewer', 'rating', 'created_at')
+    list_filter = ('rating', 'created_at')
+    search_fields = ('comment', 'reviewer__email', 'ad__title')
+    readonly_fields = ('id', 'created_at', 'updated_at')
+    autocomplete_fields = ['ad', 'reviewer']
+
 @admin.register(SavedAd)
 class SavedAdAdmin(admin.ModelAdmin):
-    list_display = ('user', 'ad', 'created_at')
+    list_display = ('id', 'user', 'ad', 'created_at')
     list_filter = ('created_at',)
-    search_fields = ('user__email', 'user__username', 'ad__title', 'ad__slug')
-    readonly_fields = ('created_at',)
+    search_fields = ('user__email', 'ad__title')
+    readonly_fields = ('id', 'created_at')
     autocomplete_fields = ['user', 'ad']
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user', 'ad', 'ad__seller', 'ad__category')
+
+@admin.register(SearchQuery)
+class SearchQueryAdmin(admin.ModelAdmin):
+    list_display = ('query', 'user', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('query', 'user__email')
+    readonly_fields = ('created_at',)

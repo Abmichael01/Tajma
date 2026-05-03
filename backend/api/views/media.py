@@ -27,7 +27,10 @@ def serve_media(request, path):
     file_path = os.path.normpath(file_path)
     media_root = os.path.normpath(settings.MEDIA_ROOT)
     
-    if not file_path.startswith(media_root):
+    try:
+        if os.path.commonpath([file_path, media_root]) != media_root:
+            raise Http404("File not found")
+    except ValueError:
         raise Http404("File not found")
     
     # Check if file exists
@@ -58,5 +61,4 @@ def serve_media(request, path):
     response['Cache-Control'] = 'public, max-age=3600'
     
     return response
-
 

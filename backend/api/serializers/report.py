@@ -30,6 +30,32 @@ class ReportSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'reporter', 'status', 'created_at', 'updated_at', 'resolved_at']
 
+    def validate(self, attrs):
+        report_type = attrs.get('report_type', 'ad')
+        related_ad = attrs.get('related_ad')
+        reported_user = attrs.get('reported_user')
+        request = self.context.get('request')
+        current_user = request.user if request and request.user.is_authenticated else None
+
+        if report_type == 'ad':
+            if not related_ad:
+                raise serializers.ValidationError({'related_ad': 'An ad is required for ad reports.'})
+            if current_user and related_ad.seller_id == current_user.id:
+                raise serializers.ValidationError({'related_ad': 'You cannot report your own ad.'})
+            attrs['reported_user'] = related_ad.seller
+
+        elif report_type == 'user':
+            if not reported_user:
+                raise serializers.ValidationError({'reported_user': 'A user is required for user reports.'})
+            if current_user and reported_user.id == current_user.id:
+                raise serializers.ValidationError({'reported_user': 'You cannot report yourself.'})
+
+        else:
+            attrs.pop('related_ad', None)
+            attrs.pop('reported_user', None)
+
+        return attrs
+
     def create(self, validated_data):
         # Set reporter from request user if authenticated
         request = self.context.get('request')

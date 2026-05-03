@@ -3,7 +3,7 @@ import type { User } from '@/api/types'
 // Flexible user type for utility functions - accepts partial user objects
 export interface FlexibleUser {
   id?: number | string;
-  email: string;
+  email?: string | null;
   username?: string | null;
   first_name?: string | null;
   last_name?: string | null;
@@ -21,7 +21,7 @@ export interface FlexibleUser {
 }
 
 export const getUserFullName = (user: FlexibleUser | User) => {
-  // Priority: full_name → first_name + last_name → username → email
+  // Priority: full_name → first_name + last_name → username → email → id
   if (user.full_name && user.full_name.trim()) {
     return user.full_name.trim()
   }
@@ -38,7 +38,7 @@ export const getUserFullName = (user: FlexibleUser | User) => {
     return user.username.trim()
   }
 
-  return user.email
+  return user.email || (user.id ? `User ${user.id}` : 'User')
 }
 
 export const getUserInitials = (user: FlexibleUser | User) => {
@@ -63,4 +63,3 @@ export const normalizeAvatarUrl = (avatarUrl: string | null | undefined): string
   if (!avatarUrl) return undefined
   return getMediaUrl(avatarUrl)
 }
-

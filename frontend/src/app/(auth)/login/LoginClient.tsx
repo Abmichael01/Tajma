@@ -26,6 +26,15 @@ export default function LoginClient() {
     rememberMe: false
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isLocal, setIsLocal] = useState(false)
+
+  useEffect(() => {
+    setIsLocal(
+      window.location.hostname === 'localhost' || 
+      window.location.hostname === '127.0.0.1' || 
+      window.location.hostname.startsWith('192.168.')
+    )
+  }, [])
 
   // Check for auth_required parameter and show toast
   useEffect(() => {
@@ -168,6 +177,23 @@ export default function LoginClient() {
                 </svg>
                 Continue with Google
               </Button>
+              {isLocal && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-3 border-dashed border-primary text-primary hover:bg-primary/5"
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      email: 'admin@gmail.com',
+                      password: 'password123'
+                    }))
+                    toast.success('Admin credentials filled')
+                  }}
+                >
+                  Auto-fill Admin (Dev Only)
+                </Button>
+              )}
             </div>
 
             <div className="relative mt-6">

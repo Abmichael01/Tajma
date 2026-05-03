@@ -58,7 +58,7 @@ export default function UserProfileScreen() {
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
     }
-    return profile?.username || profile?.email?.split('@')[0] || 'User';
+    return profile?.username || 'User';
   };
 
   const getUserInitials = () => {
@@ -408,4 +408,3 @@ export default function UserProfileScreen() {
     </View>
   );
 }
-

@@ -128,7 +128,7 @@ export default function AdminKYCPage() {
           <h1 className="text-2xl font-medium text-gray-900">KYC Verifications</h1>
           <p className="text-sm text-gray-500 mt-1">Review and manually manage user identity verifications</p>
         </div>
-        <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium border border-blue-100 flex items-center gap-2">
+        <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-sm font-medium border border-blue-100 flex items-center gap-2">
           <Shield className="w-4 h-4" />
           Smile ID Integrated
         </div>

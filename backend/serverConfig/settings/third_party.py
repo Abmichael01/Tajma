@@ -1,6 +1,8 @@
 # Third-party apps settings
 import os
 
+ENVIRONMENT = os.getenv('ENV', 'development')
+
 INSTALLED_APPS_THIRD_PARTY = [
     'rest_framework',
     'corsheaders',
@@ -9,11 +11,15 @@ INSTALLED_APPS_THIRD_PARTY = [
 ]
 
 # REST Framework settings
+DEFAULT_AUTHENTICATION_CLASSES = [
+    'api.authentication.csrf_enforced_session.CSRFEnforcedSessionAuthentication',
+]
+
+if ENVIRONMENT != 'production':
+    DEFAULT_AUTHENTICATION_CLASSES.append('rest_framework.authentication.BasicAuthentication')
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'api.authentication.csrf_enforced_session.CSRFEnforcedSessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': DEFAULT_AUTHENTICATION_CLASSES,
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
@@ -30,13 +36,24 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '500/day',
-        'user': '5000/day'
+        'user': '5000/day',
+        'auth_attempt': '10/minute',
+        'kyc_initiate': '5/day',
     }
 }
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
+
+cors_origins_str = os.getenv(
+    'CORS_ALLOWED_ORIGINS',
+    'http://localhost:3000,http://127.0.0.1:3000,'
+    'http://localhost:3005,http://127.0.0.1:3005,'
+    'http://localhost:8081,http://127.0.0.1:8081,'
+    'https://tajma.net,https://www.tajma.net'
+)
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',') if origin.strip()]
 
 # Session settings
 SESSION_COOKIE_HTTPONLY = True
@@ -74,7 +91,6 @@ FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 
 # Django Channels Configuration
-ENVIRONMENT = os.getenv('ENV', 'development')
 if ENVIRONMENT == 'production':
     CHANNEL_LAYERS = {
         'default': {

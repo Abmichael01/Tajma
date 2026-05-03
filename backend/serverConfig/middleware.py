@@ -14,23 +14,14 @@ class CustomCsrfMiddleware(CsrfViewMiddleware, MiddlewareMixin):
         import logging
         logger = logging.getLogger(__name__)
         
-        # Skip CSRF check for API endpoints if they are marked as csrf_exempt
-        # or if they are coming from a mobile/non-browser client (no referer)
+        # Only respect explicit csrf_exempt markers. Mobile clients must still
+        # provide X-CSRFToken for unsafe authenticated API requests.
         if request.path.startswith('/api/'):
-            # If the view is explicitly exempt, it will be handled by the parent
             if getattr(callback, 'csrf_exempt', False):
-                logger.info(f"🛡️ CSRF MIDDLEWARE: path={request.path} - View is exempt")
-                return None
-                
-            # React Native apps don't typically have Referer headers.
-            if not request.META.get('HTTP_REFERER'):
-                logger.info(f"🛡️ CSRF MIDDLEWARE: path={request.path} - No referer, skipping check")
+                logger.debug("CSRF middleware: exempt view for %s", request.path)
                 return None
 
-        # Log details for web browsers
-        logger.info(f"🛡️ CSRF MIDDLEWARE: path={request.path} method={request.method}")
-        logger.info(f"🛡️ CSRF COOKIES: {list(request.COOKIES.keys())}")
-        logger.info(f"🛡️ CSRF REFERER: {request.META.get('HTTP_REFERER')}")
+        logger.debug("CSRF middleware: path=%s method=%s", request.path, request.method)
         
         return super().process_view(request, callback, callback_args, callback_kwargs)
     
@@ -38,13 +29,15 @@ class CustomCsrfMiddleware(CsrfViewMiddleware, MiddlewareMixin):
         import logging
         logger = logging.getLogger(__name__)
         
-        # Skip referer check for API endpoints (React Native doesn't send Referer by default)
+        # React Native does not send Referer. For API clients, allow a missing
+        # Referer only when a CSRF header is present; token validation still runs.
         if request.path.startswith('/api/'):
             if not request.META.get('HTTP_REFERER'):
-                logger.info(f"🛡️ CSRF MIDDLEWARE: path={request.path} - Allowing referer-less request")
-                return True
-            logger.info(f"🛡️ CSRF MIDDLEWARE: path={request.path} - Validating referer: {request.META.get('HTTP_REFERER')}")
+                if request.META.get('HTTP_X_CSRFTOKEN'):
+                    logger.debug("CSRF middleware: allowing header-token API request without referer")
+                    return
+                return super()._check_referer(request)
+            logger.debug("CSRF middleware: validating referer for %s", request.path)
             return super()._check_referer(request)
         
         return super()._check_referer(request)
-

@@ -1,0 +1,4 @@
+src/app/(tabs)/chat.tsx(107,38): error TS2339: Property 'length' does not exist on type 'never'.
+src/components/ads/RegionModal.tsx(168,43): error TS7006: Parameter 'region' implicitly has an 'any' type.
+src/hooks/useNotifications.ts(14,35): error TS2322: Type 'Promise<{ shouldShowAlert: true; shouldPlaySound: true; shouldSetBadge: true; }>' is not assignable to type 'Promise<NotificationBehavior>'.
+  Type '{ shouldShowAlert: true; shouldPlaySound: true; shouldSetBadge: true; }' is missing the following properties from type 'NotificationBehavior': shouldShowBanner, shouldShowList

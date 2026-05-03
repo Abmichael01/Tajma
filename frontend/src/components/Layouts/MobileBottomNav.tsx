@@ -16,7 +16,7 @@ export default function MobileBottomNav() {
   const searchParams = useSearchParams()
   const { isAuthenticated, user } = useAuthStore()
   const { data: chats = [] } = useChats()
-  const profileSlug = user ? user.username || user.email?.split('@')[0] || 'profile' : 'profile'
+  const profileSlug = user ? user.username || user.id || 'profile' : 'profile'
 
   // Calculate total unread messages from all chats
   const totalUnreadMessages = chats.reduce((total, chat) => total + (chat.unread_count || 0), 0)
@@ -132,4 +132,3 @@ function MobileNavLink({ item, active }: { item: NavItem; active: boolean }) {
     </Link>
   )
 }
-

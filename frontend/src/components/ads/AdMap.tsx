@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 
 const MapPlaceholder = () => (
-  <div className="w-full h-80 bg-slate-100 animate-pulse rounded-3xl flex items-center justify-center">
+  <div className="w-full h-80 bg-slate-100 animate-pulse rounded-xl flex items-center justify-center">
     <MarketplaceLoader />
   </div>
 )

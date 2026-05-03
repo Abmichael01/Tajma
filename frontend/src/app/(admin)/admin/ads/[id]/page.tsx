@@ -1,17 +1,26 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { useAdminAd, useAdminAdChatCount } from '@/hooks/useAdmin'
+import { useAdminAd, useAdminAdChatCount, useUpdateAdminAd, useDeleteAdminAd } from '@/hooks/useAdmin'
 import { useReviewStats } from '@/hooks/useReviews'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ArrowLeft, Eye, MessageSquare, Star } from 'lucide-react'
+import { ArrowLeft, Eye, MessageSquare, Star, Trash2 } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { toast } from 'sonner'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 export default function AdminAdDetailPage() {
   const params = useParams()
@@ -24,6 +33,36 @@ export default function AdminAdDetailPage() {
     { ad: adId },
     !!adId
   )
+  
+  const updateAd = useUpdateAdminAd()
+  const deleteAd = useDeleteAdminAd()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!ad) return
+    try {
+      await updateAd.mutateAsync({
+        id: ad.id,
+        data: { status: newStatus as 'draft' | 'published' | 'archived' },
+      })
+    } catch (error: any) {
+      console.error('Failed to update ad status:', error)
+    }
+  }
+
+  const handleDelete = async () => {
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!ad) return
+    try {
+      await deleteAd.mutateAsync(ad.id)
+      router.push('/admin/ads')
+    } catch (error) {
+      console.error('Failed to delete ad:', error)
+    }
+  }
 
   // Helper function to get image URL
   // Uses API endpoint to bypass browser extension blocking
@@ -98,6 +137,32 @@ export default function AdminAdDetailPage() {
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-medium text-gray-900 truncate">{ad.title}</h1>
         </div>
+        
+        {/* Actions */}
+        <div className="flex items-center gap-3">
+          <Select
+            value={ad.status}
+            onValueChange={handleStatusChange}
+          >
+            <SelectTrigger className="w-32 bg-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="archived">Archived</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDelete}
+            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+          >
+            <Trash2 className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Row */}
@@ -123,7 +188,7 @@ export default function AdminAdDetailPage() {
       <div className="space-y-6">
         {/* Images Gallery */}
         {adImages.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
             <h2 className="text-base font-medium text-gray-900 mb-4">Images</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {adImages.map((image, index) => {
@@ -132,7 +197,7 @@ export default function AdminAdDetailPage() {
                 return (
                   <div
                     key={index}
-                    className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200"
+                    className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200"
                   >
                     {imageUrl ? (
                       <Image
@@ -159,14 +224,14 @@ export default function AdminAdDetailPage() {
         )}
 
         {/* Basic Information */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="text-sm font-medium text-gray-900 mb-4">Basic Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Title</p>
               <p className="text-sm font-medium text-gray-900">{ad.title}</p>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Price</p>
               <p className="text-sm font-medium text-gray-900">{formattedPrice}</p>
               {ad.is_negotiable && (
@@ -175,7 +240,7 @@ export default function AdminAdDetailPage() {
                 </Badge>
               )}
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Status</p>
               <Badge
                 variant={
@@ -189,19 +254,19 @@ export default function AdminAdDetailPage() {
                 {ad.status.charAt(0).toUpperCase() + ad.status.slice(1)}
               </Badge>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Type</p>
               <Badge variant="outline">
                 {ad.ad_type.charAt(0).toUpperCase() + ad.ad_type.slice(1)}
               </Badge>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Category</p>
               <p className="text-sm font-medium text-gray-900">
                 {ad.category_name || ad.category}
               </p>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Slug</p>
               <p className="text-sm font-medium text-gray-900 font-mono">{ad.slug}</p>
             </div>
@@ -210,9 +275,9 @@ export default function AdminAdDetailPage() {
 
         {/* Description */}
         {ad.description && (
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
             <h2 className="text-sm font-medium text-gray-900 mb-4">Description</h2>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-700 whitespace-pre-wrap">{ad.description}</p>
             </div>
           </div>
@@ -220,11 +285,11 @@ export default function AdminAdDetailPage() {
 
         {/* Attributes */}
         {ad.attributes && Object.keys(ad.attributes).length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
             <h2 className="text-sm font-medium text-gray-900 mb-4">Attributes</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(ad.attributes).map(([key, value]) => (
-                <div key={key} className="border border-gray-200 rounded-lg p-4">
+                <div key={key} className="border border-gray-200 rounded-xl p-4">
                   <p className="text-sm text-gray-500 mb-2 capitalize">
                     {key.replace(/_/g, ' ')}
                   </p>
@@ -238,9 +303,9 @@ export default function AdminAdDetailPage() {
         )}
 
         {/* Seller Information */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="text-sm font-medium text-gray-900 mb-4">Seller Information</h2>
-          <div className="border border-gray-200 rounded-lg p-4">
+          <div className="border border-gray-200 rounded-xl p-4">
             <div className="flex items-center gap-4">
               <Avatar className="w-12 h-12">
                 <AvatarImage src={ad.seller.avatar || undefined} alt={getUserFullName(ad.seller)} />
@@ -259,17 +324,17 @@ export default function AdminAdDetailPage() {
         </div>
 
         {/* Timestamps */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <h2 className="text-sm font-medium text-gray-900 mb-4">Timestamps</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border border-gray-200 rounded-xl p-4">
               <p className="text-sm text-gray-500 mb-2">Created At</p>
               <p className="text-sm font-medium text-gray-900">
                 {new Date(ad.created_at).toLocaleString()}
               </p>
             </div>
             {ad.updated_at && (
-              <div className="border border-gray-200 rounded-lg p-4">
+              <div className="border border-gray-200 rounded-xl p-4">
                 <p className="text-sm text-gray-500 mb-2">Updated At</p>
                 <p className="text-sm font-medium text-gray-900">
                   {new Date(ad.updated_at).toLocaleString()}
@@ -277,7 +342,7 @@ export default function AdminAdDetailPage() {
               </div>
             )}
             {ad.published_at && (
-              <div className="border border-gray-200 rounded-lg p-4">
+              <div className="border border-gray-200 rounded-xl p-4">
                 <p className="text-sm text-gray-500 mb-2">Published At</p>
                 <p className="text-sm font-medium text-gray-900">
                   {new Date(ad.published_at).toLocaleString()}
@@ -287,6 +352,15 @@ export default function AdminAdDetailPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title={`Delete Ad: ${ad.title}?`}
+        description="Are you sure you want to delete this ad? This action cannot be undone and will remove the advertisement permanently from the marketplace."
+        isLoading={deleteAd.isPending}
+      />
     </div>
   )
 }

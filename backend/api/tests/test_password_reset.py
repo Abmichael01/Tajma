@@ -34,7 +34,7 @@ class PasswordResetTest(TestCase):
         # Verify that an email was 'sent'
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
-        self.assertEqual(email.subject, 'Password Reset e-mail')
+        self.assertIn('Password reset', email.subject)
         self.assertIn('test@example.com', email.to)
         
         # Look for the 'psi link' (password reset link) in the email body

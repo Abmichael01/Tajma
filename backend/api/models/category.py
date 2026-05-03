@@ -31,7 +31,11 @@ class Category(models.Model):
         choices=CATEGORY_TYPES,
         default='product',
     )
-    custom_fields = models.JSONField(default=list, blank=True)
+    custom_fields = models.JSONField(
+        default=list, 
+        blank=True,
+        help_text='List of custom field definitions. Format: [{"name": "year", "type": "number", "label": "Year", "required": true, "placeholder": "e.g. 2023", "options": []}]'
+    )
     sort_order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

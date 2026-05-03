@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuthStore } from '@/store/authStore'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 export default function AdminUsersPage() {
   const searchParams = useSearchParams()
@@ -49,6 +50,10 @@ export default function AdminUsersPage() {
   // Track confirmation dialog state
   const [showSelfDeactivateDialog, setShowSelfDeactivateDialog] = useState(false)
   const [pendingUser, setPendingUser] = useState<AdminUser | null>(null)
+  
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null)
 
   // Calculate stats from current data
   const usersStats = useMemo(() => {
@@ -113,12 +118,16 @@ export default function AdminUsersPage() {
   }
 
   const handleDelete = async (user: AdminUser) => {
-    const userName = getUserFullName(user)
-    if (!confirm(`Are you sure you want to delete user ${userName}?`)) {
-      return
-    }
+    setUserToDelete(user)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return
     try {
-      await deleteUser.mutateAsync(user.id)
+      await deleteUser.mutateAsync(userToDelete.id)
+      setShowDeleteDialog(false)
+      setUserToDelete(null)
     } catch (error) {
       // Error handled by mutation
     }
@@ -243,7 +252,7 @@ export default function AdminUsersPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Select
             value={isActiveFilter || 'all'}
@@ -380,6 +389,16 @@ export default function AdminUsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title={`Delete User: ${userToDelete ? getUserFullName(userToDelete) : ''}?`}
+        description="Are you sure you want to delete this user? This will permanently remove their account, profile, and all associated data. This action cannot be undone."
+        isLoading={deleteUser.isPending}
+      />
     </div>
   )
 }

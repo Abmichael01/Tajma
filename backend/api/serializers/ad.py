@@ -2,9 +2,10 @@ from rest_framework import serializers
 from django.conf import settings
 
 from api.models import Ad, Category
-from api.serializers.user import UserSerializer
+from api.serializers.user import UserPublicSerializer, UserSerializer
 from api.utils.image_upload import process_images_list
 from api.utils.image_url import build_full_image_url
+from api.utils.validation import validate_ad_attributes
 from api.services.response_stats import calculate_response_stats_for_seller
 
 
@@ -15,7 +16,7 @@ class CategorySummarySerializer(serializers.ModelSerializer):
 
 
 class AdSerializer(serializers.ModelSerializer):
-    seller = UserSerializer(read_only=True)
+    seller = UserPublicSerializer(read_only=True)
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.filter(is_active=True),
@@ -58,6 +59,8 @@ class AdSerializer(serializers.ModelSerializer):
             'location_name',
             'latitude',
             'longitude',
+            'is_featured',
+            'promotion_rank',
         ]
         read_only_fields = [
             'id',
@@ -68,6 +71,8 @@ class AdSerializer(serializers.ModelSerializer):
             'published_at',
             'created_at',
             'updated_at',
+            'is_featured',
+            'promotion_rank',
         ]
 
     def validate_category(self, category: Category):
@@ -91,6 +96,13 @@ class AdSerializer(serializers.ModelSerializer):
         # Price validation is handled on frontend - backend accepts null for flexibility
         if price is not None and price <= 0:
             raise serializers.ValidationError({'price': 'Price must be a positive number.'})
+
+        # Validate dynamic attributes against category custom_fields
+        attributes = attrs.get('attributes') or getattr(self.instance, 'attributes', {})
+        if category and attributes:
+            custom_fields = category.custom_fields or []
+            if isinstance(custom_fields, list):
+                validate_ad_attributes(custom_fields, attributes)
 
         attrs['ad_type'] = ad_type
         return attrs
@@ -121,6 +133,7 @@ class AdSerializer(serializers.ModelSerializer):
         logger.info(f"Created ad: {ad.id}, status: {ad.status}, slug: {ad.slug}")
         
         return ad
+
 
     def update(self, instance, validated_data):
         # Prevent category changes once the ad is created to avoid inconsistent data
@@ -186,6 +199,10 @@ class AdSerializer(serializers.ModelSerializer):
                 pass
         
         return data
+
+
+class AdminAdSerializer(AdSerializer):
+    seller = UserSerializer(read_only=True)
 
 
 class AdMinimalSerializer(serializers.ModelSerializer):

@@ -112,7 +112,7 @@ export default function CategoryGrid() {
         )}
 
         {!loading && !error && categories.length > 0 && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {categories.map((category) => (
               <CategoryCard key={category.id} category={category} />
             ))}

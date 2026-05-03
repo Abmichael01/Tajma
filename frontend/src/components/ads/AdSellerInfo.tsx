@@ -51,7 +51,7 @@ export default function AdSellerInfo({
   }
 
   return (
-    <div className={`bg-white border border-gray-200 p-4 sm:p-6 rounded-3xl ${className}`}>
+    <div className={`bg-white border border-gray-200 p-4 sm:p-6 rounded-xl ${className}`}>
       <h3 className="font-semibold text-gray-900 mb-4">Seller Information</h3>
 
       <div className="flex items-center gap-3 mb-4">

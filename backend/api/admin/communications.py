@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from api.models import Notification, Chat, Message
+from api.models import Notification, Chat, Message, Lead
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
@@ -45,3 +45,11 @@ class MessageAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('chat', 'sender')
+
+@admin.register(Lead)
+class LeadAdmin(admin.ModelAdmin):
+    list_display = ('id', 'seller', 'client', 'ad', 'first_source', 'messaged', 'created_at')
+    list_filter = ('first_source', 'messaged', 'created_at')
+    search_fields = ('seller__email', 'client__email', 'ad__title')
+    readonly_fields = ('created_at', 'last_interacted_at')
+    autocomplete_fields = ['seller', 'client', 'ad']

@@ -310,3 +310,34 @@ export interface UserOnlineStatus {
   is_online: boolean
   last_seen: string | null
 }
+
+// Report and Support types
+export interface SupportMessage {
+  id: string
+  report: string
+  sender: User
+  sender_details?: User
+  message: string
+  is_admin_reply: boolean
+  created_at: string
+}
+
+export interface Report {
+  id: string
+  reporter?: number | null
+  reporter_details?: User
+  report_type: 'ad' | 'user' | 'support' | 'feedback'
+  related_ad?: string | null
+  reported_user?: number | null
+  reported_user_details?: User
+  reason: string
+  description: string
+  contact_email?: string | null
+  status: 'pending' | 'under_review' | 'resolved' | 'dismissed'
+  resolution_note?: string | null
+  resolved_by?: number | null
+  created_at: string
+  updated_at: string
+  resolved_at?: string | null
+  messages?: SupportMessage[]
+}

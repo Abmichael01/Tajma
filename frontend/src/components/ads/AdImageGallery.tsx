@@ -27,7 +27,7 @@ export default function AdImageGallery({
   className = ''
 }: AdImageGalleryProps) {
   return (
-    <div className={`bg-white border border-gray-200 overflow-hidden rounded-3xl ${className}`}>
+    <div className={`bg-white border border-gray-200 overflow-hidden rounded-xl ${className}`}>
       {/* Main Image */}
       <div className="relative aspect-video bg-gray-100 overflow-hidden">
         <motion.div

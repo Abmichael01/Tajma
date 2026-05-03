@@ -32,7 +32,7 @@ import {
 
 export default function NotificationDropdown() {
   const { user } = useAuthStore()
-  const profileSlug = user ? (user.username || user.email?.split('@')[0] || 'profile') : 'profile'
+  const profileSlug = user ? (user.username || user.id || 'profile') : 'profile'
   const { 
     notifications, 
     getUnreadCount

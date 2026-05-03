@@ -1,39 +1,51 @@
-import { View, ScrollView, TouchableOpacity, RefreshControl, FlatList, Platform } from "react-native";
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  FlatList,
+  Platform,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useState, useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AppText from "@/components/ui/AppText";
-import { useNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useDeleteNotification } from "@/hooks/useNotifications";
+import {
+  useNotifications,
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead,
+  useDeleteNotification,
+} from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/authStore";
 import Skeleton from "@/components/ui/Skeleton";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 
 const NOTIFICATION_TYPES = [
-  { label: 'All', value: 'all', icon: 'apps-outline' },
-  { label: 'Messages', value: 'message', icon: 'chatbubble-ellipses-outline' },
-  { label: 'Views', value: 'ad_view', icon: 'eye-outline' },
-  { label: 'Favorites', value: 'favorite', icon: 'heart-outline' },
-  { label: 'Leads', value: 'phone_view', icon: 'call-outline' },
-  { label: 'Status', value: 'ad_status', icon: 'information-circle-outline' },
+  { label: "All", value: "all", icon: "apps-outline" },
+  { label: "Messages", value: "message", icon: "chatbubble-ellipses-outline" },
+  { label: "Views", value: "ad_view", icon: "eye-outline" },
+  { label: "Favorites", value: "favorite", icon: "heart-outline" },
+  { label: "Leads", value: "phone_view", icon: "call-outline" },
+  { label: "Status", value: "ad_status", icon: "information-circle-outline" },
 ];
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case 'message':
-      return { name: 'chatbubble-ellipses', color: '#2563eb' };
-    case 'phone_view':
-      return { name: 'call', color: '#9333ea' };
-    case 'favorite':
-      return { name: 'heart', color: '#ef4444' };
-    case 'review':
-      return { name: 'star', color: '#eab308' };
-    case 'ad_view':
-      return { name: 'eye', color: '#10b981' };
-    case 'ad_status':
-      return { name: 'information-circle', color: '#3b82f6' };
+    case "message":
+      return { name: "chatbubble-ellipses", color: "#2563eb" };
+    case "phone_view":
+      return { name: "call", color: "#9333ea" };
+    case "favorite":
+      return { name: "heart", color: "#ef4444" };
+    case "review":
+      return { name: "star", color: "#eab308" };
+    case "ad_view":
+      return { name: "eye", color: "#10b981" };
+    case "ad_status":
+      return { name: "information-circle", color: "#3b82f6" };
     default:
-      return { name: 'notifications', color: '#6b7280' };
+      return { name: "notifications", color: "#6b7280" };
   }
 };
 
@@ -46,7 +58,7 @@ const formatTimeAgo = (timestamp: string) => {
   const diffDays = Math.floor(diffMs / 86400000);
   const diffWeeks = Math.floor(diffDays / 7);
 
-  if (diffMs < 60000) return 'Just now';
+  if (diffMs < 60000) return "Just now";
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
@@ -62,12 +74,12 @@ export default function AlertsScreen() {
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const deleteNotificationMutation = useDeleteNotification();
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedType, setSelectedType] = useState('all');
+  const [selectedType, setSelectedType] = useState("all");
 
   const filteredNotifications = useMemo(() => {
     if (!notifications) return [];
-    if (selectedType === 'all') return notifications;
-    return notifications.filter(n => n.type === selectedType);
+    if (selectedType === "all") return notifications;
+    return notifications.filter((n) => n.type === selectedType);
   }, [notifications, selectedType]);
 
   const handleRefresh = async () => {
@@ -105,23 +117,32 @@ export default function AlertsScreen() {
     return (
       <View className="flex-1 bg-white items-center justify-center px-4">
         <Ionicons name="lock-closed-outline" size={64} color="#9ca3af" />
-        <AppText variant="heading" weight="bold" className="mt-4 mb-2 text-3xl text-gray-900">
+        <AppText
+          variant="heading"
+          weight="bold"
+          className="mt-4 mb-2 text-3xl text-gray-900"
+        >
           Sign In Required
         </AppText>
-        <AppText variant="default" className="text-gray-600 text-center mb-6 text-lg">
+        <AppText
+          variant="default"
+          className="text-gray-600 text-center mb-6 text-lg"
+        >
           Please sign in to view your alerts and notifications.
         </AppText>
         <TouchableOpacity
           onPress={() => router.push("/(auth)/login")}
           className="bg-primary px-8 py-4 rounded-full"
         >
-          <AppText weight="semibold" className="text-white text-lg">Sign In</AppText>
+          <AppText weight="semibold" className="text-white text-lg">
+            Sign In
+          </AppText>
         </TouchableOpacity>
       </View>
     );
   }
 
-  const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
+  const unreadCount = notifications?.filter((n) => !n.is_read).length || 0;
   const hasNotifications = notifications && notifications.length > 0;
 
   return (
@@ -146,19 +167,22 @@ export default function AlertsScreen() {
             <TouchableOpacity
               key={type.value}
               onPress={() => setSelectedType(type.value)}
-              className={`flex-row items-center gap-2 px-4 py-2.5 rounded-full border ${selectedType === type.value
-                ? 'bg-secondary border-secondary'
-                : 'bg-white border-border'
-                }`}
+              className={`flex-row items-center gap-2 px-4 py-2.5 rounded-full border ${
+                selectedType === type.value
+                  ? "bg-secondary border-secondary"
+                  : "bg-white border-border"
+              }`}
             >
               <Ionicons
                 name={type.icon as any}
                 size={16}
-                color={selectedType === type.value ? 'white' : '#6b7280'}
+                color={selectedType === type.value ? "white" : "#6b7280"}
               />
               <AppText
-                weight={selectedType === type.value ? 'bold' : 'medium'}
-                className={selectedType === type.value ? 'text-white' : 'text-gray-500'}
+                weight={selectedType === type.value ? "bold" : "medium"}
+                className={
+                  selectedType === type.value ? "text-white" : "text-gray-500"
+                }
               >
                 {type.label}
               </AppText>
@@ -169,7 +193,7 @@ export default function AlertsScreen() {
         {hasNotifications && unreadCount > 0 && (
           <TouchableOpacity
             onPress={handleMarkAllAsRead}
-            className="mx-6 flex-row items-center justify-center gap-2 py-3 bg-[#FF4F18]/5 border border-[#FF4F18]/10 rounded-xl"
+            className="mx-6 flex-row items-center justify-center gap-2 py-3 bg-[#FF4F18]/5 border border-[#FF4F18]/10 rounded-full"
           >
             <Ionicons name="checkmark-done" size={20} color="#FF4F18" />
             <AppText weight="bold" className="text-[#FF4F18] text-sm uppercase">
@@ -185,7 +209,10 @@ export default function AlertsScreen() {
           {Array.from({ length: 8 }).map((_, idx) => (
             <View key={idx} className="p-6 border-b border-gray-100">
               <View className="flex-row gap-4">
-                <Skeleton className="w-14 h-14 rounded-full" variant="circular" />
+                <Skeleton
+                  className="w-14 h-14 rounded-full"
+                  variant="circular"
+                />
                 <View className="flex-1">
                   <Skeleton variant="text" className="w-2/3 h-5 mb-3" />
                   <Skeleton variant="text" className="w-full h-4 mb-2" />
@@ -198,21 +225,41 @@ export default function AlertsScreen() {
       ) : filteredNotifications.length === 0 ? (
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 }}
+          contentContainerStyle={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 40,
+          }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#FF4F18" />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#FF4F18"
+            />
           }
         >
-          <Ionicons name="notifications-off-outline" size={64} color="#f3f4f6" />
-          <AppText weight="medium" className="text-gray-300 mt-6 text-xl text-center">
-            {selectedType === 'all' ? 'No notifications yet' : `No ${selectedType} alerts found`}
+          <Ionicons
+            name="notifications-off-outline"
+            size={64}
+            color="#f3f4f6"
+          />
+          <AppText
+            weight="medium"
+            className="text-gray-300 mt-6 text-xl text-center"
+          >
+            {selectedType === "all"
+              ? "No notifications yet"
+              : `No ${selectedType} alerts found`}
           </AppText>
-          {selectedType !== 'all' && (
+          {selectedType !== "all" && (
             <TouchableOpacity
-              onPress={() => setSelectedType('all')}
+              onPress={() => setSelectedType("all")}
               className="mt-4"
             >
-              <AppText className="text-primary font-bold">Clear Filters</AppText>
+              <AppText className="text-primary font-bold">
+                Clear Filters
+              </AppText>
             </TouchableOpacity>
           )}
         </ScrollView>
@@ -221,13 +268,17 @@ export default function AlertsScreen() {
           data={filteredNotifications}
           keyExtractor={(item) => item.id}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#FF4F18" />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#FF4F18"
+            />
           }
           showsVerticalScrollIndicator={false}
           className="flex-1"
           windowSize={10}
           maxToRenderPerBatch={10}
-          removeClippedSubviews={Platform.OS === 'android'}
+          removeClippedSubviews={Platform.OS === "android"}
           ListFooterComponent={<View className="h-32" />}
           renderItem={({ item: notification }) => {
             const icon = getNotificationIcon(notification.type);
@@ -241,13 +292,14 @@ export default function AlertsScreen() {
               >
                 <View className="flex-row gap-5 items-center">
                   <View
-                    className={`w-14 h-14 rounded-full items-center justify-center ${isRead ? 'bg-gray-50' : 'bg-[#FF4F18]/5'
-                      }`}
+                    className={`w-14 h-14 rounded-full items-center justify-center ${
+                      isRead ? "bg-gray-50" : "bg-[#FF4F18]/5"
+                    }`}
                   >
                     <Ionicons
                       name={icon.name as any}
                       size={26}
-                      color={isRead ? '#d1d5db' : '#FF4F18'}
+                      color={isRead ? "#d1d5db" : "#FF4F18"}
                     />
                   </View>
 
@@ -258,8 +310,8 @@ export default function AlertsScreen() {
                           <View className="w-2.5 h-2.5 rounded-full bg-[#FF4F18]" />
                         )}
                         <AppText
-                          weight={isRead ? 'medium' : 'bold'}
-                          className={`text-lg ${isRead ? 'text-gray-500' : 'text-[#2D2D2D]'}`}
+                          weight={isRead ? "medium" : "bold"}
+                          className={`text-lg ${isRead ? "text-gray-500" : "text-[#2D2D2D]"}`}
                           numberOfLines={1}
                         >
                           {notification.title}
@@ -271,7 +323,7 @@ export default function AlertsScreen() {
                     </View>
 
                     <AppText
-                      className={`text-base leading-5 ${isRead ? 'text-gray-400' : 'text-gray-600'}`}
+                      className={`text-base leading-5 ${isRead ? "text-gray-400" : "text-gray-600"}`}
                       numberOfLines={2}
                     >
                       {notification.message}

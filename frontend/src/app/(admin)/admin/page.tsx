@@ -76,19 +76,19 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-medium text-gray-900">Recent Activity (Last 24 Hours)</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-white rounded-lg border border-gray-200">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
             <p className="text-xs font-medium text-gray-500 mb-1.5">New Users</p>
             <p className="text-2xl font-medium text-gray-900">
               {stats.recent_activity_24h.new_users}
             </p>
           </div>
-          <div className="p-4 bg-white rounded-lg border border-gray-200">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
             <p className="text-xs font-medium text-gray-500 mb-1.5">New Ads</p>
             <p className="text-2xl font-medium text-gray-900">
               {stats.recent_activity_24h.new_ads}
             </p>
           </div>
-          <div className="p-4 bg-white rounded-lg border border-gray-200">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
             <p className="text-xs font-medium text-gray-500 mb-1.5">New Messages</p>
             <p className="text-2xl font-medium text-gray-900">
               {stats.recent_activity_24h.new_messages}

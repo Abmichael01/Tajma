@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { adminApi, type AdminStats, type PaginatedResponse, type AdminUser, type AdminAd, type AdminCategory, type AdminNotification, type AdminChat, type AdminMessage, type AdminLead } from '@/api/admin'
+import { adminApi, type AdminStats, type PaginatedResponse, type AdminUser, type AdminAd, type AdminCategory, type AdminNotification, type AdminChat, type AdminMessage, type AdminLead, type AdminPromotionPackage } from '@/api/admin'
 import { toast } from 'sonner'
 
 // Statistics
@@ -360,6 +360,22 @@ export function useResolveAdminReport() {
   })
 }
 
+export function useDismissAdminReport() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, resolution_note }: { id: string; resolution_note?: string }) =>
+      adminApi.dismissReport(id, resolution_note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      toast.success('Report dismissed successfully')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to dismiss report')
+    },
+  })
+}
+
 export function useDeleteAdminReport() {
   const queryClient = useQueryClient()
   
@@ -371,6 +387,59 @@ export function useDeleteAdminReport() {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Failed to delete report')
+    },
+  })
+}
+
+export function useArchiveReportedAd() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note?: string }) =>
+      adminApi.archiveReportedAd(id, note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'ads'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] })
+      toast.success('Reported ad archived')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.error || 'Failed to archive ad')
+    },
+  })
+}
+
+export function useWarnReportedUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, message }: { id: string; message?: string }) =>
+      adminApi.warnReportedUser(id, message),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'notifications'] })
+      toast.success('Warning sent')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.error || 'Failed to send warning')
+    },
+  })
+}
+
+export function useSuspendReportedUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note?: string }) =>
+      adminApi.suspendReportedUser(id, note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] })
+      toast.success('Reported user suspended')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.error || 'Failed to suspend user')
     },
   })
 }
@@ -387,6 +456,66 @@ export function useReplyAdminReport() {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Failed to send reply')
+    },
+  })
+}
+
+// Promotion packages
+export function useAdminPromotionPackages(params?: {
+  page?: number
+  search?: string
+  promotion_type?: string
+  is_active?: boolean
+}) {
+  return useQuery({
+    queryKey: ['admin', 'promotion-packages', params],
+    queryFn: () => adminApi.getPromotionPackages(params),
+  })
+}
+
+export function useCreateAdminPromotionPackage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: Partial<AdminPromotionPackage>) => adminApi.createPromotionPackage(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'promotion-packages'] })
+      toast.success('Promotion package created')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to create package')
+    },
+  })
+}
+
+export function useUpdateAdminPromotionPackage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<AdminPromotionPackage> }) =>
+      adminApi.updatePromotionPackage(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'promotion-packages'] })
+      queryClient.invalidateQueries({ queryKey: ['admin', 'promotion-packages', variables.id] })
+      toast.success('Promotion package updated')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to update package')
+    },
+  })
+}
+
+export function useDeleteAdminPromotionPackage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => adminApi.deletePromotionPackage(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'promotion-packages'] })
+      toast.success('Promotion package deleted')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to delete package')
     },
   })
 }
@@ -478,5 +607,3 @@ export function useAdminLeads(params?: {
     queryFn: () => adminApi.getLeads(params),
   })
 }
-
-

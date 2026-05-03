@@ -1,294 +1,221 @@
-'use client'
+"use client";
 
-import React, { useState, useMemo, useEffect } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { MapPin, Eye, Heart, ArrowUpDown, ArrowUp, ArrowDown, ShoppingBag, ArrowRight } from 'lucide-react'
-import { useToggleSaveAd } from '@/hooks/useSavedAds'
-import { useAuthStore } from '@/store/authStore'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { useCategories } from '@/hooks/useCategories'
-import type { Ad } from '@/api/types'
-import { getMediaUrl } from '@/lib/utils'
+import { ArrowDown, ArrowRight, ArrowUp, ShoppingBag } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import type { Ad } from "@/api/types";
+import { useCategories } from "@/hooks/useCategories";
+import { useToggleSaveAd } from "@/hooks/useSavedAds";
+import { useAuthStore } from "@/store/authStore";
+import AdCard, { getAdCategoryName } from "./AdCard";
 
 interface AdsListProps {
-  ads: Ad[]
-  columns?: 2 | 3 | 4 | 5
-  className?: string
+  ads: Ad[];
+  columns?: 2 | 3 | 4 | 5;
+  className?: string;
 }
 
-type SortOption = 'newest' | 'oldest' | 'price-low' | 'price-high' | 'views' | 'title'
+type SortOption =
+  | "newest"
+  | "oldest"
+  | "price-low"
+  | "price-high"
+  | "views"
+  | "title";
 
 const sortOptions = [
-  { value: 'newest', label: 'Newest First' },
-  { value: 'oldest', label: 'Oldest First' },
-  { value: 'price-low', label: 'Price: Low to High' },
-  { value: 'price-high', label: 'Price: High to Low' },
-  { value: 'views', label: 'Most Viewed' },
-  { value: 'title', label: 'Title A-Z' }
-]
+  { value: "newest", label: "Newest First" },
+  { value: "oldest", label: "Oldest First" },
+  { value: "price-low", label: "Price: Low to High" },
+  { value: "price-high", label: "Price: High to Low" },
+  { value: "views", label: "Most Viewed" },
+  { value: "title", label: "Title A-Z" },
+];
 
 // Sort function for backend Ad format
 const sortAds = (ads: Ad[], sortBy: SortOption): Ad[] => {
-  const sorted = [...ads]
-  
-  switch (sortBy) {
-    case 'newest':
-      return sorted.sort((a, b) => {
-        const dateA = new Date(a.created_at || 0).getTime()
-        const dateB = new Date(b.created_at || 0).getTime()
-        return dateB - dateA
-      })
-    case 'oldest':
-      return sorted.sort((a, b) => {
-        const dateA = new Date(a.created_at || 0).getTime()
-        const dateB = new Date(b.created_at || 0).getTime()
-        return dateA - dateB
-      })
-    case 'price-low':
-      return sorted.sort((a, b) => {
-        if (!a.price || a.price === '') return 1
-        if (!b.price || b.price === '') return -1
-        const priceA = parseFloat(String(a.price)) || 0
-        const priceB = parseFloat(String(b.price)) || 0
-        return priceA - priceB
-      })
-    case 'price-high':
-      return sorted.sort((a, b) => {
-        if (!a.price || a.price === '') return 1
-        if (!b.price || b.price === '') return -1
-        const priceA = parseFloat(String(a.price)) || 0
-        const priceB = parseFloat(String(b.price)) || 0
-        return priceB - priceA
-      })
-    case 'views':
-      return sorted.sort((a, b) => (b.views || 0) - (a.views || 0))
-    case 'title':
-      return sorted.sort((a, b) => a.title.localeCompare(b.title))
-    default:
-      return sorted
-  }
-}
+  const sorted = [...ads];
 
-export default function AdsList({ ads, columns = 4, className = "" }: AdsListProps) {
-  const router = useRouter()
-  const { isAuthenticated } = useAuthStore()
-  const { categoryTree } = useCategories()
-  const [sortBy, setSortBy] = useState<SortOption>('newest')
-  const [isSortOpen, setIsSortOpen] = useState(false)
-  const { mutate: toggleSaveAd } = useToggleSaveAd()
-  const [responsiveColumns, setResponsiveColumns] = useState<1 | 2 | 3 | 4 | 5>(columns)
-  
+  switch (sortBy) {
+    case "newest":
+      return sorted.sort((a, b) => {
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+    case "oldest":
+      return sorted.sort((a, b) => {
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateA - dateB;
+      });
+    case "price-low":
+      return sorted.sort((a, b) => {
+        if (!a.price || a.price === "") return 1;
+        if (!b.price || b.price === "") return -1;
+        const priceA = parseFloat(String(a.price)) || 0;
+        const priceB = parseFloat(String(b.price)) || 0;
+        return priceA - priceB;
+      });
+    case "price-high":
+      return sorted.sort((a, b) => {
+        if (!a.price || a.price === "") return 1;
+        if (!b.price || b.price === "") return -1;
+        const priceA = parseFloat(String(a.price)) || 0;
+        const priceB = parseFloat(String(b.price)) || 0;
+        return priceB - priceA;
+      });
+    case "views":
+      return sorted.sort((a, b) => (b.views || 0) - (a.views || 0));
+    case "title":
+      return sorted.sort((a, b) => a.title.localeCompare(b.title));
+    default:
+      return sorted;
+  }
+};
+
+export default function AdsList({
+  ads,
+  columns = 4,
+  className = "",
+}: AdsListProps) {
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+  const { categoryTree } = useCategories();
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const { mutate: toggleSaveAd } = useToggleSaveAd();
+  const [responsiveColumns, setResponsiveColumns] = useState<1 | 2 | 3 | 4 | 5>(
+    columns,
+  );
+
   // Helper function to get category name from category tree
   const getCategoryName = (categorySlugOrId: string | undefined): string => {
-    if (!categorySlugOrId || !categoryTree) return 'Uncategorized'
-    
-    const findCategory = (categories: any[], slug: string): any => {
-      for (const cat of categories) {
-        if (cat.slug === slug || cat.id === slug) return cat
-        if (cat.children || cat.subcategories) {
-          const found = findCategory(cat.children || cat.subcategories || [], slug)
-          if (found) return found
-        }
-      }
-      return null
-    }
-    
-    const category = findCategory(categoryTree, categorySlugOrId)
-    return category?.name || 'Uncategorized'
-  }
-  
+    return getAdCategoryName(categoryTree, categorySlugOrId);
+  };
+
   // Handle favorite toggle using API
   const handleToggleFavorite = (adId: string) => {
     if (isAuthenticated) {
-      toggleSaveAd(adId)
+      toggleSaveAd(adId);
     } else {
-      toast.error('Please login to save ads')
-      router.push('/login')
+      toast.error("Please login to save ads");
+      router.push("/login");
     }
-  }
-  
+  };
+
   // Check if ad is saved (from API response)
   const isFavorite = (adId: string) => {
-    const ad = sortedAds.find(a => a.id === adId)
-    return ad?.is_saved === true
-  }
+    const ad = sortedAds.find((a) => a.id === adId);
+    return ad?.is_saved === true;
+  };
 
   // Calculate responsive columns based on screen size (Pinterest-style)
   useEffect(() => {
     const updateColumns = () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         // For 4 columns: 2 on mobile/min-420, 3 on 700px+, 4 on 1024px+
         if (columns === 4) {
           if (window.innerWidth >= 1024) {
-            setResponsiveColumns(4)
+            setResponsiveColumns(4);
           } else if (window.innerWidth >= 700) {
-            setResponsiveColumns(3)
+            setResponsiveColumns(3);
           } else {
-            setResponsiveColumns(2)
+            setResponsiveColumns(2);
           }
         }
         // For 3 columns: 2 on mobile, 3 on 700px+
         else if (columns === 3) {
           if (window.innerWidth >= 700) {
-            setResponsiveColumns(3)
+            setResponsiveColumns(3);
           } else {
-            setResponsiveColumns(2)
+            setResponsiveColumns(2);
           }
         }
         // For 2 columns: always 2
         else if (columns === 2) {
-          setResponsiveColumns(2)
+          setResponsiveColumns(2);
         }
         // For 5 columns: use same as 4 but add xl breakpoint
         else if (columns === 5) {
           if (window.innerWidth >= 1280) {
-            setResponsiveColumns(5)
+            setResponsiveColumns(5);
           } else if (window.innerWidth >= 1024) {
-            setResponsiveColumns(4)
+            setResponsiveColumns(4);
           } else if (window.innerWidth >= 700) {
-            setResponsiveColumns(3)
+            setResponsiveColumns(3);
           } else {
-            setResponsiveColumns(2)
+            setResponsiveColumns(2);
           }
         }
       }
-    }
-    
-    updateColumns()
-    window.addEventListener('resize', updateColumns)
-    return () => window.removeEventListener('resize', updateColumns)
-  }, [columns])
+    };
+
+    updateColumns();
+    window.addEventListener("resize", updateColumns);
+    return () => window.removeEventListener("resize", updateColumns);
+  }, [columns]);
 
   const getColumnClasses = () => {
     switch (columns) {
       case 2:
-        return "grid-cols-2 min-[420px]:grid-cols-2"
+        return "grid-cols-2 min-[420px]:grid-cols-2";
       case 3:
-        return "grid-cols-2 min-[700px]:grid-cols-3"
+        return "grid-cols-2 min-[700px]:grid-cols-3";
       case 4:
-        return "grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-4"
+        return "grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-4";
       case 5:
-        return "grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5"
+        return "grid-cols-2 min-[700px]:grid-cols-3 lg:grid-cols-3 xl:grid-cols-5";
       default:
-        return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3"
+        return "grid-cols-1 min-[420px]:grid-cols-2 min-[700px]:grid-cols-3";
     }
-  }
+  };
 
   // Sort ads
-  const sortedAds = useMemo(() => sortAds(ads, sortBy), [ads, sortBy])
+  const sortedAds = useMemo(() => sortAds(ads, sortBy), [ads, sortBy]);
 
   // Distribute sorted ads across columns for Pinterest-style masonry layout
-  const columnArrays: Ad[][] = useMemo(() => {
-    const arrays: Ad[][] = Array.from({ length: responsiveColumns }, () => [])
-  sortedAds.forEach((ad, index) => {
-      const columnIndex = index % responsiveColumns
-      arrays[columnIndex].push(ad)
-  })
-    return arrays
-  }, [sortedAds, responsiveColumns])
+  const columnArrays: { id: string; ads: Ad[] }[] = useMemo(() => {
+    const arrays = Array.from({ length: responsiveColumns }, (_, index) => ({
+      id: `ads-column-${index}`,
+      ads: [] as Ad[],
+    }));
+    sortedAds.forEach((ad, index) => {
+      const columnIndex = index % responsiveColumns;
+      arrays[columnIndex].ads.push(ad);
+    });
+    return arrays;
+  }, [sortedAds, responsiveColumns]);
 
   const renderAdCard = (ad: Ad) => {
-    // Get full image URL using the fixed utility
-    const imageUrl = getMediaUrl(ad.images?.[0])
-    
-    // Format price
-    const formattedPrice = ad.price
-      ? `${ad.currency || 'XOF'} ${parseFloat(String(ad.price)).toLocaleString()}`
-      : 'Contact for price'
-    
-    // Get location from seller
-    const location = ad.seller?.location || 'Location not specified'
-    
-    // Get category name - prefer category_details, fallback to category tree lookup, never show ID
-    const categoryName = ad.category_details?.name || 
-      (ad.category ? getCategoryName(ad.category) : 'Uncategorized')
-    
-    return (
-      <Link key={ad.id} href={`/ads/${ad.slug}`} className="block">
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-primary/40 transition-all duration-200 cursor-pointer group mb-2.5 break-inside-avoid shadow-none">
-        {/* Image Container */}
-        <div className="relative w-full overflow-hidden">
-          <Image
-            src={imageUrl}
-            alt={ad.title}
-            width={400}
-            height={400}
-            className="w-full h-auto group-hover:scale-105 transition-transform duration-200"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-          />
-          
-          {/* Category Badge - Smaller */}
-          {categoryName && (
-            <div className="absolute top-2 left-2 bg-secondary/90 text-white px-2 py-0.5 rounded-full text-xs font-medium">
-              {categoryName}
-            </div>
-          )}
-          
-          {/* Favorite Button */}
-          <button 
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              handleToggleFavorite(ad.id)
-            }}
-            className="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
-            title={isFavorite(ad.id) ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <Heart className={`w-4 h-4 transition-colors ${isFavorite(ad.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-          </button>
-        </div>
+    const categoryName =
+      ad.category_details?.name ||
+      (ad.category ? getCategoryName(ad.category) : "Uncategorized");
 
-        {/* Content */}
-        <div className="p-3">
-          {/* Price - Before Title */}
-          <div className="mb-1.5">
-            <div className={`text-lg ${formattedPrice === 'Contact for price' ? 'text-primary' : 'text-primary'}`}>
-              {formattedPrice}
-            </div>
-          </div>
-          
-          {/* Title */}
-          <h3 className="font-semibold text-gray-900 mb-1.5 line-clamp-2 text-sm group-hover:text-secondary transition-colors duration-200 leading-tight">
-            {ad.title}
-          </h3>
-          
-          {/* Description - Truncated */}
-          {ad.description && (
-            <p className="text-xs text-gray-600 mb-2 line-clamp-2 leading-relaxed">
-              {ad.description}
-            </p>
-          )}
-          
-          {/* Location and Views */}
-          <div className="flex items-center justify-between text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              <span className="truncate max-w-[120px]">{location}</span>
-            </div>
-            
-            {ad.views > 0 && (
-              <div className="flex items-center gap-1">
-                <Eye className="w-3 h-3" />
-                <span>{ad.views}</span>
-              </div>
-            )}
-          </div>
-        </div>
-        </div>
-      </Link>
-    )
-  }
+    return (
+      <AdCard
+        key={ad.id}
+        ad={ad}
+        categoryName={categoryName}
+        isFavorite={isFavorite(ad.id)}
+        onToggleFavorite={handleToggleFavorite}
+      />
+    );
+  };
 
   // Empty state
   if (ads.length === 0) {
     return (
-      <div className={`${className} py-16 flex flex-col items-center gap-4 text-center`}>
+      <div
+        className={`${className} py-16 flex flex-col items-center gap-4 text-center`}
+      >
         <ShoppingBag className="w-10 h-10 text-gray-300" strokeWidth={1.5} />
         <div>
           <p className="text-base font-medium text-gray-700">No ads yet</p>
-          <p className="text-sm text-gray-400 mt-1">Be the first to post something!</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Be the first to post something!
+          </p>
         </div>
         <a
           href="/create-ad"
@@ -297,7 +224,7 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
           Post an Ad <ArrowRight className="w-4 h-4" />
         </a>
       </div>
-    )
+    );
   }
 
   return (
@@ -308,28 +235,32 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
           <span className="text-sm text-gray-600">Sort by:</span>
           <div className="relative">
             <button
+              type="button"
               onClick={() => setIsSortOpen(!isSortOpen)}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 hover:border-secondary rounded-full transition-colors text-sm whitespace-nowrap"
             >
-              {sortOptions.find(option => option.value === sortBy)?.label}
+              {sortOptions.find((option) => option.value === sortBy)?.label}
               {isSortOpen ? (
                 <ArrowUp className="w-4 h-4" />
               ) : (
                 <ArrowDown className="w-4 h-4" />
               )}
             </button>
-            
+
             {isSortOpen && (
               <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl z-10 overflow-hidden">
                 {sortOptions.map((option) => (
                   <button
+                    type="button"
                     key={option.value}
                     onClick={() => {
-                      setSortBy(option.value as SortOption)
-                      setIsSortOpen(false)
+                      setSortBy(option.value as SortOption);
+                      setIsSortOpen(false);
                     }}
                     className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                      sortBy === option.value ? 'bg-secondary/10 text-secondary font-medium' : 'text-gray-700'
+                      sortBy === option.value
+                        ? "bg-secondary/10 text-secondary font-medium"
+                        : "text-gray-700"
                     }`}
                   >
                     {option.label}
@@ -343,12 +274,12 @@ export default function AdsList({ ads, columns = 4, className = "" }: AdsListPro
 
       {/* Pinterest-style masonry grid */}
       <div className={`grid ${getColumnClasses()} gap-2.5`}>
-        {columnArrays.map((columnAds, columnIndex) => (
-          <div key={columnIndex} className="flex flex-col">
-            {columnAds.map(renderAdCard)}
+        {columnArrays.map((column) => (
+          <div key={column.id} className="flex flex-col">
+            {column.ads.map(renderAdCard)}
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }

@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   Star,
   MousePointer2,
+  Megaphone,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
@@ -48,6 +49,12 @@ const menuItems = [
     label: "Leads",
     href: "/admin/leads",
     icon: MousePointer2,
+    isAnimated: false,
+  },
+  {
+    label: "Promotions",
+    href: "/admin/promotions",
+    icon: Megaphone,
     isAnimated: false,
   },
   {

@@ -29,7 +29,7 @@ export default function AdMapInner({ latitude, longitude, title, locationName }:
   ]
 
   return (
-    <div className="w-full h-80 rounded-3xl overflow-hidden shadow-sm border border-slate-100 z-0">
+    <div className="w-full h-80 rounded-xl overflow-hidden shadow-sm border border-slate-100 z-0">
       <MapContainer
         center={position}
         zoom={13}

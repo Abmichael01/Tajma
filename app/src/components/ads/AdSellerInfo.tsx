@@ -4,9 +4,9 @@ import { useRouter } from "expo-router";
 import AppText from "@/components/ui/AppText";
 import Button from "@/components/ui/Button";
 import Avatar from "@/components/ui/Avatar";
-import * as Clipboard from 'expo-clipboard';
-import { useState } from 'react';
-import { Alert } from 'react-native';
+import * as Clipboard from "expo-clipboard";
+import { useState } from "react";
+import { Alert } from "react-native";
 import { useCreateNotification } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/authStore";
 import { useLeads } from "@/hooks/useLeads";
@@ -30,16 +30,21 @@ interface AdSellerInfoProps {
   className?: string;
 }
 
-export default function AdSellerInfo({ seller, adId, className = "" }: AdSellerInfoProps) {
+export default function AdSellerInfo({
+  seller,
+  adId,
+  className = "",
+}: AdSellerInfoProps) {
   const router = useRouter();
   const { user: currentUser, isAuthenticated } = useAuthStore();
   const { mutate: notifySeller } = useCreateNotification();
   const { recordInteraction } = useLeads();
   const [showPhone, setShowPhone] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
-  const sellerName = seller.first_name && seller.last_name
-    ? `${seller.first_name} ${seller.last_name}`
-    : seller.username || seller.email?.split('@')[0] || 'Unknown Seller';
+  const sellerName =
+    seller.first_name && seller.last_name
+      ? `${seller.first_name} ${seller.last_name}`
+      : seller.username || seller.email?.split("@")[0] || "Unknown Seller";
 
   // Use username if available, otherwise fallback to ID.
   // Avoid using email or generic 'profile' as it breaks routing.
@@ -49,28 +54,34 @@ export default function AdSellerInfo({ seller, adId, className = "" }: AdSellerI
     if (isAuthenticated && String(currentUser?.id) !== String(seller.id)) {
       recordInteraction({
         seller_id: seller.id,
-        source: 'profile_view',
-        ad_id: adId
+        source: "profile_view",
+        ad_id: adId,
       }).catch(console.error);
     }
     router.push(`/users/${sellerProfileSlug}`);
   };
 
   return (
-    <View className={`bg-white border-b border-gray-200 px-4 py-6 ${className}`}>
-      <AppText variant="subheading" weight="semibold" className="text-gray-900 mb-5">
+    <View
+      className={`bg-white border-b border-gray-200 px-4 py-6 ${className}`}
+    >
+      <AppText
+        variant="subheading"
+        weight="semibold"
+        className="text-gray-900 mb-5"
+      >
         Seller Information
       </AppText>
 
       <View className="flex-row items-center gap-3 mb-5">
-        <Avatar
-          src={seller.avatar}
-          alt={sellerName}
-          size={48}
-        />
+        <Avatar src={seller.avatar} alt={sellerName} size={48} />
         <View className="flex-1">
           <View className="flex-row items-center gap-2">
-            <AppText variant="default" weight="medium" className="text-gray-900">
+            <AppText
+              variant="default"
+              weight="medium"
+              className="text-gray-900"
+            >
               {sellerName}
             </AppText>
             {seller.is_verified && (
@@ -78,7 +89,7 @@ export default function AdSellerInfo({ seller, adId, className = "" }: AdSellerI
             )}
           </View>
           <AppText variant="caption" className="text-gray-600">
-            {seller.location || 'Location not specified'}
+            {seller.location || "Location not specified"}
           </AppText>
         </View>
       </View>
@@ -94,11 +105,16 @@ export default function AdSellerInfo({ seller, adId, className = "" }: AdSellerI
         <View className="bg-gray-50 rounded-2xl p-4 mb-5 border border-gray-100">
           <View className="flex-row items-center justify-between">
             <View className="flex-1">
-              <AppText variant="caption" className="text-gray-500 mb-1 uppercase font-bold tracking-wider">
+              <AppText
+                variant="caption"
+                className="text-gray-500 mb-1 uppercase font-bold tracking-wider"
+              >
                 Seller Contact
               </AppText>
               <AppText weight="bold" className="text-gray-900 text-lg">
-                {showPhone ? seller.phone : `${seller.phone.substring(0, 4)} ••• •••`}
+                {showPhone
+                  ? seller.phone
+                  : `${seller.phone.substring(0, 4)} ••• •••`}
               </AppText>
             </View>
 
@@ -107,26 +123,31 @@ export default function AdSellerInfo({ seller, adId, className = "" }: AdSellerI
                 onPress={() => {
                   setShowPhone(true);
                   // Notify seller and record interaction
-                  if (isAuthenticated && String(currentUser?.id) !== String(seller.id)) {
+                  if (
+                    isAuthenticated &&
+                    String(currentUser?.id) !== String(seller.id)
+                  ) {
                     recordInteraction({
                       seller_id: seller.id,
-                      source: 'phone_view',
-                      ad_id: adId
+                      source: "phone_view",
+                      ad_id: adId,
                     }).catch(console.error);
 
                     notifySeller({
                       recipient: Number(seller.id),
-                      type: 'phone_view',
-                      title: 'Phone Number Viewed',
+                      type: "phone_view",
+                      title: "Phone Number Viewed",
                       message: `${currentUser?.full_name || currentUser?.username} viewed your phone number on an ad.`,
                       related_ad: adId,
-                      related_user: Number(currentUser?.id)
+                      related_user: Number(currentUser?.id),
                     });
                   }
                 }}
-                className="bg-primary px-4 py-2 rounded-xl"
+                className="bg-primary px-4 py-2 rounded-full"
               >
-                <AppText weight="bold" className="text-white text-xs">Show</AppText>
+                <AppText weight="bold" className="text-white text-xs">
+                  Show
+                </AppText>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -135,9 +156,13 @@ export default function AdSellerInfo({ seller, adId, className = "" }: AdSellerI
                   setIsCopying(true);
                   setTimeout(() => setIsCopying(false), 2000);
                 }}
-                className="bg-gray-200 px-4 py-2 rounded-xl flex-row items-center gap-2"
+                className="bg-gray-200 px-4 py-2 rounded-full flex-row items-center gap-2"
               >
-                <Ionicons name={isCopying ? "checkmark-circle" : "copy-outline"} size={14} color="#0f172b" />
+                <Ionicons
+                  name={isCopying ? "checkmark-circle" : "copy-outline"}
+                  size={14}
+                  color="#0f172b"
+                />
                 <AppText weight="bold" className="text-gray-900 text-xs">
                   {isCopying ? "Copied" : "Copy"}
                 </AppText>
@@ -160,4 +185,3 @@ export default function AdSellerInfo({ seller, adId, className = "" }: AdSellerI
     </View>
   );
 }
-

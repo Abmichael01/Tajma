@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Plus, MapPin, CheckCircle, XCircle, Eye, Trash2, Edit, ChevronRight, Home } from 'lucide-react'
 import { toast } from 'sonner'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 import Link from 'next/link'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import apiClient from '@/api/apiClient'
@@ -36,6 +37,10 @@ export default function AdminRegionsPage() {
   const [activeParentId, setActiveParentId] = useState<number | null>(null)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [regionToDelete, setRegionToDelete] = useState<Region | null>(null)
 
   const { data: response, isLoading, refetch } = useRegions({
     page,
@@ -126,12 +131,18 @@ export default function AdminRegionsPage() {
   }
 
   const handleDelete = async (region: Region) => {
-    if (!region.id) return
-    if (!confirm(`Are you sure you want to delete "${region.name}"?`)) return
+    setRegionToDelete(region)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!regionToDelete?.id) return
 
     try {
-      await apiClient.delete(`/regions/${region.id}/`)
+      await apiClient.delete(`/regions/${regionToDelete.id}/`)
       toast.success('Region deleted successfully')
+      setShowDeleteDialog(false)
+      setRegionToDelete(null)
       refetch()
     } catch (error: any) {
       toast.error('Failed to delete region')
@@ -264,7 +275,7 @@ export default function AdminRegionsPage() {
           </Tabs>
 
           {/* Breadcrumbs */}
-          <div className="flex items-center gap-1 text-sm bg-white px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-1 text-sm bg-white px-3 py-1.5 rounded-xl border border-gray-100 shadow-sm">
             <button onClick={resetFilters} className="text-gray-500 hover:text-primary p-1">
               <Home className="w-4 h-4" />
             </button>
@@ -544,6 +555,16 @@ export default function AdminRegionsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDeleteDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={confirmDelete}
+          title={`Delete Region: ${regionToDelete?.name}?`}
+          description="Are you sure you want to delete this region? This action will also delete all sub-regions (departments and communes) associated with it. This action cannot be undone."
+          isLoading={isSubmitting} // Reusing isSubmitting for loading state if needed, but apiClient doesn't have a mutation state here
+        />
       </div>
     </TooltipProvider>
   )

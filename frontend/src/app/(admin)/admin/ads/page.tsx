@@ -15,6 +15,7 @@ import { Package, FileText, Archive, CheckCircle, Eye } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import Link from 'next/link'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 export default function AdminAdsPage() {
   const searchParams = useSearchParams()
@@ -37,6 +38,10 @@ export default function AdminAdsPage() {
   const { data: stats } = useAdminStats()
   const updateAd = useUpdateAdminAd()
   const deleteAd = useDeleteAdminAd()
+  
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [adToDelete, setAdToDelete] = useState<AdminAd | null>(null)
 
   // Calculate stats from current data
   const adsStats = useMemo(() => {
@@ -71,11 +76,16 @@ export default function AdminAdsPage() {
   }
 
   const handleDelete = async (ad: AdminAd) => {
-    if (!confirm(`Are you sure you want to delete ad "${ad.title}"?`)) {
-      return
-    }
+    setAdToDelete(ad)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!adToDelete) return
     try {
-      await deleteAd.mutateAsync(ad.id)
+      await deleteAd.mutateAsync(adToDelete.id)
+      setShowDeleteDialog(false)
+      setAdToDelete(null)
     } catch (error) {
       // Error handled by mutation
     }
@@ -276,7 +286,7 @@ export default function AdminAdsPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="bg-white border border-gray-200 rounded-xl p-4">
         <div className="flex flex-wrap items-center gap-4">
           <Select
             value={statusFilter || 'all'}
@@ -357,6 +367,16 @@ export default function AdminAdsPage() {
             </Select>
           </div>
         )}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title={`Delete Ad: ${adToDelete?.title}?`}
+        description="Are you sure you want to delete this ad? This action cannot be undone and will remove the advertisement permanently from the marketplace."
+        isLoading={deleteAd.isPending}
       />
     </div>
   )

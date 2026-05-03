@@ -8,7 +8,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
 
-from api.models import User, Ad, Category, Notification, Chat, Message, KYCVerification, Review, Report, Lead, SupportMessage
+from api.models import User, Ad, Category, Notification, Chat, Message, KYCVerification, Review, Report, Lead, SupportMessage, PromotionPackage
 from api.serializers import (
     UserSerializer,
     AdSerializer,
@@ -18,9 +18,11 @@ from api.serializers import (
     MessageSerializer,
     LeadSerializer,
     AdminReportSerializer,
+    AdminAdSerializer,
     SupportMessageSerializer,
 )
 from api.serializers.kyc import KYCVerificationSerializer
+from api.serializers.payment import PromotionPackageSerializer
 from api.serializers.review import ReviewSerializer
 
 
@@ -83,7 +85,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
 class AdminAdViewSet(viewsets.ModelViewSet):
     """Admin ad management"""
     queryset = Ad.objects.select_related('seller', 'category').all()
-    serializer_class = AdSerializer
+    serializer_class = AdminAdSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
@@ -100,7 +102,7 @@ class AdminAdViewSet(viewsets.ModelViewSet):
         return Ad.objects.select_related('seller', 'category').all().order_by('-created_at')
 
     def get_serializer_class(self):
-        return AdSerializer
+        return AdminAdSerializer
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
@@ -198,6 +200,21 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
             export_categories_to_json()
         except ImportError:
             pass
+
+
+class AdminPromotionPackageViewSet(viewsets.ModelViewSet):
+    """Admin promotion package management"""
+    queryset = PromotionPackage.objects.all()
+    serializer_class = PromotionPackageSerializer
+    permission_classes = [permissions.IsAdminUser]
+    pagination_class = AdminPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name', 'description']
+    filterset_fields = ['promotion_type', 'is_active']
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        return PromotionPackage.objects.all().order_by('promotion_type', 'duration_days', 'price')
 
 
 class AdminNotificationViewSet(viewsets.ModelViewSet):
@@ -308,6 +325,130 @@ class AdminReportViewSet(viewsets.ModelViewSet):
         )
         
         return Response({'status': 'resolved'})
+
+    @action(detail=True, methods=['post'])
+    def dismiss(self, request, id=None):
+        """Dismiss a report that does not need enforcement action."""
+        report = self.get_object()
+        report.status = 'dismissed'
+        report.resolution_note = request.data.get('resolution_note', '')
+        report.resolved_by = request.user
+        report.resolved_at = timezone.now()
+        report.save()
+
+        SupportMessage.objects.create(
+            report=report,
+            sender=request.user,
+            message=f"Ticket dismissed. Note: {report.resolution_note or 'No policy issue found.'}",
+            is_admin_reply=True
+        )
+
+        return Response({'status': 'dismissed'})
+
+    @action(detail=True, methods=['post'], url_path='archive-ad')
+    def archive_ad(self, request, id=None):
+        """Archive the ad attached to a report."""
+        report = self.get_object()
+        if not report.related_ad:
+            return Response(
+                {'error': 'This report is not linked to an ad.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        ad = report.related_ad
+        ad.status = 'archived'
+        ad.save(update_fields=['status', 'updated_at'])
+
+        if report.status == 'pending':
+            report.status = 'under_review'
+            report.save(update_fields=['status', 'updated_at'])
+
+        note = request.data.get('note') or f'Ad "{ad.title}" was archived by moderation.'
+        SupportMessage.objects.create(
+            report=report,
+            sender=request.user,
+            message=note,
+            is_admin_reply=True
+        )
+
+        Notification.objects.create(
+            recipient=ad.seller,
+            type='ad_status',
+            title='Your ad was archived',
+            message=note,
+            related_ad=ad,
+            related_user=request.user
+        )
+
+        return Response({'status': 'archived', 'ad_id': str(ad.id)})
+
+    @action(detail=True, methods=['post'], url_path='warn-user')
+    def warn_user(self, request, id=None):
+        """Send a policy warning to the reported user."""
+        report = self.get_object()
+        user = report.reported_user or getattr(report.related_ad, 'seller', None)
+        if not user:
+            return Response(
+                {'error': 'This report has no reported user to warn.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        message = request.data.get('message') or 'Please review Tajma marketplace rules. Future violations may lead to account restrictions.'
+
+        if report.status == 'pending':
+            report.status = 'under_review'
+            report.save(update_fields=['status', 'updated_at'])
+
+        SupportMessage.objects.create(
+            report=report,
+            sender=request.user,
+            message=f'Warning sent to reported user: {message}',
+            is_admin_reply=True
+        )
+
+        Notification.objects.create(
+            recipient=user,
+            type='report',
+            title='Marketplace policy warning',
+            message=message,
+            related_ad=report.related_ad,
+            related_user=request.user
+        )
+
+        return Response({'status': 'warned', 'user_id': user.id})
+
+    @action(detail=True, methods=['post'], url_path='suspend-user')
+    def suspend_user(self, request, id=None):
+        """Deactivate the reported user's account."""
+        report = self.get_object()
+        user = report.reported_user or getattr(report.related_ad, 'seller', None)
+        if not user:
+            return Response(
+                {'error': 'This report has no reported user to suspend.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if user.is_staff or user.is_superuser:
+            return Response(
+                {'error': 'Staff accounts cannot be suspended from a report action.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.is_active = False
+        user.save(update_fields=['is_active'])
+
+        if report.status == 'pending':
+            report.status = 'under_review'
+            report.save(update_fields=['status', 'updated_at'])
+
+        note = request.data.get('note') or f'User {user.email} was suspended by moderation.'
+        SupportMessage.objects.create(
+            report=report,
+            sender=request.user,
+            message=note,
+            is_admin_reply=True
+        )
+
+        return Response({'status': 'suspended', 'user_id': user.id})
 
     @action(detail=True, methods=['post'])
     def reply(self, request, id=None):
@@ -423,4 +564,3 @@ class AdminLeadViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Lead.objects.select_related('seller', 'client', 'ad').all().order_by('-created_at')
-

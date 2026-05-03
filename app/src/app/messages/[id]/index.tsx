@@ -1,5 +1,16 @@
-import { View, ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ImageBackground, TextInput, Animated, Keyboard, StatusBar, Clipboard, Alert } from "react-native";
-import * as Haptics from 'expo-haptics';
+import {
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ImageBackground,
+  TextInput,
+  Animated,
+  Keyboard,
+  Clipboard,
+  Alert,
+} from "react-native";
+import * as Haptics from "expo-haptics";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,468 +26,598 @@ import MessageSkeleton from "@/components/chat/MessageSkeleton";
 import ImageViewer from "@/components/ui/ImageViewer";
 import MediaPreviewModal from "@/components/chat/MediaPreviewModal";
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import * as ImagePicker from 'expo-image-picker';
-import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from "expo-image-picker";
+import * as DocumentPicker from "expo-document-picker";
 import { ChatMessage } from "@/api/types";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function ChatRoomScreen() {
-    const { id, search: searchParam } = useLocalSearchParams<{ id: string, search?: string }>();
-    const insets = useSafeAreaInsets();
-    const {
-        chat,
-        messages: allMessages,
-        isChatLoading,
-        otherParticipant,
-        participantStatus,
-        isParticipantTyping,
-        flatListRef,
-        showScrollButton,
-        unreadCountBelow,
-        isConnected,
-        handleSend,
-        handleScroll,
-        handleViewableItemsChanged,
-        handleImageSelect,
-        handleAudioSelect,
-        handleDocumentSelect,
-        sendTyping,
-        scrollToBottom,
-        hasNextPage,
-        isFetchingNextPage,
-        fetchNextPage,
-        replyTo,
-        setReplyTo,
-        isSelectionMode,
-        selectedMessageIds,
-        toggleMessageSelection,
-        clearSelection,
-        handleDeleteSelected,
-        user: currentUser
-    } = useChatRoomLogic(id!);
+  const { id, search: searchParam } = useLocalSearchParams<{
+    id: string;
+    search?: string;
+  }>();
+  const insets = useSafeAreaInsets();
+  const {
+    messages: allMessages,
+    isChatLoading,
+    otherParticipant,
+    participantStatus,
+    isParticipantTyping,
+    flatListRef,
+    showScrollButton,
+    unreadCountBelow,
+    handleSend,
+    handleScroll,
+    handleViewableItemsChanged,
+    handleAudioSelect,
+    sendTyping,
+    scrollToBottom,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    replyTo,
+    setReplyTo,
+    isSelectionMode,
+    selectedMessageIds,
+    toggleMessageSelection,
+    clearSelection,
+    handleDeleteSelected,
+    deleteMessagesByIds,
+    user: currentUser,
+  } = useChatRoomLogic(id!);
 
-    const router = useRouter();
-    const [viewerVisible, setViewerVisible] = useState(false);
-    const [initialImageIndex, setInitialImageIndex] = useState(0);
-    const [previewVisible, setPreviewVisible] = useState(false);
-    const [selectedMedia, setSelectedMedia] = useState<{
-        type: 'image' | 'document';
-        asset: ImagePicker.ImagePickerAsset | DocumentPicker.DocumentPickerAsset;
-    } | null>(null);
+  const router = useRouter();
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [initialImageIndex, setInitialImageIndex] = useState(0);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<{
+    type: "image" | "document";
+    asset: ImagePicker.ImagePickerAsset | DocumentPicker.DocumentPickerAsset;
+  } | null>(null);
 
-    const [isSearchVisible, setIsSearchVisible] = useState(searchParam === 'true');
-    const [searchQuery, setSearchQuery] = useState("");
-    const [totalMatches, setTotalMatches] = useState(0);
-    const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-    const searchBarHeight = useRef(new Animated.Value(searchParam === 'true' ? 60 : 0)).current;
+  const [isSearchVisible, setIsSearchVisible] = useState(
+    searchParam === "true",
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [totalMatches, setTotalMatches] = useState(0);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const searchBarHeight = useRef(
+    new Animated.Value(searchParam === "true" ? 60 : 0),
+  ).current;
 
-    // Use a "ready" state to defer heavy rendering until after navigation finishes
-    const [isReady, setIsReady] = useState(false);
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsReady(true);
-        }, 50); // Minimal delay to allow transition to start
-        return () => clearTimeout(timer);
-    }, []);
+  // Use a "ready" state to defer heavy rendering until after navigation finishes
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 50); // Minimal delay to allow transition to start
+    return () => clearTimeout(timer);
+  }, []);
 
-    useEffect(() => {
-        Animated.timing(searchBarHeight, {
-            toValue: isSearchVisible ? 60 : 0,
-            duration: 200,
-            useNativeDriver: false,
-        }).start();
-        if (!isSearchVisible) {
-            setSearchQuery("");
-            Keyboard.dismiss();
+  useEffect(() => {
+    Animated.timing(searchBarHeight, {
+      toValue: isSearchVisible ? 60 : 0,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+    if (!isSearchVisible) {
+      setSearchQuery("");
+      Keyboard.dismiss();
+    }
+  }, [isSearchVisible, searchBarHeight]);
+
+  useEffect(() => {
+    setCurrentMatchIndex(0);
+  }, [searchQuery]);
+
+  const chatMessages = useMemo(() => {
+    return allMessages.filter(
+      (msg: any): msg is ChatMessage => !msg.type && !!msg.sender,
+    );
+  }, [allMessages]);
+
+  const displayMessages = useMemo(() => {
+    return [...allMessages].reverse();
+  }, [allMessages]);
+
+  const newestMessage = useMemo(() => {
+    return chatMessages.length ? chatMessages[chatMessages.length - 1] : null;
+  }, [chatMessages]);
+
+  const chatImages = useMemo(() => {
+    return chatMessages
+      .filter((msg) => msg.message_type === "image" && msg.attachment)
+      .map((msg) => msg.attachment!);
+  }, [chatMessages]);
+
+  const handleOpenImage = useCallback(
+    (imageUrl: string) => {
+      const index = chatImages.indexOf(imageUrl);
+      if (index !== -1) {
+        setInitialImageIndex(index);
+        setViewerVisible(true);
+      }
+    },
+    [chatImages],
+  );
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage && !searchQuery) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, searchQuery, fetchNextPage]);
+
+  const { playSentSound, playReceivedSound } = useChatSounds();
+  const lastPlayedSentId = useRef<string | null>(null);
+  const lastPlayedReceivedId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!newestMessage) return;
+
+    const messageId = String(newestMessage.id);
+    const isMe = String(newestMessage.sender?.id) === String(currentUser?.id);
+    const msgTime = new Date(newestMessage.created_at).getTime();
+    const isRecent = Number.isFinite(msgTime) && Date.now() - msgTime < 15000;
+
+    if (isRecent) {
+      if (isMe) {
+        if (
+          !messageId.startsWith("temp-") &&
+          lastPlayedSentId.current !== messageId
+        ) {
+          playSentSound();
+          lastPlayedSentId.current = messageId;
         }
-    }, [isSearchVisible]);
+      } else if (lastPlayedReceivedId.current !== messageId) {
+        playReceivedSound();
+        lastPlayedReceivedId.current = messageId;
+      }
+    } else if (isMe) {
+      lastPlayedSentId.current = messageId;
+    } else {
+      lastPlayedReceivedId.current = messageId;
+    }
+  }, [newestMessage, currentUser?.id, playSentSound, playReceivedSound]);
 
-    useEffect(() => {
-        setCurrentMatchIndex(0);
-    }, [searchQuery]);
+  const handleSendWithSound = useCallback(
+    async (...args: any[]) => {
+      // @ts-ignore
+      await handleSend(...args);
+    },
+    [handleSend],
+  );
 
-    const chatImages = useMemo(() => {
-        return allMessages
-            .filter(msg => msg.message_type === 'image' && msg.attachment)
-            .map(msg => msg.attachment!);
-    }, [allMessages]);
+  const handleMediaSend = async (
+    caption: string,
+    editedMedia?:
+      | ImagePicker.ImagePickerAsset
+      | DocumentPicker.DocumentPickerAsset,
+  ) => {
+    if (!selectedMedia) return;
+    const mediaToSend = editedMedia ?? selectedMedia.asset;
+    if (selectedMedia.type === "image") {
+      await handleSend(caption, mediaToSend.uri);
+    } else {
+      await handleSend(
+        caption,
+        undefined,
+        undefined,
+        undefined,
+        mediaToSend as DocumentPicker.DocumentPickerAsset,
+      );
+    }
+    setPreviewVisible(false);
+    setSelectedMedia(null);
+  };
 
-    const handleOpenImage = useCallback((imageUrl: string) => {
-        const index = chatImages.indexOf(imageUrl);
-        if (index !== -1) {
-            setInitialImageIndex(index);
-            setViewerVisible(true);
-        }
-    }, [chatImages]);
+  const onImageSelectRequest = (asset: ImagePicker.ImagePickerAsset) => {
+    setSelectedMedia({ type: "image", asset });
+    setPreviewVisible(true);
+  };
 
-    const handleEndReached = useCallback(() => {
-        if (hasNextPage && !isFetchingNextPage && !searchQuery) {
-            fetchNextPage();
-        }
-    }, [hasNextPage, isFetchingNextPage, searchQuery, fetchNextPage]);
+  const onDocumentSelectRequest = (
+    result: DocumentPicker.DocumentPickerResult,
+  ) => {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setSelectedMedia({ type: "document", asset: result.assets[0] });
+      setPreviewVisible(true);
+    }
+  };
 
-    const { playSentSound, playReceivedSound } = useChatSounds();
-    const lastPlayedSentId = useRef<string | null>(null);
-    const lastPlayedReceivedId = useRef<string | null>(null);
+  const menuBottomSheetRef = useRef<BottomSheetRef>(null);
+  const [menuMessage, setMenuMessage] = useState<ChatMessage | null>(null);
 
-    useEffect(() => {
-        if (allMessages.length > 0) {
-            const lastMessage = allMessages[0];
-            const messageId = String(lastMessage.id);
-            const isMe = String(lastMessage.sender?.id) === String(currentUser?.id);
-            const msgTime = new Date(lastMessage.created_at).getTime();
-            const isRecent = (Date.now() - msgTime) < 15000;
+  const handleMessageLongPress = useCallback((message: ChatMessage) => {
+    setMenuMessage(message);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    menuBottomSheetRef.current?.present();
+  }, []);
 
-            if (isRecent) {
-                if (isMe) {
-                    if (!messageId.startsWith('temp-') && lastPlayedSentId.current !== messageId) {
-                        playSentSound();
-                        lastPlayedSentId.current = messageId;
-                    }
-                } else {
-                    if (lastPlayedReceivedId.current !== messageId) {
-                        playReceivedSound();
-                        lastPlayedReceivedId.current = messageId;
-                    }
+  const handleMenuReply = () => {
+    if (menuMessage) setReplyTo(menuMessage);
+    menuBottomSheetRef.current?.dismiss();
+  };
+
+  const handleMenuCopy = () => {
+    if (menuMessage?.content) {
+      Clipboard.setString(menuMessage.content);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    menuBottomSheetRef.current?.dismiss();
+  };
+
+  const handleMenuSelect = () => {
+    if (menuMessage) {
+      toggleMessageSelection(String(menuMessage.id));
+    }
+    menuBottomSheetRef.current?.dismiss();
+  };
+
+  const handleMenuDelete = () => {
+    if (menuMessage) {
+      Alert.alert(
+        "Delete Message",
+        "Are you sure you want to delete this message?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              await deleteMessagesByIds([String(menuMessage.id)]);
+              menuBottomSheetRef.current?.dismiss();
+            },
+          },
+        ],
+      );
+    }
+    menuBottomSheetRef.current?.dismiss();
+  };
+
+  return (
+    <View className="flex-1 bg-white">
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {isSelectionMode ? (
+        <View
+          style={{ paddingTop: insets.top }}
+          className="bg-primary flex-row items-center px-4 h-[100px]"
+        >
+          <Pressable onPress={clearSelection} className="mr-4">
+            <Ionicons name="close" size={28} color="white" />
+          </Pressable>
+          <AppText weight="bold" className="text-white text-lg flex-1">
+            {selectedMessageIds.size}
+          </AppText>
+          <View className="flex-row items-center gap-4">
+            {selectedMessageIds.size === 1 && (
+              <Pressable
+                onPress={() => {
+                  const msgId = Array.from(selectedMessageIds)[0];
+                  const msg = allMessages.find((m) => String(m.id) === msgId);
+                  if (msg) setReplyTo(msg);
+                  clearSelection();
+                }}
+              >
+                <Ionicons name="arrow-undo" size={24} color="white" />
+              </Pressable>
+            )}
+            <Pressable
+              onPress={() => {
+                const texts = Array.from(selectedMessageIds)
+                  .map(
+                    (id) =>
+                      allMessages.find((m) => String(m.id) === id)?.content,
+                  )
+                  .filter(Boolean)
+                  .join("\n");
+                if (texts) {
+                  Clipboard.setString(texts);
+                  Haptics.notificationAsync(
+                    Haptics.NotificationFeedbackType.Success,
+                  );
                 }
-            } else {
-                if (isMe) lastPlayedSentId.current = messageId;
-                else lastPlayedReceivedId.current = messageId;
-            }
-        }
-    }, [allMessages, currentUser?.id, playSentSound, playReceivedSound]);
+                clearSelection();
+              }}
+            >
+              <Ionicons name="copy-outline" size={24} color="white" />
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                const count = selectedMessageIds.size;
+                Alert.alert(
+                  "Delete Messages",
+                  `Delete ${count} message${count > 1 ? "s" : ""}? This cannot be undone.`,
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Delete",
+                      style: "destructive",
+                      onPress: () => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        handleDeleteSelected();
+                      },
+                    },
+                  ],
+                );
+              }}
+            >
+              <Ionicons name="trash-outline" size={24} color="white" />
+            </Pressable>
+          </View>
+        </View>
+      ) : (
+        <ChatHeader
+          avatarSrc={otherParticipant?.avatar}
+          userName={
+            otherParticipant?.full_name ||
+            otherParticipant?.username ||
+            (isChatLoading ? "Loading..." : "User")
+          }
+          isOnline={participantStatus?.is_online}
+          lastSeen={participantStatus?.last_seen}
+          isTyping={isParticipantTyping}
+          onBackPress={() => router.back()}
+          onAvatarPress={() => router.push(`/messages/${id}/info`)}
+          onMenuPress={() => setIsSearchVisible(!isSearchVisible)}
+        />
+      )}
 
-    const handleSendWithSound = useCallback(async (...args: any[]) => {
-        // @ts-ignore
-        await handleSend(...args);
-    }, [handleSend]);
+      <Animated.View
+        style={{ height: searchBarHeight, overflow: "hidden" }}
+        className="bg-white border-b border-gray-100"
+      >
+        <View className="flex-row items-center px-3 py-1.5 bg-gray-100/80 m-2 rounded-2xl border border-gray-100">
+          <Ionicons name="search-outline" size={18} color="#64748B" />
+          <TextInput
+            className="flex-1 ml-2 text-[15px] text-gray-900 h-9"
+            placeholder="Search messages..."
+            placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus={isSearchVisible}
+            style={{ paddingVertical: 0 }}
+            multiline={false}
+          />
+          {searchQuery.length > 0 && totalMatches > 0 && (
+            <View className="flex-row items-center bg-white/50 px-2 py-0.5 rounded-lg border border-gray-200/50">
+              <AppText className="text-[11px] text-slate-500 font-bold mr-2">
+                {currentMatchIndex + 1} / {totalMatches}
+              </AppText>
+              <View className="flex-row items-center border-l border-gray-200 pl-1 ml-1 gap-1">
+                <Pressable
+                  onPress={() =>
+                    setCurrentMatchIndex((prev) => (prev + 1) % totalMatches)
+                  }
+                  className="p-1"
+                  hitSlop={8}
+                >
+                  <Ionicons name="chevron-up" size={18} color="#475569" />
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    setCurrentMatchIndex(
+                      (prev) => (prev - 1 + totalMatches) % totalMatches,
+                    )
+                  }
+                  className="p-1"
+                  hitSlop={8}
+                >
+                  <Ionicons name="chevron-down" size={18} color="#475569" />
+                </Pressable>
+              </View>
+            </View>
+          )}
+          {searchQuery.length > 0 && (
+            <Pressable
+              onPress={() => setSearchQuery("")}
+              className="ml-2"
+              hitSlop={8}
+            >
+              <Ionicons name="close-circle" size={18} color="#94A3B8" />
+            </Pressable>
+          )}
+        </View>
+      </Animated.View>
 
-    const handleMediaSend = async (caption: string) => {
-        if (!selectedMedia) return;
-        if (selectedMedia.type === 'image') {
-            await handleSend(caption, selectedMedia.asset.uri);
-        } else {
-            await handleSend(caption, undefined, undefined, undefined, selectedMedia.asset as DocumentPicker.DocumentPickerAsset);
-        }
-        setPreviewVisible(false);
-        setSelectedMedia(null);
-    };
-
-    const onImageSelectRequest = (asset: ImagePicker.ImagePickerAsset) => {
-        setSelectedMedia({ type: 'image', asset });
-        setPreviewVisible(true);
-    };
-
-    const onDocumentSelectRequest = (result: DocumentPicker.DocumentPickerResult) => {
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-            setSelectedMedia({ type: 'document', asset: result.assets[0] });
-            setPreviewVisible(true);
-        }
-    };
-
-    const menuBottomSheetRef = useRef<BottomSheetRef>(null);
-    const [menuMessage, setMenuMessage] = useState<ChatMessage | null>(null);
-
-    const handleMessageLongPress = useCallback((message: ChatMessage) => {
-        setMenuMessage(message);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        menuBottomSheetRef.current?.present();
-    }, []);
-
-    const handleMenuReply = () => {
-        if (menuMessage) setReplyTo(menuMessage);
-        menuBottomSheetRef.current?.dismiss();
-    };
-
-    const handleMenuCopy = () => {
-        if (menuMessage?.content) {
-            Clipboard.setString(menuMessage.content);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }
-        menuBottomSheetRef.current?.dismiss();
-    };
-
-    const handleMenuSelect = () => {
-        if (menuMessage) {
-            toggleMessageSelection(String(menuMessage.id));
-        }
-        menuBottomSheetRef.current?.dismiss();
-    };
-
-    const handleMenuDelete = () => {
-        if (menuMessage) {
-            Alert.alert(
-                'Delete Message',
-                'Are you sure you want to delete this message?',
-                [
-                    { text: 'Cancel', style: 'cancel' },
-                    { 
-                        text: 'Delete', 
-                        style: 'destructive', 
-                        onPress: () => {
-                            toggleMessageSelection(String(menuMessage.id));
-                            handleDeleteSelected();
-                        }
-                    }
-                ]
-            );
-        }
-        menuBottomSheetRef.current?.dismiss();
-    };
-
-    return (
-        <View className="flex-1 bg-white">
-            <Stack.Screen options={{ headerShown: false }} />
-
-            {isSelectionMode ? (
-                <View style={{ paddingTop: insets.top }} className="bg-primary flex-row items-center px-4 h-[100px]">
-                    <Pressable onPress={clearSelection} className="mr-4">
-                        <Ionicons name="close" size={28} color="white" />
-                    </Pressable>
-                    <AppText weight="bold" className="text-white text-lg flex-1">
-                        {selectedMessageIds.size}
-                    </AppText>
-                    <View className="flex-row items-center gap-4">
-                        {selectedMessageIds.size === 1 && (
-                            <Pressable onPress={() => {
-                                const msgId = Array.from(selectedMessageIds)[0];
-                                const msg = allMessages.find(m => String(m.id) === msgId);
-                                if (msg) setReplyTo(msg);
-                                clearSelection();
-                            }}>
-                                <Ionicons name="arrow-undo" size={24} color="white" />
-                            </Pressable>
-                        )}
-                        <Pressable onPress={() => {
-                            const texts = Array.from(selectedMessageIds)
-                                .map(id => allMessages.find(m => String(m.id) === id)?.content)
-                                .filter(Boolean)
-                                .join('\n');
-                            if (texts) {
-                                Clipboard.setString(texts);
-                                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                            }
-                            clearSelection();
-                        }}>
-                            <Ionicons name="copy-outline" size={24} color="white" />
-                        </Pressable>
-                        <Pressable onPress={() => {
-                            const count = selectedMessageIds.size;
-                            Alert.alert(
-                                'Delete Messages',
-                                `Delete ${count} message${count > 1 ? 's' : ''}? This cannot be undone.`,
-                                [
-                                    { text: 'Cancel', style: 'cancel' },
-                                    {
-                                        text: 'Delete', style: 'destructive',
-                                        onPress: () => {
-                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                                            handleDeleteSelected();
-                                        },
-                                    },
-                                ]
-                            );
-                        }}>
-                            <Ionicons name="trash-outline" size={24} color="white" />
-                        </Pressable>
-                    </View>
-                </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
+        className="flex-1"
+        style={{ backgroundColor: "#ECE5DD" }}
+      >
+        <View className="flex-1 relative">
+          <ImageBackground
+            source={require("@/assets/images/chat_bg.png")}
+            style={{ flex: 1 }}
+            resizeMode="repeat"
+            imageStyle={{ opacity: 0.12 }}
+          >
+            {isChatLoading || !isReady ? (
+              <MessageSkeleton />
             ) : (
-                <ChatHeader
-                    avatarSrc={otherParticipant?.avatar}
-                    userName={otherParticipant?.full_name || otherParticipant?.username || (isChatLoading ? "Loading..." : "User")}
-                    isOnline={participantStatus?.is_online}
-                    lastSeen={participantStatus?.last_seen}
-                    isTyping={isParticipantTyping}
-                    onBackPress={() => router.back()}
-                    onAvatarPress={() => router.push(`/messages/${id}/info`)}
-                    onMenuPress={() => setIsSearchVisible(!isSearchVisible)}
+              <View style={{ flex: 1 }}>
+                <MessageList
+                  messages={displayMessages}
+                  isParticipantTyping={isParticipantTyping}
+                  otherParticipant={otherParticipant}
+                  hasNextPage={hasNextPage && !searchQuery}
+                  isFetchingNextPage={isFetchingNextPage}
+                  flatListRef={flatListRef}
+                  onScroll={handleScroll}
+                  onEndReached={handleEndReached}
+                  onViewableItemsChanged={handleViewableItemsChanged}
+                  onImagePress={handleOpenImage}
+                  onReply={setReplyTo}
+                  searchQuery={searchQuery}
+                  currentMatchIndex={currentMatchIndex}
+                  onMatchesFound={setTotalMatches}
+                  isSelectionMode={isSelectionMode}
+                  selectedMessageIds={selectedMessageIds}
+                  onSelectionChange={toggleMessageSelection}
+                  onLongPress={handleMessageLongPress}
                 />
+              </View>
             )}
 
-            <Animated.View style={{ height: searchBarHeight, overflow: 'hidden' }} className="bg-white border-b border-gray-100">
-                <View className="flex-row items-center px-4 py-2 bg-gray-50 m-2 rounded-xl">
-                    <Ionicons name="search" size={20} color="#9ca3af" />
-                    <TextInput
-                        className="flex-1 ml-2 text-base text-gray-900 h-10"
-                        placeholder="Search..."
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        autoFocus={isSearchVisible}
-                        style={{ paddingVertical: 0 }}
-                        multiline={false}
-                    />
-                    {searchQuery.length > 0 && totalMatches > 0 && (
-                        <View className="flex-row items-center">
-                            <AppText className="text-xs text-gray-500 mr-2">
-                                {currentMatchIndex + 1} of {totalMatches}
-                            </AppText>
-                            <Pressable onPress={() => setCurrentMatchIndex((prev) => (prev + 1) % totalMatches)} className="p-1">
-                                <Ionicons name="chevron-up" size={20} color="#666" />
-                            </Pressable>
-                            <Pressable onPress={() => setCurrentMatchIndex((prev) => (prev - 1 + totalMatches) % totalMatches)} className="p-1">
-                                <Ionicons name="chevron-down" size={20} color="#666" />
-                            </Pressable>
-                        </View>
-                    )}
-                    {searchQuery.length > 0 && (
-                        <Pressable onPress={() => setSearchQuery("")} className="ml-2">
-                            <Ionicons name="close-circle" size={20} color="#9ca3af" />
-                        </Pressable>
-                    )}
-                </View>
-            </Animated.View>
-
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-                className="flex-1"
-                style={{ backgroundColor: '#F2F2F2' }}
+            <BottomSheet
+              ref={menuBottomSheetRef}
+              title="Message Options"
+              snapPoints={["38%"]}
+              onClose={() => setMenuMessage(null)}
             >
-                <View className="flex-1 relative">
-                    <ImageBackground
-                        source={require("@/assets/images/chat_bg.png")}
-                        style={{ flex: 1 }}
-                        resizeMode="repeat"
-                        imageStyle={{ opacity: 0.12 }}
+              <View className="px-6 py-2">
+                <View className="flex-row items-center gap-3 mb-6">
+                  <TouchableOpacity
+                    onPress={handleMenuReply}
+                    className="flex-1 items-center justify-center p-4 bg-white rounded-full border border-gray-100 shadow-sm"
+                  >
+                    <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mb-2">
+                      <Ionicons
+                        name="arrow-undo-outline"
+                        size={20}
+                        color="#FF4F18"
+                      />
+                    </View>
+                    <AppText
+                      weight="bold"
+                      className="text-gray-900 text-[11px] uppercase tracking-wider"
                     >
-                        {isChatLoading || !isReady ? (
-                            <MessageSkeleton />
-                        ) : (
-                            <View style={{ flex: 1 }}>
-                                <MessageList
-                                    messages={[...allMessages].reverse()}
-                                    isParticipantTyping={isParticipantTyping}
-                                    otherParticipant={otherParticipant}
-                                    hasNextPage={hasNextPage && !searchQuery}
-                                    isFetchingNextPage={isFetchingNextPage}
-                                    flatListRef={flatListRef}
-                                    onScroll={handleScroll}
-                                    onEndReached={handleEndReached}
-                                    onViewableItemsChanged={handleViewableItemsChanged}
-                                    onImagePress={handleOpenImage}
-                                    onReply={setReplyTo}
-                                    searchQuery={searchQuery}
-                                    currentMatchIndex={currentMatchIndex}
-                                    onMatchesFound={setTotalMatches}
-                                    isSelectionMode={isSelectionMode}
-                                    selectedMessageIds={selectedMessageIds}
-                                    onSelectionChange={toggleMessageSelection}
-                                    onLongPress={handleMessageLongPress}
-                                />
-                            </View>
-                        )}
+                      Reply
+                    </AppText>
+                  </TouchableOpacity>
 
-                        <BottomSheet
-                            ref={menuBottomSheetRef}
-                            title="Message Options"
-                            snapPoints={['35%']}
-                            onClose={() => setMenuMessage(null)}
+                  {menuMessage?.content &&
+                    !["📷 Photo", "🎤 Voice Message", "📄 Document"].includes(
+                      menuMessage.content,
+                    ) && (
+                      <TouchableOpacity
+                        onPress={handleMenuCopy}
+                        className="flex-1 items-center justify-center p-4 bg-white rounded-full border border-gray-100 shadow-sm"
+                      >
+                        <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mb-2">
+                          <Ionicons
+                            name="copy-outline"
+                            size={20}
+                            color="#4b5563"
+                          />
+                        </View>
+                        <AppText
+                          weight="bold"
+                          className="text-gray-900 text-[11px] uppercase tracking-wider"
                         >
-                            <View className="px-6 py-4 space-y-2">
-                                <TouchableOpacity 
-                                    onPress={handleMenuReply}
-                                    className="flex-row items-center p-4 bg-gray-50 rounded-[20px]"
-                                >
-                                    <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-4">
-                                        <Ionicons name="arrow-undo-outline" size={20} color="#FF4F18" />
-                                    </View>
-                                    <AppText weight="bold" className="text-gray-900 text-base">Reply</AppText>
-                                </TouchableOpacity>
+                          Copy
+                        </AppText>
+                      </TouchableOpacity>
+                    )}
 
-                                {menuMessage?.content && !['📷 Photo', '🎤 Voice Message', '📄 Document'].includes(menuMessage.content) && (
-                                    <TouchableOpacity 
-                                        onPress={handleMenuCopy}
-                                        className="flex-row items-center p-4 bg-gray-50 rounded-[20px]"
-                                    >
-                                        <View className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center mr-4">
-                                            <Ionicons name="copy-outline" size={20} color="#4b5563" />
-                                        </View>
-                                        <AppText weight="bold" className="text-gray-900 text-base">Copy Text</AppText>
-                                    </TouchableOpacity>
-                                )}
-
-                                <TouchableOpacity 
-                                    onPress={handleMenuSelect}
-                                    className="flex-row items-center p-4 bg-gray-50 rounded-[20px]"
-                                >
-                                    <View className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center mr-4">
-                                        <Ionicons name="checkbox-outline" size={20} color="#4b5563" />
-                                    </View>
-                                    <AppText weight="bold" className="text-gray-900 text-base">Select Multiple</AppText>
-                                </TouchableOpacity>
-
-                                {String(menuMessage?.sender?.id || menuMessage?.sender) === String(currentUser?.id) && (
-                                    <TouchableOpacity 
-                                        onPress={handleMenuDelete}
-                                        className="flex-row items-center p-4 bg-red-50 rounded-[20px]"
-                                    >
-                                        <View className="w-10 h-10 rounded-full bg-red-200 items-center justify-center mr-4">
-                                            <Ionicons name="trash-outline" size={20} color="#dc2626" />
-                                        </View>
-                                        <AppText weight="bold" className="text-red-600 text-base">Delete Message</AppText>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-                        </BottomSheet>
-
-                        <ImageViewer
-                            images={chatImages}
-                            visible={viewerVisible}
-                            initialIndex={initialImageIndex}
-                            onClose={() => setViewerVisible(false)}
-                            title="Media"
-                        />
-
-                        <MediaPreviewModal
-                            visible={previewVisible}
-                            media={selectedMedia}
-                            onClose={() => {
-                                setPreviewVisible(false);
-                                setSelectedMedia(null);
-                            }}
-                            onSend={handleMediaSend}
-                        />
-
-                        {!isChatLoading && showScrollButton && (
-                            <View className="absolute bottom-4 right-4">
-                                <Pressable
-                                    onPress={scrollToBottom}
-                                    className="bg-primary rounded-full p-3 shadow-lg"
-                                    style={({ pressed }) => [{
-                                        transform: [{ scale: pressed ? 0.9 : 1 }],
-                                        elevation: 4,
-                                    }]}
-                                >
-                                    <Ionicons name="chevron-down" size={24} color="white" />
-                                    {unreadCountBelow > 0 && (
-                                        <View className="absolute -top-1 -right-1 bg-red-500 rounded-full min-w-[20px] h-5 items-center justify-center px-1.5">
-                                            <AppText className="text-white text-xs font-bold">
-                                                {unreadCountBelow > 99 ? '99+' : unreadCountBelow}
-                                            </AppText>
-                                        </View>
-                                    )}
-                                </Pressable>
-                            </View>
-                        )}
-                    </ImageBackground>
+                  <TouchableOpacity
+                    onPress={handleMenuSelect}
+                    className="flex-1 items-center justify-center p-4 bg-white rounded-full border border-gray-100 shadow-sm"
+                  >
+                    <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mb-2">
+                      <Ionicons
+                        name="checkbox-outline"
+                        size={20}
+                        color="#4b5563"
+                      />
+                    </View>
+                    <AppText
+                      weight="bold"
+                      className="text-gray-900 text-[11px] uppercase tracking-wider"
+                    >
+                      Select
+                    </AppText>
+                  </TouchableOpacity>
                 </View>
 
-                {!isSearchVisible && isReady && (
-                    <View style={{ paddingBottom: insets.bottom, backgroundColor: 'white' }}>
-                        <ChatInput
-                            onSend={handleSendWithSound}
-                            onTypingChange={sendTyping}
-                            onImageSelect={onImageSelectRequest}
-                            onAudioSelect={handleAudioSelect}
-                            onDocumentSelect={onDocumentSelectRequest}
-                            replyTo={replyTo}
-                            onCancelReply={() => setReplyTo(null)}
-                            disabled={isChatLoading}
+                {/* List Actions */}
+                <View className="space-y-3">
+                  {String(menuMessage?.sender?.id || menuMessage?.sender) ===
+                    String(currentUser?.id) && (
+                    <TouchableOpacity
+                      onPress={handleMenuDelete}
+                      className="flex-row items-center p-4 bg-red-50 rounded-full border border-red-100"
+                    >
+                      <View className="w-10 h-10 rounded-full bg-red-100 items-center justify-center mr-4">
+                        <Ionicons
+                          name="trash-outline"
+                          size={20}
+                          color="#dc2626"
                         />
+                      </View>
+                      <AppText weight="bold" className="text-red-600 text-base">
+                        Delete for everyone
+                      </AppText>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </BottomSheet>
+
+            <ImageViewer
+              images={chatImages}
+              visible={viewerVisible}
+              initialIndex={initialImageIndex}
+              onClose={() => setViewerVisible(false)}
+              title="Media"
+            />
+
+            <MediaPreviewModal
+              visible={previewVisible}
+              media={selectedMedia}
+              onClose={() => {
+                setPreviewVisible(false);
+                setSelectedMedia(null);
+              }}
+              onSend={handleMediaSend}
+            />
+
+            {!isChatLoading && showScrollButton && (
+              <View className="absolute bottom-4 right-4">
+                <Pressable
+                  onPress={scrollToBottom}
+                  className="bg-primary rounded-full p-3 shadow-lg"
+                  style={({ pressed }) => [
+                    {
+                      transform: [{ scale: pressed ? 0.9 : 1 }],
+                      elevation: 4,
+                    },
+                  ]}
+                >
+                  <Ionicons name="chevron-down" size={24} color="white" />
+                  {unreadCountBelow > 0 && (
+                    <View className="absolute -top-1 -right-1 bg-red-500 rounded-full min-w-[20px] h-5 items-center justify-center px-1.5">
+                      <AppText className="text-white text-xs font-bold">
+                        {unreadCountBelow > 99 ? "99+" : unreadCountBelow}
+                      </AppText>
                     </View>
-                )}
-            </KeyboardAvoidingView>
+                  )}
+                </Pressable>
+              </View>
+            )}
+          </ImageBackground>
         </View>
-    );
+
+        {!isSearchVisible && isReady && (
+          <View
+            style={{
+              backgroundColor: "#F0F2F5",
+            }}
+          >
+            <ChatInput
+              onSend={handleSendWithSound}
+              onTypingChange={sendTyping}
+              onImageSelect={onImageSelectRequest}
+              onAudioSelect={handleAudioSelect}
+              onDocumentSelect={onDocumentSelectRequest}
+              replyTo={replyTo}
+              onCancelReply={() => setReplyTo(null)}
+              disabled={isChatLoading}
+            />
+          </View>
+        )}
+      </KeyboardAvoidingView>
+    </View>
+  );
 }

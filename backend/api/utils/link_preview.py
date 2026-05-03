@@ -11,8 +11,43 @@ def extract_url(text):
     match = re.search(url_pattern, text)
     return match.group(0) if match else None
 
+def is_safe_url(url):
+    """Check if the URL points to a safe (public) IP address"""
+    import socket
+    from urllib.parse import urlparse
+    import ipaddress
+
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ['http', 'https']:
+            return False
+        
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+            
+        # Resolve hostname to IP
+        ip_address = socket.gethostbyname(hostname)
+        ip = ipaddress.ip_address(ip_address)
+        
+        # Block private, loopback, and link-local ranges
+        if ip.is_private or ip.is_loopback or ip.is_link_local:
+            return False
+            
+        # Specific block for cloud metadata (AWS/GCP/Azure)
+        if str(ip) == '169.254.169.254':
+            return False
+            
+        return True
+    except Exception:
+        return False
+
 def get_link_preview(url):
     """Fetch metadata for a given URL"""
+    if not is_safe_url(url):
+        logger.warning(f"Blocked potentially unsafe URL request: {url}")
+        return None
+
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'

@@ -7,20 +7,23 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FF4F18"
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.urkelcodes.tajma",
-      "associatedDomains": ["applinks:tajma.com"],
+      "associatedDomains": [
+        "applinks:tajma.net",
+        "applinks:www.tajma.net"
+      ],
       "splash": {
-        "image": "./assets/splash-icon.png",
+        "image": "./assets/splash-logo.png",
         "resizeMode": "contain",
-        "backgroundColor": "#FF4F18"
+        "backgroundColor": "#FFFFFF"
       }
     },
     "android": {
@@ -32,7 +35,12 @@
           "data": [
             {
               "scheme": "https",
-              "host": "tajma.com",
+              "host": "tajma.net",
+              "pathPrefix": "/ads"
+            },
+            {
+              "scheme": "https",
+              "host": "www.tajma.net",
               "pathPrefix": "/ads"
             }
           ]
@@ -43,9 +51,9 @@
         "backgroundColor": "#FF4F18"
       },
       "splash": {
-        "image": "./assets/splash-icon.png",
+        "image": "./assets/splash-logo.png",
         "resizeMode": "contain",
-        "backgroundColor": "#FF4F18"
+        "backgroundColor": "#FFFFFF"
       }
     },
     "web": {
@@ -55,6 +63,13 @@
       "expo-router",
       "expo-web-browser",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Tajma to use your location to place your ad on the map and show nearby details."
+        }
+      ],
+      "expo-notifications",
+      [
         "expo-audio",
         {
           "microphonePermission": "Allow Tajma to access your microphone to record and send voice notes."
@@ -62,7 +77,8 @@
       ],
       "expo-font",
       "expo-video",
-      "sentry-expo"
+      "expo-asset",
+      "@sentry/react-native"
     ]
   }
 }

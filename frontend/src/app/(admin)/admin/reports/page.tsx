@@ -1,9 +1,10 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
-import { useAdminReports, useResolveAdminReport, useDeleteAdminReport, useReplyAdminReport } from '@/hooks/useAdmin'
+import { useAdminReports, useResolveAdminReport, useDismissAdminReport, useDeleteAdminReport, useReplyAdminReport, useArchiveReportedAd, useWarnReportedUser, useSuspendReportedUser } from '@/hooks/useAdmin'
 import type { AdminReport } from '@/api/admin'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,8 +12,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
-import { Eye, Trash2, CheckCircle, FileText, User, MessageSquare, Send, AlertTriangle } from 'lucide-react'
+import { Eye, Trash2, CheckCircle, FileText, User, MessageSquare, Send, AlertTriangle, XCircle, Archive, UserX, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 export default function AdminReportsPage() {
   const [page, setPage] = useState(1)
@@ -22,6 +24,10 @@ export default function AdminReportsPage() {
   const [showResolveModal, setShowResolveModal] = useState(false)
   const [resolutionNote, setResolutionNote] = useState('')
   const [adminReply, setAdminReply] = useState('')
+  
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [reportToDelete, setReportToDelete] = useState<AdminReport | null>(null)
 
   const { data: response, isLoading, refetch } = useAdminReports({
     page,
@@ -30,8 +36,12 @@ export default function AdminReportsPage() {
   })
 
   const resolveMutation = useResolveAdminReport()
+  const dismissMutation = useDismissAdminReport()
   const deleteMutation = useDeleteAdminReport()
   const replyMutation = useReplyAdminReport()
+  const archiveAdMutation = useArchiveReportedAd()
+  const warnUserMutation = useWarnReportedUser()
+  const suspendUserMutation = useSuspendReportedUser()
 
   const reportsList = response?.results || []
   const totalCount = response?.count || 0
@@ -73,12 +83,68 @@ export default function AdminReportsPage() {
   }
 
   const handleDelete = async (report: AdminReport) => {
-    if (!confirm('Are you sure you want to delete this report?')) return
-    
+    setReportToDelete(report)
+    setShowDeleteDialog(true)
+  }
+
+  const handleDismiss = async (report: AdminReport) => {
     try {
-      await deleteMutation.mutateAsync(report.id)
+      await dismissMutation.mutateAsync({
+        id: report.id,
+        resolution_note: 'No policy issue found.'
+      })
       refetch()
     } catch (error) {}
+  }
+
+  const handleArchiveAd = async (report: AdminReport) => {
+    if (!report.related_ad) return
+    if (!window.confirm('Archive the reported ad?')) return
+    try {
+      await archiveAdMutation.mutateAsync({
+        id: report.id,
+        note: `Reported ad "${report.related_ad_details?.title || report.related_ad}" was archived by moderation.`
+      })
+      refetch()
+    } catch (error) {}
+  }
+
+  const handleWarnUser = async (report: AdminReport) => {
+    if (!report.reported_user) return
+    const message = window.prompt(
+      'Warning message',
+      'Please review Tajma marketplace rules. Future violations may lead to account restrictions.'
+    )
+    if (!message) return
+    try {
+      await warnUserMutation.mutateAsync({ id: report.id, message })
+      refetch()
+    } catch (error) {}
+  }
+
+  const handleSuspendUser = async (report: AdminReport) => {
+    if (!report.reported_user) return
+    if (!window.confirm('Suspend the reported user account?')) return
+    try {
+      await suspendUserMutation.mutateAsync({
+        id: report.id,
+        note: `Reported user ${report.reported_user_details?.email || report.reported_user} was suspended by moderation.`
+      })
+      refetch()
+    } catch (error) {}
+  }
+
+  const confirmDelete = async () => {
+    if (!reportToDelete) return
+    try {
+      await deleteMutation.mutateAsync(reportToDelete.id)
+      setShowDeleteDialog(false)
+      setReportToDelete(null)
+      setSelectedReport(null)
+      refetch()
+    } catch (error) {
+      // Error handled by mutation
+    }
   }
 
   const columns: Column<AdminReport>[] = [
@@ -101,6 +167,7 @@ export default function AdminReportsPage() {
         <Badge 
           className={
             report.status === 'resolved' ? 'bg-green-100 text-green-700' :
+            report.status === 'dismissed' ? 'bg-gray-100 text-gray-700' :
             report.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
             'bg-blue-100 text-blue-700'
           }
@@ -181,12 +248,22 @@ export default function AdminReportsPage() {
               <Button variant="ghost" size="sm" onClick={() => setSelectedReport(report)}>
                 <Eye className="w-4 h-4" />
               </Button>
-              {report.status !== 'resolved' && (
+              {!['resolved', 'dismissed'].includes(report.status) && (
                 <Button variant="ghost" size="sm" onClick={() => {
                   setSelectedReport(report)
                   setShowResolveModal(true)
                 }}>
                   <CheckCircle className="w-4 h-4 text-green-600" />
+                </Button>
+              )}
+              {!['resolved', 'dismissed'].includes(report.status) && (
+                <Button variant="ghost" size="sm" onClick={() => handleDismiss(report)}>
+                  <XCircle className="w-4 h-4 text-gray-600" />
+                </Button>
+              )}
+              {report.related_ad && (
+                <Button variant="ghost" size="sm" onClick={() => handleArchiveAd(report)}>
+                  <Archive className="w-4 h-4 text-orange-600" />
                 </Button>
               )}
               <Button variant="ghost" size="sm" onClick={() => handleDelete(report)}>
@@ -228,14 +305,72 @@ export default function AdminReportsPage() {
                 
                 <div>
                   <Label className="text-gray-500">Description</Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-lg text-sm whitespace-pre-wrap">
+                  <div className="mt-1 p-3 bg-gray-50 rounded-xl text-sm whitespace-pre-wrap">
                     {selectedReport.description}
                   </div>
                 </div>
 
-                {selectedReport.status === 'resolved' && (
-                  <div className="p-3 bg-green-50 border border-green-100 rounded-lg">
-                    <Label className="text-green-700 font-medium text-xs">Resolution Note</Label>
+                <div className="rounded-2xl border border-gray-200 bg-white p-3">
+                  <Label className="text-gray-500">Moderation</Label>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedReport.related_ad && (
+                      <>
+                        <Button asChild variant="outline" size="sm" className="justify-start gap-2">
+                          <Link href={`/admin/ads/${selectedReport.related_ad}`}>
+                            <ExternalLink className="w-4 h-4" />
+                            Open Ad
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="justify-start gap-2 text-orange-700"
+                          onClick={() => handleArchiveAd(selectedReport)}
+                          disabled={archiveAdMutation.isPending}
+                        >
+                          <Archive className="w-4 h-4" />
+                          Archive Ad
+                        </Button>
+                      </>
+                    )}
+                    {selectedReport.reported_user && (
+                      <>
+                        <Button asChild variant="outline" size="sm" className="justify-start gap-2">
+                          <Link href={`/admin/users/${selectedReport.reported_user}`}>
+                            <ExternalLink className="w-4 h-4" />
+                            Open User
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="justify-start gap-2"
+                          onClick={() => handleWarnUser(selectedReport)}
+                          disabled={warnUserMutation.isPending}
+                        >
+                          <AlertTriangle className="w-4 h-4" />
+                          Warn User
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="justify-start gap-2 text-red-700"
+                          onClick={() => handleSuspendUser(selectedReport)}
+                          disabled={suspendUserMutation.isPending}
+                        >
+                          <UserX className="w-4 h-4" />
+                          Suspend User
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {['resolved', 'dismissed'].includes(selectedReport.status) && (
+                  <div className="p-3 bg-green-50 border border-green-100 rounded-xl">
+                    <Label className="text-green-700 font-medium text-xs">
+                      {selectedReport.status === 'dismissed' ? 'Dismissal Note' : 'Resolution Note'}
+                    </Label>
                     <p className="text-sm text-green-800 mt-1">{selectedReport.resolution_note || 'No note provided'}</p>
                     <p className="text-[10px] text-green-600 mt-2">
                       By {selectedReport.resolved_by_details?.email} on {selectedReport.resolved_at && format(new Date(selectedReport.resolved_at), 'MMM d, yyyy')}
@@ -297,8 +432,17 @@ export default function AdminReportsPage() {
           
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelectedReport(null)}>Close</Button>
-            {selectedReport?.status !== 'resolved' && (
+            {selectedReport && !['resolved', 'dismissed'].includes(selectedReport.status) && (
               <Button onClick={() => setShowResolveModal(true)}>Resolve Report</Button>
+            )}
+            {selectedReport && !['resolved', 'dismissed'].includes(selectedReport.status) && (
+              <Button
+                variant="outline"
+                onClick={() => handleDismiss(selectedReport)}
+                disabled={dismissMutation.isPending}
+              >
+                Dismiss
+              </Button>
             )}
           </DialogFooter>
         </DialogContent>
@@ -334,6 +478,16 @@ export default function AdminReportsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title="Delete Support Report?"
+        description="Are you sure you want to delete this report? This will permanently remove the report record and all associated communication history. This action cannot be undone."
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }

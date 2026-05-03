@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.serializers.user import UserDetailsSerializer
+from api.serializers.user import UserPublicSerializer
 from api.models import Review, Notification
 from api.services.response_stats import calculate_response_stats_for_seller
 
@@ -26,23 +26,12 @@ class UserProfileView(APIView):
             if slug.isdigit():
                 user = User.objects.get(id=slug)
             else:
-                # Then try to find by username
                 user = User.objects.get(username__iexact=slug)
         except User.DoesNotExist:
-            try:
-                # Then try to find by full email
-                user = User.objects.get(email__iexact=slug)
-            except User.DoesNotExist:
-                try:
-                    # Finally, try to find by email prefix (part before @)
-                    # This handles cases where user has no username and frontend sends email prefix
-                    user = User.objects.get(email__istartswith=f"{slug}@")
-                except (User.DoesNotExist, User.MultipleObjectsReturned):
-                    # If multiple users match (unlikely but possible), return 404
-                    return Response(
-                        {'detail': 'User not found.'},
-                        status=status.HTTP_404_NOT_FOUND
-                    )
+            return Response(
+                {'detail': 'User not found.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         # Send notification if profile is viewed by authenticated user (not the owner)
         # Only send once per day per viewer
@@ -67,7 +56,7 @@ class UserProfileView(APIView):
             else:
                 logger.info(f"⏭️ Skipping profile view notification: Already sent today by {request.user.id} to {user.id}")
 
-        serializer = UserDetailsSerializer(user, context={'request': request})
+        serializer = UserPublicSerializer(user, context={'request': request})
         data = serializer.data
         
         # Calculate review statistics
@@ -156,4 +145,3 @@ class UserFCMTokenView(APIView):
             {'message': 'FCM token updated successfully.'},
             status=status.HTTP_200_OK
         )
-

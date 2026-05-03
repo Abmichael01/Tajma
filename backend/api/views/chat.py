@@ -26,7 +26,7 @@ class ChatViewSet(viewsets.ModelViewSet):
     - Update: Update chat (e.g., mark as read)
     """
     
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsChatParticipant]
     csrf_exempt = True
     
     def get_serializer_class(self):
@@ -272,11 +272,14 @@ class UserOnlineStatusViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        """Return online status for current user or all users"""
+        """Return online status for current user or a specific user"""
         user_id = self.request.query_params.get('user_id')
         if user_id:
+            # Only allow looking up specific users
             return UserOnlineStatus.objects.filter(user_id=user_id)
-        return UserOnlineStatus.objects.all()
+        
+        # Default: only return current user's status for privacy
+        return UserOnlineStatus.objects.filter(user=self.request.user)
     
     @action(detail=False, methods=['post'])
     def set_online(self, request):

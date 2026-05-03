@@ -155,6 +155,8 @@ export interface Ad {
   latitude?: number | null
   longitude?: number | null
   location?: string | null
+  is_featured: boolean
+  promotion_rank: number
 }
 
 export interface CreateAdRequest {

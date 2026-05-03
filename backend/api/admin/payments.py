@@ -1,5 +1,13 @@
 from django.contrib import admin
-from api.models import Transaction, Promotion
+from api.models import Transaction, Promotion, PromotionPackage
+
+@admin.register(PromotionPackage)
+class PromotionPackageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'promotion_type', 'price', 'duration_days', 'is_active', 'created_at')
+    list_filter = ('promotion_type', 'is_active', 'created_at')
+    search_fields = ('name', 'description')
+    readonly_fields = ('id', 'created_at', 'updated_at')
+    ordering = ('price',)
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):

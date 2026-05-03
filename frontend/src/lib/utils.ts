@@ -36,8 +36,8 @@ export function getMediaUrl(path: any): string {
   }
 
   // Base API URL and Origin
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
-  let apiOrigin = 'http://localhost:8001'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8026'
+  let apiOrigin = 'http://localhost:8026'
   try {
       apiOrigin = new URL(apiUrl).origin
   } catch (e) {}
@@ -55,8 +55,6 @@ export function getMediaUrl(path: any): string {
       const isIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)
       if (isIp && (apiOrigin.includes('localhost') || apiOrigin.includes('127.0.0.1'))) {
           apiOrigin = apiOrigin.replace('localhost', hostname).replace('127.0.0.1', hostname)
-          // Also fix port if it was 8000 but we know it should be 8001
-          if (apiOrigin.includes(':8000')) apiOrigin = apiOrigin.replace(':8000', ':8001')
       }
   }
 

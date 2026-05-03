@@ -8,6 +8,7 @@ import BackButton from '@/components/ui/BackButton'
 import { useAdDetails } from '@/hooks/useAds'
 import { useAuthStore } from '@/store/authStore'
 import { useToggleSaveAd } from '@/hooks/useSavedAds'
+import { useUpdateAdminAd, useDeleteAdminAd } from '@/hooks/useAdmin'
 import ReviewsSection from '@/components/ads/ReviewsSection'
 import { useReviewStats } from '@/hooks/useReviews'
 import { useCategories } from '@/hooks/useCategories'
@@ -17,6 +18,14 @@ import ShareAdModal from '@/components/modals/ShareAdModal'
 import CallSellerModal from '@/components/modals/CallSellerModal'
 import AdDetailSkeleton from '@/components/ui/AdDetailSkeleton'
 import { getUserFullName } from '@/utils/user'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Trash2, Edit, ShieldCheck } from 'lucide-react'
 import { notificationsApi } from '@/api/notifications'
 import { useGetOrCreateChat } from '@/hooks/useChat'
 import { chatApi } from '@/api/chat'
@@ -30,6 +39,7 @@ import AdSellerInfo from '@/components/ads/AdSellerInfo'
 import AdSafetyTips from '@/components/ads/AdSafetyTips'
 import AdMap from '@/components/ads/AdMap'
 import { useLanguage, getDefaultMessages } from '@/hooks/useLanguage'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 interface AdsDetailClientProps {
   adId: string // Actually a slug from the URL
@@ -47,6 +57,11 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
   const [contactMessage, setContactMessage] = useState('')
   const { mutate: toggleSaveAd, isPending: isTogglingSave } = useToggleSaveAd()
   const { mutate: getOrCreateChat, isPending: isCreatingChat } = useGetOrCreateChat()
+  
+  // Admin / Management hooks
+  const updateAd = useUpdateAdminAd()
+  const deleteAd = useDeleteAdminAd()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   // Handle favorite toggle using API
   const handleToggleFavorite = (adId: string) => {
@@ -72,8 +87,10 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
     return ad?.id === adId && ad?.is_saved === true
   }
 
-  // Check if current user is the ad owner
+  // Check if current user is the ad owner or an admin
   const isOwner = user && ad && user.id === ad.seller.id
+  const isAdmin = user && (user.is_staff || user.is_superuser)
+  const canManage = isOwner || isAdmin
 
   // Fetch review stats for the ad
   const { data: reviewStats } = useReviewStats(
@@ -137,7 +154,7 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
   const sellerName = ad?.seller ? getUserFullName(ad.seller) : 'Unknown Seller'
 
   // Get seller profile slug
-  const sellerProfileSlug = ad?.seller?.username || ad?.seller?.email?.split('@')[0] || 'profile'
+  const sellerProfileSlug = String(ad?.seller?.username || ad?.seller?.id || 'profile')
 
   // Get current language and default messages
   const currentLang = useLanguage()
@@ -248,6 +265,32 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
     setIsCallModalOpen(true)
   }
 
+  const handleAdminStatusChange = async (newStatus: string) => {
+    if (!ad) return
+    try {
+      await updateAd.mutateAsync({
+        id: ad.id,
+        data: { status: newStatus as 'draft' | 'published' | 'archived' },
+      })
+    } catch (error: any) {
+      console.error('Failed to update ad status:', error)
+    }
+  }
+
+  const handleAdminDelete = async () => {
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!ad) return
+    try {
+      await deleteAd.mutateAsync(ad.id)
+      router.push('/')
+    } catch (error) {
+      console.error('Failed to delete ad:', error)
+    }
+  }
+
   if (isLoading) {
     return <AdDetailSkeleton />
   }
@@ -270,6 +313,54 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-4 sm:py-8">
+      {/* Admin Action Bar */}
+      {canManage && ad && (
+        <div className="bg-amber-50 border-b border-amber-100 mb-6 py-3">
+          <div className="container flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-amber-800">
+              <ShieldCheck className="w-5 h-5 text-amber-600" />
+              <span className="text-sm font-semibold">
+                {isAdmin ? 'Management Tools (Admin)' : 'Management Tools (Owner)'}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-amber-600 font-medium hidden sm:inline">Status:</span>
+              <Select
+                value={ad.status}
+                onValueChange={handleAdminStatusChange}
+              >
+                <SelectTrigger className="w-32 bg-white border-amber-200 h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="published">Published</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Link href={`/admin/ads?edit=${ad.id}`}>
+                <Button variant="outline" size="sm" className="bg-white border-amber-200 text-amber-900 gap-1.5 h-9">
+                  <Edit className="w-4 h-4" />
+                  Edit
+                </Button>
+              </Link>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAdminDelete}
+                className="text-red-600 hover:text-red-700 hover:bg-red-100 h-9 gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container">
         {/* Breadcrumbs */}
         <div className="flex flex-wrap items-center gap-y-2 gap-x-2 mb-6 sm:mb-8 text-xs sm:text-sm text-gray-400">
@@ -496,7 +587,17 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
           sellerName={sellerName}
           sellerId={ad.seller.id}
           adId={ad.id}
-          adTitle={ad.title}
+        />
+      )}
+
+      {ad && (
+        <ConfirmDeleteDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={confirmDelete}
+          title={`Delete Ad: ${ad.title}?`}
+          description="Are you sure you want to delete this ad? This action cannot be undone and will remove the advertisement permanently from the marketplace."
+          isLoading={deleteAd.isPending}
         />
       )}
     </div>

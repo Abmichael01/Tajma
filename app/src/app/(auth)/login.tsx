@@ -1,4 +1,13 @@
-import { View, ScrollView, TouchableOpacity, Image, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from "react-native";
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,12 +35,17 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginScreen() {
   const router = useRouter();
   const loginMutation = useLogin();
-  const { handleGoogleAuth, isLoading: googleLoading, error: googleError } = useGoogleAuth();
+  const {
+    handleGoogleAuth,
+    isLoading: googleLoading,
+    error: googleError,
+  } = useGoogleAuth();
   const [formError, setFormError] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -52,8 +66,12 @@ export default function LoginScreen() {
     } catch (error: any) {
       let errorMessage = "Login failed. Please try again.";
 
-      if (error?.code === 'ERR_NETWORK' || error?.message?.includes('Network Error')) {
-        errorMessage = "Cannot connect to server. Please check your network connection and ensure the backend server is running.";
+      if (
+        error?.code === "ERR_NETWORK" ||
+        error?.message?.includes("Network Error")
+      ) {
+        errorMessage =
+          "Cannot connect to server. Please check your network connection and ensure the backend server is running.";
       } else if (error?.response?.data) {
         // Handle Django validation errors
         const errorData = error.response.data;
@@ -96,7 +114,13 @@ export default function LoginScreen() {
           {/* Form Content */}
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 16, paddingTop: 80, paddingBottom: 32 }}
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              paddingHorizontal: 16,
+              paddingTop: 80,
+              paddingBottom: 32,
+            }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -110,7 +134,11 @@ export default function LoginScreen() {
                 />
               </View>
 
-              <AppText variant="heading" weight="semibold" className="mb-2 text-center">
+              <AppText
+                variant="heading"
+                weight="semibold"
+                className="mb-2 text-center"
+              >
                 Welcome back
               </AppText>
               <AppText variant="default" center className="mb-8">
@@ -124,16 +152,32 @@ export default function LoginScreen() {
 
               {/* Google Button */}
               <Button
-                variant="outline"
+                variant="secondary"
                 size="lg"
                 className="w-full mb-6"
-                leftIcon={<Ionicons name="logo-google" size={20} color="#4285F4" />}
+                leftIcon={
+                  <Ionicons name="logo-google" size={20} color="#FFFFFF" />
+                }
                 onPress={handleGoogleAuth}
                 disabled={googleLoading || loginMutation.isPending}
                 loading={googleLoading}
               >
                 {googleLoading ? "Connecting..." : "Continue with Google"}
               </Button>
+
+              {__DEV__ && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setValue("email", "admin@gmail.com");
+                    setValue("password", "password123");
+                  }}
+                  className="w-full py-2 mb-4 border border-dashed border-primary rounded-full items-center bg-primary/5"
+                >
+                  <AppText weight="medium" className="text-primary text-xs">
+                    AUTO-FILL ADMIN (DEV ONLY)
+                  </AppText>
+                </TouchableOpacity>
+              )}
 
               {/* Google Error Alert */}
               {googleError && (
@@ -180,7 +224,11 @@ export default function LoginScreen() {
                       onBlur={onBlur}
                       error={!!errors.email}
                       leftIcon={
-                        <Ionicons name="mail-outline" size={20} color="#9ca3af" />
+                        <Ionicons
+                          name="mail-outline"
+                          size={20}
+                          color="#9ca3af"
+                        />
                       }
                     />
                   )}
@@ -210,7 +258,11 @@ export default function LoginScreen() {
                       onBlur={onBlur}
                       error={!!errors.password}
                       leftIcon={
-                        <Ionicons name="lock-closed-outline" size={20} color="#9ca3af" />
+                        <Ionicons
+                          name="lock-closed-outline"
+                          size={20}
+                          color="#9ca3af"
+                        />
                       }
                     />
                   )}

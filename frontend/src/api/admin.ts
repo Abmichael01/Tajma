@@ -187,6 +187,19 @@ export interface AdminReport {
   updated_at: string
 }
 
+export interface AdminPromotionPackage {
+  id: string
+  name: string
+  description?: string | null
+  promotion_type: 'boost' | 'featured'
+  price: string
+  discount_price?: string | null
+  duration_days: number
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
 export interface AdminKYC {
   id: string
   user: number
@@ -419,13 +432,57 @@ export const adminApi = {
     await apiClient.post(`/admin/reports/${id}/resolve/`, { resolution_note })
   },
 
+  dismissReport: async (id: string, resolution_note = ''): Promise<void> => {
+    await apiClient.post(`/admin/reports/${id}/dismiss/`, { resolution_note })
+  },
+
   deleteReport: async (id: string): Promise<void> => {
     await apiClient.delete(`/admin/reports/${id}/`)
+  },
+
+  archiveReportedAd: async (id: string, note = ''): Promise<{ status: string; ad_id: string }> => {
+    const response = await apiClient.post(`/admin/reports/${id}/archive-ad/`, { note })
+    return response.data
+  },
+
+  warnReportedUser: async (id: string, message = ''): Promise<{ status: string; user_id: number }> => {
+    const response = await apiClient.post(`/admin/reports/${id}/warn-user/`, { message })
+    return response.data
+  },
+
+  suspendReportedUser: async (id: string, note = ''): Promise<{ status: string; user_id: number }> => {
+    const response = await apiClient.post(`/admin/reports/${id}/suspend-user/`, { note })
+    return response.data
   },
   
   replyReport: async (id: string, message: string): Promise<any> => {
     const response = await apiClient.post(`/admin/reports/${id}/reply/`, { message })
     return response.data
+  },
+
+  // Promotion packages
+  getPromotionPackages: async (params?: {
+    page?: number
+    search?: string
+    promotion_type?: string
+    is_active?: boolean
+  }): Promise<PaginatedResponse<AdminPromotionPackage>> => {
+    const response = await apiClient.get('/admin/promotion-packages/', { params })
+    return response.data
+  },
+
+  createPromotionPackage: async (data: Partial<AdminPromotionPackage>): Promise<AdminPromotionPackage> => {
+    const response = await apiClient.post('/admin/promotion-packages/', data)
+    return response.data
+  },
+
+  updatePromotionPackage: async (id: string, data: Partial<AdminPromotionPackage>): Promise<AdminPromotionPackage> => {
+    const response = await apiClient.patch(`/admin/promotion-packages/${id}/`, data)
+    return response.data
+  },
+
+  deletePromotionPackage: async (id: string): Promise<void> => {
+    await apiClient.delete(`/admin/promotion-packages/${id}/`)
   },
 
   // KYC
@@ -474,5 +531,3 @@ export const adminApi = {
     return response.data
   },
 }
-
-

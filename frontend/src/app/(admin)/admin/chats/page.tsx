@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { MessageSquare } from 'lucide-react'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 
 export default function AdminChatsPage() {
   const searchParams = useSearchParams()
@@ -22,6 +23,10 @@ export default function AdminChatsPage() {
 
   const { data: stats } = useAdminStats()
   const deleteChat = useDeleteAdminChat()
+  
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [chatToDelete, setChatToDelete] = useState<AdminChat | null>(null)
 
   // Calculate stats
   const chatsStats = useMemo(() => {
@@ -33,11 +38,16 @@ export default function AdminChatsPage() {
   }, [data, stats])
 
   const handleDelete = async (chat: AdminChat) => {
-    if (!confirm(`Are you sure you want to delete this chat?`)) {
-      return
-    }
+    setChatToDelete(chat)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!chatToDelete) return
     try {
-      await deleteChat.mutateAsync(chat.id)
+      await deleteChat.mutateAsync(chatToDelete.id)
+      setShowDeleteDialog(false)
+      setChatToDelete(null)
     } catch (error) {
       // Error handled by mutation
     }
@@ -148,6 +158,16 @@ export default function AdminChatsPage() {
             page,
             pageSize: 25,
         }}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDelete}
+        title="Delete Chat Conversation?"
+        description="Are you sure you want to delete this chat? All messages in this conversation will be permanently removed for both participants. This action cannot be undone."
+        isLoading={deleteChat.isPending}
       />
     </div>
   )

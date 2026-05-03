@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronDown, ChevronUp, LayoutGrid } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getMediaUrl } from '@/lib/utils'
 import FiltersSection, { FilterGroup } from '@/components/ui/FiltersSection'
 import { Button } from '@/components/ui/button'
 import AdsList from '@/components/Home/AdsList'
 import AdsListSkeleton from '@/components/ui/AdsListSkeleton'
 import BackButton from '@/components/ui/BackButton'
-import { useAdsList } from '@/hooks/useAds'
+import { useAdsInfiniteList } from '@/hooks/useAds'
 import { useCategories } from '@/hooks/useCategories'
 import { useLocationStore } from '@/store/locationStore'
 import { searchFilters, getFiltersByCategory, getCategoryIcon, getSubcategoryIcon } from '@/data/filterConfigs'
@@ -48,6 +48,7 @@ export default function AdsListingLayout({
   const { categoryTree } = useCategories()
   const { selectedRegion, setSelectedRegion } = useLocationStore()
   const [activeDrawer, setActiveDrawer] = useState<string | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
   // Filter state - map categorySlug to category for internal use
   const [filters, setFilters] = useState<Record<string, any>>(() => {
@@ -55,7 +56,7 @@ export default function AdsListingLayout({
     const categorySlug = initialFilters.categorySlug || searchParams.get('category') || initialFilters.category || ''
     const minP = initialFilters.min_price || searchParams.get('min_price') || ''
     const maxP = initialFilters.max_price || searchParams.get('max_price') || ''
-    
+
     let priceRange = ''
     if (minP && maxP) priceRange = `${minP}-${maxP}`
     else if (minP) priceRange = `${minP}+`
@@ -112,7 +113,7 @@ export default function AdsListingLayout({
             count: sub.adsCount || 0,
             icon: sub.imageUrl ? (
               <div className="w-4 h-4 rounded overflow-hidden relative">
-                <Image src={sub.imageUrl} alt={sub.name} fill className="object-cover" />
+                <Image src={getMediaUrl(sub.imageUrl)} alt={sub.name} fill className="object-cover" />
               </div>
             ) : <LayoutGrid className="w-4 h-4" />,
             action: `/category/${sub.slug}`,
@@ -141,7 +142,7 @@ export default function AdsListingLayout({
               count: cat.adsCount || 0,
               icon: cat.imageUrl ? (
                 <div className="w-4 h-4 rounded overflow-hidden relative">
-                  <Image src={cat.imageUrl} alt={cat.name} fill className="object-cover" />
+                  <Image src={getMediaUrl(cat.imageUrl)} alt={cat.name} fill className="object-cover" />
                 </div>
               ) : <LayoutGrid className="w-4 h-4" />,
             })),
@@ -211,11 +212,42 @@ export default function AdsListingLayout({
       params.seller_location = filters.location
     }
 
+    // Debug log for API params
+    console.log('🔍 AdsListingLayout API Params:', params)
+
     return params
   }, [filters])
 
-  // Fetch ads
-  const { data: ads, isLoading, error } = useAdsList(apiParams)
+  // Fetch ads one backend page at a time.
+  const {
+    data: adsData,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAdsInfiniteList(apiParams)
+
+  const ads = useMemo(() => {
+    return adsData?.pages.flatMap((page) => page.results) || []
+  }, [adsData])
+
+  useEffect(() => {
+    const target = loadMoreRef.current
+    if (!target || !hasNextPage) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { rootMargin: '500px 0px' }
+    )
+
+    observer.observe(target)
+    return () => observer.disconnect()
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
 
   // Handle filter changes
   const handleFilterChange = (
@@ -277,13 +309,16 @@ export default function AdsListingLayout({
     
     // Only update if values actually changed
     if (newCategory !== filters.category || newSearch !== filters.search) {
+      console.log('🔄 AdsListingLayout syncing from URL:', { newCategory, newSearch })
       setFilters((prev) => ({
         ...prev,
         category: newCategory,
         search: newSearch,
+        // When category changes from URL, we should consider clearing subcategory/attribute filters
+        // unless they are also in the URL (optional enhancement)
       }))
     }
-  }, [searchParams])
+  }, [searchParams, initialFilters.categorySlug])
   
   // Sync with initialFilters when they change (for category page navigation)
   // This ensures that when navigating to a category page, the filter is set immediately
@@ -470,7 +505,7 @@ export default function AdsListingLayout({
                   Retry Search
                 </Button>
               </div>
-            ) : !ads || ads.length === 0 ? (
+            ) : ads.length === 0 ? (
               <div className="py-24 text-center bg-white rounded-3xl border border-gray-200">
                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
                    <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -495,6 +530,13 @@ export default function AdsListingLayout({
             ) : (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <AdsList ads={ads as Ad[]} columns={4} />
+                {hasNextPage && (
+                  <div ref={loadMoreRef} className="py-6 text-center">
+                    {isFetchingNextPage ? (
+                      <span className="text-sm text-gray-500">Loading more ads...</span>
+                    ) : null}
+                  </div>
+                )}
               </div>
             )}
           </main>
@@ -503,4 +545,3 @@ export default function AdsListingLayout({
     </div>
   )
 }
-

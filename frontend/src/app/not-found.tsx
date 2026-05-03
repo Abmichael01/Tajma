@@ -1,96 +1,65 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
-import { Home, Search, ArrowLeft, MapPin } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { Home, Search, ArrowLeft } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center px-6 py-12 overflow-hidden relative">
-      {/* Decorative background elements */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#0F172B]/5 rounded-full blur-[100px]" />
+    <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center px-6 py-12">
+      <div className="max-w-md w-full text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        
+        {/* Simple Error Character / Icon */}
+        <div className="flex justify-center">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/5 rounded-full blur-2xl transform scale-150" />
+            <div className="relative w-24 h-24 bg-white border border-gray-100 rounded-2xl flex items-center justify-center">
+              <Search className="w-10 h-10 text-primary opacity-80" strokeWidth={1.5} />
+            </div>
+            <div className="absolute -top-3 -right-3 w-8 h-8 bg-secondary border-2 border-white rounded-full flex items-center justify-center">
+              <span className="text-white text-[10px] font-medium">404</span>
+            </div>
+          </div>
+        </div>
 
-      <div className="max-w-3xl w-full mx-auto relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        {/* Content Section */}
+        <div className="space-y-3">
+          <h1 className="text-3xl font-medium text-gray-900 tracking-tight">
+            Page not found
+          </h1>
+          <p className="text-sm font-medium text-gray-500 leading-relaxed mx-auto max-w-[280px]">
+            The page you're looking for doesn't exist or has been moved to a new home.
+          </p>
+        </div>
+
+        {/* Action Buttons - Small & Clean */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <Link 
+            href="/" 
+            className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-primary text-white rounded-full text-sm font-medium transition-all hover:bg-primary/90 active:scale-95"
+          >
+            <Home className="w-4 h-4 mr-2" />
+            Return Home
+          </Link>
           
-          {/* Visual Side */}
-          <div className="order-2 lg:order-1 flex justify-center lg:justify-start">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="relative"
-            >
-              <div className="text-[180px] font-black text-[#0F172B]/5 leading-none select-none">
-                404
-              </div>
-              <motion.div 
-                animate={{ 
-                  y: [0, -15, 0],
-                }}
-                transition={{ 
-                  duration: 4, 
-                  repeat: Infinity,
-                  ease: "easeInOut" 
-                }}
-                className="absolute inset-0 flex items-center justify-center"
-              >
-                <div className="w-48 h-48 bg-white rounded-[40px] shadow-[0_20px_50px_rgba(255,79,24,0.15)] border border-primary/10 flex items-center justify-center transform rotate-12">
-                   <div className="w-32 h-32 bg-primary/5 rounded-[30px] flex items-center justify-center">
-                      <MapPin className="w-16 h-16 text-primary" strokeWidth={1.5} />
-                   </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
+          <Link 
+            href="/search" 
+            className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 bg-white text-gray-700 border border-gray-200 rounded-full text-sm font-medium transition-all hover:bg-gray-50 active:scale-95"
+          >
+            <Search className="w-4 h-4 mr-2" />
+            Keep Browsing
+          </Link>
+        </div>
 
-          {/* Content Side */}
-          <div className="order-1 lg:order-2 text-center lg:text-left">
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <h2 className="text-primary font-bold tracking-widest uppercase text-sm mb-4">Lost in the Marketplace?</h2>
-              <h1 className="text-4xl sm:text-5xl font-black text-[#0F172B] mb-6 leading-tight">
-                This item has <br/>found a <span className="text-primary italic">new home.</span>
-              </h1>
-              <p className="text-lg text-slate-500 mb-10 max-w-md mx-auto lg:mx-0 leading-relaxed">
-                We couldn't find the page you're looking for. It might have been sold, moved, or never existed in the first place.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link 
-                  href="/" 
-                  className="group inline-flex items-center justify-center px-8 py-4 bg-[#0F172B] text-white rounded-2xl font-bold transition-all hover:bg-[#1A253E] hover:shadow-xl hover:-translate-y-1 active:scale-95"
-                >
-                  <Home className="w-5 h-5 mr-3 transition-transform group-hover:rotate-6" />
-                  Return Home
-                </Link>
-                
-                <Link 
-                  href="/search" 
-                  className="inline-flex items-center justify-center px-8 py-4 bg-white text-[#0F172B] border-2 border-slate-100 rounded-2xl font-bold transition-all hover:border-primary/20 hover:bg-slate-50 active:scale-95"
-                >
-                  <Search className="w-5 h-5 mr-3" />
-                  Keep Browsing
-                </Link>
-              </div>
-
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="mt-12 flex items-center justify-center lg:justify-start text-slate-400 text-sm"
-              >
-                <Link href="#" onClick={() => window.history.back()} className="flex items-center hover:text-primary transition-colors">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Go back to previous page
-                </Link>
-              </motion.div>
-            </motion.div>
-          </div>
+        {/* Subtle Back Link */}
+        <div className="pt-4">
+          <button 
+            onClick={() => window.history.back()} 
+            className="inline-flex items-center text-xs font-medium text-gray-400 hover:text-primary transition-colors group"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 mr-1.5 transition-transform group-hover:-translate-x-0.5" />
+            Go back
+          </button>
         </div>
       </div>
     </div>

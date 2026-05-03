@@ -9,6 +9,36 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import hmac
+import hashlib
+import json
+
+class SmileIDSignaturePermission(permissions.BasePermission):
+    """
+    Permission to verify that the request came from Smile ID.
+    Uses HMAC-SHA256 signature verification.
+    """
+    def has_permission(self, request, view):
+        from django.conf import settings
+        
+        signature = request.headers.get('Smile-ID-Signature')
+        if not signature:
+            return False
+            
+        # Smile ID recommends verifying against the raw body
+        # Since this is a webhook, we use request.body
+        secret_key = getattr(settings, 'SMILE_ID_API_KEY', '')
+        if not secret_key:
+            return False
+            
+        computed_signature = hmac.new(
+            secret_key.encode('utf-8'),
+            request.body,
+            hashlib.sha256
+        ).hexdigest()
+        
+        return hmac.compare_digest(computed_signature, signature)
+
 class KYCViewSet(viewsets.ModelViewSet):
     queryset = KYCVerification.objects.all()
     serializer_class = KYCVerificationSerializer
@@ -71,7 +101,7 @@ class KYCViewSet(viewsets.ModelViewSet):
             'is_sandbox': client.is_sandbox
         })
 
-    @action(detail=False, methods=['post'], url_path='webhook', permission_classes=[permissions.AllowAny])
+    @action(detail=False, methods=['post'], url_path='webhook', permission_classes=[SmileIDSignaturePermission])
     def webhook(self, request):
         """
         Smile ID results callback.

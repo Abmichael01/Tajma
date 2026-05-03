@@ -5,22 +5,20 @@ import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
-import * as SplashScreen from 'expo-splash-screen';
-import * as NavigationBar from 'expo-navigation-bar';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import * as SplashScreen from "expo-splash-screen";
+import * as NavigationBar from "expo-navigation-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import QueryProvider from "@/providers/QueryProvider";
 import { useAuthStore } from "@/store/authStore";
-import AppSplashScreen from "@/components/ui/AppText"; // Wait, earlier it was Splash? No, SplashScreen.tsx
 import AppSplashScreenComponent from "@/components/ui/SplashScreen";
 import { usePresence } from "@/hooks/usePresence";
-import { useNotifications } from "@/hooks/useNotifications";
-import * as Sentry from 'sentry-expo';
+import { usePushNotifications } from "@/hooks/useNotifications";
+import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  enableInExpoDevelopment: true,
   debug: false,
 });
 
@@ -45,7 +43,7 @@ function AuthNavigationGuard() {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace("/home");
     }
-  }, [isAuthenticated, hasHydrated, segments]);
+  }, [isAuthenticated, hasHydrated, router, segments]);
 
   return null;
 }
@@ -56,9 +54,9 @@ function RootLayoutContent() {
 
   // Manage user presence
   usePresence();
-  
+
   // Register for Push Notifications
-  useNotifications();
+  usePushNotifications();
 
   const [fontsLoaded, fontError] = useFonts({
     "Quicksand-Light": require("../assets/fonts/Quicksand/static/Quicksand-Light.ttf"),
@@ -85,13 +83,13 @@ function RootLayoutContent() {
 
   // Configure Android Navigation Bar
   useEffect(() => {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === "android") {
       const configureNavigationBar = async () => {
         try {
           // Set button style to dark since app is mostly light mode
-          await NavigationBar.setButtonStyleAsync('dark');
+          await NavigationBar.setButtonStyleAsync("dark");
         } catch (e) {
-          console.warn('Failed to configure navigation bar:', e);
+          console.warn("Failed to configure navigation bar:", e);
         }
       };
       configureNavigationBar();
@@ -111,17 +109,22 @@ function RootLayoutContent() {
       <Stack
         screenOptions={{
           headerShown: false,
-          animation: 'fade',
+          animation: "fade",
         }}
       />
 
       {/* Premium Animated Splash Overlay */}
       {showOverlay && (
-        <View style={StyleSheet.absoluteFill} pointerEvents={isSplashComplete ? 'none' : 'auto'}>
+        <View
+          style={StyleSheet.absoluteFill}
+          pointerEvents={isSplashComplete ? "none" : "auto"}
+        >
           {isAppReady ? (
-            <AppSplashScreenComponent onAnimationComplete={() => setIsSplashComplete(true)} />
+            <AppSplashScreenComponent
+              onAnimationComplete={() => setIsSplashComplete(true)}
+            />
           ) : (
-            <View style={{ flex: 1, backgroundColor: '#FF4F18' }} />
+            <View style={{ flex: 1, backgroundColor: "#FFFFFF" }} />
           )}
         </View>
       )}
@@ -142,4 +145,4 @@ function RootLayout() {
 }
 
 // Wrap the root layout with Sentry to catch errors
-export default Sentry.Native.wrap(RootLayout);
+export default Sentry.wrap(RootLayout);

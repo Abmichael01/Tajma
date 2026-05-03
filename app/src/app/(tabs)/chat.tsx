@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { useState, useMemo } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import AppText from "@/components/ui/AppText";
 import ChatListItem from "@/components/chat/ChatListItem";
 import ChatListSkeleton from "@/components/chat/ChatListSkeleton";
@@ -43,9 +44,10 @@ export default function ChatScreen() {
 
   const filteredChats = useMemo(() => {
     if (!chats) return [];
-    if (selectedFilter === 'all') return chats;
-    if (selectedFilter === 'unread') return chats.filter(chat => chat.unread_count > 0);
-    return chats;
+    const chatsArray = chats as any[];
+    if (selectedFilter === 'all') return chatsArray;
+    if (selectedFilter === 'unread') return chatsArray.filter(chat => chat.unread_count > 0);
+    return chatsArray;
   }, [chats, selectedFilter]);
 
   const onRefresh = async () => {
@@ -58,7 +60,7 @@ export default function ChatScreen() {
     return null;
   }
 
-  const unreadCount = chats?.reduce((acc, chat) => acc + chat.unread_count, 0) || 0;
+  const unreadCount = chats?.reduce((acc, chat) => acc + (chat.unread_count || 0), 0) || 0;
 
   return (
     <View className="flex-1 bg-white">
@@ -72,29 +74,32 @@ export default function ChatScreen() {
       />
 
       {/* Filter Bar */}
-      <View className="bg-white border-b border-border py-3.5">
+      <View className="bg-white border-b border-gray-50 py-4">
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
         >
           {FILTERS.map((filter) => (
             <TouchableOpacity
               key={filter.value}
-              onPress={() => setSelectedFilter(filter.value)}
-              className={`flex-row items-center gap-2 px-6 py-2.5 rounded-full border ${selectedFilter === filter.value
-                ? 'bg-secondary border-secondary'
-                : 'bg-white border-border'
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSelectedFilter(filter.value);
+              }}
+              className={`flex-row items-center gap-2 px-6 py-2.5 rounded-full ${selectedFilter === filter.value
+                ? 'bg-slate-900 shadow-sm shadow-slate-900/20'
+                : 'bg-slate-50 border border-slate-100'
                 }`}
             >
               <Ionicons
                 name={filter.icon as any}
-                size={18}
-                color={selectedFilter === filter.value ? 'white' : '#6b7280'}
+                size={16}
+                color={selectedFilter === filter.value ? 'white' : '#64748B'}
               />
               <AppText
-                weight={selectedFilter === filter.value ? 'bold' : 'medium'}
-                className={`text-base ${selectedFilter === filter.value ? 'text-white' : 'text-gray-500'}`}
+                weight={selectedFilter === filter.value ? 'bold' : 'semibold'}
+                className={`text-[14px] ${selectedFilter === filter.value ? 'text-white' : 'text-slate-500'}`}
               >
                 {filter.label}
               </AppText>
@@ -103,23 +108,29 @@ export default function ChatScreen() {
         </ScrollView>
       </View>
 
-      {/* Chats List */}
-      {isLoading && (!chats || chats.length === 0) ? (
+      {isLoading && (!chats || (chats as any[]).length === 0) ? (
         <ChatListSkeleton />
       ) : filteredChats.length === 0 ? (
-        <View className="flex-1 justify-center items-center p-10">
-          <Ionicons name="chatbubbles-outline" size={64} color="#f3f4f6" />
-          <AppText weight="medium" className="text-gray-300 mt-6 text-xl text-center">
+        <View className="flex-1 justify-center items-center p-10 bg-slate-50/30">
+          <View className="w-24 h-24 rounded-full bg-slate-50 items-center justify-center mb-6">
+            <Ionicons name="chatbubbles-outline" size={48} color="#CBD5E1" />
+          </View>
+          <AppText weight="bold" className="text-slate-900 text-xl text-center">
             {selectedFilter === 'all'
               ? 'No conversations yet'
               : 'No unread messages'}
           </AppText>
+          <AppText className="text-slate-400 text-center mt-2 px-6">
+            {selectedFilter === 'all'
+              ? 'Your messages and conversation history will appear here.'
+              : 'You have caught up with all your messages.'}
+          </AppText>
           {selectedFilter !== 'all' && (
             <TouchableOpacity
               onPress={() => setSelectedFilter('all')}
-              className="mt-4"
+              className="mt-8 bg-white px-8 py-3 rounded-full border border-slate-200"
             >
-              <AppText className="text-primary font-bold text-lg">View All Messages</AppText>
+              <AppText weight="bold" className="text-primary text-[15px]">View All Messages</AppText>
             </TouchableOpacity>
           )}
         </View>

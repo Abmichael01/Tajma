@@ -1,0 +1,38 @@
+/home/urkelcodes/.cache/pypoetry/virtualenvs/backend-9ivrfZCS-py3.13/lib/python3.13/site-packages/django/db/backends/utils.py:98: RuntimeWarning: Accessing the database during app initialization is discouraged. To fix this warning, avoid executing queries in AppConfig.ready() or when your app modules are imported.
+  warnings.warn(self.APPS_NOT_READY_WARNING_MSG, category=RuntimeWarning)
+System check identified some issues:
+
+WARNINGS:
+?: settings.ACCOUNT_AUTHENTICATION_METHOD is deprecated, use: settings.ACCOUNT_LOGIN_METHODS = {'email'}
+?: settings.ACCOUNT_EMAIL_REQUIRED is deprecated, use: settings.ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+?: settings.ACCOUNT_USERNAME_REQUIRED is deprecated, use: settings.ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+Clearing existing categories...
+Traceback (most recent call last):
+  File "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/backend/manage.py", line 22, in <module>
+    main()
+    ~~~~^^
+  File "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/backend/manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/urkelcodes/.cache/pypoetry/virtualenvs/backend-9ivrfZCS-py3.13/lib/python3.13/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+    ~~~~~~~~~~~~~~~^^
+  File "/home/urkelcodes/.cache/pypoetry/virtualenvs/backend-9ivrfZCS-py3.13/lib/python3.13/site-packages/django/core/management/__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/urkelcodes/.cache/pypoetry/virtualenvs/backend-9ivrfZCS-py3.13/lib/python3.13/site-packages/django/core/management/base.py", line 416, in run_from_argv
+    self.execute(*args, **cmd_options)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/urkelcodes/.cache/pypoetry/virtualenvs/backend-9ivrfZCS-py3.13/lib/python3.13/site-packages/django/core/management/base.py", line 460, in execute
+    output = self.handle(*args, **options)
+  File "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/backend/api/management/commands/seed_categories.py", line 45, in handle
+    Category.objects.all().delete()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/urkelcodes/.cache/pypoetry/virtualenvs/backend-9ivrfZCS-py3.13/lib/python3.13/site-packages/django/db/models/query.py", line 1200, in delete
+    collector.collect(del_query)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/urkelcodes/.cache/pypoetry/virtualenvs/backend-9ivrfZCS-py3.13/lib/python3.13/site-packages/django/db/models/deletion.py", line 350, in collect
+    raise ProtectedError(
+    ...<7 lines>...
+    )
+django.db.models.deletion.ProtectedError: ("Cannot delete some instances of model 'Category' because they are referenced through protected foreign keys: 'Ad.category'.", {<Ad: Toyota Camry 2020 XLE - Full Option - 5 (admin@example.com)>, <Ad: Nike Air Force 1 - White Classic - 1 (alice@example.com)>, <Ad: Senior Software Developer - Node.js - 8 (eve@example.com)>, <Ad: Luxury 5 Bedroom Duplex for Sale - Plateau - 2 (eve@example.com)>, <Ad: iPhone 15 Pro Max - 256GB Gold - 1 (diana@example.com)>, <Ad: Luxury 5 Bedroom Duplex for Sale - Plateau - 8 (bob@example.com)>, <Ad: Digital Marketing Manager - 3 (alice@example.com)>, <Ad: Senior Software Developer - Node.js - 3 (diana@example.com)>, <Ad: Samsung Galaxy S23 Ultra - 512GB - 3 (bob@example.com)>, <Ad: Toyota Corolla 2018 - Nigerian Used - 1 (admin@example.com)>, <Ad: Modern 3 Bedroom Flat for Rent - Niamey - 6 (charlie@example.com)>, <Ad: Dior Sauvage - 100ml Eau de Parfum - 4 (diana@example.com)>, <Ad: Nike Air Force 1 - White Classic - 2 (admin@example.com)>, <Ad: Toyota Corolla 2018 - Nigerian Used - 1 (charlie@example.com)>, <Ad: Nivea Radiant & Beauty Lotion - Duo Pack - 6 (admin@example.com)>, <Ad: Luxury 5 Bedroom Duplex for Sale - Plateau - 3 (charlie@example.com)>, <Ad: Toyota Camry 2020 XLE - Full Option - 7 (alice@example.com)>, <Ad: Toyota Corolla 2018 - Nigerian Used - 4 (bob@example.com)>, <Ad: Modern 3 Bedroom Flat for Rent - Niamey - 5 (alice@example.com)>, <Ad: Nivea Radiant & Beauty Lotion - Duo Pack - 4 (eve@example.com)>, <Ad: Organic Skin Care Set - Glow Pack - 6 (alice@example.com)>, <Ad: Dior Sauvage - 100ml Eau de Parfum - 2 (alice@example.com)>, <Ad: Toyota Corolla 2018 - Nigerian Used - 7 (bob@example.com)>, <Ad: Digital Marketing Manager - 5 (charlie@example.com)>, <Ad: Digital Marketing Manager - 5 (eve@example.com)>, <Ad: Samsung Galaxy S23 Ultra - 512GB - 2 (diana@example.com)>, <Ad: Custom Gaming PC - RTX 4080 - 3 (admin@example.com)>, <Ad: Nike Air Force 1 - White Classic - 6 (bob@example.com)>, <Ad: Designer Men's Casual Cotton Shirt - 1 (eve@example.com)>, <Ad: Modern 3 Bedroom Flat for Rent - Niamey - 3 (eve@example.com)>, <Ad: Traditional Men's Agbada - Complete Set - 7 (charlie@example.com)>, <Ad: HP EliteBook 840 G5 - 16GB RAM - 7 (eve@example.com)>, <Ad: Premium Leather Men's Formal Shoes - 5 (diana@example.com)>, <Ad: iPhone 15 Pro Max - 256GB Gold - 4 (charlie@example.com)>, <Ad: Toyota Corolla 2018 - Nigerian Used - 5 (bob@example.com)>, <Ad: Nivea Radiant & Beauty Lotion - Duo Pack - 4 (alice@example.com)>, <Ad: Digital Marketing Manager - 4 (admin@example.com)>, <Ad: Traditional Men's Agbada - Complete Set - 2 (bob@example.com)>, <Ad: Samsung Galaxy S23 Ultra - 512GB - 2 (charlie@example.com)>, <Ad: Modern 3 Bedroom Flat for Rent - Niamey - 6 (eve@example.com)>, <Ad: Custom Gaming PC - RTX 4080 - 1 (bob@example.com)>})

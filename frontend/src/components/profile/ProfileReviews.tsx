@@ -179,7 +179,7 @@ export default function ProfileReviews({
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <Link 
-                      href={`/profile/${review.reviewer.username || review.reviewer.email?.split('@')[0] || 'profile'}`}
+                      href={`/profile/${review.reviewer.username || review.reviewer.id || 'profile'}`}
                       className="font-medium text-gray-900 hover:text-primary text-sm lg:text-base"
                     >
                       {review.reviewer_name || review.reviewer.full_name}

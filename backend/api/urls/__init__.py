@@ -10,7 +10,7 @@ from api.views.saved_ad import SavedAdViewSet
 from api.views.region import RegionViewSet
 from api.views.lead import LeadViewSet
 from api.views.kyc import KYCViewSet
-from api.views.payments import PaymentViewSet
+from api.views.payments import PaymentViewSet, PromotionPackageViewSet
 from api.views.media import serve_media
 from api.views.search import track_search
 from api.views.report import ReportViewSet, SupportMessageViewSet
@@ -28,6 +28,7 @@ router.register(r'regions', RegionViewSet, basename='region')
 router.register(r'leads', LeadViewSet, basename='lead')
 router.register(r'kyc', KYCViewSet, basename='kyc') # Added this registration
 router.register(r'payments', PaymentViewSet, basename='payment')
+router.register(r'promotion-packages', PromotionPackageViewSet, basename='promotion-package')
 router.register(r'reports', ReportViewSet, basename='report')
 router.register(r'support-messages', SupportMessageViewSet, basename='support-message')
 

@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
-import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
+import { Skeleton } from '@/components/ui/skeleton'
 import CategoryImage from '@/components/ui/CategoryImage'
 import { useCategories } from '@/hooks/useCategories'
 import { cn } from '@/lib/utils'
@@ -18,7 +18,7 @@ export default function CategoriesSection() {
 
   return (
     <div
-      className="hidden lg:flex flex-col lg:min-w-[260px] lg:max-w-[320px] bg-white border border-gray-200 rounded-xl p-5 relative z-30 h-full categories-section-container"
+      className="hidden lg:flex flex-col lg:min-w-[260px] lg:max-w-[320px] bg-white border border-gray-200 rounded-xl p-5 relative z-40 h-full categories-section-container"
       onMouseLeave={() => setHoveredCategory(null)}
     >
       <h3 className="font-semibold text-gray-900 mb-1">Browse Categories</h3>
@@ -26,8 +26,17 @@ export default function CategoriesSection() {
 
       <div className="flex-1 space-y-0.5 custom-scrollbar-categories pr-1 overflow-y-auto min-h-0">
         {loading && (
-          <div className="py-6 flex justify-center">
-            <MarketplaceLoader inline size="sm" message="Loading categories..." />
+          <div className="space-y-1">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 py-2 px-2.5">
+                <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-3 w-[70%] rounded-full" />
+                  <Skeleton className="h-2 w-[40%] rounded-full" />
+                </div>
+                <Skeleton className="w-4 h-4 rounded-full opacity-20" />
+              </div>
+            ))}
           </div>
         )}
 

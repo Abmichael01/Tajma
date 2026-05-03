@@ -8,9 +8,23 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.models import Ad, Transaction, Promotion
-from api.serializers.payment import TransactionSerializer, PromotionSerializer, PaymentInitiateSerializer
+from api.models import Ad, Transaction, Promotion, PromotionPackage
+from api.serializers.payment import (
+    TransactionSerializer,
+    PromotionSerializer,
+    PaymentInitiateSerializer,
+    PromotionPackageSerializer
+)
 from api.services.paystack import PaystackService
+
+class PromotionPackageViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Viewset to list available promotion packages.
+    """
+    queryset = PromotionPackage.objects.filter(is_active=True)
+    serializer_class = PromotionPackageSerializer
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Transaction.objects.all()
@@ -30,31 +44,54 @@ class PaymentViewSet(viewsets.ModelViewSet):
         
         ad_id = serializer.validated_data['ad_id']
         promotion_type = serializer.validated_data['promotion_type']
+        days = serializer.validated_data['days']
         
         try:
             ad = Ad.objects.get(id=ad_id, seller=request.user)
         except Ad.DoesNotExist:
             return Response({'error': 'Ad not found or not owned by you'}, status=status.HTTP_404_NOT_FOUND)
-            
-        # Define pricing (Placeholders - should be configurable)
-        amounts = {
-            'boost': 1000,      # 1,000 XOF
-            'featured': 5000,   # 5,000 XOF
-        }
-        amount = amounts.get(promotion_type, 1000)
-        
+
+        if not settings.PAYSTACK_SECRET_KEY:
+            return Response(
+                {'error': 'Payment provider is not configured. Please contact support.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+
+        if not request.user.email:
+            return Response(
+                {'error': 'Your account needs an email address before payment can start.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            package = PromotionPackage.objects.get(
+                promotion_type=promotion_type,
+                duration_days=days,
+                is_active=True
+            )
+            amount = package.current_price
+            package_id = str(package.id)
+        except PromotionPackage.DoesNotExist:
+            return Response(
+                {'error': 'Promotion package is unavailable. Please choose an active package.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # Create a local transaction record
         reference = f"tajma_promo_{ad.id.hex[:8]}_{timezone.now().strftime('%Y%m%d%H%M%S')}"
+        metadata = {
+            'ad_id': str(ad.id),
+            'promotion_type': promotion_type,
+            'days': days,
+            'package_id': package_id
+        }
+
         transaction = Transaction.objects.create(
             user=request.user,
             reference=reference,
             amount=amount,
             status='pending',
-            metadata={
-                'ad_id': str(ad.id),
-                'promotion_type': promotion_type,
-                'days': 7 # Default duration
-            }
+            metadata=metadata
         )
         
         # Initialize with Paystack
@@ -122,13 +159,18 @@ class PaymentViewSet(viewsets.ModelViewSet):
         ad_id = transaction.metadata.get('ad_id')
         promo_type = transaction.metadata.get('promotion_type')
         days = transaction.metadata.get('days', 7)
+        package_id = transaction.metadata.get('package_id')
         
         try:
             ad = Ad.objects.get(id=ad_id)
+            package = None
+            if package_id:
+                package = PromotionPackage.objects.filter(id=package_id).first()
             Promotion.objects.create(
                 ad=ad,
                 promotion_type=promo_type,
                 transaction=transaction,
+                package=package,
                 start_at=timezone.now(),
                 end_at=timezone.now() + timedelta(days=days),
                 is_active=True

@@ -121,6 +121,50 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
 
+class UserPublicSerializer(serializers.ModelSerializer):
+    """Public profile shape safe for ads and profile pages."""
+
+    full_name = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'full_name',
+            'avatar',
+            'phone',
+            'location',
+            'is_seller',
+            'is_seller_account_setup',
+            'business_name',
+            'business_type',
+            'website',
+            'bio',
+            'is_verified',
+            'date_joined',
+        ]
+        read_only_fields = fields
+
+    def get_full_name(self, obj):
+        return obj.get_full_name()
+
+    def get_location(self, obj):
+        if obj.location:
+            return obj.location.name
+        return None
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data.get('avatar'):
+            request = self.context.get('request')
+            data['avatar'] = build_full_image_url(data['avatar'], request)
+        return data
+
+
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating user profile"""
     location = serializers.PrimaryKeyRelatedField(
@@ -166,34 +210,24 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     
     def validate_avatar(self, value):
         """Process base64 avatar image if provided, otherwise use URL as-is."""
-        print(f"🔵 validate_avatar() called with value type: {type(value)}")
-        if value:
-            print(f"🔵 Value length: {len(str(value)) if isinstance(value, str) else 'N/A'}")
-        
         if not value:
             # Allow empty / null avatar
-            print("🔵 Avatar value is empty/null, returning None")
             return None
 
         # Ensure we are working with a string (file uploads are processed in view)
         if not isinstance(value, str):
-            print(f"❌ Invalid avatar data format - not a string: {type(value)}")
             raise serializers.ValidationError("Invalid avatar data format.")
         
         # Check if it's a base64 string
         if value.startswith('data:image') or (len(value) > 500 and 'base64' in value):
-            print("🔵 Detected base64 string, processing...")
             try:
                 # Save base64 image and return the relative path (e.g. 'avatars/uuid.jpg')
                 saved_path = save_base64_image(value, folder='avatars')
-                print(f"✅ Base64 image saved to: {saved_path}")
                 return saved_path
             except Exception as e:
-                print(f"❌ Failed to process base64 avatar: {str(e)}")
                 raise serializers.ValidationError(f"Failed to process avatar image: {str(e)}")
         
         # It's already a URL or path (from file upload processed in view), return as-is
-        print(f"✅ Avatar is already a path/URL: {value}")
         return value
 
 

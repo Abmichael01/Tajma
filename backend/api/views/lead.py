@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.db.models import F, Count, Sum
 from django.db.models.functions import TruncMonth
 from django.utils.timezone import now
+from api.models import Ad
 from api.models.lead import Lead
 from api.serializers.lead import LeadSerializer
 
@@ -28,10 +29,7 @@ class LeadViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        if 'client' not in self.request.data:
-            serializer.save(client=self.request.user)
-        else:
-            serializer.save()
+        serializer.save(client=self.request.user)
 
     @action(detail=True, methods=['patch'])
     def mark_messaged(self, _request, pk=None):  # pk required by DRF URL dispatch
@@ -57,10 +55,17 @@ class LeadViewSet(viewsets.ModelViewSet):
         seller_id = request.data.get('seller_id')
         source = request.data.get('source')
         ad_id = request.data.get('ad_id') or None
+        allowed_sources = {'phone_view', 'profile_view', 'save_ad'}
 
         if not seller_id or not source:
             return Response(
                 {'error': 'seller_id and source are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if source not in allowed_sources:
+            return Response(
+                {'error': 'Invalid lead source'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -69,6 +74,19 @@ class LeadViewSet(viewsets.ModelViewSet):
                 {'error': 'Cannot create a lead for yourself'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        if ad_id:
+            ad = Ad.objects.filter(id=ad_id).only('seller_id').first()
+            if not ad:
+                return Response(
+                    {'error': 'Ad not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            if str(ad.seller_id) != str(seller_id):
+                return Response(
+                    {'error': 'seller_id must match the ad seller'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         lead, created = Lead.objects.get_or_create(
             seller_id=seller_id,
