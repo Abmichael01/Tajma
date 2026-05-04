@@ -15,12 +15,6 @@ import { useAuthStore } from "@/store/authStore";
 import AppSplashScreenComponent from "@/components/ui/SplashScreen";
 import { usePresence } from "@/hooks/usePresence";
 import { usePushNotifications } from "@/hooks/useNotifications";
-import * as Sentry from "@sentry/react-native";
-
-Sentry.init({
-  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  debug: false,
-});
 
 // Keep the native splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -70,7 +64,6 @@ function RootLayoutContent() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      // Small timeout to ensure everything is settled before hiding native splash
       const timer = setTimeout(() => {
         setIsAppReady(true);
         SplashScreen.hideAsync().catch(() => {
@@ -81,12 +74,10 @@ function RootLayoutContent() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Configure Android Navigation Bar
   useEffect(() => {
     if (Platform.OS === "android") {
       const configureNavigationBar = async () => {
         try {
-          // Set button style to dark since app is mostly light mode
           await NavigationBar.setButtonStyleAsync("dark");
         } catch (e) {
           console.warn("Failed to configure navigation bar:", e);
@@ -96,15 +87,12 @@ function RootLayoutContent() {
     }
   }, []);
 
-  // We mount the Stack but keep it hidden behind the overlay
-  // This allows child hooks (like useCategories) to run inside the QueryClient context
   const showOverlay = !isSplashComplete;
 
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
 
-      {/* Main App Content - Mounted and ready behind the overlay */}
       <AuthNavigationGuard />
       <Stack
         screenOptions={{
@@ -113,7 +101,6 @@ function RootLayoutContent() {
         }}
       />
 
-      {/* Premium Animated Splash Overlay */}
       {showOverlay && (
         <View
           style={StyleSheet.absoluteFill}
@@ -144,5 +131,4 @@ function RootLayout() {
   );
 }
 
-// Wrap the root layout with Sentry to catch errors
-export default Sentry.wrap(RootLayout);
+export default RootLayout;
