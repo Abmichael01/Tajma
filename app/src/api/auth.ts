@@ -1,5 +1,4 @@
 import apiClient from './apiClient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   User,
   LoginRequest,
@@ -7,25 +6,12 @@ import type {
   RegisterRequest,
   RegisterResponse,
   PasswordChangeRequest,
-  CSRFResponse,
   ProfileUpdateRequest,
   ProfileUpdateResponse,
 } from './types';
 
-const CSRF_TOKEN_KEY = '@csrf_token';
-
 // Auth API functions
 export const authApi = {
-  // Get CSRF token
-  getCSRFToken: async (): Promise<CSRFResponse> => {
-    const response = await apiClient.get<CSRFResponse>('/auth/csrf/');
-    // Store CSRF token in AsyncStorage when received
-    if (response.data.csrfToken) {
-      await AsyncStorage.setItem(CSRF_TOKEN_KEY, response.data.csrfToken);
-    }
-    return response.data;
-  },
-
   // Login
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     const response = await apiClient.post<LoginResponse>('/auth/login/', data);

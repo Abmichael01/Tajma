@@ -1,4 +1,4 @@
-import { View, Animated, ActivityIndicator } from "react-native";
+import { View, Animated, ActivityIndicator, Platform, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useState, useRef } from "react";
@@ -7,13 +7,17 @@ import CategoriesSection from "@/components/home/CategoriesSection";
 import AdsList from "@/components/ads/AdsList";
 import AdsListSkeleton from "@/components/ads/AdsListSkeleton";
 import RegionModal from "@/components/ads/RegionModal";
+import AppText from "@/components/ui/AppText";
 import { useCategories } from "@/hooks/useCategories";
 import { useAdsInfiniteList } from "@/hooks/useAds";
 import { useRouter } from "expo-router";
 import { Region } from "@/hooks/useRegions";
+import { useAuthStore } from "@/store/authStore";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user } = useAuthStore();
   const { rootCategories: categoriesData, loading: categoriesLoading } =
     useCategories();
 
@@ -97,17 +101,25 @@ export default function HomeScreen() {
     },
   );
 
+  const greetingName = user?.first_name || user?.username;
+
   return (
     <View className="flex-1 bg-white">
-      <StatusBar style="light" />
-
+      <StatusBar style="dark" />
+      
       <Animated.View
-        className="absolute top-0 left-0 right-0 z-50 bg-primary border-b border-gray-200 shadow-sm"
-        style={{
-          opacity: stickyOpacity,
-          transform: [{ translateY: stickyTranslateY }],
-          pointerEvents: showStickySearch ? "auto" : "none",
-        }}
+        className="absolute top-0 left-0 right-0 z-50"
+        renderToHardwareTextureAndroid={true}
+        style={[
+          {
+            opacity: stickyOpacity,
+            transform: [{ translateY: stickyTranslateY }],
+            pointerEvents: showStickySearch ? "auto" : "none",
+            backgroundColor: "#FF4F18",
+            borderBottomWidth: 1,
+            borderBottomColor: "rgba(0,0,0,0.15)",
+          },
+        ]}
       >
         <SafeAreaView edges={["top"]}>
           <View className="px-4 py-3">
@@ -122,21 +134,51 @@ export default function HomeScreen() {
         </SafeAreaView>
       </Animated.View>
 
+
+
       <Animated.ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        <View className="absolute top-[-1000px] left-0 right-0 h-[1000px] bg-primary" />
+        {/* Simple Primary Header */}
+        <View style={{ backgroundColor: "#FF4F18", borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.05)" }}>
+          <SafeAreaView edges={["top"]}>
+            <View className="flex-row justify-between items-center px-5 pt-2 pb-3">
+              <View>
+                <AppText
+                  weight="bold"
+                  style={{ fontSize: 22, lineHeight: 28, color: "#FFFFFF" }}
+                >
+                  {greetingName ? `Welcome, ${greetingName}` : "Welcome"}
+                </AppText>
+                <AppText style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>
+                  Discover great deals near you
+                </AppText>
+              </View>
+              <View className="flex-row items-center gap-2">
+                <TouchableOpacity 
+                  onPress={() => router.push('/search' as any)}
+                  className="w-10 h-10 items-center justify-center rounded-full border border-white/40"
+                >
+                  <Ionicons name="search" size={20} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => setIsRegionModalVisible(true)}
+                  className="w-10 h-10 items-center justify-center rounded-full border border-white/40"
+                >
+                  <Ionicons name="location" size={20} color="white" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </SafeAreaView>
+        </View>
 
-        <Hero
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedRegion={selectedRegion?.name || "All Regions"}
-          onRegionPress={() => setIsRegionModalVisible(true)}
-          onSearch={handleSearch}
-        />
+        {/* Banner carousel hero (mirrors web) */}
+        <Hero />
+
+
 
         <CategoriesSection
           categories={categoriesData}
@@ -167,3 +209,8 @@ export default function HomeScreen() {
     </View>
   );
 }
+const styles = StyleSheet.create({
+  section: {
+    paddingVertical: 20,
+  },
+});

@@ -10,6 +10,22 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from dj_rest_auth.views import LoginView as BaseLoginView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
+
+class TokenRefreshView(BaseTokenRefreshView):
+    """Custom Token Refresh View"""
+    @method_decorator(csrf_exempt, name='dispatch')
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
 
 from api.serializers.user import (
     UserRegistrationSerializer,
@@ -36,10 +52,13 @@ class RegisterView(APIView):
             user = serializer.save()
             # Log the user in after registration
             login(request, user)
+            tokens = get_tokens_for_user(user)
             return Response(
                 {
                     'user': UserDetailsSerializer(user).data,
-                    'message': 'Registration successful.'
+                    'message': 'Registration successful.',
+                    'access': tokens['access'],
+                    'refresh': tokens['refresh']
                 },
                 status=status.HTTP_201_CREATED
             )
@@ -79,13 +98,16 @@ class LoginView(BaseLoginView):
         logger.info(f"💾 SESSION KEY: {request.session.session_key}")
         logger.info(f"💾 SESSION DATA: {dict(request.session.items())}")
         
+        tokens = get_tokens_for_user(user)
         response = Response(
             {
                 'user': UserDetailsSerializer(user).data,
-                'message': 'Login successful.'
-            },
-            status=status.HTTP_200_OK
-        )
+                'message': 'Login successful.',
+                'access': tokens['access'],
+                'refresh': tokens['refresh']
+              },
+              status=status.HTTP_200_OK
+          )
         
         return response
 

@@ -42,7 +42,6 @@ export default function AppText({
   return (
     <RNText
       className={cn(
-        "font-work-sans",
         variantStyles[variant],
         weightStyles[weight],
         center && "text-center",

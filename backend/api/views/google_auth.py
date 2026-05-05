@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from api.serializers.user import UserDetailsSerializer
+from api.views.auth import get_tokens_for_user
 from api.models.user import User
 
 
@@ -237,9 +238,12 @@ def google_callback(request):
             return HttpResponseRedirect(redirect_url)
         
         # For web/API requests, return JSON response
+        tokens = get_tokens_for_user(user)
         return Response({
             'user': UserDetailsSerializer(user).data,
-            'message': 'Google authentication successful'
+            'message': 'Google authentication successful',
+            'access': tokens['access'],
+            'refresh': tokens['refresh']
         })
         
     except Exception as e:

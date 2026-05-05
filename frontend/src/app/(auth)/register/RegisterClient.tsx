@@ -13,7 +13,7 @@ import Logo from '@/components/General/Logo'
 
 export default function RegisterClient() {
   const registerMutation = useRegister()
-  const { data: csrfData } = useCSRFToken()
+
   const [signupMethod, setSignupMethod] = useState<'google' | 'email' | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
   const [showPassword, setShowPassword] = useState(false)

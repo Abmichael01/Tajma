@@ -10,6 +10,7 @@ INSTALLED_APPS_AUTH = [
     'django.contrib.admin',
     'rest_framework.authtoken',
     'dj_rest_auth',
+    'rest_framework_simplejwt.token_blacklist',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -50,14 +51,25 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # dj-rest-auth settings
 REST_AUTH = {
-    'USE_JWT': False,
-    'SESSION_LOGIN': True,
-    'USE_SESSION_AUTH': True,
+    'USE_JWT': True,
+    'SESSION_LOGIN': False,
+    'USE_SESSION_AUTH': False,
     'TOKEN_MODEL': None,
     'USER_DETAILS_SERIALIZER': 'api.serializers.user.UserDetailsSerializer',
     'LOGIN_SERIALIZER': 'api.serializers.user.UserLoginSerializer',
     'PASSWORD_CHANGE_SERIALIZER': 'api.serializers.user.PasswordChangeSerializer',
     'PASSWORD_RESET_SERIALIZER': 'api.serializers.user.PasswordResetSerializer',
+    'JWT_AUTH_HTTPONLY': False,
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 import os

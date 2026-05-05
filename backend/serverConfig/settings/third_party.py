@@ -12,11 +12,8 @@ INSTALLED_APPS_THIRD_PARTY = [
 
 # REST Framework settings
 DEFAULT_AUTHENTICATION_CLASSES = [
-    'api.authentication.csrf_enforced_session.CSRFEnforcedSessionAuthentication',
+    'rest_framework_simplejwt.authentication.JWTAuthentication',
 ]
-
-if ENVIRONMENT != 'production':
-    DEFAULT_AUTHENTICATION_CLASSES.append('rest_framework.authentication.BasicAuthentication')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': DEFAULT_AUTHENTICATION_CLASSES,

@@ -428,7 +428,7 @@ export default function ChatRoomScreen() {
       >
         <View className="flex-1 relative">
           <ImageBackground
-            source={require("@/assets/images/chat_bg.png")}
+            source={require("@/assets/images/chat_bg.jpg")}
             style={{ flex: 1 }}
             resizeMode="repeat"
             imageStyle={{ opacity: 0.12 }}

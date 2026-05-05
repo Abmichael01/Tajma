@@ -15,7 +15,7 @@ import {
 } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppText from "@/components/ui/AppText";
 import BackButton from "@/components/ui/BackButton";
 import { useAdDetails } from "@/hooks/useAds";

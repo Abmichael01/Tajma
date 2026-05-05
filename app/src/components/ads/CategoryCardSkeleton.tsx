@@ -1,18 +1,31 @@
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Skeleton from "@/components/ui/Skeleton";
 
 export default function CategoryCardSkeleton() {
   return (
-    <View className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      {/* Image skeleton */}
-      <Skeleton className="w-full h-20" />
-      
-      {/* Text content skeleton */}
-      <View className="items-center justify-center p-3 pt-2">
-        <Skeleton variant="text" className="w-16 h-3 mb-1" />
-        <Skeleton variant="text" className="w-12 h-2" />
+    <View style={styles.card}>
+      <Skeleton className="w-full h-full" />
+      <View style={styles.textOverlay}>
+        <Skeleton variant="text" className="w-3/4 h-4 mb-1.5" />
+        <Skeleton variant="text" className="w-1/3 h-2.5" />
       </View>
     </View>
   );
 }
 
+const styles = StyleSheet.create({
+  card: {
+    width: "100%",
+    aspectRatio: 0.7,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#F1F5F9",
+    position: "relative",
+  },
+  textOverlay: {
+    position: "absolute",
+    left: 14,
+    right: 14,
+    bottom: 16,
+  },
+});

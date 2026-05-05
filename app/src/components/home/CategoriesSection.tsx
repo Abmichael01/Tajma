@@ -84,7 +84,6 @@ export default function CategoriesSection({ categories = [], loading }: Categori
 const styles = StyleSheet.create({
   section: {
     paddingVertical: 20,
-    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',

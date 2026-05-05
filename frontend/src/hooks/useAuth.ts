@@ -25,7 +25,10 @@ export const useLogin = (redirectTo: string = '/') => {
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (response) => {
-      setAuthUser(response.user)
+      const tokens = response.access && response.refresh 
+        ? { access: response.access, refresh: response.refresh } 
+        : undefined
+      setAuthUser(response.user, tokens)
       
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] })
@@ -49,7 +52,10 @@ export const useRegister = () => {
   return useMutation({
     mutationFn: (data: RegisterRequest) => authApi.register(data),
     onSuccess: (response) => {
-      setAuthUser(response.user)
+      const tokens = response.access && response.refresh 
+        ? { access: response.access, refresh: response.refresh } 
+        : undefined
+      setAuthUser(response.user, tokens)
       
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] })
@@ -181,7 +187,10 @@ export const useGoogleLogin = () => {
     mutationFn: ({ code, redirectUri }: { code: string; redirectUri: string }) =>
       authApi.googleCallback(code, redirectUri),
     onSuccess: (response) => {
-      setAuthUser(response.user)
+      const tokens = response.access && response.refresh 
+        ? { access: response.access, refresh: response.refresh } 
+        : undefined
+      setAuthUser(response.user, tokens)
       // Use full page reload instead of SPA navigation — ensures session cookie is
       // fully committed before the app reinitialises (standard practice for OAuth callbacks)
       window.location.href = '/'
@@ -201,7 +210,10 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: (data: ProfileUpdateRequest) => authApi.updateProfile(data),
     onSuccess: (response) => {
-      setAuthUser(response.user)
+      const tokens = response.access && response.refresh 
+        ? { access: response.access, refresh: response.refresh } 
+        : undefined
+      setAuthUser(response.user, tokens)
       
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] })

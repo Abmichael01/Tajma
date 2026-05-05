@@ -83,8 +83,6 @@ export default function Button({
         {!loading && leftIcon && leftIcon}
         <AppText
           weight="semibold"
-          numberOfLines={1}
-          style={{ flexShrink: 0 }}
           className={cn(
             textVariantStyles[variant],
             textSizeStyles[size]

@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -54,9 +54,10 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           )}
         </View>
 
-        {/* Dark Gradient Overlay at the base */}
+        {/* Dark Gradient Overlay at the base — fades up to transparent */}
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.85)']}
+          colors={['transparent', 'rgba(0,0,0,0.65)', 'rgba(0,0,0,0.95)']}
+          locations={[0, 0.55, 1]}
           style={styles.gradient}
         />
 
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    borderRadius: 28,
+    borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#F8FAFC',
     position: 'relative',
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: '65%',
+    height: '75%',
   },
   textContainer: {
     position: 'absolute',
@@ -121,9 +122,13 @@ const styles = StyleSheet.create({
     fontSize: 17,
     letterSpacing: -0.5,
     marginBottom: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    ...Platform.select({
+      ios: {
+        textShadowColor: 'rgba(0, 0, 0, 0.4)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
+      }
+    })
   },
   metaRow: {
     flexDirection: 'row',

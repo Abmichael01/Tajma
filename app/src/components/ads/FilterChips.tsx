@@ -47,7 +47,7 @@ export default function FilterChips({ chips, onClearAll }: FilterChipsProps) {
               size={18} 
               color={allChip.isActive ? 'white' : '#2D2D2D'} 
             />
-            <AppText weight="bold" className={cn("ml-2", allChip.isActive ? "text-white" : "text-gray-900")}>
+            <AppText weight="bold" className={cn("ml-2 text-[14px]", allChip.isActive ? "text-white" : "text-gray-900")}>
               {allChip.label}
             </AppText>
           </TouchableOpacity>
@@ -72,9 +72,9 @@ export default function FilterChips({ chips, onClearAll }: FilterChipsProps) {
                 style={{ marginRight: 6 }}
               />
             )}
-            <AppText 
-              weight="bold" 
-              className={chip.isActive ? "text-white" : "text-gray-700"}
+            <AppText
+              weight="bold"
+              className={cn("text-[14px]", chip.isActive ? "text-white" : "text-gray-700")}
             >
               {chip.label}
             </AppText>
@@ -90,7 +90,7 @@ export default function FilterChips({ chips, onClearAll }: FilterChipsProps) {
             className="flex-row items-center justify-center bg-gray-50 border border-dashed border-gray-300 rounded-full h-10 px-5"
           >
             <Ionicons name="close-circle-outline" size={16} color="#ef4444" style={{ marginRight: 6 }} />
-            <AppText weight="bold" className="text-red-500">Clear</AppText>
+            <AppText weight="bold" className="text-red-500 text-[14px]">Clear</AppText>
           </TouchableOpacity>
         )}
       </ScrollView>

@@ -64,13 +64,10 @@ function RootLayoutContent() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      const timer = setTimeout(() => {
-        setIsAppReady(true);
-        SplashScreen.hideAsync().catch(() => {
-          /* ignore */
-        });
-      }, 100);
-      return () => clearTimeout(timer);
+      setIsAppReady(true);
+      SplashScreen.hideAsync().catch(() => {
+        /* ignore */
+      });
     }
   }, [fontsLoaded, fontError]);
 

@@ -1,11 +1,11 @@
-import { View, Image, Dimensions } from "react-native";
+import { View, Image } from "react-native";
 import { Redirect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import AppText from "@/components/ui/AppText";
 import WelcomeButtons from "@/components/welcome/WelcomeButtons";
 import { useAuthStore } from "@/store/authStore";
-
-const { width } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   const { isAuthenticated, hasHydrated } = useAuthStore();
@@ -22,37 +22,46 @@ export default function WelcomeScreen() {
     <View className="flex-1 bg-white">
       <StatusBar style="dark" />
 
-      <View className="flex-1 items-center justify-center px-10">
-        {/* Large Logo */}
+      {/* Hero image — fills the upper area, fades smoothly into the base */}
+      <View className="flex-1 w-full relative">
         <Image
-          source={require("@/assets/images/logo.jpg")}
-          className="w-48 h-48 mb-8"
-          resizeMode="contain"
+          source={require("@/assets/images/welcome.png")}
+          className="w-full h-full"
+          resizeMode="cover"
         />
-        
-        {/* Branding */}
-        <AppText weight="bold" className="text-5xl text-gray-900 tracking-[10px] text-center uppercase">
-          TAJMA
-        </AppText>
-        <View className="h-1.5 w-20 bg-primary rounded-full mt-4 mb-10" />
-        
-        {/* Minimal Tagline */}
-        <AppText className="text-gray-500 text-center text-lg leading-7 mb-16 font-medium">
-          The most trusted way to buy, sell, and discover in your community.
-        </AppText>
+        {/* White-to-transparent gradient at the bottom of the image so the
+            base of the screen blends seamlessly up into the picture. */}
+        <LinearGradient
+          colors={["rgba(255,255,255,0)", "rgba(255,255,255,1)"]}
+          locations={[0, 1]}
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 160,
+          }}
+        />
+      </View>
 
-        {/* Action Buttons */}
-        <View className="w-full">
-            <WelcomeButtons />
+      {/* Welcome copy + actions — sits on the faded base */}
+      <SafeAreaView edges={["bottom"]} className="bg-white">
+        <View className="px-6 pb-2">
+          <AppText
+            className="text-left text-gray-900 mb-8"
+            style={{
+              fontFamily: "BebasNeue-Regular",
+              fontSize: 56,
+              lineHeight: 58,
+              letterSpacing: 0.5,
+            }}
+          >
+            Your all-in-one marketplace for amazing deals
+          </AppText>
+
+          <WelcomeButtons />
         </View>
-      </View>
-
-      {/* Subtle Footer */}
-      <View className="pb-10 items-center">
-        <AppText className="text-gray-300 text-xs tracking-widest uppercase">
-          tajma.com • Niger
-        </AppText>
-      </View>
+      </SafeAreaView>
     </View>
   );
 }

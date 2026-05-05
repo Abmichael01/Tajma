@@ -8,16 +8,6 @@ import { useNotificationsStore } from '@/store/notificationsStore';
 import type { LoginRequest, RegisterRequest, PasswordChangeRequest, ProfileUpdateRequest } from '@/api/types';
 import { AxiosError } from 'axios';
 
-// Get CSRF token hook
-export const useCSRFToken = () => {
-  return useQuery({
-    queryKey: ['csrf-token'],
-    queryFn: () => authApi.getCSRFToken(),
-    staleTime: Infinity, // CSRF token doesn't change often
-    retry: false,
-  });
-};
-
 // Login hook
 export const useLogin = (redirectTo: string = '/home') => {
   const router = useRouter();
@@ -27,7 +17,12 @@ export const useLogin = (redirectTo: string = '/home') => {
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (response) => {
-      setAuthUser(response.user);
+      // Pass tokens to auth store if they exist
+      const tokens = response.access && response.refresh 
+        ? { access: response.access, refresh: response.refresh } 
+        : undefined;
+        
+      setAuthUser(response.user, tokens);
 
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] });
@@ -51,7 +46,11 @@ export const useRegister = () => {
   return useMutation({
     mutationFn: (data: RegisterRequest) => authApi.register(data),
     onSuccess: (response) => {
-      setAuthUser(response.user);
+      const tokens = response.access && response.refresh 
+        ? { access: response.access, refresh: response.refresh } 
+        : undefined;
+        
+      setAuthUser(response.user, tokens);
 
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] });

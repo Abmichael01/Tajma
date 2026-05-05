@@ -31,11 +31,15 @@ export interface User {
 export interface LoginResponse {
   user: User
   message: string
+  access?: string
+  refresh?: string
 }
 
 export interface RegisterResponse {
   user: User
   message: string
+  access?: string
+  refresh?: string
 }
 
 export interface AuthError {

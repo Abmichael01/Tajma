@@ -163,12 +163,10 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                             <AppText
                                 variant="label"
                                 weight={isFocused ? 'bold' : 'medium'}
-                                numberOfLines={1}
                                 style={{
                                     fontSize: 10,
                                     color: isFocused ? brandPrimary : grayColor,
                                     marginTop: 2,
-                                    flexShrink: 0,
                                 }}
                             >
                                 {labels[route.name]}

@@ -18,7 +18,7 @@ export default function LoginClient() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
   const loginMutation = useLogin(redirectTo)
-  const { data: csrfData } = useCSRFToken()
+
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',

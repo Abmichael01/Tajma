@@ -1,7 +1,6 @@
 {
   "cli": {
-    "version": ">= 15.0.1",
-    "appVersionSource": "remote"
+    "version": ">= 10.1.1"
   },
   "build": {
     "development": {
@@ -9,13 +8,16 @@
       "distribution": "internal"
     },
     "preview": {
-      "android": {
-        "buildType": "apk"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.tajma.net",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "410807857446-me6l4ktg6i65v0hu0cu1lu24vf4urpam.apps.googleusercontent.com"
       }
     },
     "production": {
-      "android": {
-        "buildType": "app-bundle"
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.tajma.net",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "410807857446-me6l4ktg6i65v0hu0cu1lu24vf4urpam.apps.googleusercontent.com"
       }
     }
   },

@@ -3,7 +3,7 @@ Authentication URL patterns
 """
 from django.urls import path
 from dj_rest_auth.views import PasswordResetView, PasswordResetConfirmView
-from api.views.auth import RegisterView, CSRFView, PasswordChangeView, LoginView, ProfileUpdateView, CurrentUserView, LogoutView
+from api.views.auth import RegisterView, CSRFView, PasswordChangeView, LoginView, ProfileUpdateView, CurrentUserView, LogoutView, TokenRefreshView
 from api.views.profile import UserProfileView, UserBlockView, UserUnblockView, UserFCMTokenView
 from api.views.google_auth import google_login, google_callback
 
@@ -21,6 +21,7 @@ urlpatterns = [
     path('profile/<slug:slug>/block/', UserBlockView.as_view(), name='user-block'),
     path('profile/<slug:slug>/unblock/', UserUnblockView.as_view(), name='user-unblock'),
     path('fcm-token/', UserFCMTokenView.as_view(), name='update-fcm-token'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     
     # Password Reset
     path('password/reset/', PasswordResetView.as_view(), name='password_reset'),

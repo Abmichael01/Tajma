@@ -73,7 +73,10 @@ export const useGoogleAuth = () => {
               // Session is set, so we just need to fetch current user
               const userResponse = await authApi.getCurrentUser();
               const { login: setAuthUser } = useAuthStore.getState();
-              setAuthUser(userResponse);
+              const tokens = (userResponse as any).access && (userResponse as any).refresh 
+                ? { access: (userResponse as any).access, refresh: (userResponse as any).refresh } 
+                : undefined;
+              setAuthUser(userResponse, tokens);
               
               // Invalidate queries and redirect
               queryClient.invalidateQueries({ queryKey: ['user'] });
@@ -89,7 +92,10 @@ export const useGoogleAuth = () => {
             if (successMatch && successMatch[1] === 'true' && codeMatch) {
               const userResponse = await authApi.getCurrentUser();
               const { login: setAuthUser } = useAuthStore.getState();
-              setAuthUser(userResponse);
+              const tokens = (userResponse as any).access && (userResponse as any).refresh 
+                ? { access: (userResponse as any).access, refresh: (userResponse as any).refresh } 
+                : undefined;
+              setAuthUser(userResponse, tokens);
               queryClient.invalidateQueries({ queryKey: ['user'] });
               router.replace('/(tabs)');
             } else {

@@ -5,14 +5,17 @@ import type { User } from '@/api/types';
 
 interface AuthState {
   user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   hasHydrated: boolean;
   
   // Actions
-  login: (user: User) => void;
+  login: (user: User, tokens?: { access: string; refresh: string }) => void;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
+  setTokens: (access: string, refresh: string) => void;
   setLoading: (loading: boolean) => void;
   completeSellerSetup: () => void;
   setHasHydrated: (hydrated: boolean) => void;
@@ -22,21 +25,26 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
+      accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
       hasHydrated: false,
 
-      login: (userData) => {
-        set({
+      login: (userData, tokens) => {
+        set((state) => ({
           user: userData,
           isAuthenticated: true,
-          isLoading: false
-        });
+          isLoading: false,
+          ...(tokens && { accessToken: tokens.access, refreshToken: tokens.refresh })
+        }));
       },
 
       logout: () => {
         set({
           user: null,
+          accessToken: null,
+          refreshToken: null,
           isAuthenticated: false,
           isLoading: false
         });
@@ -49,6 +57,10 @@ export const useAuthStore = create<AuthState>()(
             user: { ...currentUser, ...updates }
           });
         }
+      },
+
+      setTokens: (access, refresh) => {
+        set({ accessToken: access, refreshToken: refresh });
       },
 
       setLoading: (loading) => {
@@ -73,6 +85,8 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated
       }),
       onRehydrateStorage: () => (state) => {
@@ -84,4 +98,3 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
-

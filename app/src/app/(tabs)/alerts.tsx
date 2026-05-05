@@ -167,7 +167,7 @@ export default function AlertsScreen() {
             <TouchableOpacity
               key={type.value}
               onPress={() => setSelectedType(type.value)}
-              className={`flex-row items-center gap-2 px-4 py-2.5 rounded-full border ${
+              className={`flex-row items-center gap-2 px-6 py-2.5 rounded-full border ${
                 selectedType === type.value
                   ? "bg-secondary border-secondary"
                   : "bg-white border-border"
@@ -179,10 +179,10 @@ export default function AlertsScreen() {
                 color={selectedType === type.value ? "white" : "#6b7280"}
               />
               <AppText
-                weight={selectedType === type.value ? "bold" : "medium"}
-                className={
-                  selectedType === type.value ? "text-white" : "text-gray-500"
-                }
+                weight={selectedType === type.value ? "bold" : "semibold"}
+                className={`text-[14px] ${
+                  selectedType === type.value ? "text-white" : "text-slate-500"
+                }`}
               >
                 {type.label}
               </AppText>

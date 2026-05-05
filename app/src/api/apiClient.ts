@@ -1,19 +1,14 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../store/authStore';
 
 // API base URL - adjust based on your backend
-// For development, use your local IP or ngrok URL
-// For production, use your production API URL
 // Set EXPO_PUBLIC_API_URL in .env file
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8007';
-
-const CSRF_TOKEN_KEY = '@csrf_token';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  withCredentials: true,
+  // Remove withCredentials since we are using JWT tokens now, not cookies
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -21,18 +16,14 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 10000,
 });
 
-// Request interceptor - Add CSRF token to requests
+// Request interceptor - Add JWT Access Token to requests
 apiClient.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
-    try {
-      // Get CSRF token from AsyncStorage
-      const csrfToken = await AsyncStorage.getItem(CSRF_TOKEN_KEY);
+  (config: InternalAxiosRequestConfig) => {
+    // Get Access token directly from Zustand store
+    const token = useAuthStore.getState().accessToken;
 
-      if (csrfToken && config.headers) {
-        config.headers['X-CSRFToken'] = csrfToken;
-      }
-    } catch (error) {
-      // Silently fail - CSRF token might not be set yet
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
@@ -42,82 +33,60 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - Handle errors globally
+// Response interceptor - Handle errors globally & Auto-refresh token
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Log only actual errors
+    // Log network errors
     if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
       console.error('Network Error:', error.message, 'URL:', originalRequest?.url);
     } else if (error.response) {
       console.error('API Error:', error.response.status, error.response.statusText, 'URL:', originalRequest?.url);
     }
 
-    // Handle 401 Unauthorized - Session expired or invalid
-    if (error.response?.status === 401) {
-      console.warn('Authentication expired (401), logging out...');
-      const { logout } = useAuthStore.getState();
-      logout();
-      return Promise.reject(error);
-    }
+    // Check if error is 401 Unauthorized (token expired) and we haven't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // Don't retry if the original request was to login or refresh endpoint
+      if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/token/refresh')) {
+        return Promise.reject(error);
+      }
 
-    // Handle 403 Forbidden - CSRF token issue OR authentication credentials not provided
-    if (error.response?.status === 403) {
-      if (!originalRequest._retry) {
-        // If it's a 403 on a GET request, it's not a CSRF issue, it's an Auth issue
-        if (originalRequest.method?.toUpperCase() === 'GET') {
-          console.warn('Forbidden on GET (403), logging out...');
-          const { logout } = useAuthStore.getState();
-          logout();
-          return Promise.reject(error);
-        }
+      originalRequest._retry = true;
+      const { refreshToken, setTokens, logout } = useAuthStore.getState();
 
-        originalRequest._retry = true;
-
-        // Try to get a new CSRF token and retry the request
+      if (refreshToken) {
         try {
-          console.log('Attempting CSRF refresh on 403...');
-          const csrfResponse = await fetch(`${API_BASE_URL}/api/auth/csrf/`, {
-            method: 'GET',
-            credentials: 'include',
+          console.log('Attempting to refresh JWT token...');
+          // Make request to refresh token endpoint
+          // (Adjust URL if your Django backend uses a different endpoint for SimpleJWT)
+          const refreshResponse = await axios.post(`${API_BASE_URL}/api/auth/token/refresh/`, {
+            refresh: refreshToken
           });
 
-          if (!csrfResponse.ok) {
-            throw new Error('Failed to fetch CSRF token');
-          }
+          const newAccessToken = refreshResponse.data.access;
+          // Some backends also return a new refresh token, grab it if it exists
+          const newRefreshToken = refreshResponse.data.refresh || refreshToken;
 
-          const csrfData = await csrfResponse.json();
-          const csrfToken = csrfData.csrfToken;
+          // Update tokens in Zustand
+          setTokens(newAccessToken, newRefreshToken);
 
-          if (!csrfToken) {
-            console.warn('No CSRF token returned, logging out...');
-            const { logout } = useAuthStore.getState();
-            logout();
-            return Promise.reject(error);
-          }
-
-          // Store CSRF token in AsyncStorage
-          await AsyncStorage.setItem(CSRF_TOKEN_KEY, csrfToken);
-
-          // Update the CSRF token in the original request and headers
+          // Update Authorization header for the retried request
           if (originalRequest.headers) {
-            originalRequest.headers['X-CSRFToken'] = csrfToken;
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           }
 
-          // Retry the original request
+          // Retry the original request with the new token
           return apiClient(originalRequest);
-        } catch (csrfError) {
-          console.error('CSRF token error during retry:', csrfError);
-          const { logout } = useAuthStore.getState();
+        } catch (refreshError) {
+          console.warn('Failed to refresh token, logging out...');
           logout();
-          return Promise.reject(error);
+          return Promise.reject(refreshError);
         }
       } else {
-        // Retry already attempted and still getting 403
-        console.warn('Persistent 403 after retry, logging out...');
-        const { logout } = useAuthStore.getState();
+        // No refresh token available
+        console.warn('No refresh token available on 401, logging out...');
         logout();
       }
     }
