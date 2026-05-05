@@ -210,10 +210,8 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: (data: ProfileUpdateRequest) => authApi.updateProfile(data),
     onSuccess: (response) => {
-      const tokens = response.access && response.refresh 
-        ? { access: response.access, refresh: response.refresh } 
-        : undefined
-      setAuthUser(response.user, tokens)
+      setAuthUser(response.user)
+
       
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] })

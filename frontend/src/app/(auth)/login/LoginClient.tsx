@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useLogin, useCSRFToken } from '@/hooks/useAuth'
+import { useLogin } from '@/hooks/useAuth'
 import { authApi } from '@/api/auth'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
@@ -46,12 +46,7 @@ export default function LoginClient() {
     }
   }, [searchParams])
 
-  // Fetch CSRF token on mount
-  useEffect(() => {
-    if (!csrfData) {
-      // CSRF token will be fetched automatically by the hook
-    }
-  }, [csrfData])
+  
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}

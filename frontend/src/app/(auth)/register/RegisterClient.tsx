@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useRegister, useCSRFToken } from '@/hooks/useAuth'
+import { useRegister } from '@/hooks/useAuth'
 import { authApi } from '@/api/auth'
 import { Eye, EyeOff, Mail, Lock, User, Check, ChevronRight, ChevronLeft } from 'lucide-react'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
@@ -29,12 +29,7 @@ export default function RegisterClient() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Fetch CSRF token on mount
-  useEffect(() => {
-    if (!csrfData) {
-      // CSRF token will be fetched automatically by the hook
-    }
-  }, [csrfData])
+  
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {}
