@@ -1,5 +1,5 @@
 import React from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'

@@ -23,6 +23,7 @@ import FormGroup from "@/components/ui/FormGroup";
 import Alert from "@/components/ui/Alert";
 import { useLogin } from "@/hooks/useAuth";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+import { useTranslation } from "react-i18next";
 
 const loginSchema = z.object({
   email: z.string().email("Email is invalid").min(1, "Email is required"),
@@ -33,6 +34,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const loginMutation = useLogin();
   const {
@@ -157,7 +159,7 @@ export default function LoginScreen() {
             )}
 
             <FormGroup
-              label="Email address"
+              label={t('auth.login')}
               required
               error={errors.email?.message}
             >
@@ -167,7 +169,7 @@ export default function LoginScreen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     className="py-4 text-lg"
-                    placeholder="you@example.com"
+                    placeholder={t('auth.emailPlaceholder')}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoComplete="email"
@@ -201,7 +203,7 @@ export default function LoginScreen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     className="py-4 text-lg"
-                    placeholder="••••••••"
+                    placeholder={t('auth.passwordPlaceholder')}
                     secureTextEntry
                     showPasswordToggle
                     autoCapitalize="none"
@@ -231,7 +233,7 @@ export default function LoginScreen() {
                 onPress={() => router.push("/(auth)/forgot-password")}
               >
                 <AppText variant="default" className="text-primary">
-                  Forgot password?
+                  {t('auth.forgotPassword')}
                 </AppText>
               </TouchableOpacity>
             </View>
@@ -291,7 +293,7 @@ export default function LoginScreen() {
               disabled={loginMutation.isPending || !isValid}
               loading={loginMutation.isPending}
             >
-              {loginMutation.isPending ? "Signing in..." : "Sign in"}
+              {loginMutation.isPending ? t('common.loading') : t('auth.login')}
             </Button>
           </View>
         </View>

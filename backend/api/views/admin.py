@@ -20,7 +20,7 @@ from api.serializers import (
     AdminReportSerializer,
     AdminAdSerializer,
     SupportMessageSerializer,
-)
+    )
 from api.serializers.kyc import KYCVerificationSerializer
 from api.serializers.payment import PromotionPackageSerializer
 from api.serializers.review import ReviewSerializer
@@ -84,12 +84,12 @@ class AdminUserViewSet(viewsets.ModelViewSet):
 
 class AdminAdViewSet(viewsets.ModelViewSet):
     """Admin ad management"""
-    queryset = Ad.objects.select_related('seller', 'category').all()
+    queryset = Ad.objects.select_related('seller', 'category').prefetch_related('translations').all()
     serializer_class = AdminAdSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['title', 'description', 'seller__email', 'seller__username']
+    search_fields = ['translations__title', 'translations__description', 'seller__email', 'seller__username']
     filterset_fields = {
         'status': ['exact'],
         'ad_type': ['exact'],
@@ -99,7 +99,7 @@ class AdminAdViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
 
     def get_queryset(self):
-        return Ad.objects.select_related('seller', 'category').all().order_by('-created_at')
+        return Ad.objects.select_related('seller', 'category').prefetch_related('translations').all().order_by('-created_at')
 
     def get_serializer_class(self):
         return AdminAdSerializer
@@ -133,17 +133,17 @@ class AdminAdViewSet(viewsets.ModelViewSet):
 
 class AdminCategoryViewSet(viewsets.ModelViewSet):
     """Admin category management"""
-    queryset = Category.objects.select_related('parent').all()
+    queryset = Category.objects.select_related('parent').prefetch_related('translations').all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['name', 'slug']
+    search_fields = ['translations__name', 'slug']
     filterset_fields = ['is_active', 'category_type']
     lookup_field = 'id'
 
     def get_queryset(self):
-        return Category.objects.select_related('parent').all().order_by('parent__id', 'sort_order', 'name')
+        return Category.objects.select_related('parent').prefetch_related('translations').all().order_by('parent__id', 'sort_order', 'id')
 
     def get_serializer_class(self):
         return CategorySerializer
@@ -299,7 +299,7 @@ class AdminReportViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['description', 'reporter__email', 'reported_user__email', 'related_ad__title']
+    search_fields = ['description', 'reporter__email', 'reported_user__email', 'related_ad__translations__title']
     filterset_fields = ['status', 'report_type', 'reason']
     lookup_field = 'id'
 
@@ -538,29 +538,29 @@ class AdminKYCViewSet(viewsets.ModelViewSet):
 
 class AdminReviewViewSet(viewsets.ModelViewSet):
     """Admin review management"""
-    queryset = Review.objects.select_related('reviewer', 'seller', 'ad').all()
+    queryset = Review.objects.select_related('reviewer', 'seller', 'ad').prefetch_related('ad__translations').all()
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['comment', 'reviewer__email', 'seller__email', 'ad__title']
+    search_fields = ['comment', 'reviewer__email', 'seller__email', 'ad__translations__title']
     filterset_fields = ['rating']
     lookup_field = 'id'
 
     def get_queryset(self):
-        return Review.objects.select_related('reviewer', 'seller', 'ad').all().order_by('-created_at')
+        return Review.objects.select_related('reviewer', 'seller', 'ad').prefetch_related('ad__translations').all().order_by('-created_at')
 
 
 class AdminLeadViewSet(viewsets.ModelViewSet):
     """Admin lead management (interaction analytics)"""
-    queryset = Lead.objects.select_related('seller', 'client', 'ad').all()
+    queryset = Lead.objects.select_related('seller', 'client', 'ad').prefetch_related('ad__translations').all()
     serializer_class = LeadSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = AdminPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['seller__email', 'seller__username', 'client__email', 'client__username', 'ad__title']
+    search_fields = ['seller__email', 'seller__username', 'client__email', 'client__username', 'ad__translations__title']
     filterset_fields = ['first_source', 'last_source', 'messaged', 'ignored']
     lookup_field = 'id'
 
     def get_queryset(self):
-        return Lead.objects.select_related('seller', 'client', 'ad').all().order_by('-created_at')
+        return Lead.objects.select_related('seller', 'client', 'ad').prefetch_related('ad__translations').all().order_by('-created_at')

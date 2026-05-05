@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import AppText from "@/components/ui/AppText";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -25,45 +26,46 @@ import Alert from "@/components/ui/Alert";
 import { useRegister } from "@/hooks/useAuth";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 
-const registerSchema = z
+type RegisterFormValues = z.infer<ReturnType<typeof getRegisterSchema>>;
+
+const getRegisterSchema = (t: any) => z
   .object({
     firstName: z
       .string()
-      .min(1, "First name is required")
-      .min(2, "First name must be at least 2 characters"),
+      .min(1, t("auth.validation.firstNameRequired"))
+      .min(2, t("auth.validation.firstNameMin")),
     lastName: z
       .string()
-      .min(1, "Last name is required")
-      .min(2, "Last name must be at least 2 characters"),
+      .min(1, t("auth.validation.lastNameRequired"))
+      .min(2, t("auth.validation.lastNameMin")),
     username: z
       .string()
-      .min(1, "Username is required")
-      .min(3, "Username must be at least 3 characters")
+      .min(1, t("auth.validation.usernameRequired"))
+      .min(3, t("auth.validation.usernameMin"))
       .regex(
         /^[a-zA-Z0-9_]+$/,
-        "Username can only contain letters, numbers, and underscores"
+        t("auth.validation.usernameRegex")
       ),
-    email: z.string().email("Email is invalid").min(1, "Email is required"),
+    email: z.string().email(t("auth.validation.emailInvalid")).min(1, t("auth.validation.emailRequired")),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters")
+      .min(8, t("auth.validation.passwordMin"))
       .regex(
         /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain uppercase, lowercase and number"
+        t("auth.validation.passwordRegex")
       ),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+    confirmPassword: z.string().min(1, t("auth.validation.confirmPasswordRequired")),
     agreeToTerms: z.boolean().refine((val) => val === true, {
-      message: "You must agree to the terms and conditions",
+      message: t("auth.validation.agreeToTerms"),
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: t("auth.validation.passwordsDoNotMatch"),
     path: ["confirmPassword"],
   });
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
-
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const registerMutation = useRegister();
   const {
     handleGoogleAuth,
@@ -84,7 +86,7 @@ export default function RegisterScreen() {
     watch,
     formState: { errors, isValid },
   } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(getRegisterSchema(t)),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -137,7 +139,7 @@ export default function RegisterScreen() {
         password_confirm: data.confirmPassword,
       });
     } catch (error: any) {
-      let errorMessage = "Registration failed. Please try again.";
+      let errorMessage = t("auth.failedToCreate", { defaultValue: "Registration failed. Please try again." });
       if (
         error?.code === "ERR_NETWORK" ||
         error?.message?.includes("Network Error")
@@ -191,13 +193,13 @@ export default function RegisterScreen() {
             weight="semibold"
             className="mb-2 text-center"
           >
-            Create your account
+            {t("auth.createAccount")}
           </AppText>
           <AppText center className="text-gray-500">
-            Already have an account?{" "}
+            {t("auth.alreadyHaveAccount")}{" "}
             <Link href="/(auth)/login" asChild>
               <AppText weight="semibold" className="text-primary">
-                Sign in
+                {t("auth.signIn")}
               </AppText>
             </Link>
           </AppText>
@@ -236,7 +238,7 @@ export default function RegisterScreen() {
             className="w-full mb-3"
             onPress={() => setSignupMethod("email")}
           >
-            Continue with Email
+            {t("auth.continueWithEmail")}
           </Button>
           <Button
             variant="secondary"
@@ -255,7 +257,7 @@ export default function RegisterScreen() {
             disabled={googleLoading}
             loading={googleLoading}
           >
-            {googleLoading ? "Connecting..." : "Continue with Google"}
+            {googleLoading ? t("auth.connecting") : t("auth.continueWithGoogle")}
           </Button>
         </View>
       </View>
@@ -291,10 +293,10 @@ export default function RegisterScreen() {
                 weight="semibold"
                 className="mb-2"
               >
-                Tell us about you
+                {t("auth.tellUsAboutYou")}
               </AppText>
               <AppText className="mb-8 text-gray-500 leading-6">
-                We just need a few quick details to set up your profile.
+                {t("auth.detailsSetupProfile")}
               </AppText>
 
               {formError && step === 1 && (
@@ -304,7 +306,7 @@ export default function RegisterScreen() {
               )}
 
               <FormGroup
-                label="First name"
+                label={t("auth.firstName")}
                 required
                 error={errors.firstName?.message}
               >
@@ -314,7 +316,7 @@ export default function RegisterScreen() {
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
                       className="py-4 text-lg"
-                      placeholder="John"
+                      placeholder={t("auth.firstNamePlaceholder")}
                       autoCapitalize="words"
                       autoComplete="given-name"
                       value={value}
@@ -334,7 +336,7 @@ export default function RegisterScreen() {
               </FormGroup>
 
               <FormGroup
-                label="Last name"
+                label={t("auth.lastName")}
                 required
                 error={errors.lastName?.message}
               >
@@ -344,7 +346,7 @@ export default function RegisterScreen() {
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
                       className="py-4 text-lg"
-                      placeholder="Doe"
+                      placeholder={t("auth.lastNamePlaceholder")}
                       autoCapitalize="words"
                       autoComplete="family-name"
                       value={value}
@@ -364,10 +366,10 @@ export default function RegisterScreen() {
               </FormGroup>
 
               <FormGroup
-                label="Username"
+                label={t("auth.username")}
                 required
                 error={errors.username?.message}
-                helperText="Letters, numbers and underscores only."
+                helperText={t("auth.usernameHelper")}
               >
                 <Controller
                   control={control}
@@ -375,7 +377,7 @@ export default function RegisterScreen() {
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
                       className="py-4 text-lg"
-                      placeholder="johndoe"
+                      placeholder={t("auth.usernamePlaceholder")}
                       autoCapitalize="none"
                       autoComplete="username"
                       value={value}
@@ -402,10 +404,10 @@ export default function RegisterScreen() {
                 weight="semibold"
                 className="mb-2"
               >
-                Set up your account
+                {t("auth.setupAccount")}
               </AppText>
               <AppText className="mb-8 text-gray-500 leading-6">
-                This is what you'll use to sign in.
+                {t("auth.setupAccountDesc")}
               </AppText>
 
               {formError && step === 2 && (
@@ -415,7 +417,7 @@ export default function RegisterScreen() {
               )}
 
               <FormGroup
-                label="Email address"
+                label={t("auth.emailAddress")}
                 required
                 error={errors.email?.message}
               >
@@ -425,7 +427,7 @@ export default function RegisterScreen() {
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
                       className="py-4 text-lg"
-                      placeholder="you@example.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       keyboardType="email-address"
                       autoCapitalize="none"
                       autoComplete="email"
@@ -446,10 +448,10 @@ export default function RegisterScreen() {
               </FormGroup>
 
               <FormGroup
-                label="Password"
+                label={t("auth.password")}
                 required
                 error={errors.password?.message}
-                helperText="At least 8 chars with upper, lower and a number."
+                helperText={t("auth.passwordHelper")}
               >
                 <Controller
                   control={control}
@@ -457,7 +459,7 @@ export default function RegisterScreen() {
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
                       className="py-4 text-lg"
-                      placeholder="••••••••"
+                      placeholder={t("auth.passwordPlaceholder")}
                       secureTextEntry
                       showPasswordToggle
                       autoCapitalize="none"
@@ -479,7 +481,7 @@ export default function RegisterScreen() {
               </FormGroup>
 
               <FormGroup
-                label="Confirm password"
+                label={t("auth.confirmPassword")}
                 required
                 error={errors.confirmPassword?.message}
               >
@@ -489,7 +491,7 @@ export default function RegisterScreen() {
                   render={({ field: { onChange, onBlur, value } }) => (
                     <Input
                       className="py-4 text-lg"
-                      placeholder="••••••••"
+                      placeholder={t("auth.passwordPlaceholder")}
                       secureTextEntry
                       showPasswordToggle
                       autoCapitalize="none"
@@ -536,19 +538,19 @@ export default function RegisterScreen() {
                       </View>
                       <View className="flex-1">
                         <AppText className="text-gray-700">
-                          I agree to the{" "}
+                          {t("auth.agreeTo")}{" "}
                           <AppText
                             weight="semibold"
                             className="text-primary"
                           >
-                            Terms and Conditions
+                            {t("auth.termsConditions")}
                           </AppText>{" "}
-                          and{" "}
+                          {t("auth.and")}{" "}
                           <AppText
                             weight="semibold"
                             className="text-primary"
                           >
-                            Privacy Policy
+                            {t("auth.privacyPolicy")}
                           </AppText>
                         </AppText>
                       </View>
@@ -570,10 +572,10 @@ export default function RegisterScreen() {
               loading={registerMutation.isPending}
             >
               {step === 1
-                ? "Continue"
+                ? t("common.continue")
                 : registerMutation.isPending
-                  ? "Creating account..."
-                  : "Create account"}
+                  ? t("auth.creatingAccount")
+                  : t("auth.register")}
             </Button>
           </View>
         </View>

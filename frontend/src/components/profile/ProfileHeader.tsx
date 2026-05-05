@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import ProfileMobileNav from './ProfileMobileNav'
 import BackButton from '../ui/BackButton'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'

@@ -2,7 +2,7 @@
 
 import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { Store } from 'lucide-react'
 
 interface SellerSetupDialogProps {

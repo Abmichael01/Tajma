@@ -1,4 +1,5 @@
 "use client"
+import { Link } from '@/i18n/routing'
 
 import React, { useState } from 'react'
 import { useUserReports, useAddReportMessage, Report, ReportMessage } from '@/hooks/useReports'
@@ -47,10 +48,10 @@ export default function ProfileSupport() {
             Need help? Open a support ticket to get assistance from our team.
           </p>
           <Button asChild variant="primary" size="lg" className="rounded-full px-8 shadow-md hover:shadow-lg transition-all active:scale-95">
-            <a href="/contact" className="flex items-center justify-center">
+            <Link href="/contact" className="flex items-center justify-center">
               <Send className="w-4 h-4 mr-2" />
               Contact Support
-            </a>
+            </Link>
           </Button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useAuthStore } from '@/store/authStore'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { useCurrentUser } from './useAuth'

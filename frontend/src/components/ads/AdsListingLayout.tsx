@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useState, useMemo, useEffect, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import { useRouter, Link } from '@/i18n/routing'
+import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { ChevronDown, ChevronUp, LayoutGrid } from 'lucide-react'
 import { cn, getMediaUrl } from '@/lib/utils'
@@ -43,6 +44,7 @@ export default function AdsListingLayout({
   subtitle,
   mode = 'search',
 }: AdsListingLayoutProps) {
+  const t = useTranslations('common')
   const router = useRouter()
   const searchParams = useSearchParams()
   const { categoryTree } = useCategories()
@@ -104,7 +106,7 @@ export default function AdsListingLayout({
       if (subcategories.length > 0) {
         groups.push({
           id: 'subcategory',
-          title: 'Subcategories',
+          title: t('subcategories'),
           type: 'link', // Use 'link' type so clicking navigates to that subcategory
           defaultExpanded: true,
           options: subcategories.map((sub: any) => ({
@@ -405,7 +407,7 @@ export default function AdsListingLayout({
             className="rounded-full whitespace-nowrap gap-1.5 h-10 px-4"
           >
             <FilterIcon className="w-3.5 h-3.5" />
-            Filters
+            {t('filters')}
           </Button>
 
           {/* Individual Category-specific chips */}
@@ -439,7 +441,7 @@ export default function AdsListingLayout({
             <DrawerHeader className="border-b border-gray-50 pb-4">
               <DrawerTitle className="text-left">
                 {activeDrawer === 'all' 
-                  ? 'Filters' 
+                  ? t('filters') 
                   : filterGroups.find(g => g.id === activeDrawer)?.title}
               </DrawerTitle>
             </DrawerHeader>
@@ -459,7 +461,7 @@ export default function AdsListingLayout({
                   className="w-full h-12 rounded-full"
                   onClick={() => setActiveDrawer(null)}
                 >
-                  Show Results
+                  {t('show_results')}
                 </Button>
               </div>
             )}
@@ -492,9 +494,9 @@ export default function AdsListingLayout({
                 <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-red-500 text-2xl font-bold">!</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{t('error')}</h3>
                 <p className="text-gray-500 mb-6 max-w-xs mx-auto">
-                  We couldn't load the ads right now. Please check your connection and try again.
+                  {t('failed_load_ads')}
                 </p>
                 <Button 
                   onClick={() => window.location.reload()}
@@ -502,7 +504,7 @@ export default function AdsListingLayout({
                   size="lg"
                   className="px-10"
                 >
-                  Retry Search
+                  {t('retry_search')}
                 </Button>
               </div>
             ) : ads.length === 0 ? (
@@ -512,11 +514,11 @@ export default function AdsListingLayout({
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                    </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">No matching ads found</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('no_matches_found')}</h3>
                 <p className="text-gray-500 mb-8 max-w-sm mx-auto leading-relaxed">
                   {filters.search
-                    ? `We couldn't find any results for "${filters.search}". Try different keywords or broaden your filters.`
-                    : "There are no ads matching your current filter selection. Try removing some filters to see more results."}
+                    ? t('no_results_for', { query: filters.search })
+                    : t('no_ads_matching')}
                 </p>
                 <Button 
                   onClick={() => setFilters({ search: '', status: 'published' })}
@@ -524,7 +526,7 @@ export default function AdsListingLayout({
                   size="lg"
                   className="px-10 bg-gray-900 text-white hover:bg-gray-800"
                 >
-                  Reset All Filters
+                  {t('reset_all_filters')}
                 </Button>
               </div>
             ) : (
@@ -533,7 +535,7 @@ export default function AdsListingLayout({
                 {hasNextPage && (
                   <div ref={loadMoreRef} className="py-6 text-center">
                     {isFetchingNextPage ? (
-                      <span className="text-sm text-gray-500">Loading more ads...</span>
+                      <span className="text-sm text-gray-500">{t('loading_more')}</span>
                     ) : null}
                   </div>
                 )}

@@ -65,6 +65,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     sms_notifications = models.BooleanField(default=False)
     marketing_notifications = models.BooleanField(default=True)
     fcm_device_token = models.CharField(max_length=255, blank=True, null=True)
+    preferred_language = models.CharField(
+        max_length=5, 
+        default='en', 
+        choices=[('en', 'English'), ('fr', 'French'), ('ha', 'Hausa')]
+    )
     
     # Status fields
     is_active = models.BooleanField(default=True)
@@ -143,4 +148,3 @@ class User(AbstractBaseUser, PermissionsMixin):
     def full_name(self):
         """Property to get full name"""
         return self.get_full_name()
-

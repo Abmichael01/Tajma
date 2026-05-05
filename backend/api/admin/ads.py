@@ -2,19 +2,24 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Count, Q
 from django.conf import settings
-from api.models import Ad, Category, Region, SavedAd, Review, SearchQuery
+from api.models import Ad, Category, Region, SavedAd, Review, SearchQuery, CategoryTranslation, AdTranslation
+
+class CategoryTranslationInline(admin.TabularInline):
+    model = CategoryTranslation
+    extra = 1
+    max_num = 3
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'parent', 'category_type', 'is_active', 'sort_order')
+    list_display = ('id', 'slug', 'parent', 'category_type', 'is_active', 'sort_order')
     list_filter = ('is_active', 'category_type', 'parent')
-    search_fields = ('name', 'slug')
-    ordering = ('parent__id', 'sort_order', 'name')
-    prepopulated_fields = {'slug': ('name',)}
+    search_fields = ('slug', 'translations__name')
+    ordering = ('parent__id', 'sort_order')
     autocomplete_fields = ['parent']
+    inlines = [CategoryTranslationInline]
     
     fieldsets = (
-        ('Basic Information', {'fields': ('name', 'slug', 'parent', 'category_type', 'is_active', 'sort_order')}),
+        ('Basic Information', {'fields': ('slug', 'parent', 'category_type', 'is_active', 'sort_order')}),
         ('Appearance', {'fields': ('icon', 'image_url', 'description')}),
         ('Dynamic Attributes', {
             'fields': ('custom_fields',),
@@ -22,10 +27,15 @@ class CategoryAdmin(admin.ModelAdmin):
         }),
     )
 
+class AdTranslationInline(admin.TabularInline):
+    model = AdTranslation
+    extra = 1
+    max_num = 3
+
 @admin.register(Ad)
 class AdAdmin(admin.ModelAdmin):
     list_display = (
-        'featured_status', 'title', 'seller', 'category', 'ad_type', 
+        'featured_status', 'id', 'seller', 'category', 'ad_type', 
         'price_display', 'status', 'promotion_rank',
         'views', 'created_at', 'image_preview',
     )
@@ -33,19 +43,20 @@ class AdAdmin(admin.ModelAdmin):
         'status', 'is_featured', 'ad_type', 'category', 
         'is_negotiable', 'created_at', 'published_at',
     )
-    search_fields = ('title', 'description', 'seller__email', 'seller__username', 'slug')
+    search_fields = ('translations__title', 'translations__description', 'seller__email', 'seller__username')
     readonly_fields = (
-        'id', 'slug', 'seller', 'ad_type', 'views', 
+        'id', 'seller', 'ad_type', 'views', 
         'created_at', 'updated_at', 'published_at', 'image_preview',
     )
     autocomplete_fields = ['category', 'seller']
+    inlines = [AdTranslationInline]
     date_hierarchy = 'created_at'
     ordering = ('-created_at',)
     list_per_page = 25
     actions = ['make_published', 'make_draft', 'make_archived']
     
     fieldsets = (
-        ('Basic Information', {'fields': ('id', 'slug', 'title', 'description', 'seller', 'category', 'ad_type')}),
+        ('Basic Information', {'fields': ('id', 'seller', 'category', 'ad_type')}),
         ('Pricing', {'fields': ('price', 'currency', 'is_negotiable')}),
         ('Media', {'fields': ('images', 'image_preview')}),
         ('Attributes', {'fields': ('attributes',)}),
@@ -86,7 +97,7 @@ class AdAdmin(admin.ModelAdmin):
     featured_status.admin_order_field = 'is_featured'
     
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('seller', 'category', 'category__parent')
+        return super().get_queryset(request).select_related('seller', 'category', 'category__parent').prefetch_related('translations')
     
     @admin.action(description='Mark selected ads as published')
     def make_published(self, request, queryset):
@@ -126,7 +137,7 @@ class RegionAdmin(admin.ModelAdmin):
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('id', 'ad', 'reviewer', 'rating', 'created_at')
     list_filter = ('rating', 'created_at')
-    search_fields = ('comment', 'reviewer__email', 'ad__title')
+    search_fields = ('comment', 'reviewer__email', 'ad__translations__title')
     readonly_fields = ('id', 'created_at', 'updated_at')
     autocomplete_fields = ['ad', 'reviewer']
 
@@ -134,7 +145,7 @@ class ReviewAdmin(admin.ModelAdmin):
 class SavedAdAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'ad', 'created_at')
     list_filter = ('created_at',)
-    search_fields = ('user__email', 'ad__title')
+    search_fields = ('user__email', 'ad__translations__title')
     readonly_fields = ('id', 'created_at')
     autocomplete_fields = ['user', 'ad']
 

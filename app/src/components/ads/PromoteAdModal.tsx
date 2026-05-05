@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import AppText from '@/components/ui/AppText';
@@ -17,6 +18,7 @@ export default function PromoteAdModal({
     onClose,
     ad
 }: PromoteAdModalProps) {
+    const { t } = useTranslation();
     const bottomSheetRef = useRef<BottomSheetRef>(null);
     const [isLoading, setIsLoading] = useState<string | null>(null);
 
@@ -37,12 +39,12 @@ export default function PromoteAdModal({
                 await WebBrowser.openBrowserAsync(response.checkout_url);
                 onClose();
             } else {
-                Alert.alert('Error', 'Failed to get checkout URL');
+                Alert.alert(t('common.error'), 'Failed to get checkout URL');
             }
         } catch (error: any) {
             console.error('Promotion error:', error);
             const errorMessage = error?.response?.data?.error || 'Failed to initiate promotion';
-            Alert.alert('Promotion failed', errorMessage);
+            Alert.alert(t('common.error'), errorMessage);
         } finally {
             setIsLoading(null);
         }
@@ -51,24 +53,24 @@ export default function PromoteAdModal({
     const packages = [
         {
             id: 'boost',
-            name: 'Ad Boost',
+            name: t('promote.boostName'),
             price: '1,000 XOF',
-            duration: '7 Days',
+            duration: t('promote.duration'),
             icon: 'flash-outline',
             color: '#FF4F18',
             bgColor: '#fff7ed',
-            description: 'Move your ad to the top of search results once.',
+            description: t('promote.boostDesc'),
             features: ['Priority placement', 'Highlight badge']
         },
         {
             id: 'featured',
-            name: 'Featured Ad',
+            name: t('promote.featuredName'),
             price: '5,000 XOF',
-            duration: '7 Days',
+            duration: t('promote.duration'),
             icon: 'star-outline',
             color: '#1e1b4b',
             bgColor: '#f5f3ff',
-            description: 'Sticky placement on homepage and category top.',
+            description: t('promote.featuredDesc'),
             features: ['Homepage placement', 'Fixed position', 'Max visibility']
         }
     ];
@@ -78,13 +80,13 @@ export default function PromoteAdModal({
     return (
         <BottomSheet
             ref={bottomSheetRef}
-            title="Promote Listing"
+            title={t('promote.title')}
             onClose={onClose}
             snapPoints={['70%']}
         >
             <View className="px-6 py-4">
                 <AppText className="text-gray-500 mb-6 text-sm text-center">
-                    Choose a promotion package for {"\n"}
+                    {t('promote.choosePackage')} {"\n"}
                     <AppText weight="bold" className="text-gray-900">"{ad.title}"</AppText>
                 </AppText>
 
@@ -134,7 +136,7 @@ export default function PromoteAdModal({
                                         <ActivityIndicator color="white" size="small" />
                                     ) : (
                                         <View className="flex-row items-center">
-                                            <AppText weight="bold" className="text-white mr-2">Select {pkg.name}</AppText>
+                                            <AppText weight="bold" className="text-white mr-2">{t('promote.selectPackage', { name: pkg.name })}</AppText>
                                             <Ionicons name="arrow-forward" size={16} color="white" />
                                         </View>
                                     )}
@@ -146,7 +148,7 @@ export default function PromoteAdModal({
 
                 <View className="mt-4 items-center">
                     <AppText className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">
-                        Secured by Paystack
+                        {t('promote.securedBy')}
                     </AppText>
                 </View>
                 

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import { getMediaUrl } from '@/lib/utils'
 import { ResponsiveModal } from '@/components/ui/responsive-modal'

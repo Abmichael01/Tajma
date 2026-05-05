@@ -44,6 +44,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'serverConfig.middleware.CustomCsrfMiddleware',  # Custom CSRF middleware for React Native
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'api.middleware.language_middleware.LanguageMiddleware', # Detect and set language
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

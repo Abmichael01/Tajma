@@ -126,3 +126,14 @@ SMILE_ID_CONFIG_PATH = os.getenv('SMILE_ID_CONFIG_PATH', '')
 # [NEW] Paystack Configuration
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
 PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
+
+# Celery Configuration
+CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+# OpenAI Configuration
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')

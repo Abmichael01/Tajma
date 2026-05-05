@@ -45,7 +45,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         roots = (
             Category.objects.filter(parent__isnull=True, is_active=True)
             .prefetch_related('children__children__children__children')
-            .order_by('sort_order', 'name')
+            .order_by('sort_order', 'id')
         )
         serializer = CategoryTreeSerializer(roots, many=True, context={'request': request})
         return Response(serializer.data)
@@ -54,4 +54,3 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def all(self, request):
         serializer = CategorySerializer(self.get_queryset(), many=True, context={'request': request})
         return Response(serializer.data)
-

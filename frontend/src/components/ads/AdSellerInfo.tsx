@@ -2,15 +2,15 @@
 
 import React from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { useRouter, Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import { Star, Shield } from 'lucide-react'
 import type { User, ReviewStats, ResponseStats } from '@/api/types'
 import { getUserFullName } from '@/utils/user'
 import { leadsApi } from '@/api/leads'
-import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { getMediaUrl } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 
 interface AdSellerInfoProps {
@@ -28,6 +28,7 @@ export default function AdSellerInfo({
   reviewStats,
   className = ''
 }: AdSellerInfoProps) {
+  const t = useTranslations('common')
   const router = useRouter()
   const { user: currentUser, isAuthenticated } = useAuthStore()
   const fullName = getUserFullName(seller)
@@ -35,24 +36,24 @@ export default function AdSellerInfo({
 
   const responseRate = stats?.response_rate_1h ?? stats?.response_rate_2h ?? 0
 
-  let responseTimeText = 'Response time varies'
+  let responseTimeText = t('response_time_varies')
   if (stats?.response_rate_1h && stats.response_rate_1h >= 80) {
-    responseTimeText = 'Usually responds within 1 hour'
+    responseTimeText = t('responds_within_1h')
   } else if (stats?.response_rate_2h && stats.response_rate_2h >= 80) {
-    responseTimeText = 'Usually responds within 2 hours'
+    responseTimeText = t('responds_within_2h')
   } else if (stats?.avg_response_minutes != null) {
     if (stats.avg_response_minutes <= 60) {
-      responseTimeText = 'Usually responds within about 1 hour'
+      responseTimeText = t('responds_about_1h')
     } else if (stats.avg_response_minutes <= 120) {
-      responseTimeText = 'Usually responds within about 2 hours'
+      responseTimeText = t('responds_about_2h')
     } else {
-      responseTimeText = `Usually responds in about ${Math.round(stats.avg_response_minutes)} minutes`
+      responseTimeText = t('responds_in_minutes', { minutes: Math.round(stats.avg_response_minutes) })
     }
   }
 
   return (
     <div className={`bg-white border border-gray-200 p-4 sm:p-6 rounded-xl ${className}`}>
-      <h3 className="font-semibold text-gray-900 mb-4">Seller Information</h3>
+      <h3 className="font-semibold text-gray-900 mb-4">{t('seller_information')}</h3>
 
       <div className="flex items-center gap-3 mb-4">
         {seller.avatar ? (
@@ -82,8 +83,8 @@ export default function AdSellerInfo({
             <Star className="w-4 h-4 text-yellow-500 fill-current" />
             <span className="text-sm text-gray-600">
               {reviewStats?.average_rating
-                ? `${reviewStats.average_rating.toFixed(1)} (${reviewStats.total_reviews || 0} reviews)`
-                : 'No reviews yet'}
+                ? `${reviewStats.average_rating.toFixed(1)} (${reviewStats.total_reviews || 0} ${t('reviews')})`
+                : t('no_reviews_yet')}
             </span>
           </div>
         </div>
@@ -91,9 +92,9 @@ export default function AdSellerInfo({
 
       <div className="space-y-2 text-xs sm:text-sm text-gray-600 mb-4">
         {seller.date_joined && (
-          <div>Member since {new Date(seller.date_joined).getFullYear()}</div>
+          <div>{t('member_since')} {new Date(seller.date_joined).getFullYear()}</div>
         )}
-        <div>Response rate: {responseRate}%</div>
+        <div>{t('response_rate_label')}: {responseRate}%</div>
         <div>{responseTimeText}</div>
       </div>
 
@@ -110,7 +111,7 @@ export default function AdSellerInfo({
           router.push(`/profile/${sellerProfileSlug}`)
         }}
       >
-        View Profile
+        {t('view_profile')}
       </Button>
     </div>
   )

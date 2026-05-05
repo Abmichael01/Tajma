@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { useChats } from '@/hooks/useChat';
 import AppText from '@/components/ui/AppText';
 import { BlurView } from 'expo-blur';
+import { useTranslation } from 'react-i18next';
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
@@ -23,12 +24,13 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const brandSecondary = '#2D2D2D'; // Charcoal
     const grayColor = '#94a3b8';
 
+    const { t } = useTranslation();
     const labels: Record<string, string> = {
-        home: 'Home',
-        alerts: 'Alerts',
-        add: 'Post',
-        chat: 'Chats',
-        profile: 'Profile'
+        home: t('tabs.home'),
+        alerts: t('tabs.alerts'),
+        add: t('tabs.add'),
+        chat: t('tabs.chat'),
+        profile: t('tabs.profile')
     };
 
     return (

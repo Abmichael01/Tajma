@@ -89,6 +89,7 @@ class UserSerializer(serializers.ModelSerializer):
             'email_notifications',
             'sms_notifications',
             'marketing_notifications',
+            'preferred_language',
             'date_joined',
             'last_login',
         ]
@@ -193,6 +194,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'email_notifications',
             'sms_notifications',
             'marketing_notifications',
+            'preferred_language',
         ]
         extra_kwargs = {
             'username': {'required': False},
@@ -264,6 +266,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
             'email_notifications',
             'sms_notifications',
             'marketing_notifications',
+            'preferred_language',
             'date_joined',
             'last_login',
         ]
@@ -320,6 +323,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'last_name',
             'password',
             'password_confirm',
+            'preferred_language',
         ]
         extra_kwargs = {
             'email': {'required': True},

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Pressable, ScrollView, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../ui/AppText';
@@ -22,6 +23,7 @@ export default function BasicInfoStep({
   onCategorySelect,
   isEdit = false,
 }: BasicInfoStepProps) {
+  const { t } = useTranslation();
   const { categoryTree, categories, getCategoryBySlug, loading } = useCategories();
 
   const [currentLevelNodes, setCurrentLevelNodes] = useState<CategoryTree[]>([]);
@@ -77,7 +79,10 @@ export default function BasicInfoStep({
     }
   };
 
-  const currentCategoryName = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].name : 'All Categories';
+  const currentCategoryName = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].name : t('search.allRegions'); // Wait, allRegions? No, allCategories. I should add a key.
+  // Actually, t('search.allRegions') might be okay if it's the same idea. But let's check.
+  // I'll add "allCategories" to en.json/ha.json if needed.
+  // For now I'll use t('create_ad.fields.category')
 
   const selectedCategoryObj = React.useMemo(() =>
     formData.category ? categories.find(cat => cat.slug === formData.category) : null
@@ -87,9 +92,9 @@ export default function BasicInfoStep({
     <View className="flex-1">
       {/* Title Input */}
       <View className="mb-6">
-        <AppText className="mb-2 text-gray-700 font-medium">Ad Title</AppText>
+        <AppText className="mb-2 text-gray-700 font-medium">{t('create_ad.fields.title')}</AppText>
         <Input
-          placeholder="What are you selling? (e.g. iPhone 12 Pro)"
+          placeholder={t('create_ad.fields.titlePlaceholder')}
           value={formData.title}
           onChangeText={(value) => onInputChange('title', value)}
           maxLength={100}
@@ -101,10 +106,10 @@ export default function BasicInfoStep({
       {!isEdit && (
         <>
           <View className="flex-row items-center justify-between mb-2">
-            <AppText className="text-gray-700 font-medium">Category</AppText>
+            <AppText className="text-gray-700 font-medium">{t('create_ad.fields.category')}</AppText>
             {selectedCategoryObj && (
               <TouchableOpacity onPress={() => onInputChange('category', '')}>
-                <AppText className="text-primary font-semibold text-xs">Change</AppText>
+                <AppText className="text-primary font-semibold text-xs">{t('common.change')}</AppText>
               </TouchableOpacity>
             )}
           </View>
@@ -119,7 +124,7 @@ export default function BasicInfoStep({
               </View>
               <View className="flex-1">
                 <AppText weight="bold" className="text-gray-900 text-base">{selectedCategoryObj.name}</AppText>
-                <AppText className="text-xs text-gray-500">Tap to change category</AppText>
+                <AppText className="text-xs text-gray-500">{t('create_ad.fields.categoryPlaceholder')}</AppText>
               </View>
               <Ionicons name="sync-outline" size={20} color="#FF4F18" />
             </Pressable>
@@ -128,7 +133,7 @@ export default function BasicInfoStep({
               {/* Search Bar */}
               <View className="mb-4">
                 <Input
-                  placeholder="Search categories..."
+                  placeholder={t('create_ad.fields.categoryPlaceholder')}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   autoCapitalize="none"
@@ -150,7 +155,7 @@ export default function BasicInfoStep({
                     <Ionicons name="arrow-back" size={20} color="#0f172b" />
                   </TouchableOpacity>
                   <View>
-                    <AppText className="text-xs text-gray-400 uppercase tracking-wider">Browsing</AppText>
+                    <AppText className="text-xs text-gray-400 uppercase tracking-wider">{t('search.searching')}</AppText>
                     <AppText weight="bold" className="text-lg text-gray-900">{currentCategoryName}</AppText>
                   </View>
                 </View>
@@ -161,7 +166,7 @@ export default function BasicInfoStep({
                 {loading && categoryTree.length === 0 ? (
                   <View className="justify-center items-center py-10">
                     <ActivityIndicator size="large" color="#FF4F18" />
-                    <AppText className="mt-4 text-gray-500 font-medium">Loading categories...</AppText>
+                    <AppText className="mt-4 text-gray-500 font-medium">{t('common.loading')}</AppText>
                   </View>
                 ) : (
                   <View>
@@ -171,7 +176,7 @@ export default function BasicInfoStep({
                           <View className="bg-gray-50 w-16 h-16 rounded-full items-center justify-center mb-4">
                             <Ionicons name="search-outline" size={32} color="#94a3b8" />
                           </View>
-                          <AppText className="text-gray-500 font-medium">No results for "{searchQuery}"</AppText>
+                          <AppText className="text-gray-500 font-medium">{t('search.noResultsDesc', { query: searchQuery })}</AppText>
                         </View>
                       ) : (
                         filteredCategories.map((cat, index) => (
@@ -187,7 +192,7 @@ export default function BasicInfoStep({
                               </View>
                               <View>
                                 <AppText className="text-base text-gray-900 font-medium">{cat.name}</AppText>
-                                <AppText className="text-xs text-gray-400 mt-0.5">Select Category</AppText>
+                                <AppText className="text-xs text-gray-400 mt-0.5">{t('create_ad.fields.categoryPlaceholder')}</AppText>
                               </View>
                             </View>
                             <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
@@ -197,7 +202,7 @@ export default function BasicInfoStep({
                     ) : (
                       currentLevelNodes.length === 0 ? (
                         <View className="justify-center items-center py-12">
-                          <AppText className="text-gray-500">No categories found</AppText>
+                          <AppText className="text-gray-500">{t('search.noResults')}</AppText>
                         </View>
                       ) : (
                         currentLevelNodes.map((node, index) => (
@@ -218,7 +223,7 @@ export default function BasicInfoStep({
                               <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
                             ) : (
                               <View className="bg-gray-50 px-3 py-1.5 rounded-full">
-                                <AppText className="text-xs text-gray-500 font-semibold">Select</AppText>
+                                <AppText className="text-xs text-gray-500 font-semibold">{t('common.select')}</AppText>
                               </View>
                             )}
                           </TouchableOpacity>

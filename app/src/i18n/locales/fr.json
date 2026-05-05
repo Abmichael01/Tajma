@@ -1,0 +1,285 @@
+{
+  "home": {
+    "discoverDeals": "Découvrez de bonnes affaires près de chez vous"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Annuler",
+    "error": "Erreur",
+    "success": "Succès",
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "back": "Retour",
+    "all": "Tout",
+    "required": "Requis",
+    "change": "Changer",
+    "select": "Sélectionner",
+    "welcome": "Bienvenue",
+    "alerts": "Alertes",
+    "search": "Rechercher",
+    "home": "Accueil",
+    "chat": "Chat",
+    "profile": "Profil",
+    "add": "Ajouter",
+    "goBack": "Retour",
+    "seeAll": "Tout voir",
+    "continue": "Continuer",
+    "unread": "Non lu",
+    "justNow": "À l'instant",
+    "minAgo": "Il y a {{count}}m",
+    "hourAgo": "Il y a {{count}}h",
+    "dayAgo": "Il y a {{count}}j",
+    "weekAgo": "Il y a {{count}}s",
+    "note": "Note"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "email": "Email",
+    "password": "Mot de passe",
+    "signIn": "Se connecter",
+    "signInRequired": "Connexion requise",
+    "signInRequiredDesc": "Veuillez vous connecter pour voir vos alertes et notifications.",
+    "forgotPassword": "Mot de passe oublié ?",
+    "emailPlaceholder": "vous@exemple.com",
+    "passwordPlaceholder": "••••••••",
+    "usernamePlaceholder": "nom d'utilisateur",
+    "signOut": "Se déconnecter",
+    "createAccount": "Créez votre compte",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "continueWithGoogle": "Continuer avec Google",
+    "connecting": "Connexion...",
+    "validation": {
+      "emailRequired": "L'email est requis",
+      "emailInvalid": "Email invalide",
+      "passwordRequired": "Le mot de passe est requis",
+      "passwordMin": "Le mot de passe doit contenir au moins 8 caractères"
+    }
+  },
+  "messages": {
+    "title": "Messages",
+    "available": "Est-ce toujours disponible ?",
+    "bestPrice": "Quel est le meilleur prix que vous pouvez offrir ?",
+    "morePhotos": "Puis-je voir plus de photos ?",
+    "location": "Où êtes-vous situé ?",
+    "pickup": "Quand puis-je le récupérer ?",
+    "viewAll": "Voir tous les messages",
+    "unreadCount": "{{count}} messages non lus",
+    "noConversations": "Pas encore de conversations",
+    "noUnread": "Pas de messages non lus",
+    "conversationsDesc": "Vos messages et l'historique de vos conversations apparaîtront ici.",
+    "caughtUp": "Vous avez lu tous vos messages.",
+    "allMessages": "Tous les messages"
+  },
+  "chat": {
+    "startError": "Échec du démarrage de la conversation. Veuillez réessayer.",
+    "filters": {
+      "all": "Tous les chats",
+      "unread": "Non lus"
+    }
+  },
+  "profile": {
+    "title": "Compte",
+    "editProfile": "Modifier le profil",
+    "myAds": "Mes annonces",
+    "savedAds": "Annonces enregistrées",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "verifyIdentity": "Vérifier l'identité",
+    "verificationStatus": "Statut de vérification",
+    "verified": "Vérifié",
+    "unverified": "Non vérifié",
+    "pending": "En attente",
+    "analytics": "Statistiques",
+    "analyticsDesc": "Suivez votre portée et votre score de confiance",
+    "leads": "Clients potentiels",
+    "reviews": "Avis",
+    "wishlist": "Liste de souhaits",
+    "listings": "Annonces",
+    "reputation": "Réputation",
+    "maybeLater": "Peut-être plus tard",
+    "logoutConfirmTitle": "Déconnexion",
+    "logoutConfirmMessage": "Êtes-vous sûr de vouloir vous déconnecter ?",
+    "recentListings": "Annonces récentes",
+    "supportLegal": "Support et Légal",
+    "helpSupport": "Aide et Support",
+    "legalTerms": "Mentions Légales",
+    "shareApp": "Partager l'application",
+    "language": "Langue",
+    "signOut": "Se déconnecter",
+    "wishlist_interact": {
+      "itemsSaved": "{{count}} articles enregistrés",
+      "noSavedAdsTitle": "Aucune annonce enregistrée",
+      "noSavedAdsDesc": "Les articles que vous enregistrez apparaîtront ici."
+    }
+  },
+  "search": {
+    "title": "Recherche",
+    "resultsFor": "Résultats pour",
+    "in": "dans",
+    "matching": "correspondant à",
+    "placeholder": "Rechercher...",
+    "searching": "Recherche d'annonces...",
+    "adsFound": "{{count}} annonces trouvées",
+    "noResults": "Aucun résultat trouvé",
+    "noResultsDesc": "Nous n'avons trouvé aucune annonce correspondant à \"{{query}}\" dans {{region}}.",
+    "clearFilters": "Effacer tous les filtres",
+    "allRegions": "Toutes les régions",
+    "filters": {
+      "title": "Affiner la recherche",
+      "priceRange": "Gamme de prix",
+      "reset": "Réinitialiser",
+      "showResults": "Afficher les résultats ({{count}})",
+      "min": "Min",
+      "max": "Max",
+      "condition": "Condition"
+    }
+  },
+  "ads": {
+    "myListings": "Mes annonces",
+    "editListing": "Modifier l'annonce",
+    "newListing": "Nouvelle annonce",
+    "whatAreYouListing": "Que mettez-vous en vente ?",
+    "fillDetails": "Remplissez les détails de votre nouvelle annonce",
+    "failedToCreate": "Échec de la création de l'annonce. Veuillez réessayer.",
+    "contactForPrice": "Contactez pour le prix",
+    "chat": "Chat",
+    "call": "Appeler",
+    "share": "Partager",
+    "report": "Signaler",
+    "loadError": "Annonce non trouvée",
+    "loadErrorDesc": "L'annonce que vous recherchez n'existe pas ou a été supprimée.",
+    "sortBy": "Trier par",
+    "sort": {
+      "newest": "Plus récent",
+      "oldest": "Plus ancien",
+      "price-low": "Prix : Croissant",
+      "price-high": "Prix : Décroissant",
+      "views": "Plus consulté",
+      "title": "Titre A-Z"
+    }
+  },
+  "create_ad": {
+    "steps": {
+      "basicInfo": "Infos de base",
+      "details": "Détails",
+      "review": "Révision"
+    },
+    "fields": {
+      "title": "Titre",
+      "titlePlaceholder": "Que vendez-vous ?",
+      "category": "Catégorie",
+      "categoryPlaceholder": "Sélectionnez une catégorie",
+      "price": "Prix",
+      "pricePlaceholder": "Entrez le prix",
+      "negotiable": "Négociable",
+      "contactForPrice": "Contactez pour le prix",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez votre article (min 20 car.)",
+      "location": "Emplacement",
+      "locationPlaceholder": "Sélectionnez l'emplacement",
+      "brand": "Marque",
+      "model": "Modèle",
+      "condition": "État",
+      "year": "Année",
+      "mileage": "Kilométrage (km)",
+      "transmission": "Transmission",
+      "fuelType": "Type de carburant",
+      "bedrooms": "Chambres",
+      "bathrooms": "Salles de bain",
+      "furnishing": "Ameublement",
+      "availability": "Disponibilité"
+    },
+    "validation": {
+      "titleMin": "Le titre doit contenir au moins 5 caractères",
+      "titleRequired": "Veuillez entrer un titre valide",
+      "categoryRequired": "Veuillez sélectionner une catégorie",
+      "photoRequired": "Veuillez ajouter au moins une photo",
+      "descriptionMin": "La description doit contenir au moins 20 caractères",
+      "locationRequired": "L'emplacement est requis"
+    },
+    "actions": {
+      "publish": "Publier maintenant",
+      "update": "Mettre à jour",
+      "next": "Étape suivante",
+      "back": "Retour",
+      "addPhotos": "Ajouter des photos"
+    }
+  },
+  "promote": {
+    "title": "Promouvoir l'annonce",
+    "choosePackage": "Choisissez un forfait promotionnel pour",
+    "boostName": "Boost d'annonce",
+    "featuredName": "Annonce en vedette",
+    "boostDesc": "Remontez votre annonce en tête des résultats.",
+    "featuredDesc": "Placement fixe sur la page d'accueil.",
+    "duration": "7 Jours",
+    "selectPackage": "Sélectionner {{name}}",
+    "securedBy": "Sécurisé par Paystack"
+  },
+  "report": {
+    "title": "Signaler cette annonce",
+    "helpUs": "Aidez-nous à garder Tajma sûr. Pourquoi signalez-vous",
+    "description": "Description",
+    "detailsPlaceholder": "Fournissez plus de détails...",
+    "submit": "Soumettre le rapport",
+    "warning": "Les faux rapports peuvent entraîner la suspension du compte",
+    "reasons": {
+      "scam": "Arnaque ou Fraude",
+      "counterfeit": "Articles contrefaits",
+      "offensive": "Contenu inapproprié",
+      "spam": "Spam ou Harcèlement",
+      "duplicate": "Annonce en double",
+      "wrong_category": "Mauvaise catégorie",
+      "prohibited": "Articles interdits",
+      "other": "Autre"
+    }
+  },
+  "tabs": {
+    "home": "Accueil",
+    "alerts": "Alertes",
+    "add": "Publier",
+    "chat": "Messagerie",
+    "profile": "Profil"
+  },
+  "analytics": {
+    "title": "Statistiques de Performance",
+    "totalAds": "Total des annonces",
+    "views": "Vues",
+    "active": "Actives",
+    "favorites": "Favoris",
+    "sold": "Vendus",
+    "rating": "Note"
+  },
+  "kyc": {
+    "title": "Vérifier l'identité",
+    "subtitle": "Complétez votre vérification KYC",
+    "introTitle": "Vérifiez votre identité",
+    "introDesc": "Pour assurer la sécurité de tous, nous demandons aux vendeurs de vérifier leur identité.",
+    "idTypesList": "Passeport / ID / Permis (Niger)",
+    "selfieCapture": "Capture de selfie en direct",
+    "timeEstimate": "Prend moins de 2 minutes"
+  },
+  "alerts": {
+    "title": "Alertes",
+    "newRequests": "{{count}} nouvelles demandes",
+    "markAllRead": "Tout marquer comme lu",
+    "noNotifications": "Pas encore de notifications",
+    "noTypeAlerts": "Aucune alerte de type {{type}} trouvée",
+    "clearFilters": "Effacer les filtres",
+    "types": {
+      "all": "Tout",
+      "message": "Messages",
+      "ad_view": "Vues",
+      "favorite": "Favoris",
+      "phone_view": "Leads",
+      "ad_status": "Statut"
+    }
+  },
+  "settings": {
+    "languageNote": "Changer la langue mettra à jour l'interface dans toute l'application. Certains contenus générés par les utilisateurs peuvent rester dans leur langue d'origine."
+  }
+}

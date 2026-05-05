@@ -14,8 +14,10 @@ import { useRouter } from "expo-router";
 import { Region } from "@/hooks/useRegions";
 import { useAuthStore } from "@/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
   const { rootCategories: categoriesData, loading: categoriesLoading } =
@@ -126,7 +128,7 @@ export default function HomeScreen() {
             <SearchBar
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              selectedRegion={selectedRegion?.name || "All Regions"}
+              selectedRegion={selectedRegion?.name || t('search.allRegions')}
               onRegionPress={() => setIsRegionModalVisible(true)}
               onSearch={handleSearch}
             />
@@ -151,10 +153,10 @@ export default function HomeScreen() {
                   weight="bold"
                   style={{ fontSize: 22, lineHeight: 28, color: "#FFFFFF" }}
                 >
-                  {greetingName ? `Welcome, ${greetingName}` : "Welcome"}
+                  {greetingName ? `${t('common.welcome')}, ${greetingName}` : t('common.welcome')}
                 </AppText>
                 <AppText style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>
-                  Discover great deals near you
+                  {t('home.discoverDeals')}
                 </AppText>
               </View>
               <View className="flex-row items-center gap-2">

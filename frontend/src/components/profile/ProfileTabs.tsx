@@ -1,7 +1,8 @@
 "use client"
 
 import React from 'react'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useRouter, usePathname } from '@/i18n/routing'
+import { useSearchParams } from 'next/navigation'
 import { 
   TrendingUp,
   FileText,
@@ -12,6 +13,7 @@ import {
   Users,
   HelpCircle
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface Tab {
   id: string
@@ -24,6 +26,7 @@ interface ProfileTabsProps {
 }
 
 export default function ProfileTabs({ isOwner = false }: ProfileTabsProps) {
+  const t = useTranslations('user')
   const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -35,17 +38,17 @@ export default function ProfileTabs({ isOwner = false }: ProfileTabsProps) {
 
   const tabs: Tab[] = [
     ...(isOwner ? [
-      { id: 'overview', label: 'Overview', icon: TrendingUp },
+      { id: 'overview', label: t('overview'), icon: TrendingUp },
     ] : []),
-    { id: 'ads', label: isOwner ? 'My Ads' : 'Ads', icon: FileText },
+    { id: 'ads', label: isOwner ? t('my_ads') : t('ads'), icon: FileText },
     ...(isOwner ? [
-      { id: 'leads', label: 'Leads', icon: Users },
-      { id: 'saved', label: 'Saved', icon: Heart },
-      { id: 'notifications', label: 'Notifications', icon: Bell },
-      { id: 'support', label: 'Support', icon: HelpCircle },
-      { id: 'settings', label: 'Settings', icon: Settings }
+      { id: 'leads', label: t('leads'), icon: Users },
+      { id: 'saved', label: t('saved'), icon: Heart },
+      { id: 'notifications', label: t('notifications'), icon: Bell },
+      { id: 'support', label: t('support'), icon: HelpCircle },
+      { id: 'settings', label: t('settings'), icon: Settings }
     ] : [
-      { id: 'reviews', label: 'Reviews', icon: Star }
+      { id: 'reviews', label: t('reviews'), icon: Star }
     ])
   ]
 

@@ -25,6 +25,7 @@ export interface User {
   email_notifications: boolean
   sms_notifications: boolean
   marketing_notifications: boolean
+  preferred_language: 'en' | 'fr' | 'ha'
 }
 
 // Auth response types
@@ -60,6 +61,7 @@ export interface RegisterRequest {
   last_name: string
   password: string
   password_confirm: string
+  preferred_language?: 'en' | 'fr' | 'ha'
 }
 
 export interface PasswordChangeRequest {
@@ -98,6 +100,7 @@ export interface ProfileUpdateRequest {
   email_notifications?: boolean
   sms_notifications?: boolean
   marketing_notifications?: boolean
+  preferred_language?: 'en' | 'fr' | 'ha'
 }
 
 export interface ProfileUpdateResponse {

@@ -1,11 +1,12 @@
 "use client"
 
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import Image from 'next/image'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { useCategories } from '@/hooks/useCategories'
 import { cn, getMediaUrl } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface CategoryCardProps {
   category: {
@@ -18,6 +19,7 @@ interface CategoryCardProps {
 }
 
 function CategoryCard({ category }: CategoryCardProps) {
+  const t = useTranslations('common')
   const [imageError, setImageError] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
 
@@ -64,7 +66,7 @@ function CategoryCard({ category }: CategoryCardProps) {
         </span>
         {typeof category.adsCount === 'number' && (
           <span className="text-[10px] text-gray-500 mt-0.5">
-            {category.adsCount} ads
+            {category.adsCount} {t('ads_count')}
           </span>
         )}
       </div>
@@ -73,6 +75,7 @@ function CategoryCard({ category }: CategoryCardProps) {
 }
 
 export default function CategoryGrid() {
+  const t = useTranslations('common')
   const { categoryTree, loading, error } = useCategories()
 
   const categories = useMemo(() => {
@@ -84,20 +87,20 @@ export default function CategoryGrid() {
       <div className="container">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-medium text-gray-900">Browse Categories</h2>
-            <p className="text-xs text-gray-500">Live data from the marketplace taxonomy.</p>
+            <h2 className="text-lg font-medium text-gray-900">{t('categories')}</h2>
+            <p className="text-xs text-gray-500">{t('hover_preview')}</p>
           </div>
           <Link
             href="/categories"
             className="text-xs font-semibold text-secondary hover:text-secondary/80"
           >
-            View all
+            {t('view_all')}
           </Link>
         </div>
 
         {loading && (
           <div className="py-6 flex justify-center">
-            <MarketplaceLoader inline size="sm" message="Loading categories..." />
+            <MarketplaceLoader inline size="sm" message={t('loading')} />
           </div>
         )}
 
@@ -108,7 +111,7 @@ export default function CategoryGrid() {
         )}
 
         {!loading && !error && categories.length === 0 && (
-          <div className="text-sm text-gray-500">No categories available yet.</div>
+          <div className="text-sm text-gray-500">{t('no_categories')}</div>
         )}
 
         {!loading && !error && categories.length > 0 && (

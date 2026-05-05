@@ -1,17 +1,19 @@
 "use client"
 
 import type React from 'react'
-import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { Link, usePathname } from '@/i18n/routing'
+import { useSearchParams } from 'next/navigation'
 import { Bell, Home, MessageCircleMore, Plus, UserRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/authStore'
 import { useChats } from '@/hooks/useChat'
+import { useTranslations } from 'next-intl'
 
 const navBase =
   'flex flex-col items-center justify-center text-[11px] font-medium transition-colors'
 
 export default function MobileBottomNav() {
+  const t = useTranslations('nav')
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { isAuthenticated, user } = useAuthStore()
@@ -28,25 +30,25 @@ export default function MobileBottomNav() {
   const navItems = [
     {
       key: 'home',
-      label: 'Home',
+      label: t('home'),
       href: '/',
       icon: Home,
     },
     {
       key: 'notifications',
-      label: 'Alerts',
+      label: t('alerts'),
       href: notificationsHref,
       icon: Bell,
     },
     {
       key: 'chats',
-      label: 'Chats',
+      label: t('chats'),
       href: chatsHref,
       icon: MessageCircleMore,
     },
     {
       key: 'profile',
-      label: 'Profile',
+      label: t('profile'),
       href: profileHref,
       icon: UserRound,
     },
@@ -81,7 +83,7 @@ export default function MobileBottomNav() {
             >
               <Plus className="h-6 w-6 stroke-[3px]" />
             </Link>
-            <span className="text-[10px] font-bold text-gray-400 mt-1">Post</span>
+            <span className="text-[10px] font-bold text-gray-400 mt-1">{t('post')}</span>
           </div>
 
           {/* Chats */}

@@ -1,6 +1,6 @@
 from .user import User
-from .category import Category
-from .ad import Ad, AdView
+from .category import Category, CategoryTranslation
+from .ad import Ad, AdView, AdTranslation
 from .review import Review
 from .notification import Notification
 from .chat import Chat, Message, UserOnlineStatus
@@ -14,5 +14,14 @@ from .promotion import Promotion
 from .promotion_package import PromotionPackage
 from .transaction import Transaction
 
-__all__ = ['User', 'Category', 'Ad', 'AdView', 'Review', 'Notification', 'Chat', 'Message', 'UserOnlineStatus', 'SavedAd', 'Region', 'Lead', 'KYCVerification', 'SearchQuery', 'Report', 'SupportMessage', 'Promotion', 'PromotionPackage', 'Transaction']
-
+__all__ = [
+    'User', 
+    'Category', 'CategoryTranslation',
+    'Ad', 'AdView', 'AdTranslation',
+    'Review', 'Notification', 
+    'Chat', 'Message', 'UserOnlineStatus', 
+    'SavedAd', 'Region', 'Lead', 
+    'KYCVerification', 'SearchQuery', 
+    'Report', 'SupportMessage', 
+    'Promotion', 'PromotionPackage', 'Transaction'
+]

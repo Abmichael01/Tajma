@@ -13,6 +13,8 @@ import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import AppText from "@/components/ui/AppText";
 
+import { useTranslation } from "react-i18next";
+
 // ─── Reusable SearchBar (unchanged API — used by home.tsx and the sticky header)
 export function SearchBar({
   searchQuery,
@@ -33,6 +35,7 @@ export function SearchBar({
   showRegion?: boolean;
   showFilter?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <View className="flex-row gap-2">
       {/* Search Input */}
@@ -40,7 +43,7 @@ export function SearchBar({
         <Ionicons name="search-outline" size={20} color="#9ca3af" style={{ marginRight: 8 }} />
         <TextInput
           className="flex-1 text-base text-gray-900 py-1"
-          placeholder="Search..."
+          placeholder={t('search.placeholder')}
           placeholderTextColor="#9ca3af"
           value={searchQuery}
           onChangeText={setSearchQuery}

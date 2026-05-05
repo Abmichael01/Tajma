@@ -35,8 +35,10 @@ import { useReviewStats } from "@/hooks/useReviews";
 import CustomAlert from "@/components/ui/CustomAlert";
 import { useAlert } from "@/hooks/useAlert";
 import ReportAdModal from "@/components/ads/ReportAdModal";
+import { useTranslation } from "react-i18next";
 
 export default function AdsDetailScreen() {
+  const { t } = useTranslation();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -104,17 +106,17 @@ export default function AdsDetailScreen() {
           weight="bold"
           className="mt-4 mb-2 text-gray-900"
         >
-          Ad Not Found
+          {t('ads.loadError')}
         </AppText>
         <AppText variant="default" className="text-gray-600 text-center mb-6">
-          The ad you're looking for doesn't exist or has been removed.
+          {t('ads.loadErrorDesc')}
         </AppText>
         <TouchableOpacity
           onPress={() => router.back()}
           className="bg-primary px-6 py-3 rounded-lg"
         >
           <AppText weight="semibold" className="text-white">
-            Go Back
+            {t('common.goBack')}
           </AppText>
         </TouchableOpacity>
       </View>
@@ -234,12 +236,12 @@ export default function AdsDetailScreen() {
                     router.push(`/messages/${chat.id}`);
                   } catch (error) {
                     showAlert({
-                      title: "Error",
+                      title: t('common.error'),
                       message:
-                        "Failed to start conversation. Please try again.",
+                        t('chat.startError'),
                       icon: "alert-circle-outline",
                       iconColor: "#ef4444",
-                      buttons: [{ text: "OK" }],
+                      buttons: [{ text: t('common.ok') }],
                     });
                   }
                 }
@@ -255,7 +257,7 @@ export default function AdsDetailScreen() {
                     color="white"
                   />
                   <AppText weight="bold" className="text-white ml-2 text-lg">
-                    Chat
+                    {t('ads.chat')}
                   </AppText>
                 </>
               )}
@@ -286,7 +288,7 @@ export default function AdsDetailScreen() {
           >
             <Ionicons name="create-outline" size={22} color="white" />
             <AppText weight="bold" className="text-white ml-2 text-lg">
-              Edit Listing
+              {t('ads.editListing')}
             </AppText>
           </TouchableOpacity>
         )}

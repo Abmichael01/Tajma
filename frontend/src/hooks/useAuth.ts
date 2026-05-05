@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/authStore'
 import type { LoginRequest, RegisterRequest, PasswordChangeRequest, ProfileUpdateRequest } from '@/api/types'
@@ -33,6 +33,20 @@ export const useLogin = (redirectTo: string = '/') => {
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] })
       
+      // Set NEXT_LOCALE cookie based on preference
+      if (response.user.preferred_language) {
+        document.cookie = `NEXT_LOCALE=${response.user.preferred_language}; path=/; max-age=31536000; SameSite=Lax`;
+        
+        // If we are not already on the preferred language path, force redirect
+        // This is a bit tricky with redirectTo, but usually redirectTo is a relative path without locale
+        const pref = response.user.preferred_language;
+        // Simple heuristic: if redirectTo is '/', use the pref
+        if (redirectTo === '/') {
+          window.location.href = `/${pref}`;
+          return;
+        }
+      }
+
       // Redirect to specified path or home
       router.push(redirectTo)
     },
@@ -60,8 +74,14 @@ export const useRegister = () => {
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: ['user'] })
       
-      // Redirect to home
-      router.push('/')
+      // Set NEXT_LOCALE cookie based on preference
+      if (response.user.preferred_language) {
+        document.cookie = `NEXT_LOCALE=${response.user.preferred_language}; path=/; max-age=31536000; SameSite=Lax`;
+        window.location.href = `/${response.user.preferred_language}`;
+      } else {
+        // Redirect to home
+        router.push('/')
+      }
     },
     onError: (error: any) => {
       console.error('Registration error:', error)
@@ -191,9 +211,14 @@ export const useGoogleLogin = () => {
         ? { access: response.access, refresh: response.refresh } 
         : undefined
       setAuthUser(response.user, tokens)
+      
+      // Set NEXT_LOCALE cookie based on preference
+      const pref = response.user.preferred_language || 'fr';
+      document.cookie = `NEXT_LOCALE=${pref}; path=/; max-age=31536000; SameSite=Lax`;
+      
       // Use full page reload instead of SPA navigation — ensures session cookie is
       // fully committed before the app reinitialises (standard practice for OAuth callbacks)
-      window.location.href = '/'
+      window.location.href = `/${pref}`
     },
     onError: (error: any) => {
       console.error('Google login error:', error)

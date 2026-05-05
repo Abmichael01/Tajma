@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowRight, ArrowUp, ShoppingBag } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { Ad } from "@/api/types";
@@ -9,6 +9,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useToggleSaveAd } from "@/hooks/useSavedAds";
 import { useAuthStore } from "@/store/authStore";
 import AdCard, { getAdCategoryName } from "./AdCard";
+import { useTranslations } from "next-intl";
 
 interface AdsListProps {
   ads: Ad[];
@@ -24,13 +25,13 @@ type SortOption =
   | "views"
   | "title";
 
-const sortOptions = [
-  { value: "newest", label: "Newest First" },
-  { value: "oldest", label: "Oldest First" },
-  { value: "price-low", label: "Price: Low to High" },
-  { value: "price-high", label: "Price: High to Low" },
-  { value: "views", label: "Most Viewed" },
-  { value: "title", label: "Title A-Z" },
+const getSortOptions = (t: any) => [
+  { value: "newest", label: t("newest_first") },
+  { value: "oldest", label: t("oldest_first") },
+  { value: "price-low", label: t("price_low_high") },
+  { value: "price-high", label: t("price_high_low") },
+  { value: "views", label: t("most_viewed") },
+  { value: "title", label: t("title_az") },
 ];
 
 // Sort function for backend Ad format
@@ -80,6 +81,7 @@ export default function AdsList({
   columns = 4,
   className = "",
 }: AdsListProps) {
+  const t = useTranslations("common");
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { categoryTree } = useCategories();
@@ -100,7 +102,7 @@ export default function AdsList({
     if (isAuthenticated) {
       toggleSaveAd(adId);
     } else {
-      toast.error("Please login to save ads");
+      toast.error(t("login_to_save"));
       router.push("/login");
     }
   };
@@ -191,7 +193,7 @@ export default function AdsList({
   const renderAdCard = (ad: Ad) => {
     const categoryName =
       ad.category_details?.name ||
-      (ad.category ? getCategoryName(ad.category) : "Uncategorized");
+      (ad.category ? getCategoryName(ad.category) : t("uncategorized"));
 
     return (
       <AdCard
@@ -212,16 +214,16 @@ export default function AdsList({
       >
         <ShoppingBag className="w-10 h-10 text-gray-300" strokeWidth={1.5} />
         <div>
-          <p className="text-base font-medium text-gray-700">No ads yet</p>
+          <p className="text-base font-medium text-gray-700">{t('no_ads_yet')}</p>
           <p className="text-sm text-gray-400 mt-1">
-            Be the first to post something!
+            {t('be_the_first')}
           </p>
         </div>
         <a
           href="/create-ad"
           className="mt-2 text-sm font-semibold text-primary hover:underline flex items-center gap-1"
         >
-          Post an Ad <ArrowRight className="w-4 h-4" />
+          {t('post_an_ad')} <ArrowRight className="w-4 h-4" />
         </a>
       </div>
     );
@@ -232,14 +234,14 @@ export default function AdsList({
       {/* Sort Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-start gap-4 mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Sort by:</span>
+          <span className="text-sm text-gray-600">{t('sort_by')}:</span>
           <div className="relative">
             <button
               type="button"
               onClick={() => setIsSortOpen(!isSortOpen)}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 hover:border-secondary rounded-full transition-colors text-sm whitespace-nowrap"
             >
-              {sortOptions.find((option) => option.value === sortBy)?.label}
+              {getSortOptions(t).find((option) => option.value === sortBy)?.label}
               {isSortOpen ? (
                 <ArrowUp className="w-4 h-4" />
               ) : (
@@ -249,7 +251,7 @@ export default function AdsList({
 
             {isSortOpen && (
               <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl z-10 overflow-hidden">
-                {sortOptions.map((option) => (
+                {getSortOptions(t).map((option) => (
                   <button
                     type="button"
                     key={option.value}

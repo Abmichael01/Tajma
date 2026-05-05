@@ -10,6 +10,7 @@ import * as NavigationBar from "expo-navigation-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
+import "@/i18n";
 import QueryProvider from "@/providers/QueryProvider";
 import { useAuthStore } from "@/store/authStore";
 import AppSplashScreenComponent from "@/components/ui/SplashScreen";

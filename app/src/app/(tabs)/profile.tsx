@@ -12,11 +12,10 @@ import { useAuthStore } from "@/store/authStore";
 import { useLogout, useCurrentUser } from "@/hooks/useAuth";
 import { useUserAds } from "@/hooks/useAds";
 import { useSavedAds } from "@/hooks/useSavedAds";
-import { useKYC } from "@/hooks/useKYC";
-
-const { width } = Dimensions.get('window');
+import { useTranslation } from "react-i18next";
 
 export default function ProfileScreen() {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
   const { data: currentUser } = useCurrentUser();
@@ -38,13 +37,13 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     showAlert({
-      title: "Logout",
-      message: "Are you sure you want to logout?",
+      title: t('profile.logoutConfirmTitle'),
+      message: t('profile.logoutConfirmMessage'),
       icon: "log-out-outline",
       iconColor: "#ef4444",
       buttons: [
-        { text: "Cancel", style: "cancel" },
-        { text: "Logout", style: "destructive", onPress: () => logoutMutation.mutate() },
+        { text: t('common.cancel'), style: "cancel" },
+        { text: t('profile.logoutConfirmTitle'), style: "destructive", onPress: () => logoutMutation.mutate() },
       ]
     });
   };
@@ -64,21 +63,7 @@ export default function ProfileScreen() {
   // Advanced Stats Calculation
   const ads = allAds || [];
   const totalAds = ads.length;
-  const activeAds = ads.filter((ad: any) => ad.status === 'published').length;
-  const soldItems = ads.filter((ad: any) => ad.status === 'archived').length;
-  const totalViews = ads.reduce((sum: number, ad: any) => sum + (ad.views || 0), 0);
-  const responseRate = extendedUser.response_stats?.response_rate_1h ?? 0;
-  const savedAdsCount = savedAdsData?.count || 0;
   
-  const joinedDays = (() => {
-    if (!displayUser.date_joined) return 0;
-    const joined = new Date(displayUser.date_joined);
-    if (isNaN(joined.getTime())) return 0;
-    const diff = Date.now() - joined.getTime();
-    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-  })();
-
-
   return (
     <View className="flex-1 bg-gray-50/50">
       <StatusBar style="light" />
@@ -93,9 +78,8 @@ export default function ProfileScreen() {
         {/* Overscroll Background */}
         <View className="absolute top-[-1000px] left-0 right-0 h-[1000px]" style={{ backgroundColor: '#1e1e1e' }} />
 
-        {/* Immersive Mesh Gradient Header (Matches Web) */}
+        {/* Mesh Gradient Header */}
         <View style={{ height: 260, backgroundColor: '#0f1115', overflow: 'hidden' }}>
-          {/* Top Right Glow */}
           <View 
             style={{ 
               position: 'absolute', 
@@ -109,20 +93,6 @@ export default function ProfileScreen() {
             }} 
           />
           
-          {/* Bottom Left Glow */}
-          <View 
-            style={{ 
-              position: 'absolute', 
-              bottom: -100, 
-              left: -100, 
-              width: 300, 
-              height: 300, 
-              borderRadius: 150, 
-              backgroundColor: 'rgba(255, 79, 24, 0.08)',
-            }} 
-          />
-
-          {/* Main Gradient Overlay */}
           <LinearGradient
             colors={['rgba(17, 24, 39, 0.4)', 'rgba(255, 79, 24, 0.05)', 'rgba(255, 79, 24, 0.15)']}
             start={{ x: 0, y: 0 }}
@@ -130,14 +100,8 @@ export default function ProfileScreen() {
             style={{ position: 'absolute', inset: 0 }}
           />
 
-          {/* Bottom Fade */}
-          <LinearGradient
-            colors={['transparent', 'rgba(0, 0, 0, 0.3)']}
-            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80 }}
-          />
-
           <View className="pt-16 px-6 flex-row justify-between items-center relative z-10">
-            <AppText weight="bold" className="text-white text-xl">Account</AppText>
+            <AppText weight="bold" className="text-white text-xl">{t('common.profile')}</AppText>
             <TouchableOpacity
               onPress={() => router.push("/settings")}
               className="w-10 h-10 rounded-full bg-white/10 items-center justify-center"
@@ -174,24 +138,21 @@ export default function ProfileScreen() {
                   >
                     <Ionicons name="shield-checkmark-outline" size={14} color="#FF4F18" />
                     <AppText className="text-primary text-[10px] ml-1 font-bold uppercase">
-                      {displayUser.kyc_status === 'pending' ? 'Pending' : 'Verify'}
+                      {displayUser.kyc_status === 'pending' ? t('profile.pending') : t('profile.verifyIdentity')}
                     </AppText>
                   </TouchableOpacity>
                 )}
               </View>
               <AppText className="text-gray-500 font-medium text-sm mt-1">{displayUser.email}</AppText>
-              {displayUser.bio && (
-                <AppText className="text-gray-500 text-center mt-2 px-10 text-xs" numberOfLines={2}>{displayUser.bio}</AppText>
-              )}
             </View>
           </View>
 
-          {/* Stats Bar (Restored) */}
+          {/* Stats Bar */}
           <View className="flex-row bg-white rounded-[32px] p-6 mt-8 border border-gray-100 justify-between">
             {[
-              { label: 'Listings', value: totalAds },
-              { label: 'Reviews', value: totalReviews },
-              { label: 'Reputation', value: avgRating.toFixed(1) },
+              { label: t('profile.listings'), value: totalAds },
+              { label: t('profile.reviews'), value: totalReviews },
+              { label: t('profile.reputation'), value: avgRating.toFixed(1) },
             ].map((stat, i) => (
               <View key={i} className={`items-center flex-1 ${i < 2 ? 'border-r border-gray-50' : ''}`}>
                 <AppText weight="bold" className="text-primary text-xl">{stat.value}</AppText>
@@ -203,14 +164,14 @@ export default function ProfileScreen() {
           {/* Performance Highlight Link */}
           <TouchableOpacity 
             onPress={() => router.push("/profile/analytics")}
-            className="mt-4 bg-white p-5 rounded-full flex-row items-center"
+            className="mt-6 bg-white p-5 rounded-[24px] flex-row items-center border border-gray-100"
           >
-            <View className="w-10 h-10 rounded-full bg-gray-50 items-center justify-center">
+            <View className="w-10 h-10 rounded-full bg-primary/5 items-center justify-center">
                 <Ionicons name="bar-chart-outline" size={22} color="#FF4F18" />
             </View>
             <View className="ml-4 flex-1">
-                <AppText weight="bold" className="text-gray-900">Performance Insights</AppText>
-                <AppText className="text-gray-500 text-[10px]">Track your reach and trust score</AppText>
+                <AppText weight="bold" className="text-gray-900">{t('profile.analytics')}</AppText>
+                <AppText className="text-gray-500 text-[10px]">{t('profile.analyticsDesc')}</AppText>
             </View>
             <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
           </TouchableOpacity>
@@ -218,71 +179,45 @@ export default function ProfileScreen() {
 
         {/* Content Section */}
         <View className="mt-8">
-          {/* Quick Actions List */}
+          {/* Main Actions */}
           <View className="px-6 space-y-3">
             {[
-              { id: 'ads', label: 'My Ads', icon: 'grid-outline', route: '/profile/my-ads', color: '#FF4F18' },
-              { id: 'leads', label: 'Potential Clients', icon: 'people-outline', route: '/profile/leads', color: '#10b981' },
-              { id: 'inbox', label: 'Inbox', icon: 'chatbubbles-outline', route: '/chat', color: '#FF4F18' },
-              { id: 'favorites', label: 'Wishlist', icon: 'heart-outline', route: '/profile/saved', color: '#FF4F18' },
-              { id: 'reviews', label: 'Reviews', icon: 'star-outline', route: '/profile/reviews', color: '#FF4F18' },
+              { id: 'ads', label: t('profile.myAds'), icon: 'grid-outline', route: '/profile/my-ads', color: '#FF4F18' },
+              { id: 'leads', label: t('profile.leads'), icon: 'people-outline', route: '/profile/leads', color: '#10b981' },
+              { id: 'favorites', label: t('profile.wishlist'), icon: 'heart-outline', route: '/profile/saved', color: '#FF4F18' },
+              { id: 'language', label: t('profile.language'), icon: 'globe-outline', route: '/settings/language', color: '#3b82f6', value: i18n.language.toUpperCase() },
             ].map(item => (
               <TouchableOpacity
                 key={item.id}
                 onPress={() => router.push(item.route as any)}
-                className="bg-white p-5 rounded-full flex-row items-center border border-gray-100"
+                className="bg-white p-5 rounded-[24px] flex-row items-center border border-gray-100"
               >
-                <View className="w-10 h-10 rounded-full bg-white items-center justify-center">
+                <View className="w-10 h-10 rounded-full items-center justify-center bg-gray-50">
                   <Ionicons name={item.icon as any} size={22} color={item.color} />
                 </View>
                 <AppText weight="bold" className="text-gray-800 ml-4 flex-1">{item.label}</AppText>
+                {(item as any).value && (
+                    <AppText weight="bold" className="text-gray-400 text-xs mr-2">{(item as any).value}</AppText>
+                )}
                 <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
               </TouchableOpacity>
             ))}
           </View>
 
-          {/* Recent Ads Section - Visual Preview */}
-          {ads && ads.length > 0 && (
-            <View className="mt-10 mb-6">
-              <View className="px-6 flex-row justify-between items-center mb-4">
-                <AppText weight="bold" className="text-gray-900 text-lg">My Recent Listings</AppText>
-                <TouchableOpacity onPress={() => router.push("/profile/my-ads")}>
-                  <AppText weight="bold" className="text-secondary text-sm">See All</AppText>
-                </TouchableOpacity>
-              </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingLeft: 24, paddingRight: 12 }}
-              >
-                {ads.slice(0, 5).map((ad: any) => (
-                  <TouchableOpacity
-                    key={ad.id}
-                    className="mr-3 w-40 bg-white rounded-2xl overflow-hidden border border-gray-100"
-                    onPress={() => router.push(`/ads/${ad.slug}`)}
-                  >
-                    <Image source={{ uri: ad.images?.[0] }} className="w-full h-24 bg-gray-100" />
-                    <View className="p-3">
-                      <AppText weight="bold" className="text-gray-900 text-xs" numberOfLines={1}>{ad.title}</AppText>
-                      <AppText className="text-secondary font-bold text-xs mt-1">{ad.currency} {ad.price}</AppText>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-
-          {/* Support Section */}
+          {/* Support & Legal Section */}
           <View className="px-6 mt-8 pb-32 space-y-3">
+            <AppText weight="bold" className="text-gray-400 text-[10px] uppercase tracking-widest ml-4 mb-2">
+                {t('profile.supportLegal')}
+            </AppText>
             {[
-              { label: 'Help & Support', icon: 'help-circle-outline', route: '/profile/support' },
-              { label: 'Legal Terms', icon: 'document-text-outline', route: '/legal' },
-              { label: 'Share App', icon: 'share-social-outline', route: '/share' },
+              { label: t('profile.helpSupport'), icon: 'help-circle-outline', route: '/profile/support' },
+              { label: t('profile.legalTerms'), icon: 'document-text-outline', route: '/legal' },
+              { label: t('profile.shareApp'), icon: 'share-social-outline', route: '/share' },
             ].map((item, i) => (
               <TouchableOpacity
                 key={i}
                 onPress={() => item.route && router.push(item.route as any)}
-                className="flex-row items-center p-5 bg-white rounded-full border border-gray-100"
+                className="flex-row items-center p-5 bg-white rounded-[24px] border border-gray-100"
               >
                 <View className="w-10 h-10 rounded-full bg-gray-50 items-center justify-center">
                   <Ionicons name={item.icon as any} size={22} color="#64748b" />
@@ -291,12 +226,13 @@ export default function ProfileScreen() {
                 <Ionicons name="chevron-forward" size={18} color="#cbd5e1" />
               </TouchableOpacity>
             ))}
+            
             <TouchableOpacity
               onPress={handleLogout}
-              className="mt-8 flex-row items-center justify-center p-5 bg-white rounded-full border border-red-100"
+              className="mt-8 flex-row items-center justify-center p-5 bg-white rounded-[24px] border border-red-50"
             >
               <Ionicons name="log-out-outline" size={24} color="#dc2626" />
-              <AppText weight="bold" className="text-red-600 ml-3">Sign Out Account</AppText>
+              <AppText weight="bold" className="text-red-600 ml-3">{t('profile.signOut')}</AppText>
             </TouchableOpacity>
           </View>
         </View>

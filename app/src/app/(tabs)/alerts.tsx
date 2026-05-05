@@ -20,14 +20,15 @@ import {
 import { useAuthStore } from "@/store/authStore";
 import Skeleton from "@/components/ui/Skeleton";
 import ScreenHeader from "@/components/ui/ScreenHeader";
+import { useTranslation } from "react-i18next";
 
 const NOTIFICATION_TYPES = [
-  { label: "All", value: "all", icon: "apps-outline" },
-  { label: "Messages", value: "message", icon: "chatbubble-ellipses-outline" },
-  { label: "Views", value: "ad_view", icon: "eye-outline" },
-  { label: "Favorites", value: "favorite", icon: "heart-outline" },
-  { label: "Leads", value: "phone_view", icon: "call-outline" },
-  { label: "Status", value: "ad_status", icon: "information-circle-outline" },
+  { label: "alerts.types.all", value: "all", icon: "apps-outline" },
+  { label: "alerts.types.message", value: "message", icon: "chatbubble-ellipses-outline" },
+  { label: "alerts.types.ad_view", value: "ad_view", icon: "eye-outline" },
+  { label: "alerts.types.favorite", value: "favorite", icon: "heart-outline" },
+  { label: "alerts.types.phone_view", value: "phone_view", icon: "call-outline" },
+  { label: "alerts.types.ad_status", value: "ad_status", icon: "information-circle-outline" },
 ];
 
 const getNotificationIcon = (type: string) => {
@@ -67,6 +68,7 @@ const formatTimeAgo = (timestamp: string) => {
 };
 
 export default function AlertsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { data: notifications, isLoading, refetch } = useNotifications();
@@ -122,20 +124,20 @@ export default function AlertsScreen() {
           weight="bold"
           className="mt-4 mb-2 text-3xl text-gray-900"
         >
-          Sign In Required
+          {t('auth.signInRequired')}
         </AppText>
         <AppText
           variant="default"
           className="text-gray-600 text-center mb-6 text-lg"
         >
-          Please sign in to view your alerts and notifications.
+          {t('auth.signInRequiredDesc')}
         </AppText>
         <TouchableOpacity
           onPress={() => router.push("/(auth)/login")}
           className="bg-primary px-8 py-4 rounded-full"
         >
           <AppText weight="semibold" className="text-white text-lg">
-            Sign In
+            {t('auth.signIn')}
           </AppText>
         </TouchableOpacity>
       </View>
@@ -150,8 +152,8 @@ export default function AlertsScreen() {
       <StatusBar style="light" />
       {/* Header */}
       <ScreenHeader
-        title="Alerts"
-        subtitle={unreadCount > 0 ? `${unreadCount} new requests` : undefined}
+        title={t('common.alerts')}
+        subtitle={unreadCount > 0 ? t('alerts.newRequests', { count: unreadCount }) : undefined}
         showBackButton={false}
       />
 
@@ -184,7 +186,7 @@ export default function AlertsScreen() {
                   selectedType === type.value ? "text-white" : "text-slate-500"
                 }`}
               >
-                {type.label}
+                {t(type.label)}
               </AppText>
             </TouchableOpacity>
           ))}
@@ -197,7 +199,7 @@ export default function AlertsScreen() {
           >
             <Ionicons name="checkmark-done" size={20} color="#FF4F18" />
             <AppText weight="bold" className="text-[#FF4F18] text-sm uppercase">
-              Mark all as read
+              {t('alerts.markAllRead')}
             </AppText>
           </TouchableOpacity>
         )}
@@ -249,8 +251,8 @@ export default function AlertsScreen() {
             className="text-gray-300 mt-6 text-xl text-center"
           >
             {selectedType === "all"
-              ? "No notifications yet"
-              : `No ${selectedType} alerts found`}
+              ? t('alerts.noNotifications')
+              : t('alerts.noTypeAlerts', { type: selectedType })}
           </AppText>
           {selectedType !== "all" && (
             <TouchableOpacity
@@ -258,7 +260,7 @@ export default function AlertsScreen() {
               className="mt-4"
             >
               <AppText className="text-primary font-bold">
-                Clear Filters
+                {t('alerts.clearFilters')}
               </AppText>
             </TouchableOpacity>
           )}

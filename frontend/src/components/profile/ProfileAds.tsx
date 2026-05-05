@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import Image from 'next/image'
 import { Plus, MapPin, Eye, Heart, MessageSquare, Edit, MoreVertical, FileText, Zap } from 'lucide-react'
 import AdDetailsModal from './AdDetailsModal'

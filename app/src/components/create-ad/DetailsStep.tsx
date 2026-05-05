@@ -1,19 +1,18 @@
 import React from 'react';
 import { View, Switch, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import AppText from '../ui/AppText';
 import Input from '../ui/Input';
 import TextArea from '../ui/TextArea';
-import AppText from '../ui/AppText';
 import AdImagePicker from './AdImagePicker';
-import DynamicFormFields from './DynamicFormFields';
-import { CustomFieldConfig } from '@/data/categoriesData';
 
 interface DetailsStepProps {
   formData: any;
   errors: any;
   images: string[];
-  dynamicFields: CustomFieldConfig[] | string[];
-  onInputChange: (field: string, value: any) => void;
+  dynamicFields: any[];
+  onInputChange: (name: string, value: any) => void;
   onImagesChange: (images: string[]) => void;
   onOpenMapPicker: () => void;
 }
@@ -25,24 +24,26 @@ export default function DetailsStep({
   dynamicFields,
   onInputChange,
   onImagesChange,
-  onOpenMapPicker,
+  onOpenMapPicker
 }: DetailsStepProps) {
+  const { t } = useTranslation();
+
   return (
-    <View className="pb-20">
-
-      {/* Dynamic Fields */}
-      <DynamicFormFields
-        formData={formData}
-        customFields={dynamicFields}
-        onInputChange={onInputChange}
-      />
-
+    <View className="flex-1">
       {/* Price Section */}
       <View className="mb-6">
-        <View className="mb-6">
-          <AppText className="mb-2 text-gray-700 font-medium">Price (XOF)</AppText>
+        <View className="flex-row items-center justify-between mb-2">
+          <AppText className="text-gray-700 font-medium">{t('create_ad.fields.price')}</AppText>
+          {formData.isNegotiable && !formData.contactForPrice && (
+            <View className="bg-primary/10 px-2 py-0.5 rounded-md">
+              <AppText className="text-primary text-[10px] font-bold uppercase">{t('create_ad.fields.negotiable')}</AppText>
+            </View>
+          )}
+        </View>
+
+        <View className="mb-4">
           <Input
-            placeholder={formData.contactForPrice ? "Contact for Price" : "0"}
+            placeholder={t('create_ad.fields.pricePlaceholder')}
             keyboardType="numeric"
             value={formData.price}
             onChangeText={(value) => onInputChange('price', value)}
@@ -57,8 +58,8 @@ export default function DetailsStep({
         <View className="bg-gray-50 rounded-3xl p-5 space-y-5 border border-gray-100">
           <View className="flex-row justify-between items-center">
             <View>
-              <AppText className="text-gray-900 font-medium text-base">Contact for price</AppText>
-              <AppText className="text-gray-500 text-xs mt-0.5">Hide price from listing</AppText>
+              <AppText className="text-gray-900 font-medium text-base">{t('create_ad.fields.contactForPrice')}</AppText>
+              <AppText className="text-gray-500 text-xs mt-0.5">{t('create_ad.fields.contactForPrice')}</AppText>
             </View>
             <Switch
               value={formData.contactForPrice}
@@ -73,8 +74,8 @@ export default function DetailsStep({
           {!formData.contactForPrice && (
             <View className="flex-row justify-between items-center pt-5 border-t border-gray-200">
               <View>
-                <AppText className="text-gray-900 font-medium text-base">Negotiable</AppText>
-                <AppText className="text-gray-500 text-xs mt-0.5">Open to offers</AppText>
+                <AppText className="text-gray-900 font-medium text-base">{t('create_ad.fields.negotiable')}</AppText>
+                <AppText className="text-gray-500 text-xs mt-0.5">{t('create_ad.fields.negotiable')}</AppText>
               </View>
               <Switch
                 value={formData.isNegotiable}
@@ -89,17 +90,17 @@ export default function DetailsStep({
       {/* Location */}
       <View className="mb-6">
         <View className="flex-row items-center justify-between mb-2">
-          <AppText className="text-gray-700 font-medium">Location</AppText>
+          <AppText className="text-gray-700 font-medium">{t('create_ad.fields.location')}</AppText>
           <TouchableOpacity 
             onPress={onOpenMapPicker}
             className="flex-row items-center bg-primary/10 px-3 py-1.5 rounded-full"
           >
             <Ionicons name="map-outline" size={14} color="#FF4F18" />
-            <AppText weight="bold" className="text-primary text-[10px] ml-1 uppercase">Pick on Map</AppText>
+            <AppText weight="bold" className="text-primary text-[10px] ml-1 uppercase">{t('search.allRegions')}</AppText>
           </TouchableOpacity>
         </View>
         <Input
-          placeholder="e.g. Niamey, Plateau"
+          placeholder={t('create_ad.fields.locationPlaceholder')}
           value={formData.location}
           onChangeText={(value) => onInputChange('location', value)}
           error={!!errors.location}
@@ -111,7 +112,7 @@ export default function DetailsStep({
         />
         {formData.latitude && formData.longitude && (
           <AppText className="text-[10px] text-gray-400 mt-1 ml-2 font-medium italic">
-            Coordinates saved: {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
+            {t('create_ad.fields.location')}: {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
           </AppText>
         )}
         {errors.location && <AppText className="text-red-500 text-xs mt-1 ml-2">{errors.location}</AppText>}
@@ -119,9 +120,9 @@ export default function DetailsStep({
 
       {/* Description */}
       <View className="mb-8">
-        <AppText className="mb-2 text-gray-700 font-medium">Description</AppText>
+        <AppText className="mb-2 text-gray-700 font-medium">{t('create_ad.fields.description')}</AppText>
         <TextArea
-          placeholder="Describe your item in detail—condition, features, reason for selling..."
+          placeholder={t('create_ad.fields.descriptionPlaceholder')}
           value={formData.description}
           onChangeText={(value) => onInputChange('description', value)}
           error={!!errors.description}
@@ -137,8 +138,8 @@ export default function DetailsStep({
             <Ionicons name="images" size={20} color="#FF4F18" />
           </View>
           <View>
-            <AppText variant="heading" className="text-lg text-gray-900">Photos ({images.length}/10)</AppText>
-            <AppText className="text-gray-500 text-xs">Add up to 10 photos</AppText>
+            <AppText variant="heading" className="text-lg text-gray-900">{t('create_ad.actions.addPhotos')} ({images.length}/10)</AppText>
+            <AppText className="text-gray-500 text-xs">{t('create_ad.actions.addPhotos')}</AppText>
           </View>
         </View>
 

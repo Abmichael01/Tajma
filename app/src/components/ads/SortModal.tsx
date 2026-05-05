@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
@@ -19,21 +20,21 @@ interface SortModalProps {
   currentSort: SortOption;
 }
 
-const SORT_OPTIONS: { value: SortOption; label: string; icon: any }[] = [
-  { value: "newest", label: "Newest First", icon: "time-outline" },
-  { value: "oldest", label: "Oldest First", icon: "hourglass-outline" },
+const getSortOptions = (t: any): { value: SortOption; label: string; icon: any }[] => [
+  { value: "newest", label: t('ads.sort.newest'), icon: "time-outline" },
+  { value: "oldest", label: t('ads.sort.oldest'), icon: "hourglass-outline" },
   {
     value: "price-low",
-    label: "Price: Low to High",
+    label: t('ads.sort.price-low'),
     icon: "trending-up-outline",
   },
   {
     value: "price-high",
-    label: "Price: High to Low",
+    label: t('ads.sort.price-high'),
     icon: "trending-down-outline",
   },
-  { value: "views", label: "Most Viewed", icon: "eye-outline" },
-  { value: "title", label: "Title A-Z", icon: "text-outline" },
+  { value: "views", label: t('ads.sort.views'), icon: "eye-outline" },
+  { value: "title", label: t('ads.sort.title'), icon: "text-outline" },
 ];
 
 export default function SortModal({
@@ -42,6 +43,8 @@ export default function SortModal({
   onSelect,
   currentSort,
 }: SortModalProps) {
+  const { t } = useTranslation();
+  const SORT_OPTIONS = getSortOptions(t);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
@@ -55,7 +58,7 @@ export default function SortModal({
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      title="Sort By"
+      title={t('ads.sortBy')}
       onClose={onClose}
       snapPoints={["50%"]}
     >

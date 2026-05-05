@@ -3,13 +3,15 @@ import type { ChatMessage, ChatSummary } from '@/api/types'
 
 const DEFAULT_API_URL = 'http://localhost:8000'
 
-// Build WebSocket URL
-const buildWebSocketUrl = (): string => {
+// Build WebSocket URL with token
+const buildWebSocketUrl = (token?: string | null): string => {
   const base =
     process.env.NEXT_PUBLIC_WS_BASE_URL ||
     process.env.NEXT_PUBLIC_WS_URL ||
     (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(/^https?/, (match: string) => match === 'https' ? 'wss' : 'ws')
-  return `${base.replace(/\/$/, '')}/ws/chat/`
+  
+  const url = `${base.replace(/\/$/, '')}/ws/chat/`
+  return token ? `${url}?token=${token}` : url
 }
 
 interface ChatWebSocketState {
@@ -102,8 +104,10 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       return
     }
 
-    const wsUrl = buildWebSocketUrl()
-    console.log('🔌 Connecting to WebSocket:', wsUrl)
+    const { useAuthStore } = require('@/store/authStore')
+    const accessToken = useAuthStore.getState().accessToken
+    const wsUrl = buildWebSocketUrl(accessToken)
+    console.log('🔌 Connecting to WebSocket:', wsUrl.replace(/token=[^&]+/, 'token=***'))
 
     try {
       const socket = new WebSocket(wsUrl)

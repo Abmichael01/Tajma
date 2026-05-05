@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AppText from "@/components/ui/AppText";
@@ -45,9 +46,10 @@ export default function AdForm({
     initialData,
     onSubmit,
     isSubmitting,
-    submitLabel = "Publish Now",
+    submitLabel,
     mode = 'create'
 }: AdFormProps) {
+    const { t } = useTranslation();
     const { getCategoryBySlug } = useCategories();
     const insets = useSafeAreaInsets();
     const { alertConfig, showAlert, hideAlert } = useAlert();
@@ -116,17 +118,17 @@ export default function AdForm({
         if (typeof fields[0] === 'object' && 'name' in fields[0]) return fields;
 
         const fieldConfigs: Record<string, any> = {
-            brand: { name: 'brand', label: 'Brand', type: 'text' },
-            model: { name: 'model', label: 'Model', type: 'text' },
-            condition: { name: 'condition', label: 'Condition', type: 'select', options: conditionOptions },
-            year: { name: 'year', label: 'Year', type: 'number' },
-            mileage: { name: 'mileage', label: 'Mileage (km)', type: 'number' },
-            transmission: { name: 'transmission', label: 'Transmission', type: 'select', options: transmissionOptions },
-            fuel_type: { name: 'fuel_type', label: 'Fuel Type', type: 'select', options: fuelTypeOptions },
-            bedrooms: { name: 'bedrooms', label: 'Bedrooms', type: 'number' },
-            bathrooms: { name: 'bathrooms', label: 'Bathrooms', type: 'number' },
-            furnishing: { name: 'furnishing', label: 'Furnishing', type: 'select', options: furnishingOptions },
-            availability: { name: 'availability', label: 'Availability', type: 'select', options: availabilityOptions },
+            brand: { name: 'brand', label: t('create_ad.fields.brand'), type: 'text' },
+            model: { name: 'model', label: t('create_ad.fields.model'), type: 'text' },
+            condition: { name: 'condition', label: t('create_ad.fields.condition'), type: 'select', options: conditionOptions },
+            year: { name: 'year', label: t('create_ad.fields.year'), type: 'number' },
+            mileage: { name: 'mileage', label: t('create_ad.fields.mileage'), type: 'number' },
+            transmission: { name: 'transmission', label: t('create_ad.fields.transmission'), type: 'select', options: transmissionOptions },
+            fuel_type: { name: 'fuel_type', label: t('create_ad.fields.fuelType'), type: 'select', options: fuelTypeOptions },
+            bedrooms: { name: 'bedrooms', label: t('create_ad.fields.bedrooms'), type: 'number' },
+            bathrooms: { name: 'bathrooms', label: t('create_ad.fields.bathrooms'), type: 'number' },
+            furnishing: { name: 'furnishing', label: t('create_ad.fields.furnishing'), type: 'select', options: furnishingOptions },
+            availability: { name: 'availability', label: t('create_ad.fields.availability'), type: 'select', options: availabilityOptions },
         };
 
         return (fields as string[]).map(field => fieldConfigs[field] || { name: field, label: field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' '), type: 'text' });
@@ -136,10 +138,10 @@ export default function AdForm({
         const nextErrors: Record<string, string> = {};
 
         if (!formData.title.trim() || formData.title.trim().length < 5) {
-            nextErrors.title = "Title must be at least 5 characters";
+            nextErrors.title = t('create_ad.validation.titleMin');
             showAlert({
-                title: "Required",
-                message: "Please enter a valid title",
+                title: t('common.required'),
+                message: t('create_ad.validation.titleRequired'),
                 icon: "alert-circle-outline",
                 iconColor: "#FF4F18",
                 buttons: [{ text: "OK" }]
@@ -149,8 +151,8 @@ export default function AdForm({
 
         if (!formData.category) {
             showAlert({
-                title: "Required",
-                message: "Please select a category",
+                title: t('common.required'),
+                message: t('create_ad.validation.categoryRequired'),
                 icon: "list-outline",
                 iconColor: "#FF4F18",
                 buttons: [{ text: "OK" }]
@@ -160,8 +162,8 @@ export default function AdForm({
 
         if (images.length === 0) {
             showAlert({
-                title: "Required",
-                message: "Please add at least one photo",
+                title: t('common.required'),
+                message: t('create_ad.validation.photoRequired'),
                 icon: "camera-outline",
                 iconColor: "#FF4F18",
                 buttons: [{ text: "OK" }]
@@ -170,10 +172,10 @@ export default function AdForm({
         }
 
         if (!formData.description.trim() || formData.description.trim().length < 20) {
-            nextErrors.description = "Description must be at least 20 characters";
+            nextErrors.description = t('create_ad.validation.descriptionMin');
         }
         if (!formData.location.trim()) {
-            nextErrors.location = "Location is required";
+            nextErrors.location = t('create_ad.validation.locationRequired');
         }
 
         // Robust custom fields validation
@@ -183,11 +185,11 @@ export default function AdForm({
             if (field.required) {
                 if (field.type === 'array') {
                     if (!Array.isArray(value) || value.length === 0) {
-                        toastError(`${field.label} is required`);
+                        toastError(t('create_ad.validation.fieldRequired', { field: field.label }));
                         return false;
                     }
                 } else if (value === undefined || value === null || (typeof value === 'string' && !value.trim())) {
-                    toastError(`${field.label} is required`);
+                    toastError(t('create_ad.validation.fieldRequired', { field: field.label }));
                     return false;
                 }
             }
@@ -204,7 +206,7 @@ export default function AdForm({
 
     const toastError = (msg: string) => {
         showAlert({
-            title: "Required",
+            title: t('common.required'),
             message: msg,
             icon: "alert-circle-outline",
             iconColor: "#FF4F18",
@@ -312,7 +314,7 @@ export default function AdForm({
                         className="w-full"
                         style={{ backgroundColor: '#FF4F18' }}
                     >
-                        {submitLabel}
+                        {submitLabel || (mode === 'create' ? t('create_ad.actions.publish') : t('create_ad.actions.update'))}
                     </Button>
                 </View>
             </KeyboardAvoidingView>

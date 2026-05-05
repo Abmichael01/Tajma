@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useAuthStore } from '@/store/authStore'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ChevronLeft } from '@/components/icons/icons/ChevronLeft'

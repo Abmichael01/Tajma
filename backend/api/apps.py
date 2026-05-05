@@ -13,6 +13,7 @@ class ApiConfig(AppConfig):
         import api.signals.lead_signals  # noqa
         import api.signals.auth_signals  # noqa
         import api.signals.report_signals  # noqa
+        import api.signals.translation_signals  # noqa
         try:
             from api.utils.category_exporter import export_categories_to_json
 

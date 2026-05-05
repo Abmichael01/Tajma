@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useMemo, useEffect, useRef } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import ProfileTabs from '../ProfileTabs'
 import ProfileMobileView from '../ProfileMobileView'
 import { useUserAds } from '@/hooks/useAds'

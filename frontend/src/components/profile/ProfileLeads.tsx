@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { leadsApi } from '@/api/leads'
 import { Lead, LeadMonthlyStats, LeadSource } from '@/api/types'
 import { useAuthStore } from '@/store/authStore'

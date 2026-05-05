@@ -1,4 +1,5 @@
 import { View, TouchableOpacity, RefreshControl, ActivityIndicator, Linking, FlatList, Platform, Alert } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
@@ -8,20 +9,21 @@ import { useLeads } from "@/hooks/useLeads";
 import { useGetOrCreateChat } from "@/hooks/useChat";
 import { Lead, LeadSource } from "@/api/leads";
 
-const SOURCE_CONFIG: Record<LeadSource, { icon: string; label: string }> = {
-    phone_view:   { icon: 'call-outline',    label: 'Viewed number' },
-    profile_view: { icon: 'person-outline',  label: 'Visited profile' },
-    save_ad:      { icon: 'heart-outline',   label: 'Saved ad' },
+const SOURCE_CONFIG: Record<LeadSource, { icon: string; labelKey: string }> = {
+    phone_view:   { icon: 'call-outline',    labelKey: 'leads_interact.viewedNumber' },
+    profile_view: { icon: 'person-outline',  labelKey: 'leads_interact.visitedProfile' },
+    save_ad:      { icon: 'heart-outline',   labelKey: 'leads_interact.savedAd' },
 }
 
 function getInitials(firstName?: string, lastName?: string) {
     return ((firstName?.[0] ?? '') + (lastName?.[0] ?? '')).toUpperCase() || '?'
 }
 
-function LeadCard({ lead, onMessage, onIgnore }: {
+function LeadCard({ lead, onMessage, onIgnore, t }: {
     lead: Lead
     onMessage: (lead: Lead) => void
     onIgnore: (lead: Lead) => void
+    t: any
 }) {
     const sources = lead.sources_used?.length ? lead.sources_used : [lead.last_source]
 
@@ -45,7 +47,7 @@ function LeadCard({ lead, onMessage, onIgnore }: {
                             {lead.client_detail?.first_name} {lead.client_detail?.last_name}
                         </AppText>
                         <AppText className="text-gray-400 text-[10px] mt-0.5">
-                            Last seen {new Date(lead.last_interacted_at).toLocaleDateString()}
+                            {t('leads_interact.lastSeen', { date: new Date(lead.last_interacted_at).toLocaleDateString() })}
                         </AppText>
                     </View>
                 </View>
@@ -53,7 +55,7 @@ function LeadCard({ lead, onMessage, onIgnore }: {
                 <View className="flex-row items-center gap-2">
                     <View className={`px-3 py-1.5 rounded-full ${lead.messaged ? 'bg-green-50' : 'bg-primary/10'}`}>
                         <AppText weight="bold" className={`text-[10px] uppercase tracking-wider ${lead.messaged ? 'text-green-600' : 'text-primary'}`}>
-                            {lead.messaged ? 'Connected' : 'New Lead'}
+                            {lead.messaged ? t('leads_interact.connected') : t('leads_interact.newLead')}
                         </AppText>
                     </View>
                     {!lead.messaged && (
@@ -76,7 +78,7 @@ function LeadCard({ lead, onMessage, onIgnore }: {
                     return (
                         <View key={src} className="flex-row items-center gap-1 bg-gray-50 border border-gray-100 rounded-full px-2.5 py-1">
                             <Ionicons name={cfg.icon as any} size={11} color="#6b7280" />
-                            <AppText className="text-gray-500 text-[11px]">{cfg.label}</AppText>
+                            <AppText className="text-gray-500 text-[11px]">{t(cfg.labelKey)}</AppText>
                         </View>
                     )
                 })}
@@ -95,7 +97,7 @@ function LeadCard({ lead, onMessage, onIgnore }: {
                         <Ionicons name="pricetag" size={14} color="#FF4F18" />
                     </View>
                     <View className="flex-1">
-                        <AppText className="text-gray-500 text-[10px] uppercase font-bold">Interested In</AppText>
+                        <AppText className="text-gray-500 text-[10px] uppercase font-bold">{t('leads_interact.interestedIn')}</AppText>
                         <AppText weight="semibold" className="text-gray-900 text-xs" numberOfLines={1}>
                             {lead.ad_detail.title}
                         </AppText>
@@ -110,7 +112,7 @@ function LeadCard({ lead, onMessage, onIgnore }: {
                     className="flex-1 bg-primary h-14 rounded-full flex-row items-center justify-center"
                 >
                     <Ionicons name="chatbubble-ellipses" size={20} color="white" />
-                    <AppText weight="bold" className="text-white ml-2">Send Message</AppText>
+                    <AppText weight="bold" className="text-white ml-2">{t('leads_interact.sendMessage')}</AppText>
                 </TouchableOpacity>
 
                 {lead.client_detail?.phone && (
@@ -127,6 +129,7 @@ function LeadCard({ lead, onMessage, onIgnore }: {
 }
 
 export default function LeadsScreen() {
+    const { t } = useTranslation();
     const router = useRouter();
     const { leads, isLoading, markAsMessaged, markIgnored, refetch, isRefetching } = useLeads();
     const { mutateAsync: getOrCreateChat } = useGetOrCreateChat();
@@ -146,12 +149,12 @@ export default function LeadsScreen() {
 
     const handleIgnore = (lead: Lead) => {
         Alert.alert(
-            'Ignore this lead?',
-            'They will be removed from your list. If they interact again, they will reappear.',
+            t('leads_interact.ignoreLeadTitle'),
+            t('leads_interact.ignoreLeadMessage'),
             [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                    text: 'Ignore',
+                    text: t('leads_interact.ignore'),
                     style: 'destructive',
                     onPress: async () => {
                         try {
@@ -168,8 +171,8 @@ export default function LeadsScreen() {
     return (
         <View className="flex-1 bg-gray-50">
             <ScreenHeader
-                title="Potential Clients"
-                subtitle="People interested in your listings"
+                title={t('profile.leads')}
+                subtitle={t('profile.leads_subtitle') || "People interested in your listings"}
             />
 
             {isLoading && !isRefetching ? (
@@ -185,6 +188,7 @@ export default function LeadsScreen() {
                             lead={item}
                             onMessage={handleMessage}
                             onIgnore={handleIgnore}
+                            t={t}
                         />
                     )}
                     className="flex-1"
@@ -203,10 +207,10 @@ export default function LeadsScreen() {
                                 <Ionicons name="people" size={48} color="#FF4F18" />
                             </View>
                             <AppText weight="bold" className="text-gray-900 mb-2 text-2xl text-center">
-                                No leads yet
+                                {t('leads_interact.noLeadsTitle')}
                             </AppText>
                             <AppText className="text-gray-500 text-center leading-6 text-base">
-                                When customers view your contact details or save your ads, they will appear here.
+                                {t('leads_interact.noLeadsDesc')}
                             </AppText>
                         </View>
                     }

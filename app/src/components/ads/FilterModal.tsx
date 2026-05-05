@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { View, TouchableOpacity, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
@@ -24,11 +25,11 @@ export interface FilterState {
   condition: string[];
 }
 
-const CONDITIONS = [
-  { label: "Brand New", value: "brand-new" },
-  { label: "Foreign Used", value: "foreign-used" },
-  { label: "Open Box", value: "open-box" },
-  { label: "Refurbished", value: "refurbished" },
+const getConditions = (t: any) => [
+  { label: t('search.filters.brandNew'), value: "brand-new" },
+  { label: t('search.filters.foreignUsed'), value: "foreign-used" },
+  { label: t('search.filters.openBox'), value: "open-box" },
+  { label: t('search.filters.refurbished'), value: "refurbished" },
 ];
 
 export default function FilterModal({
@@ -38,6 +39,8 @@ export default function FilterModal({
   initialFilters,
   mode = "all",
 }: FilterModalProps) {
+  const { t } = useTranslation();
+  const CONDITIONS = getConditions(t);
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
@@ -87,7 +90,7 @@ export default function FilterModal({
     <>
       <BottomSheet
         ref={bottomSheetRef}
-        title={mode === "price" ? "Price Range" : "Refine Search"}
+        title={mode === "price" ? t('search.filters.priceRange') : t('search.filters.title')}
         onClose={onClose}
         snapPoints={mode === "price" ? ["55%"] : ["90%"]}
         headerLeft={
@@ -104,7 +107,7 @@ export default function FilterModal({
                   : "text-gray-300 text-sm"
               }
             >
-              Reset
+              {t('search.filters.reset')}
             </AppText>
           </TouchableOpacity>
         }
@@ -119,7 +122,7 @@ export default function FilterModal({
                 weight="bold"
                 className={hasActiveFilters ? "text-gray-700" : "text-gray-300"}
               >
-                Reset
+                {t('search.filters.reset')}
               </AppText>
             </TouchableOpacity>
             <TouchableOpacity
@@ -128,8 +131,8 @@ export default function FilterModal({
             >
               <AppText weight="bold" className="text-white">
                 {hasActiveFilters
-                  ? `Show Results (${activeFilterCount})`
-                  : "Show Results"}
+                  ? t('search.filters.showResults', { count: activeFilterCount })
+                  : t('search.filters.showResults_none')}
               </AppText>
             </TouchableOpacity>
           </View>
@@ -140,11 +143,11 @@ export default function FilterModal({
             <View className="flex-1 pr-4">
               <AppText weight="bold" className="text-white text-base">
                 {hasActiveFilters
-                  ? `${activeFilterCount} active filter${activeFilterCount > 1 ? "s" : ""}`
-                  : "All ads are showing"}
+                  ? t('search.filters.activeFilters', { count: activeFilterCount })
+                  : t('search.filters.allAdsShowing')}
               </AppText>
               <AppText className="text-white/60 text-xs mt-1">
-                Tune location, category, price and condition.
+                {t('search.filters.tuneDesc')}
               </AppText>
             </View>
             <View className="w-11 h-11 rounded-full bg-white/10 items-center justify-center">
@@ -160,7 +163,7 @@ export default function FilterModal({
                   weight="bold"
                   className="text-gray-400 text-[10px] tracking-widest mb-3 uppercase"
                 >
-                  Location
+                  {t('create_ad.fields.location')}
                 </AppText>
                 <TouchableOpacity
                   onPress={() => setIsRegionModalVisible(true)}
@@ -181,10 +184,10 @@ export default function FilterModal({
                           filters.region ? "text-gray-900" : "text-gray-500"
                         }
                       >
-                        {filters.region?.name || "All Regions"}
+                        {filters.region?.name || t('search.allRegions')}
                       </AppText>
                       <AppText className="text-gray-400 text-xs mt-0.5">
-                        Where buyers should search
+                        {t('search.filters.tuneDesc')}
                       </AppText>
                     </View>
                   </View>
@@ -198,7 +201,7 @@ export default function FilterModal({
                   weight="bold"
                   className="text-gray-400 text-[10px] tracking-widest mb-3 uppercase"
                 >
-                  Category
+                  {t('create_ad.fields.category')}
                 </AppText>
                 <TouchableOpacity
                   onPress={() => setIsCategoryModalVisible(true)}
@@ -215,10 +218,10 @@ export default function FilterModal({
                           filters.category ? "text-gray-900" : "text-gray-500"
                         }
                       >
-                        {filters.category?.name || "All Categories"}
+                        {filters.category?.name || t('ads.all')}
                       </AppText>
                       <AppText className="text-gray-400 text-xs mt-0.5">
-                        Narrow results by type
+                        {t('search.filters.tuneDesc')}
                       </AppText>
                     </View>
                   </View>
@@ -234,14 +237,14 @@ export default function FilterModal({
               weight="bold"
               className="text-gray-400 text-[10px] tracking-widest mb-3 uppercase"
             >
-              Price Range (Fr)
+              {t('search.filters.priceRange')} (Fr)
             </AppText>
             <View className="flex-row gap-3">
               <View
                 className={`flex-1 border rounded-[22px] p-4 ${filters.minPrice ? "bg-primary/10 border-primary/20" : "bg-gray-50 border-gray-100"}`}
               >
                 <AppText className="text-[10px] text-gray-400 mb-1">
-                  Min
+                  {t('search.filters.min')}
                 </AppText>
                 <TextInput
                   className="text-gray-900 font-bold p-0 text-base"
@@ -258,11 +261,11 @@ export default function FilterModal({
                 className={`flex-1 border rounded-[22px] p-4 ${filters.maxPrice ? "bg-primary/10 border-primary/20" : "bg-gray-50 border-gray-100"}`}
               >
                 <AppText className="text-[10px] text-gray-400 mb-1">
-                  Max
+                  {t('search.filters.max')}
                 </AppText>
                 <TextInput
                   className="text-gray-900 font-bold p-0 text-base"
-                  placeholder="Any"
+                  placeholder={t('common.all')}
                   placeholderTextColor="#9ca3af"
                   keyboardType="numeric"
                   value={filters.maxPrice}
@@ -276,11 +279,11 @@ export default function FilterModal({
 
           {mode === "all" && (
             <View className="mb-8">
-              <AppText
+                <AppText
                 weight="bold"
                 className="text-gray-400 text-[10px] tracking-widest mb-3 uppercase"
               >
-                Condition
+                {t('search.filters.condition')}
               </AppText>
               <View className="gap-3">
                 {CONDITIONS.map((cond) => {

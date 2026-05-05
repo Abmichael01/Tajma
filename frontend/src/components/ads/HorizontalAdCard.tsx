@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import { Edit, MoreVertical, Eye, Heart, MessageSquare, MapPin, Calendar, ArrowUp } from 'lucide-react'
 import type { Ad } from '@/api/types'
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu'
 import { getMediaUrl } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 import PromotionModal from './PromotionModal'
 import { useState } from 'react'
 
@@ -23,6 +24,7 @@ interface HorizontalAdCardProps {
 }
 
 export default function HorizontalAdCard({ ad, isOwner = false }: HorizontalAdCardProps) {
+  const t = useTranslations('common')
   const [showPromoModal, setShowPromoModal] = useState(false)
   // Get first image or placeholder
   const imageUrl = getMediaUrl(ad.images?.[0])
@@ -31,16 +33,16 @@ export default function HorizontalAdCard({ ad, isOwner = false }: HorizontalAdCa
   // Format price
   const formattedPrice = ad.price
     ? `${ad.currency || 'XOF'} ${parseFloat(String(ad.price)).toLocaleString()}`
-    : 'Contact for price'
+    : t('contact_for_price')
   
   // Get location
-  const location = ad.seller?.location || 'Location not specified'
+  const location = ad.seller?.location || t('location_not_specified')
   
   // Status display logic
   const statusConfig = {
-    published: { label: 'ACTIVE', color: 'bg-green-500' },
-    archived: { label: 'ARCHIVED', color: 'bg-gray-900' },
-    draft: { label: 'DRAFT', color: 'bg-yellow-500' },
+    published: { label: t('status_active'), color: 'bg-green-500' },
+    archived: { label: t('status_archived'), color: 'bg-gray-900' },
+    draft: { label: t('status_draft'), color: 'bg-yellow-500' },
   }
   
   const statusInfo = statusConfig[ad.status as keyof typeof statusConfig] || { label: 'UNKNOWN', color: 'bg-gray-500' }
@@ -77,12 +79,12 @@ export default function HorizontalAdCard({ ad, isOwner = false }: HorizontalAdCa
         <div className="absolute bottom-2 left-2 flex flex-col gap-1.5 z-10">
           {isFeatured && (
             <div className="bg-primary text-white px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1 w-fit">
-              <ArrowUp className="w-2.5 h-2.5" /> FEATURED
+              <ArrowUp className="w-2.5 h-2.5" /> {t('featured')}
             </div>
           )}
           {isBoosted && !isFeatured && (
             <div className="bg-secondary text-white px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1 w-fit">
-              <ArrowUp className="w-2.5 h-2.5" /> BOOSTED
+              <ArrowUp className="w-2.5 h-2.5" /> {t('boosted')}
             </div>
           )}
         </div>
@@ -121,7 +123,7 @@ export default function HorizontalAdCard({ ad, isOwner = false }: HorizontalAdCa
                 className="hidden md:flex rounded-full border-primary/20 text-primary hover:bg-primary/5 font-bold gap-2 h-8"
               >
                 <ArrowUp className="w-3.5 h-3.5" />
-                Boost
+                {t('boost')}
               </Button>
             )}
 
@@ -137,15 +139,15 @@ export default function HorizontalAdCard({ ad, isOwner = false }: HorizontalAdCa
                   <Link href={`/ads/${ad.slug}/edit`}>
                     <DropdownMenuItem>
                       <Edit className="w-4 h-4 mr-2" />
-                      Edit Ad
+                      {t('edit_ad')}
                     </DropdownMenuItem>
                   </Link>
                   <DropdownMenuItem onClick={() => setShowPromoModal(true)}>
                     <ArrowUp className="w-4 h-4 mr-2" />
-                    Promote Ad
+                    {t('promote_ad')}
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-red-600">
-                    Delete Ad
+                    {t('delete_ad')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -158,15 +160,15 @@ export default function HorizontalAdCard({ ad, isOwner = false }: HorizontalAdCa
           <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center gap-2 text-gray-600">
               <Eye className="w-4 h-4" />
-              <span className="text-sm font-medium">{ad.views || 0} Views</span>
+              <span className="text-sm font-medium">{ad.views || 0} {t('views')}</span>
             </div>
             <div className="flex items-center gap-2 text-gray-600">
               <Heart className="w-4 h-4" />
-              <span className="text-sm font-medium">{ad.saved_count || 0} Saved</span>
+              <span className="text-sm font-medium">{ad.saved_count || 0} {t('saved')}</span>
             </div>
             <div className="flex items-center gap-2 text-gray-600">
               <MessageSquare className="w-4 h-4" />
-              <span className="text-sm font-medium">0 Msgs</span>
+              <span className="text-sm font-medium">0 {t('msgs')}</span>
             </div>
           </div>
         )}
@@ -177,7 +179,7 @@ export default function HorizontalAdCard({ ad, isOwner = false }: HorizontalAdCa
               <Link href={`/ads/${ad.slug}/edit`} className="flex-1">
                 <Button variant="outline" size="sm" className="w-full">
                   <Edit className="w-3.5 h-3.5 mr-2" />
-                  Edit
+                  {t('edit')}
                 </Button>
               </Link>
               <Button 
@@ -187,7 +189,7 @@ export default function HorizontalAdCard({ ad, isOwner = false }: HorizontalAdCa
                 onClick={() => setShowPromoModal(true)}
               >
                 <ArrowUp className="w-3.5 h-3.5 mr-2" />
-                Boost
+                {t('boost')}
               </Button>
            </div>
         )}

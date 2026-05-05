@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { ChevronDown, ChevronUp, Check } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'

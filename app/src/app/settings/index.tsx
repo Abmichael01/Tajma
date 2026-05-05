@@ -4,29 +4,31 @@ import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
 import EditProfileForm from "@/components/settings/EditProfileForm";
 import ChangePasswordForm from "@/components/settings/ChangePasswordForm";
+import { useTranslation } from "react-i18next";
 
 import ScreenHeader from "@/components/ui/ScreenHeader";
 
 type SettingsTab = "profile" | "security";
 
 export default function SettingsScreen() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
 
   return (
     <View className="flex-1 bg-white">
       <ScreenHeader
-        title="Account Settings"
-        subtitle="Manage your profile and security"
+        title={t('settings.title')}
+        subtitle={t('settings.subtitle')}
       />
 
       {/* Tab Selector */}
       <View className="px-6 py-4 bg-white border-b border-gray-100">
         <View className="flex-row gap-3">
           {[
-            { id: "profile", label: "Edit Profile", icon: "person-outline" },
+            { id: "profile", label: t('settings.editProfile'), icon: "person-outline" },
             {
               id: "security",
-              label: "Security",
+              label: t('settings.security'),
               icon: "shield-checkmark-outline",
             },
           ].map((tab) => (

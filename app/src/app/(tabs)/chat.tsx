@@ -11,13 +11,15 @@ import { useChats, useOnlineStatuses } from "@/hooks/useChat";
 import { useUnifiedChatWebSocket } from "@/hooks/useUnifiedChatWebSocket";
 import { useAuthStore } from "@/store/authStore";
 import ScreenHeader from "@/components/ui/ScreenHeader";
+import { useTranslation } from "react-i18next";
 
 const FILTERS = [
-  { label: 'All Messages', value: 'all', icon: 'chatbubbles-outline' },
-  { label: 'Unread', value: 'unread', icon: 'mail-unread-outline' },
+  { label: 'chat.filters.all', value: 'all', icon: 'chatbubbles-outline' },
+  { label: 'chat.filters.unread', value: 'unread', icon: 'mail-unread-outline' },
 ];
 
 export default function ChatScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { data: chats, isLoading, refetch } = useChats();
@@ -68,8 +70,8 @@ export default function ChatScreen() {
 
       {/* Header */}
       <ScreenHeader
-        title="Messages"
-        subtitle={unreadCount > 0 ? `${unreadCount} unread messages` : undefined}
+        title={t('messages.title')}
+        subtitle={unreadCount > 0 ? t('messages.unreadCount', { count: unreadCount }) : undefined}
         showBackButton={false}
       />
 
@@ -98,10 +100,10 @@ export default function ChatScreen() {
                 color={selectedFilter === filter.value ? 'white' : '#64748B'}
               />
               <AppText
-                weight={selectedFilter === filter.value ? 'bold' : 'semibold'}
-                className={`text-[14px] ${selectedFilter === filter.value ? 'text-white' : 'text-slate-500'}`}
+                weight="bold"
+                className={`text-xs ${selectedFilter === filter.value ? 'text-white' : 'text-slate-600'}`}
               >
-                {filter.label}
+                {t(filter.label)}
               </AppText>
             </TouchableOpacity>
           ))}
@@ -117,20 +119,20 @@ export default function ChatScreen() {
           </View>
           <AppText weight="bold" className="text-slate-900 text-xl text-center">
             {selectedFilter === 'all'
-              ? 'No conversations yet'
-              : 'No unread messages'}
+              ? t('messages.noConversations')
+              : t('messages.noUnread')}
           </AppText>
           <AppText className="text-slate-400 text-center mt-2 px-6">
             {selectedFilter === 'all'
-              ? 'Your messages and conversation history will appear here.'
-              : 'You have caught up with all your messages.'}
+              ? t('messages.conversationsDesc')
+              : t('messages.caughtUp')}
           </AppText>
           {selectedFilter !== 'all' && (
             <TouchableOpacity
               onPress={() => setSelectedFilter('all')}
               className="mt-8 bg-white px-8 py-3 rounded-full border border-slate-200"
             >
-              <AppText weight="bold" className="text-primary text-[15px]">View All Messages</AppText>
+              <AppText weight="bold" className="text-primary text-[15px]">{t('messages.viewAll')}</AppText>
             </TouchableOpacity>
           )}
         </View>

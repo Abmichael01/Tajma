@@ -1,33 +1,36 @@
 "use client"
 
 import React from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import Logo from '../General/Logo'
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react'
 import { useCategories } from '@/hooks/useCategories'
+import { useTranslations } from 'next-intl'
 
 interface FooterProps {
   className?: string
 }
 
 export default function Footer({ className = '' }: FooterProps) {
+  const t = useTranslations('footer')
+  const commonT = useTranslations('common')
   const currentYear = new Date().getFullYear()
   const { rootCategories, loading: categoriesLoading } = useCategories()
 
   const footerLinks = {
     company: [
-      { label: 'About Us', href: '/about' },
-      { label: 'Contact Us', href: '/contact' },
-      { label: 'Help & FAQ', href: '/help' },
+      { label: t('about_us'), href: '/about' },
+      { label: t('contact'), href: '/contact' },
+      { label: t('help_faq'), href: '/help' },
     ],
     legal: [
-      { label: 'Terms & Conditions', href: '/terms' },
-      { label: 'Privacy Policy', href: '/privacy' },
+      { label: t('terms_conditions'), href: '/terms' },
+      { label: t('privacy'), href: '/privacy' },
     ],
     account: [
-      { label: 'Login', href: '/login' },
-      { label: 'Register', href: '/register' },
-      { label: 'Post Ad', href: '/create-ad' },
+      { label: commonT('login'), href: '/login' },
+      { label: commonT('register'), href: '/register' },
+      { label: commonT('post_ad'), href: '/create-ad' },
     ],
   }
 
@@ -49,7 +52,7 @@ export default function Footer({ className = '' }: FooterProps) {
               <Logo />
             </div>
             <p className="text-sm text-secondary-foreground/80 mb-6">
-              Niger's trusted online marketplace. Buy, sell, and discover amazing deals every day.
+              {t('brand_desc')}
             </p>
             
             {/* Contact Info */}
@@ -71,7 +74,7 @@ export default function Footer({ className = '' }: FooterProps) {
 
           {/* Company Links */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Company</h3>
+            <h3 className="font-semibold text-white mb-4">{t('company')}</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
@@ -85,7 +88,7 @@ export default function Footer({ className = '' }: FooterProps) {
 
           {/* Account Links */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Account</h3>
+            <h3 className="font-semibold text-white mb-4">{t('account')}</h3>
             <ul className="space-y-3">
               {footerLinks.account.map((link) => (
                 <li key={link.href}>
@@ -96,7 +99,7 @@ export default function Footer({ className = '' }: FooterProps) {
               ))}
             </ul>
             
-            <h3 className="font-semibold text-white mb-4 mt-6">Legal</h3>
+            <h3 className="font-semibold text-white mb-4 mt-6">{t('legal')}</h3>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.href}>
@@ -110,9 +113,9 @@ export default function Footer({ className = '' }: FooterProps) {
 
           {/* Categories */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Categories</h3>
+            <h3 className="font-semibold text-white mb-4">{t('categories')}</h3>
             {categoriesLoading ? (
-              <p className="text-sm text-secondary-foreground/70">Loading categories...</p>
+              <p className="text-sm text-secondary-foreground/70">{commonT('loading')}</p>
             ) : (
               <>
                 <ul className="space-y-2 mb-3">
@@ -131,7 +134,7 @@ export default function Footer({ className = '' }: FooterProps) {
                   href="/categories" 
                   className="inline-flex items-center text-sm hover:text-white transition-colors border border-white/20 hover:border-white px-4 py-2 rounded-xl"
                 >
-                  View All Categories
+                  {t('view_all_categories')}
                 </Link>
               </>
             )}

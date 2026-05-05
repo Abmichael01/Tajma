@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from 'next-intl'
 
 export type CarouselSlideType = 'category' | 'ad'
 
@@ -30,6 +31,7 @@ export default function BannerCarousel({
     slides, 
     autoPlayInterval = 5000 
 }: BannerCarouselProps) {
+    const t = useTranslations('common')
     const [currentIndex, setCurrentIndex] = useState(0)
     const [direction, setDirection] = useState(0)
 
@@ -168,7 +170,7 @@ export default function BannerCarousel({
                                               : 'bg-secondary hover:bg-secondary/90 text-white'
                                         }`}
                                     >
-                                        {currentSlide.ctaText || 'View Details'}
+                                        {currentSlide.ctaText || t('view_details')}
                                         <ArrowRight className="ml-2 w-4 h-4" />
                                     </Button>
                                 </Link>

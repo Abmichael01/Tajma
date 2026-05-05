@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { ResponsiveModal } from '@/components/ui/responsive-modal'
 import { MapPin, Check, Loader2, ArrowLeft, ChevronRight } from 'lucide-react'
 import { useRegions, Region } from '@/hooks/useRegions'
+import { useTranslations } from 'next-intl'
 
 interface RegionSelectorModalProps {
   isOpen: boolean
@@ -18,6 +19,7 @@ export default function RegionSelectorModal({
   selectedRegion,
   onSelectRegion 
 }: RegionSelectorModalProps) {
+  const t = useTranslations('common')
   const [currentLevel, setCurrentLevel] = useState(1)
   const [parentId, setParentId] = useState<number | null>(null)
   const [selectionHistory, setSelectionHistory] = useState<{ id: number | null, name: string, level: number }[]>([])
@@ -62,7 +64,7 @@ export default function RegionSelectorModal({
     <ResponsiveModal 
       isOpen={isOpen} 
       onClose={onClose}
-      title={currentLevel === 1 ? "Select Region in Niger" : currentLevel === 2 ? "Select Department" : "Select Commune"}
+      title={currentLevel === 1 ? t("select_region_niger") : currentLevel === 2 ? t("select_department") : t("select_commune")}
       className="max-w-4xl"
     >
         <div className="py-2 overflow-y-auto custom-scrollbar max-h-[70vh]">
@@ -72,7 +74,7 @@ export default function RegionSelectorModal({
               <button 
                 onClick={handleBack}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                title="Go back"
+                title={t("go_back")}
               >
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </button>
@@ -107,8 +109,8 @@ export default function RegionSelectorModal({
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-red-600 mb-2">Failed to load locations</p>
-              <button onClick={() => onClose()} className="text-sm text-secondary hover:underline">Please try again later</button>
+              <p className="text-red-600 mb-2">{t('failed_load_locations')}</p>
+              <button onClick={() => onClose()} className="text-sm text-secondary hover:underline">{t('try_again_later')}</button>
             </div>
           ) : (
             <>
@@ -129,10 +131,10 @@ export default function RegionSelectorModal({
                   <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-secondary flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="font-semibold text-base sm:text-lg text-gray-900">
-                      {currentLevel === 1 ? 'All of Niger' : `All of ${selectionHistory[selectionHistory.length-1]?.name}`}
+                      {currentLevel === 1 ? t('all_of_niger') : t('all_of', { name: selectionHistory[selectionHistory.length-1]?.name })}
                     </p>
                     <p className="text-xs sm:text-sm text-gray-500">
-                      {currentLevel === 1 ? 'Search across the entire country' : `Search all areas in this ${currentLevel === 2 ? 'region' : 'department'}`}
+                      {currentLevel === 1 ? t('search_entire_country') : t('search_all_areas', { type: currentLevel === 2 ? t('region') : t('department') })}
                     </p>
                   </div>
                 </div>
@@ -157,7 +159,7 @@ export default function RegionSelectorModal({
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-sm sm:text-base text-gray-900 truncate">{region.name}</p>
                           <p className="text-[10px] sm:text-xs text-gray-500">
-                            {region.adsCount.toLocaleString()} ads
+                            {region.adsCount.toLocaleString()} {t('ads_count')}
                           </p>
                         </div>
                       </div>
@@ -175,7 +177,7 @@ export default function RegionSelectorModal({
               ) : (
                 <div className="text-center py-20 bg-gray-50 rounded-2xl">
                   <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 font-medium">No subdivisions found</p>
+                  <p className="text-gray-500 font-medium">{t('no_subdivisions_found')}</p>
                 </div>
               )}
             </>

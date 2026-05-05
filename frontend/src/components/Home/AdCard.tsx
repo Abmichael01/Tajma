@@ -2,9 +2,10 @@
 
 import { ArrowUp, Eye, Heart, MapPin } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import type { Ad } from "@/api/types";
 import { getMediaUrl } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 type CategoryNode = {
   id?: string | number;
@@ -53,11 +54,12 @@ const findCategory = (
 export const getAdCategoryName = (
   categoryTree: unknown,
   categorySlugOrId: string | undefined,
+  fallback: string = "Uncategorized"
 ) => {
-  if (!categorySlugOrId) return "Uncategorized";
+  if (!categorySlugOrId) return fallback;
 
   const category = findCategory(categoryTree, categorySlugOrId);
-  return category?.name || "Uncategorized";
+  return category?.name || fallback;
 };
 
 export default function AdCard({
@@ -68,13 +70,14 @@ export default function AdCard({
   className = "",
   imageVariant = "auto",
 }: AdCardProps) {
+  const t = useTranslations("common");
   const imageUrl = getMediaUrl(ad.images?.[0]);
   const formattedPrice = ad.price
     ? `${ad.currency || "XOF"} ${parseFloat(String(ad.price)).toLocaleString()}`
-    : "Contact for price";
-  const location = ad.seller?.location || "Location not specified";
+    : t("contact_for_price");
+  const location = ad.seller?.location || t("location_not_specified");
   const displayCategoryName =
-    ad.category_details?.name || categoryName || "Uncategorized";
+    ad.category_details?.name || categoryName || t("uncategorized");
   const isFeatured = ad.is_featured;
   const isBoosted = ad.promotion_rank === 50;
 
@@ -116,12 +119,12 @@ export default function AdCard({
           <div className="absolute top-2 left-2 flex flex-col gap-1.5">
             {isFeatured && (
               <div className="bg-primary text-white px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1">
-                <ArrowUp className="w-2.5 h-2.5" /> FEATURED
+                <ArrowUp className="w-2.5 h-2.5" /> {t('featured')}
               </div>
             )}
             {isBoosted && !isFeatured && (
               <div className="bg-secondary text-white px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider shadow-sm flex items-center gap-1">
-                <ArrowUp className="w-2.5 h-2.5" /> BOOSTED
+                <ArrowUp className="w-2.5 h-2.5" /> {t('boosted')}
               </div>
             )}
             {displayCategoryName && (
@@ -139,7 +142,7 @@ export default function AdCard({
               onToggleFavorite(ad.id);
             }}
             className="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
-            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            title={isFavorite ? t("remove_favorite") : t("add_favorite")}
           >
             <Heart
               className={`w-4 h-4 transition-colors ${

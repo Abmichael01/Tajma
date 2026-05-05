@@ -1,9 +1,10 @@
 "use client"
 
 import React from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import Image from 'next/image'
 import { MapPin, Eye, Heart, ArrowRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { getMediaUrl } from '@/lib/utils'
 import type { Ad } from '@/api/types'
 
@@ -23,6 +24,7 @@ export default function FeaturedAdsSection({
     viewAllLink,
     className = "" 
 }: FeaturedAdsSectionProps) {
+    const t = useTranslations('common')
     if (!ads || ads.length === 0) return null
 
     return (
@@ -34,7 +36,7 @@ export default function FeaturedAdsSection({
                         {subtitle && <p className="text-gray-500 text-sm sm:text-base">{subtitle}</p>}
                     </div>
                     <Link href={viewAllLink} className="inline-flex items-center text-sm font-semibold text-secondary hover:text-secondary/80 transition-colors group">
-                        View All
+                        {t('view_all')}
                         <ArrowRight className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" />
                     </Link>
                 </div>
@@ -54,7 +56,7 @@ export default function FeaturedAdsSection({
                                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                                     />
                                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-semibold text-gray-900 shadow-sm">
-                                        {ad.category_details?.name || 'Item'}
+                                        {ad.category_details?.name || t('unnamed_category')}
                                     </div>
                                     {ad.price && (
                                         <div className="absolute bottom-3 right-3 bg-secondary text-white px-2 py-1 rounded-md text-sm font-bold shadow-sm">
@@ -72,7 +74,7 @@ export default function FeaturedAdsSection({
                                     {/* Location */}
                                     <div className="flex items-center text-gray-500 text-xs mb-3">
                                         <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0" />
-                                        <span className="truncate">{ad.seller?.location || 'Location not specified'}</span>
+                                        <span className="truncate">{ad.seller?.location || t('location_not_specified')}</span>
                                     </div>
 
                                     <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">

@@ -9,10 +9,12 @@ import { useUserAds } from '@/hooks/useAds';
 import { useSavedAds } from '@/hooks/useSavedAds';
 import { useCurrentUser } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
 export default function AnalyticsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
   const { data: currentUser, refetch: refetchUser } = useCurrentUser();
@@ -50,22 +52,22 @@ export default function AnalyticsScreen() {
   })();
 
   const stats = [
-    { icon: 'document-text-outline', label: 'Total Ads', value: totalAds.toLocaleString(), color: '#FF4F18' },
-    { icon: 'eye-outline', label: 'Views', value: totalViews.toLocaleString(), color: '#FF4F18' },
-    { icon: 'trending-up-outline', label: 'Active', value: activeAds.toLocaleString(), color: '#FF4F18' },
-    { icon: 'chatbubble-ellipses-outline', label: 'Response', value: `${responseRate}%`, color: '#FF4F18' },
-    { icon: 'time-outline', label: 'Days Active', value: joinedDays.toLocaleString(), color: '#64748b' },
-    { icon: 'heart-outline', label: 'Favorites', value: savedAdsCount.toLocaleString(), color: '#64748b' },
-    { icon: 'checkmark-circle-outline', label: 'Sold', value: soldItems.toLocaleString(), color: '#64748b' },
-    { icon: 'star-outline', label: 'Rating', value: avgRating.toFixed(1), color: '#64748b' },
+    { icon: 'document-text-outline', label: t('analytics.totalAds'), value: totalAds.toLocaleString(), color: '#FF4F18' },
+    { icon: 'eye-outline', label: t('analytics.views'), value: totalViews.toLocaleString(), color: '#FF4F18' },
+    { icon: 'trending-up-outline', label: t('analytics.active'), value: activeAds.toLocaleString(), color: '#FF4F18' },
+    { icon: 'chatbubble-ellipses-outline', label: t('analytics.response'), value: `${responseRate}%`, color: '#FF4F18' },
+    { icon: 'time-outline', label: t('analytics.daysActive'), value: joinedDays.toLocaleString(), color: '#64748b' },
+    { icon: 'heart-outline', label: t('analytics.favorites'), value: savedAdsCount.toLocaleString(), color: '#64748b' },
+    { icon: 'checkmark-circle-outline', label: t('analytics.sold'), value: soldItems.toLocaleString(), color: '#64748b' },
+    { icon: 'star-outline', label: t('analytics.rating'), value: avgRating.toFixed(1), color: '#64748b' },
   ];
 
   return (
     <View className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       <ScreenHeader 
-        title="Performance Analytics"
-        subtitle="Detailed insights into your listing activity"
+        title={t('analytics.title')}
+        subtitle={t('analytics.subtitle')}
       />
 
       <ScrollView
@@ -76,8 +78,8 @@ export default function AnalyticsScreen() {
         }
       >
         <View className="px-6 py-8">
-            <AppText weight="bold" className="text-2xl text-gray-900 mb-2">Global Performance</AppText>
-            <AppText className="text-gray-500 mb-8">Detailed insights into your listing activity and engagement levels.</AppText>
+            <AppText weight="bold" className="text-2xl text-gray-900 mb-2">{t('analytics.globalTitle')}</AppText>
+            <AppText className="text-gray-500 mb-8">{t('analytics.globalDesc')}</AppText>
 
             {/* Performance Insights (Simplified Pill List) */}
             <View className="mb-10 space-y-4">
@@ -92,7 +94,7 @@ export default function AnalyticsScreen() {
                             </View>
                             <View>
                                 <AppText weight="bold" className="text-gray-900 text-base">{stat.label}</AppText>
-                                <AppText className="text-gray-500 text-[10px]">Real-time tracking</AppText>
+                                <AppText className="text-gray-500 text-[10px]">{t('analytics.realtime')}</AppText>
                             </View>
                         </View>
                         <View className="pr-4">
@@ -110,22 +112,21 @@ export default function AnalyticsScreen() {
                             <Ionicons name="trending-up" size={24} color="#FF4F18" />
                         </View>
                         <View>
-                            <AppText weight="bold" className="text-gray-900 text-lg">Listing Engagement</AppText>
-                            <AppText className="text-gray-500 text-xs">Based on views vs saves ratio</AppText>
+                            <AppText weight="bold" className="text-gray-900 text-lg">{t('analytics.engagement')}</AppText>
+                            <AppText className="text-gray-500 text-xs">{t('analytics.engagementDesc')}</AppText>
                         </View>
                     </View>
-                    
-                    <View className="flex-row justify-between pt-4 border-t border-gray-200/50">
+                                        <View className="flex-row justify-between pt-4 border-t border-gray-200/50">
                         <View>
-                            <AppText className="text-[10px] font-bold text-gray-400 uppercase mb-1">Avg. Views</AppText>
+                            <AppText className="text-[10px] font-bold text-gray-400 uppercase mb-1">{t('analytics.avgViews')}</AppText>
                             <AppText weight="bold" className="text-gray-900 text-xl">{Math.round(totalViews / (totalAds || 1))}</AppText>
                         </View>
                         <View className="items-center">
-                            <AppText className="text-[10px] font-bold text-gray-400 uppercase mb-1">Conversion</AppText>
+                            <AppText className="text-[10px] font-bold text-gray-400 uppercase mb-1">{t('analytics.conversion')}</AppText>
                             <AppText weight="bold" className="text-gray-900 text-xl">{Math.round((soldItems / (totalAds || 1)) * 100)}%</AppText>
                         </View>
                         <View className="items-end">
-                            <AppText className="text-[10px] font-bold text-gray-400 uppercase mb-1">Growth</AppText>
+                            <AppText className="text-[10px] font-bold text-gray-400 uppercase mb-1">{t('analytics.growth')}</AppText>
                             <AppText weight="bold" className="text-green-500 text-xl">+12%</AppText>
                         </View>
                     </View>
@@ -136,9 +137,9 @@ export default function AnalyticsScreen() {
                     <View className="absolute top-[-20] right-[-20] w-40 h-40 bg-primary/20 rounded-full blur-[40px]" />
                     
                     <View className="flex-row items-center justify-between mb-6">
-                        <AppText weight="bold" className="text-white text-xl">Trust Level</AppText>
+                        <AppText weight="bold" className="text-white text-xl">{t('profile.trustLevel')}</AppText>
                         <View className="bg-white/10 px-3 py-1 rounded-full">
-                            <AppText className="text-white/80 text-[10px] font-bold uppercase tracking-widest">Verified</AppText>
+                            <AppText className="text-white/80 text-[10px] font-bold uppercase tracking-widest">{t('profile.verified')}</AppText>
                         </View>
                     </View>
 
@@ -156,7 +157,7 @@ export default function AnalyticsScreen() {
                                 color={i <= Math.round(avgRating) ? "#fbbf24" : "#4b5563"} 
                             />
                         ))}
-                        <AppText className="text-white/60 text-xs ml-2">Excellent Reputation</AppText>
+                        <AppText className="text-white/60 text-xs ml-2">{t('analytics.excellentReputation')}</AppText>
                     </View>
 
                     <View className="flex-row gap-3">
@@ -165,7 +166,7 @@ export default function AnalyticsScreen() {
                                 <Ionicons name="chatbubble-outline" size={16} color="white" />
                             </View>
                             <View>
-                                <AppText className="text-white/40 text-[9px] font-bold uppercase mb-0.5">Response</AppText>
+                                <AppText className="text-white/40 text-[9px] font-bold uppercase mb-0.5">{t('analytics.response')}</AppText>
                                 <AppText weight="bold" className="text-white text-base">{responseRate}%</AppText>
                             </View>
                         </View>
@@ -174,7 +175,7 @@ export default function AnalyticsScreen() {
                                 <Ionicons name="cart-outline" size={16} color="white" />
                             </View>
                             <View>
-                                <AppText className="text-white/40 text-[9px] font-bold uppercase mb-0.5">Sales</AppText>
+                                <AppText className="text-white/40 text-[9px] font-bold uppercase mb-0.5">{t('analytics.sales')}</AppText>
                                 <AppText weight="bold" className="text-white text-base">{soldItems}</AppText>
                             </View>
                         </View>

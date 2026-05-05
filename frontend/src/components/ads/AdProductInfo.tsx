@@ -1,9 +1,7 @@
 "use client"
 
 import React from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, Link } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import { 
   MapPin, 
@@ -25,6 +23,7 @@ import { useUpdateAd, useDeleteAd } from '@/hooks/useAds'
 import type { Ad, User, ReviewStats } from '@/api/types'
 import { getUserFullName } from '@/utils/user'
 import { useLanguage, getDefaultMessages } from '@/hooks/useLanguage'
+import { useTranslations } from 'next-intl'
 
 interface AdProductInfoProps {
   ad: Ad
@@ -71,6 +70,7 @@ export default function AdProductInfo({
   onReport,
   className = ''
 }: AdProductInfoProps) {
+  const t = useTranslations('common')
   const router = useRouter()
   const updateAd = useUpdateAd(ad.slug)
   const deleteAd = useDeleteAd(ad.slug)
@@ -83,19 +83,19 @@ export default function AdProductInfo({
     try {
       const newStatus = ad.status === 'archived' ? 'published' : 'archived'
       await updateAd.mutateAsync({ status: newStatus })
-      toast.success(newStatus === 'archived' ? 'Ad archived successfully' : 'Ad unarchived successfully')
+      toast.success(newStatus === 'archived' ? t('ad_archived_success') : t('ad_unarchived_success'))
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to update ad status')
+      toast.error(error?.response?.data?.message || t('failed_update_status'))
     }
   }
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this ad? This action cannot be undone.')) {
+    if (!confirm(t('confirm_delete_ad'))) {
       return
     }
     try {
       await deleteAd.mutateAsync()
-      toast.success('Ad deleted successfully')
+      toast.success(t('ad_deleted_success'))
       // Redirect to user's ads page
       if (user?.id) {
         router.push(`/profile/${user.id}/ads`)
@@ -103,7 +103,7 @@ export default function AdProductInfo({
         router.push('/')
       }
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to delete ad')
+      toast.error(error?.response?.data?.message || t('failed_delete_ad_msg'))
     }
   }
 
@@ -118,7 +118,7 @@ export default function AdProductInfo({
               ? 'text-red-500 bg-red-50' 
               : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
           }`}
-          title={isFavorite(ad.id) ? 'Remove from favorites' : 'Add to favorites'}
+          title={isFavorite(ad.id) ? t('remove_favorite') : t('add_favorite')}
         >
           <Heart className={`w-5 h-5 sm:w-6 sm:h-6 ${isFavorite(ad.id) ? 'fill-current' : ''}`} />
         </button>
@@ -140,7 +140,7 @@ export default function AdProductInfo({
         {ad.saved_count !== undefined && ad.saved_count > 0 && (
           <div className="flex items-center gap-2 text-gray-600">
             <Heart className="w-4 h-4 flex-shrink-0" />
-            <span>{ad.saved_count} {ad.saved_count === 1 ? 'person saved' : 'people saved'}</span>
+            <span>{ad.saved_count} {ad.saved_count === 1 ? t('person_saved') : t('people_saved')}</span>
           </div>
         )}
         {categoryName && (
@@ -163,23 +163,23 @@ export default function AdProductInfo({
           <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl mb-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
-              Ad Statistics
+              {t('ad_statistics')}
             </h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-gray-600">Views</p>
+                <p className="text-gray-600">{t('views')}</p>
                 <p className="text-lg font-bold text-gray-900">{ad.views || 0}</p>
               </div>
               <div>
-                <p className="text-gray-600">Favorites</p>
+                <p className="text-gray-600">{t('favorites')}</p>
                 <p className="text-lg font-bold text-gray-900">{ad.saved_count || 0}</p>
               </div>
               <div>
-                <p className="text-gray-600">Messages</p>
+                <p className="text-gray-600">{t('messages_stat')}</p>
                 <p className="text-lg font-bold text-gray-900">0</p>
               </div>
               <div>
-                <p className="text-gray-600">Status</p>
+                <p className="text-gray-600">{t('status_label')}</p>
                 <p className="text-lg font-bold capitalize text-gray-900">{ad.status}</p>
               </div>
             </div>
@@ -205,7 +205,7 @@ export default function AdProductInfo({
               disabled={updateAd.isPending}
             >
               <Archive className="w-4 h-4 mr-2" />
-              {updateAd.isPending ? 'Updating...' : ad.status === 'archived' ? 'Unarchive' : 'Archive'}
+              {updateAd.isPending ? t('updating') : ad.status === 'archived' ? t('unarchive') : t('archive')}
             </Button>
             <Button 
               variant="outline" 
@@ -215,7 +215,7 @@ export default function AdProductInfo({
               disabled={deleteAd.isPending}
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              {deleteAd.isPending ? 'Deleting...' : 'Delete Ad'}
+              {deleteAd.isPending ? t('deleting') : t('delete_ad')}
             </Button>
           </div>
 
@@ -227,7 +227,7 @@ export default function AdProductInfo({
               onClick={onShare}
             >
               <Share2 className="w-4 h-4 mr-2" />
-              Share
+              {t('share')}
             </Button>
           </div>
         </>
@@ -241,13 +241,13 @@ export default function AdProductInfo({
                 onClick={onContactSeller}
               >
                 <MessageSquare className="w-5 h-5 mr-2" />
-                Contact Seller
+                {t('contact_seller')}
               </Button>
             ) : (
               <div className="space-y-3">
                 {/* Default Messages */}
                 <div>
-                  <p className="text-xs text-gray-600 mb-2">Quick messages:</p>
+                  <p className="text-xs text-gray-600 mb-2">{t('quick_messages')}</p>
                   <div className="flex flex-wrap gap-2">
                     {defaultMessages.map((msg, index) => (
                       <button
@@ -269,7 +269,7 @@ export default function AdProductInfo({
                     onChange={(e) => onContactMessageChange(e.target.value)}
                     rows={4}
                     className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-                    placeholder="Type your message here..."
+                    placeholder={t('type_message_placeholder')}
                     required
                   />
                   <div className="flex gap-2">
@@ -280,7 +280,7 @@ export default function AdProductInfo({
                       onClick={onCancelContact}
                       className="flex-1"
                     >
-                      Cancel
+                      {t('cancel')}
                     </Button>
                     <Button
                       type="submit"
@@ -288,7 +288,7 @@ export default function AdProductInfo({
                       size="sm"
                       className="flex-1"
                     >
-                      {isCreatingChat ? 'Sending...' : 'Send'}
+                      {isCreatingChat ? t('sending') : t('send')}
                     </Button>
                   </div>
                 </form>
@@ -302,7 +302,7 @@ export default function AdProductInfo({
                 onClick={onCallSeller}
               >
                 <Phone className="w-5 h-5 mr-2" />
-                Call Seller
+                {t('call_seller')}
               </Button>
             )}
           </div>
@@ -315,7 +315,7 @@ export default function AdProductInfo({
               onClick={onShare}
             >
               <Share2 className="w-4 h-4 mr-2" />
-              Share
+              {t('share')}
             </Button>
             <Button 
               variant="ghost" 
@@ -324,7 +324,7 @@ export default function AdProductInfo({
               onClick={onReport}
             >
               <Flag className="w-4 h-4 mr-2" />
-              Report
+              {t('report')}
             </Button>
           </div>
         </>

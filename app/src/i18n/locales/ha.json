@@ -1,0 +1,285 @@
+{
+  "home": {
+    "discoverDeals": "Nemo kaya masu kyau kusa da kai"
+  },
+  "common": {
+    "ok": "To",
+    "cancel": "Soke",
+    "error": "Kuskure",
+    "success": "Nasara",
+    "loading": "Ana lodi...",
+    "save": "Ajiye",
+    "delete": "Goge",
+    "edit": "Gyara",
+    "view": "Duba",
+    "back": "Baya",
+    "all": "Duka",
+    "required": "Dole ne",
+    "change": "Canja",
+    "select": "Zaɓa",
+    "welcome": "Barka da zuwa",
+    "alerts": "Sanarwa",
+    "search": "Nema",
+    "home": "Farko",
+    "chat": "Hira",
+    "profile": "Bayanai",
+    "add": "Saka",
+    "goBack": "Koma baya",
+    "seeAll": "Duba duka",
+    "continue": "Ci gaba",
+    "unread": "Ba a karanta ba",
+    "justNow": "Yanzu-yanzu",
+    "minAgo": "minti {{count}} da ya wuce",
+    "hourAgo": "awa {{count}} da ya wuce",
+    "dayAgo": "kwana {{count}} da ya wuce",
+    "weekAgo": "sati {{count}} da ya wuce",
+    "note": "Lura"
+  },
+  "auth": {
+    "login": "Shiga",
+    "register": "Rijista",
+    "email": "Imel",
+    "password": "Kalmar sirri",
+    "signIn": "Shiga",
+    "signInRequired": "Dole ne ka shiga",
+    "signInRequiredDesc": "Da fatan za a shiga domin ganin sanarwarku.",
+    "forgotPassword": "Ka manta kalmar sirri?",
+    "emailPlaceholder": "sunanka@misali.com",
+    "passwordPlaceholder": "••••••••",
+    "usernamePlaceholder": "sunan mai amfani",
+    "signOut": "Fita",
+    "createAccount": "Ƙirƙiri asusu",
+    "alreadyHaveAccount": "Kana da asusu riga?",
+    "continueWithGoogle": "Ci gaba da Google",
+    "connecting": "Ana haɗawa...",
+    "validation": {
+      "emailRequired": "Ana buƙatar imel",
+      "emailInvalid": "Imel bai dace ba",
+      "passwordRequired": "Ana buƙatar kalmar sirri",
+      "passwordMin": "Kalmar sirri dole ta kai haruffa 8"
+    }
+  },
+  "messages": {
+    "title": "Saƙonni",
+    "available": "Har yanzu akwai shi?",
+    "bestPrice": "Mene ne farashin ƙarshe?",
+    "morePhotos": "Zan iya ganin ƙarin hotuna?",
+    "location": "Ina kake?",
+    "pickup": "Yaushe zan iya zuwa na ɗauka?",
+    "viewAll": "Duba duk saƙonni",
+    "unreadCount": "Saƙonni {{count}} da ba a karanta ba",
+    "noConversations": "Babu hira tukunna",
+    "noUnread": "Babu saƙonni da ba a karanta ba",
+    "conversationsDesc": "Saƙonninka da tarihin hira za su bayyana a nan.",
+    "caughtUp": "Ka karanta duk saƙonninka.",
+    "allMessages": "Duk Saƙonni"
+  },
+  "chat": {
+    "startError": "An kasa fara hira. Da fatan za a sake gwadawa.",
+    "filters": {
+      "all": "Duk Hira",
+      "unread": "Wadanda ba a karanta ba"
+    }
+  },
+  "profile": {
+    "title": "Bayanai",
+    "editProfile": "Gyara Bayanai",
+    "myAds": "Talla ta",
+    "savedAds": "Tallan da aka ajiye",
+    "settings": "Saituna",
+    "logout": "Fita",
+    "verifyIdentity": "Tabbatar da Kai",
+    "verificationStatus": "Matsayin Tabbatarwa",
+    "verified": "An Tabbatar",
+    "unverified": "Ba a Tabbatar ba",
+    "pending": "Ana Dubawa",
+    "analytics": "Kididdiga",
+    "analyticsDesc": "Bincika ayyukan tallarka da darajarka",
+    "leads": "Masu sha'awa",
+    "reviews": "Sharhi",
+    "wishlist": "Abubuwan Sha'awa",
+    "listings": "Tallace-tallace",
+    "reputation": "Suna",
+    "maybeLater": "Wataƙila an jima",
+    "logoutConfirmTitle": "Fita",
+    "logoutConfirmMessage": "Shin kana da tabbacin kana son fita?",
+    "recentListings": "Tallace-tallace na baya-bayan nan",
+    "supportLegal": "Taimako da Dokoki",
+    "helpSupport": "Taimako",
+    "legalTerms": "Dokoki da Sharuɗɗa",
+    "shareApp": "Raba App",
+    "language": "Harshe",
+    "signOut": "Fita",
+    "wishlist_interact": {
+      "itemsSaved": "abubuwa {{count}} da aka ajiye",
+      "noSavedAdsTitle": "Babu tallan da aka ajiye",
+      "noSavedAdsDesc": "Abubuwan da ka ajiye za su bayyana a nan."
+    }
+  },
+  "search": {
+    "title": "Nema",
+    "resultsFor": "Sakamakon",
+    "in": "a cikin",
+    "matching": "mai dacewa da",
+    "placeholder": "Nemo...",
+    "searching": "Ana neman talla...",
+    "adsFound": "An sami talla {{count}}",
+    "noResults": "Ba a sami komai ba",
+    "noResultsDesc": "Ba mu sami tallan da ya dace da \"{{query}}\" a {{region}} ba.",
+    "clearFilters": "Goge Duka",
+    "allRegions": "Duk Wurare",
+    "filters": {
+      "title": "Tace Nema",
+      "priceRange": "Farashi",
+      "reset": "Sake Saiti",
+      "showResults": "Nuna Sakamako ({{count}})",
+      "min": "Ƙarami",
+      "max": "Babba",
+      "condition": "Yanayi"
+    }
+  },
+  "ads": {
+    "myListings": "Tallace-tallena",
+    "editListing": "Gyara Talla",
+    "newListing": "Sabuwar Talla",
+    "whatAreYouListing": "Me kake son sayarwa?",
+    "fillDetails": "Cika bayanan sabuwar tallarka",
+    "failedToCreate": "An kasa ƙirƙirar talla. Da fatan za a sake gwadawa.",
+    "contactForPrice": "Tuntuɓi don farashi",
+    "chat": "Hira",
+    "call": "Kira",
+    "share": "Raba",
+    "report": "Kai Kara",
+    "loadError": "Ba a sami talla ba",
+    "loadErrorDesc": "Tallan da kake nema ba ya nan ko an cire shi.",
+    "sortBy": "Tsara Ta",
+    "sort": {
+      "newest": "Sabo Farko",
+      "oldest": "Tsoho Farko",
+      "price-low": "Farashi: Ƙasa zuwa Sama",
+      "price-high": "Farashi: Sama zuwa Ƙasa",
+      "views": "Wadanda aka fi kallo",
+      "title": "Suna A-Z"
+    }
+  },
+  "create_ad": {
+    "steps": {
+      "basicInfo": "Bayanai",
+      "details": "Ƙarin Bayani",
+      "review": "Dubawa"
+    },
+    "fields": {
+      "title": "Suna",
+      "titlePlaceholder": "Me kake sayarwa?",
+      "category": "Rukuni",
+      "categoryPlaceholder": "Zaɓi rukuni",
+      "price": "Farashi",
+      "pricePlaceholder": "Saka farashi",
+      "negotiable": "Ana iya ciniki",
+      "contactForPrice": "Tuntuɓi don farashi",
+      "description": "Bayanin talla",
+      "descriptionPlaceholder": "Bayyana abunka (aƙalla haruffa 20)",
+      "location": "Wuri",
+      "locationPlaceholder": "Zaɓi wuri",
+      "brand": "Nau'i",
+      "model": "Model",
+      "condition": "Yanayi",
+      "year": "Shekara",
+      "mileage": "Nisan tafiya (km)",
+      "transmission": "Giya",
+      "fuelType": "Man fetur",
+      "bedrooms": "Dakuna",
+      "bathrooms": "Banɗaki",
+      "furnishing": "Kayan daki",
+      "availability": "Samuwa"
+    },
+    "validation": {
+      "titleMin": "Suna dole ya kai haruffa 5",
+      "titleRequired": "Da fatan za a saka suna mai kyau",
+      "categoryRequired": "Da fatan za a zaɓi rukuni",
+      "photoRequired": "Da fatan za a saka aƙalla hoto ɗaya",
+      "descriptionMin": "Bayanin talla dole ya kai haruffa 20",
+      "locationRequired": "Wuri ya zama dole"
+    },
+    "actions": {
+      "publish": "Wallafa Yanzu",
+      "update": "Gyara Talla",
+      "next": "Gaba",
+      "back": "Baya",
+      "addPhotos": "Saka Hotuna"
+    }
+  },
+  "promote": {
+    "title": "Haɓaka Talla",
+    "choosePackage": "Zaɓi tsarin haɓakawa don",
+    "boostName": "Haɓaka Talla",
+    "featuredName": "Talla ta Musamman",
+    "boostDesc": "Mayar da tallarka sama a bincike sau ɗaya.",
+    "featuredDesc": "Tallan zai zauna a saman shafin farko.",
+    "duration": "Kwanaki 7",
+    "selectPackage": "Zaɓi {{name}}",
+    "securedBy": "Paystack ne ke tsare da shi"
+  },
+  "report": {
+    "title": "Kai Karar Wannan Talla",
+    "helpUs": "Taimaka mana mu kiyaye Tajma. Me ya sa kake kai karar",
+    "description": "Bayani",
+    "detailsPlaceholder": "Ba da ƙarin bayani game da matsalar...",
+    "submit": "Aika Kara",
+    "warning": "Ƙarya na iya kaiwa ga dakatar da asusunka",
+    "reasons": {
+      "scam": "Zamba ko yaudara",
+      "counterfeit": "Kayan jabu",
+      "offensive": "Abun da bai dace ba",
+      "spam": "Saƙonnin banza ko takura",
+      "duplicate": "Talla ta ninki",
+      "wrong_category": "Rukuni mara kyau",
+      "prohibited": "Kayan da aka haramta",
+      "other": "Wani dalili"
+    }
+  },
+  "tabs": {
+    "home": "Farko",
+    "alerts": "Sanarwa",
+    "add": "Saka Talla",
+    "chat": "Hira",
+    "profile": "Bayanai"
+  },
+  "analytics": {
+    "title": "Kididdigar Talla",
+    "totalAds": "Duk Talla",
+    "views": "Kallo",
+    "active": "Masu aiki",
+    "favorites": "Sha'awa",
+    "sold": "An sayar",
+    "rating": "Daraja"
+  },
+  "kyc": {
+    "title": "Tabbatar da Kai",
+    "subtitle": "Cika bayanan KYC",
+    "introTitle": "Tabbatar da Wane ne Kai",
+    "introDesc": "Domin samar da kasuwa mai aminci ga kowa, muna buƙatar masu sayarwa su tabbatar da kansu.",
+    "idTypesList": "Passport / ID / DL na Niger",
+    "selfieCapture": "Ɗaukar hoto nan take",
+    "timeEstimate": "Kasa da minti 2"
+  },
+  "alerts": {
+    "title": "Sanarwa",
+    "newRequests": "Sabuwar buƙata {{count}}",
+    "markAllRead": "Saka duk an duba",
+    "noNotifications": "Babu sanarwa tukunna",
+    "noTypeAlerts": "Ba a sami sanarwar {{type}} ba",
+    "clearFilters": "Goge Matata",
+    "types": {
+      "all": "Duka",
+      "message": "Saƙonni",
+      "ad_view": "Kallo",
+      "favorite": "Sha'awa",
+      "phone_view": "Masu sha'awa",
+      "ad_status": "Matsayi"
+    }
+  },
+  "settings": {
+    "languageNote": "Canja harshe zai sabunta dukkan aikace-aikacen. Wasu bayanan da masu amfani suka saka na iya kasancewa a harshensu na asali."
+  }
+}

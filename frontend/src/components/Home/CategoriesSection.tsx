@@ -1,15 +1,17 @@
 "use client"
 
 import React, { useMemo, useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { ChevronRight } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import CategoryImage from '@/components/ui/CategoryImage'
 import { useCategories } from '@/hooks/useCategories'
 import { cn } from '@/lib/utils'
 import { CategoryTree } from '@/types/category'
+import { useTranslations } from 'next-intl'
 
 export default function CategoriesSection() {
+  const t = useTranslations('common')
   const { categoryTree, loading } = useCategories()
   const [hoveredCategory, setHoveredCategory] = useState<CategoryTree | null>(null)
   const [hoveredCategoryTop, setHoveredCategoryTop] = useState<number>(0)
@@ -21,8 +23,8 @@ export default function CategoriesSection() {
       className="hidden lg:flex flex-col lg:min-w-[260px] lg:max-w-[320px] bg-white border border-gray-200 rounded-xl p-5 relative z-40 h-full categories-section-container"
       onMouseLeave={() => setHoveredCategory(null)}
     >
-      <h3 className="font-semibold text-gray-900 mb-1">Browse Categories</h3>
-      <p className="text-[11px] text-gray-500 mb-4">Hover to preview top subcategories.</p>
+      <h3 className="font-semibold text-gray-900 mb-1">{t('categories')}</h3>
+      <p className="text-[11px] text-gray-500 mb-4">{t('hover_preview')}</p>
 
       <div className="flex-1 space-y-0.5 custom-scrollbar-categories pr-1 overflow-y-auto min-h-0">
         {loading && (
@@ -41,7 +43,7 @@ export default function CategoriesSection() {
         )}
 
         {!loading && displayedCategories.length === 0 && (
-          <div className="text-sm text-gray-500">No categories available yet.</div>
+          <div className="text-sm text-gray-500">{t('no_categories')}</div>
         )}
 
         {displayedCategories.map((category) => {
@@ -80,7 +82,7 @@ export default function CategoriesSection() {
                     )}>
                       {category.name}
                     </p>
-                    <p className="text-[10px] text-gray-400 font-normal">{totalCount} listings</p>
+                    <p className="text-[10px] text-gray-400 font-normal">{totalCount} {t('listings')}</p>
                   </div>
                   <ChevronRight className={cn(
                     "w-4 h-4 transition-all duration-200",
@@ -103,7 +105,7 @@ export default function CategoriesSection() {
           <div className="w-64 bg-white border border-gray-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-3 border-b border-gray-50 pb-2">
               <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">{hoveredCategory.name}</span>
-              <span className="text-[10px] text-gray-400">{hoveredCategory.children?.length} subcategories</span>
+              <span className="text-[10px] text-gray-400">{hoveredCategory.children?.length} {t('subcategories')}</span>
             </div>
             <div className="grid grid-cols-1 gap-1">
               {hoveredCategory.children?.slice(0, 10).map((sub) => (
@@ -121,7 +123,7 @@ export default function CategoriesSection() {
                   href={`/category/${hoveredCategory.slug}`}
                   className="text-[11px] text-primary font-medium mt-2 px-2 hover:underline"
                 >
-                  View all subcategories...
+                  {t('view_all_subcategories')}
                 </Link>
               )}
             </div>

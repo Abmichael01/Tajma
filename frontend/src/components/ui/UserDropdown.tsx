@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { useAuthStore } from '@/store/authStore'
 import { useChats } from '@/hooks/useChat'
 import { useUnreadNotificationCount } from '@/hooks/useNotifications'
@@ -29,8 +29,10 @@ import {
   Shield,
   Users
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function UserDropdown() {
+  const t = useTranslations('user')
   const { user, logout } = useAuthStore()
   const { data: chats = [] } = useChats()
   const { data: unreadNotificationData } = useUnreadNotificationCount()
@@ -86,7 +88,7 @@ export default function UserDropdown() {
             {user.is_verified && (
               <span className="inline-flex items-center gap-1 text-xs text-green-600 mt-1">
                 <div className="w-2 h-2 bg-green-500"></div>
-                Verified
+                {t('verified')}
               </span>
             )}
           </div>
@@ -97,14 +99,14 @@ export default function UserDropdown() {
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=overview`} className="flex items-center gap-3 p-3 cursor-pointer">
             <User className="w-4 h-4 text-gray-500" />
-            <span>Profile</span>
+            <span>{t('profile')}</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
           <Link href="/chat" className="flex items-center gap-3 p-3 cursor-pointer">
             <MessageCircleMore className="w-4 h-4 text-gray-500" />
-            <span>Messages</span>
+            <span>{t('messages')}</span>
             {totalUnreadMessages > 0 && (
               <span className="ml-auto bg-primary text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center font-bold rounded-full">
                 {totalUnreadMessages > 9 ? '9+' : totalUnreadMessages}
@@ -116,7 +118,7 @@ export default function UserDropdown() {
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=notifications`} className="flex items-center gap-3 p-3 cursor-pointer">
             <Bell className="w-4 h-4 text-gray-500" />
-            <span>Notifications</span>
+            <span>{t('notifications')}</span>
             {unreadNotificationCount > 0 && (
               <span className="ml-auto bg-primary text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center font-bold rounded-full">
                 {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
@@ -128,28 +130,28 @@ export default function UserDropdown() {
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=ads`} className="flex items-center gap-3 p-3 cursor-pointer">
             <FileText className="w-4 h-4 text-gray-500" />
-            <span>My Ads</span>
+            <span>{t('my_ads')}</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
           <Link href="/profile/leads" className="flex items-center gap-3 p-3 cursor-pointer">
             <Users className="w-4 h-4 text-gray-500" />
-            <span>Potential Clients</span>
+            <span>{t('potential_clients')}</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=saved`} className="flex items-center gap-3 p-3 cursor-pointer">
             <Heart className="w-4 h-4 text-gray-500" />
-            <span>Saved Ads</span>
+            <span>{t('saved_ads')}</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
           <Link href="/premium" className="flex items-center gap-3 p-3 cursor-pointer">
             <Crown className="w-4 h-4 text-primary" />
-            <span className="text-primary font-medium">Premium Services</span>
+            <span className="text-primary font-medium">{t('premium_services')}</span>
           </Link>
         </DropdownMenuItem>
 
@@ -159,7 +161,7 @@ export default function UserDropdown() {
             <DropdownMenuItem asChild>
               <Link href="/admin" className="flex items-center gap-3 p-3 cursor-pointer">
                 <Shield className="w-4 h-4 text-primary" />
-                <span className="text-primary font-medium">Admin Panel</span>
+                <span className="text-primary font-medium">{t('admin_panel')}</span>
               </Link>
             </DropdownMenuItem>
           </>
@@ -170,7 +172,7 @@ export default function UserDropdown() {
         <DropdownMenuItem asChild>
           <Link href={`/profile/${profileSlug}?tab=settings`} className="flex items-center gap-3 p-3 cursor-pointer">
             <Settings className="w-4 h-4 text-gray-500" />
-            <span>Settings</span>
+            <span>{t('settings')}</span>
           </Link>
         </DropdownMenuItem>
 
@@ -179,7 +181,7 @@ export default function UserDropdown() {
           className="flex items-center gap-3 p-3 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
         >
           <LogOut className="w-4 h-4" />
-          <span>Logout</span>
+          <span>{t('logout')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

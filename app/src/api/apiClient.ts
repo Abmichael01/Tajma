@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/authStore';
+import i18n from '../i18n';
 
 // API base URL - adjust based on your backend
 // Set EXPO_PUBLIC_API_URL in .env file
@@ -24,6 +25,11 @@ apiClient.interceptors.request.use(
 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Set Accept-Language header based on current i18n language
+    if (config.headers) {
+      config.headers['Accept-Language'] = i18n.language || 'en';
     }
 
     return config;

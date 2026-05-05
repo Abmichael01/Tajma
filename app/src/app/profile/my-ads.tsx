@@ -12,6 +12,7 @@ import { useState } from "react";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
+import { useTranslation } from "react-i18next";
 import CustomAlert from "@/components/ui/CustomAlert";
 import { useAlert } from "@/hooks/useAlert";
 import { useAuthStore } from "@/store/authStore";
@@ -31,18 +32,18 @@ function MyAdItem({
   const deleteAd = useDeleteAd(ad.slug || ad.id);
   const updateAd = useUpdateAd(ad.slug || ad.id);
   const { alertConfig, showAlert, hideAlert } = useAlert();
+  const { t } = useTranslation();
 
   const handleDelete = () => {
     showAlert({
-      title: "Delete Ad",
-      message:
-        "Are you sure you want to delete this listing? This action cannot be undone.",
+      title: t('ads.deleteAdTitle'),
+      message: t('ads.deleteAdMessage'),
       icon: "trash-outline",
       iconColor: "#ef4444",
       buttons: [
-        { text: "Cancel", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Delete",
+          text: t('common.delete'),
           style: "destructive",
           onPress: () => deleteAd.mutate(),
         },
@@ -74,7 +75,7 @@ function MyAdItem({
             weight="semibold"
             className={`ml-1.5 text-sm ${ad.status === "published" ? "text-gray-600" : "text-green-600"}`}
           >
-            {ad.status === "published" ? "Archive" : "Make Live"}
+            {ad.status === "published" ? t('ads.archive') : t('ads.makeLive')}
           </AppText>
         </TouchableOpacity>
 
@@ -84,7 +85,7 @@ function MyAdItem({
         >
           <Ionicons name="create-outline" size={16} color="white" />
           <AppText weight="semibold" className="text-white ml-1.5 text-sm">
-            Edit
+            {t('ads.edit')}
           </AppText>
         </TouchableOpacity>
 
@@ -94,7 +95,7 @@ function MyAdItem({
         >
           <Ionicons name="flash-outline" size={16} color="#FF4F18" />
           <AppText weight="bold" className="text-primary ml-1.5 text-sm">
-            Promote
+            {t('ads.promote')}
           </AppText>
         </TouchableOpacity>
 
@@ -121,6 +122,7 @@ function MyAdItem({
 }
 
 export default function MyAdsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
   const {
@@ -155,16 +157,16 @@ export default function MyAdsScreen() {
   };
 
   const filters = [
-    { value: "all", label: "All", icon: "apps" },
-    { value: "published", label: "Active", icon: "checkmark-circle" },
-    { value: "archived", label: "Archived", icon: "archive" },
-    { value: "draft", label: "Draft", icon: "create" },
+    { value: "all", label: t('ads.all'), icon: "apps" },
+    { value: "published", label: t('ads.active'), icon: "checkmark-circle" },
+    { value: "archived", label: t('ads.archived'), icon: "archive" },
+    { value: "draft", label: t('ads.draft'), icon: "create" },
   ] as const;
 
   return (
     <View className="flex-1 bg-white">
       <ScreenHeader
-        title="My Listings"
+        title={t('ads.myListings')}
         rightElement={
           <TouchableOpacity
             onPress={handleCreateAd}
@@ -244,12 +246,12 @@ export default function MyAdsScreen() {
                 <View className="flex-row items-center justify-between mb-8 px-6">
                   <AppText weight="bold" className="text-gray-900 text-xl">
                     {statusFilter === "all"
-                      ? "Your Ads"
-                      : `${filters.find((f) => f.value === statusFilter)?.label} Ads`}
+                      ? t('ads.yourAds')
+                      : `${filters.find((f) => f.value === statusFilter)?.label} ${t('profile.listings')}`}
                   </AppText>
                   <View className="bg-primary-50 px-3 py-1 rounded-full">
                     <AppText weight="bold" className="text-[#FF4F18] text-xs">
-                      {filteredAds.length} Total
+                      {filteredAds.length} {t('common.all')}
                     </AppText>
                   </View>
                 </View>
@@ -265,10 +267,10 @@ export default function MyAdsScreen() {
                 weight="bold"
                 className="text-gray-900 mb-2 text-2xl text-center"
               >
-                No active ads
+                {t('ads.noActiveAdsTitle')}
               </AppText>
               <AppText className="text-gray-500 text-center px-12 mb-10 leading-6 text-base">
-                Ready to sell? Post your first ad and start earning today!
+                {t('ads.noActiveAdsDesc')}
               </AppText>
               <TouchableOpacity
                 onPress={handleCreateAd}
@@ -276,7 +278,7 @@ export default function MyAdsScreen() {
               >
                 <Ionicons name="add" size={24} color="white" className="mr-2" />
                 <AppText weight="bold" className="text-white text-lg">
-                  Create Listing
+                  {t('ads.createListing')}
                 </AppText>
               </TouchableOpacity>
             </View>

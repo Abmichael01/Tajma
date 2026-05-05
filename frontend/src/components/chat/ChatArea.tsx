@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { 
   ChevronDown
 } from 'lucide-react'

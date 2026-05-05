@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Poppins, Inter, DM_Sans } from "next/font/google";
 import "./globals.css";
-import GoogleTranslate from "@/components/GoogleTranslate";
 import QueryProvider from "@/providers/QueryProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/sonner";
@@ -41,69 +40,26 @@ export const metadata: Metadata = {
     default: "Tajma Marketplace | Buy & Sell Locally in Gambia",
     template: "%s | Tajma"
   },
-  description: "Tajma is the leading community marketplace in Gambia. Buy, sell, and discover everything from electronics and fashion to vehicles and property.",
+  description: "Tajma is the leading community marketplace in West Africa.",
   keywords: ["Marketplace", "Gambia", "Buy and Sell", "Classifieds", "Tajma", "Online Shop"],
-  authors: [{ name: "Tajma Team" }],
-  creator: "Tajma Team",
-  publisher: "Tajma Marketplace",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  openGraph: {
-    type: "website",
-    locale: "en_GB",
-    url: "https://tajma.net",
-    siteName: "Tajma Marketplace",
-    title: "Tajma Marketplace | Buy & Sell Locally in Gambia",
-    description: "Connect with buyers and sellers in your community. Safe, fast, and local.",
-    images: [
-      {
-        url: "/logo_new.png",
-        width: 1200,
-        height: 630,
-        alt: "Tajma Marketplace",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Tajma Marketplace | Buy & Sell Locally in Gambia",
-    description: "The leading community marketplace in Gambia. Buy, sell, and discover locally.",
-    images: ["/logo_new.png"],
-    creator: "@tajmamarket",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${dmSans.variable} antialiased`}
         suppressHydrationWarning
       >
         <ErrorBoundary>
-        <QueryProvider>
-          <GoogleTranslate />
-          {children}
-          <Toaster position="top-right" />
-        </QueryProvider>
+          <QueryProvider>
+            {children}
+            <Toaster position="top-right" />
+          </QueryProvider>
         </ErrorBoundary>
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX'} />
       </body>

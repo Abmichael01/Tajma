@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { Search } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 
 interface SearchBoxProps {
   placeholder?: string

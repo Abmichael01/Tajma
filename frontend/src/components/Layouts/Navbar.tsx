@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter, Link } from '@/i18n/routing'
 import Logo from '../General/Logo'
 import { Button } from '../ui/button'
 import AuthButton from '../ui/AuthButton'
@@ -10,11 +10,10 @@ import NotificationDropdown from '../ui/NotificationDropdown'
 import { Skeleton } from '../ui/skeleton'
 import LanguageSwitcher from '../ui/LanguageSwitcher'
 import SearchModal from '../modals/SearchModal'
-import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { useSavedAds } from '@/hooks/useSavedAds'
 import { useChats } from '@/hooks/useChat'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { 
   MapPin, 
   Menu, 
@@ -33,6 +32,8 @@ import { useLocationStore } from '@/store/locationStore'
 import RegionSelectorModal from '../modals/RegionSelectorModal'
 
 export default function Navbar() {
+    const t = useTranslations('common');
+    const navT = useTranslations('nav');
     const pathname = usePathname()
     const isChatPage = pathname === '/chat'
     const router = useRouter()
@@ -173,8 +174,8 @@ export default function Navbar() {
             <div className='bg-secondary text-secondary-foreground py-2 text-xs sm:text-sm border-b border-white/10'>
                 <div className='container flex justify-between items-center'>
                     <div className='flex items-center gap-2 sm:gap-4'>
-                        <span className='hidden sm:inline'>Welcome to Tajma Marketplace</span>
-                        <span className='sm:hidden'>Tajma Marketplace</span>
+                        <span className='hidden sm:inline'>{t('welcome_msg')}</span>
+                        <span className='sm:hidden'>Tajma</span>
                         <button 
                             onClick={() => setIsRegionModalOpen(true)}
                             className='flex items-center gap-1 sm:gap-2 hover:text-primary transition-colors cursor-pointer group'
@@ -190,14 +191,14 @@ export default function Navbar() {
                                     </span>
                                 </>
                             ) : (
-                                <span className='text-xs'>Loading...</span>
+                                <span className='text-xs'>{t('loading')}</span>
                             )}
                         </button>
                     </div>
                     <div className='hidden sm:flex items-center gap-4'>
-                        <Link href='/contact' className='hover:underline'>Contact Support</Link>
-                        <Link href='/create-ad' className='hover:underline'>Sell</Link>
-                        <Link href='/' className='hover:underline'>Buy</Link>
+                        <Link href='/contact' className='hover:underline'>{navT('support')}</Link>
+                        <Link href='/create-ad' className='hover:underline'>{navT('sell')}</Link>
+                        <Link href='/' className='hover:underline'>{navT('buy')}</Link>
                     </div>
                 </div>
             </div>
@@ -216,7 +217,7 @@ export default function Navbar() {
                         <form onSubmit={handleSearch} className="relative w-full">
                             <input
                                 type="text"
-                                placeholder="Search for ads..."
+                                placeholder={t("search_placeholder")}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full bg-gray-100 hover:bg-gray-200 focus:bg-white border border-transparent focus:border-primary/20 
@@ -254,12 +255,12 @@ export default function Navbar() {
                             <div className='flex items-center gap-1 sm:gap-2'>
                                 <Link href="/login" className="hidden sm:block">
                                     <Button variant="secondary" size="sm" className="hover:bg-secondary/90">
-                                        Login
+                                        {t('login')}
                                     </Button>
                                 </Link>
                                 <Link href="/login" className="sm:hidden">
                                     <Button variant="primary" size="sm">
-                                        Login
+                                        {t('login')}
                                     </Button>
                                 </Link>
                             </div>
@@ -268,7 +269,7 @@ export default function Navbar() {
                                 <Link href='/create-ad' className='hidden sm:block'>
                                     <Button variant="primary" size="sm">
                                         <Plus className='w-4 h-4 mr-2' />
-                                        Post Ad
+                                        {t('post_ad')}
                                     </Button>
                                 </Link>
                                 <Button 
@@ -379,7 +380,7 @@ export default function Navbar() {
                         )}
                         {!categoriesLoading && categoriesError && (
                             <span className="text-xs sm:text-sm text-red-500">
-                                Categories unavailable
+                                {t('categories_unavailable')}
                             </span>
                         )}
                         {!categoriesLoading && !categoriesError && (

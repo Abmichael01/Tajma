@@ -1,4 +1,5 @@
 import { View, ScrollView, TouchableOpacity, RefreshControl, Image, ActivityIndicator, FlatList, Platform } from "react-native";
+import { useTranslation } from "react-i18next";
 import { StatusBar } from "expo-status-bar";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,6 +10,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useSellerReviews } from "@/hooks/useReviews";
 
 export default function ReviewsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user } = useAuthStore();
   const userId = user?.id ? Number(user.id) : undefined;
@@ -30,8 +32,8 @@ export default function ReviewsScreen() {
   return (
     <View className="flex-1 bg-gray-50">
       <ScreenHeader
-        title="My Reviews"
-        subtitle={reviews.length > 0 ? `${reviews.length} reviews received` : "Your feedback"}
+        title={t('profile.reviews')}
+        subtitle={reviews.length > 0 ? t('reviews_interact.reviewsReceived', { count: reviews.length }) : t('reviews_interact.yourFeedback')}
       />
 
       {isLoading && !isRefetching ? (
@@ -50,7 +52,7 @@ export default function ReviewsScreen() {
           ListHeaderComponent={
             reviews.length > 0 ? (
               <AppText variant="default" className="text-gray-500 mb-4">
-                {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'} received
+                {reviews.length} {reviews.length === 1 ? t('reviews_interact.review') : t('reviews_interact.reviews')}
               </AppText>
             ) : null
           }
@@ -60,10 +62,10 @@ export default function ReviewsScreen() {
                 <Ionicons name="star-outline" size={32} color="#9ca3af" />
               </View>
               <AppText variant="heading" weight="medium" className="text-gray-900 mb-2">
-                No reviews yet
+                {t('reviews_interact.noReviewsTitle')}
               </AppText>
               <AppText variant="default" className="text-gray-500 text-center px-8">
-                You haven't received any reviews yet.
+                {t('reviews_interact.noReviewsDesc')}
               </AppText>
             </View>
           }
@@ -104,7 +106,7 @@ export default function ReviewsScreen() {
                 {review.ad_title && (
                   <View className="bg-gray-50 rounded-lg p-3 flex-row items-center justify-between border border-gray-100">
                     <View className="flex-1 mr-2">
-                      <AppText variant="caption" className="text-gray-500 mb-0.5">Reviewed Item:</AppText>
+                      <AppText variant="caption" className="text-gray-500 mb-0.5">{t('reviews_interact.reviewedItem')}:</AppText>
                       <AppText variant="default" weight="medium" className="text-gray-900" numberOfLines={1}>
                         {review.ad_title}
                       </AppText>
@@ -112,7 +114,7 @@ export default function ReviewsScreen() {
                     <Link href={`/ads/${review.ad_slug || review.ad}`} asChild>
                       <TouchableOpacity className="bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
                         <AppText variant="caption" weight="medium" className="text-secondary">
-                          View Ad
+                          {t('reviews_interact.viewAd')}
                         </AppText>
                       </TouchableOpacity>
                     </Link>

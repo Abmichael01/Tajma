@@ -1,0 +1,285 @@
+{
+  "home": {
+    "discoverDeals": "Discover great deals near you"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "error": "Error",
+    "success": "Success",
+    "loading": "Loading...",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "back": "Back",
+    "all": "All",
+    "required": "Required",
+    "change": "Change",
+    "select": "Select",
+    "welcome": "Welcome",
+    "alerts": "Alerts",
+    "search": "Search",
+    "home": "Home",
+    "chat": "Chat",
+    "profile": "Profile",
+    "add": "Add",
+    "goBack": "Go Back",
+    "seeAll": "See All",
+    "continue": "Continue",
+    "unread": "Unread",
+    "justNow": "Just now",
+    "minAgo": "{{count}}m ago",
+    "hourAgo": "{{count}}h ago",
+    "dayAgo": "{{count}}d ago",
+    "weekAgo": "{{count}}w ago",
+    "note": "Note"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "signInRequired": "Sign In Required",
+    "signInRequiredDesc": "Please sign in to view your alerts and notifications.",
+    "forgotPassword": "Forgot Password?",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "••••••••",
+    "usernamePlaceholder": "username",
+    "signOut": "Sign Out",
+    "createAccount": "Create your account",
+    "alreadyHaveAccount": "Already have an account?",
+    "continueWithGoogle": "Continue with Google",
+    "connecting": "Connecting...",
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email address",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters"
+    }
+  },
+  "messages": {
+    "title": "Messages",
+    "available": "Is this still available?",
+    "bestPrice": "What is the best price you can offer?",
+    "morePhotos": "Can I see more photos?",
+    "location": "Where are you located?",
+    "pickup": "When can I pick it up?",
+    "viewAll": "View all messages",
+    "unreadCount": "{{count}} unread messages",
+    "noConversations": "No conversations yet",
+    "noUnread": "No unread messages",
+    "conversationsDesc": "Your messages and conversation history will appear here.",
+    "caughtUp": "You've read all your messages.",
+    "allMessages": "All Messages"
+  },
+  "chat": {
+    "startError": "Failed to start conversation. Please try again.",
+    "filters": {
+      "all": "All Chats",
+      "unread": "Unread"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "myAds": "My Ads",
+    "savedAds": "Saved Ads",
+    "settings": "Settings",
+    "logout": "Logout",
+    "verifyIdentity": "Verify Identity",
+    "verificationStatus": "Verification Status",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "pending": "Pending",
+    "analytics": "Analytics",
+    "analyticsDesc": "Track your reach and trust score",
+    "leads": "Leads",
+    "reviews": "Reviews",
+    "wishlist": "Wishlist",
+    "listings": "Listings",
+    "reputation": "Reputation",
+    "maybeLater": "Maybe Later",
+    "logoutConfirmTitle": "Logout",
+    "logoutConfirmMessage": "Are you sure you want to logout?",
+    "recentListings": "Recent Listings",
+    "supportLegal": "Support & Legal",
+    "helpSupport": "Help & Support",
+    "legalTerms": "Legal & Terms",
+    "shareApp": "Share App",
+    "language": "Language",
+    "signOut": "Sign Out",
+    "wishlist_interact": {
+      "itemsSaved": "{{count}} items saved",
+      "noSavedAdsTitle": "No saved ads",
+      "noSavedAdsDesc": "Items you save will appear here."
+    }
+  },
+  "search": {
+    "title": "Search",
+    "resultsFor": "Results for",
+    "in": "in",
+    "matching": "matching",
+    "placeholder": "Search...",
+    "searching": "Searching for ads...",
+    "adsFound": "{{count}} Ads Found",
+    "noResults": "No results found",
+    "noResultsDesc": "We couldn't find any ads matching \"{{query}}\" in {{region}}.",
+    "clearFilters": "Clear All Filters",
+    "allRegions": "All Regions",
+    "filters": {
+      "title": "Refine Search",
+      "priceRange": "Price Range",
+      "reset": "Reset",
+      "showResults": "Show Results ({{count}})",
+      "min": "Min",
+      "max": "Max",
+      "condition": "Condition"
+    }
+  },
+  "ads": {
+    "myListings": "My Listings",
+    "editListing": "Edit Listing",
+    "newListing": "New Listing",
+    "whatAreYouListing": "What are you listing?",
+    "fillDetails": "Fill in the details for your new ad",
+    "failedToCreate": "Failed to create ad. Please try again.",
+    "contactForPrice": "Contact for price",
+    "chat": "Chat",
+    "call": "Call",
+    "share": "Share",
+    "report": "Report",
+    "loadError": "Ad Not Found",
+    "loadErrorDesc": "The ad you're looking for doesn't exist or has been removed.",
+    "sortBy": "Sort By",
+    "sort": {
+      "newest": "Newest First",
+      "oldest": "Oldest First",
+      "price-low": "Price: Low to High",
+      "price-high": "Price: High to Low",
+      "views": "Most Viewed",
+      "title": "Title A-Z"
+    }
+  },
+  "create_ad": {
+    "steps": {
+      "basicInfo": "Basic Info",
+      "details": "Details",
+      "review": "Review"
+    },
+    "fields": {
+      "title": "Title",
+      "titlePlaceholder": "What are you selling?",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
+      "price": "Price",
+      "pricePlaceholder": "Enter price",
+      "negotiable": "Negotiable",
+      "contactForPrice": "Contact for price",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe your item (min 20 chars)",
+      "location": "Location",
+      "locationPlaceholder": "Select location",
+      "brand": "Brand",
+      "model": "Model",
+      "condition": "Condition",
+      "year": "Year",
+      "mileage": "Mileage (km)",
+      "transmission": "Transmission",
+      "fuelType": "Fuel Type",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "furnishing": "Furnishing",
+      "availability": "Availability"
+    },
+    "validation": {
+      "titleMin": "Title must be at least 5 characters",
+      "titleRequired": "Please enter a valid title",
+      "categoryRequired": "Please select a category",
+      "photoRequired": "Please add at least one photo",
+      "descriptionMin": "Description must be at least 20 characters",
+      "locationRequired": "Location is required"
+    },
+    "actions": {
+      "publish": "Publish Now",
+      "update": "Update Listing",
+      "next": "Next Step",
+      "back": "Back",
+      "addPhotos": "Add Photos"
+    }
+  },
+  "promote": {
+    "title": "Promote Listing",
+    "choosePackage": "Choose a promotion package for",
+    "boostName": "Ad Boost",
+    "featuredName": "Featured Ad",
+    "boostDesc": "Move your ad to the top of search results once.",
+    "featuredDesc": "Sticky placement on homepage and category top.",
+    "duration": "7 Days",
+    "selectPackage": "Select {{name}}",
+    "securedBy": "Secured by Paystack"
+  },
+  "report": {
+    "title": "Report This Ad",
+    "helpUs": "Help us keep Tajma safe. Why are you reporting",
+    "description": "Description",
+    "detailsPlaceholder": "Provide more details about the issue...",
+    "submit": "Submit Report",
+    "warning": "False reports may lead to account suspension",
+    "reasons": {
+      "scam": "Scam or Fraud",
+      "counterfeit": "Fake or Counterfeit Items",
+      "offensive": "Inappropriate Content",
+      "spam": "Spam or Harassment",
+      "duplicate": "Duplicate Listing",
+      "wrong_category": "Wrong Category",
+      "prohibited": "Prohibited Items",
+      "other": "Other"
+    }
+  },
+  "tabs": {
+    "home": "Home",
+    "alerts": "Alerts",
+    "add": "Post",
+    "chat": "Chats",
+    "profile": "Profile"
+  },
+  "analytics": {
+    "title": "Performance Analytics",
+    "totalAds": "Total Ads",
+    "views": "Views",
+    "active": "Active",
+    "favorites": "Favorites",
+    "sold": "Sold",
+    "rating": "Rating"
+  },
+  "kyc": {
+    "title": "Verify Identity",
+    "subtitle": "Complete your KYC verification",
+    "introTitle": "Verify Your Identity",
+    "introDesc": "To provide a safe marketplace for everyone, we require sellers to verify their identity.",
+    "idTypesList": "Nigerien Passport / ID / DL",
+    "selfieCapture": "Live Selfie Capture",
+    "timeEstimate": "Takes less than 2 minutes"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "newRequests": "{{count}} new requests",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No notifications yet",
+    "noTypeAlerts": "No {{type}} alerts found",
+    "clearFilters": "Clear Filters",
+    "types": {
+      "all": "All",
+      "message": "Messages",
+      "ad_view": "Views",
+      "favorite": "Favorites",
+      "phone_view": "Leads",
+      "ad_status": "Status"
+    }
+  },
+  "settings": {
+    "languageNote": "Changing the language will update the interface across the entire application. Some user-generated content may remain in its original language."
+  }
+}

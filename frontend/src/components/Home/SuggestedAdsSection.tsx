@@ -2,8 +2,7 @@
 
 import { animate, motion } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/i18n/routing";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useSuggestedAds } from "@/hooks/useAds";
@@ -11,6 +10,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useToggleSaveAd } from "@/hooks/useSavedAds";
 import { useAuthStore } from "@/store/authStore";
 import AdCard, { getAdCategoryName } from "./AdCard";
+import { useTranslations } from "next-intl";
 
 interface SuggestedAdsSectionProps {
   className?: string;
@@ -19,6 +19,7 @@ interface SuggestedAdsSectionProps {
 export default function SuggestedAdsSection({
   className = "",
 }: SuggestedAdsSectionProps) {
+  const t = useTranslations('common');
   const { data: ads, isLoading, isError } = useSuggestedAds();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
@@ -68,7 +69,7 @@ export default function SuggestedAdsSection({
     if (isAuthenticated) {
       toggleSaveAd(adId);
     } else {
-      toast.error("Please login to save ads");
+      toast.error(t("login_to_save"));
       router.push("/login");
     }
   };
@@ -79,7 +80,7 @@ export default function SuggestedAdsSection({
         <div className="flex flex-col items-center justify-center min-h-[160px]">
           <Loader2 className="w-7 h-7 text-secondary animate-spin mb-3" />
           <p className="text-gray-400 text-sm animate-pulse">
-            Finding things you'll love...
+            {t('finding_love')}
           </p>
         </div>
       </div>
@@ -100,10 +101,10 @@ export default function SuggestedAdsSection({
         <div className="flex items-end justify-between mb-4">
           <div>
             <h2 className="text-2xl font-medium text-gray-900 mb-1">
-              Suggested for you
+              {t('suggested_for_you')}
             </h2>
             <p className="text-gray-500 text-sm">
-              Based on your recent activity and interests
+              {t('based_on_activity')}
             </p>
           </div>
 
@@ -139,7 +140,7 @@ export default function SuggestedAdsSection({
               href="/search"
               className="hidden sm:inline-flex items-center gap-1.5 ml-2 text-sm font-medium text-secondary hover:text-secondary/80 transition-colors group"
             >
-              See more
+              {t('see_more')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
@@ -180,7 +181,7 @@ export default function SuggestedAdsSection({
             href="/search"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-secondary hover:text-secondary/80 transition-colors group"
           >
-            See more{" "}
+            {t('see_more')}{" "}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>

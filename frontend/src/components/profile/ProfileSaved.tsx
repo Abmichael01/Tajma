@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { Heart, MapPin, Eye, X, ShoppingBag, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSavedAdsInfinite, useUnsaveAd } from '@/hooks/useSavedAds'

@@ -12,6 +12,7 @@ import AppText from "@/components/ui/AppText";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import { useKYC } from "@/hooks/useKYC";
 import { useAuthStore } from "@/store/authStore";
+import { useTranslation } from "react-i18next";
 
 // We'll dynamically import or handle if SDK is not yet available to prevent crash
 let SmileID: any;
@@ -22,6 +23,7 @@ try {
 }
 
 export default function KYCScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { initiateKYC, isInitiating } = useKYC();
   const { user } = useAuthStore();
@@ -32,8 +34,8 @@ export default function KYCScreen() {
   const startVerification = async () => {
     if (!SmileID) {
       Alert.alert(
-        "Error",
-        "Verification SDK is not ready yet. Please try again later.",
+        t('common.error'),
+        t('kyc.errorGeneric'),
       );
       return;
     }
@@ -59,35 +61,35 @@ export default function KYCScreen() {
           console.log("Smile ID Result:", result);
           if (result.status === "success") {
             Alert.alert(
-              "Success",
-              "Your documents have been submitted and are being reviewed.",
-              [{ text: "OK", onPress: () => router.back() }],
+              t('kyc.successTitle'),
+              t('kyc.successMessage'),
+              [{ text: t('common.ok'), onPress: () => router.back() }],
             );
           } else {
             Alert.alert(
-              "Verification Failed",
-              result.error?.message || "Something went wrong",
+              t('kyc.failedTitle'),
+              result.error?.message || t('kyc.errorGeneric'),
             );
           }
         })
         .catch((err: any) => {
           console.error("Smile ID Error:", err);
-          Alert.alert("Error", "Verification failed to start");
+          Alert.alert(t('common.error'), t('kyc.errorStart'));
         })
         .finally(() => {
           setIsVerifying(false);
         });
     } catch (error) {
       console.error("Initiation Error:", error);
-      Alert.alert("Error", "Failed to start verification process");
+      Alert.alert(t('common.error'), t('kyc.errorInitiate'));
     }
   };
 
   return (
     <View className="flex-1 bg-white">
       <ScreenHeader
-        title="Verify Identity"
-        subtitle="Complete your KYC verification"
+        title={t('kyc.title')}
+        subtitle={t('kyc.subtitle')}
       />
 
       <View className="flex-1 px-8 py-12 items-center text-center">
@@ -101,23 +103,21 @@ export default function KYCScreen() {
               weight="bold"
               className="text-2xl text-gray-900 text-center mb-4"
             >
-              Verify Your Identity
+              {t('kyc.introTitle')}
             </AppText>
 
             <AppText className="text-gray-500 text-center mb-10 leading-6">
-              To provide a safe marketplace for everyone, we require sellers to
-              verify their identity. You will need a valid government-issued ID
-              from Niger and a quick selfie.
+              {t('kyc.introDesc')}
             </AppText>
 
             <View className="w-full space-y-4 mb-12">
               {[
                 {
                   icon: "document-text-outline",
-                  text: "Nigerien Passport / ID / DL",
+                  text: t('kyc.idTypesList'),
                 },
-                { icon: "camera-outline", text: "Live Selfie Capture" },
-                { icon: "time-outline", text: "Takes less than 2 minutes" },
+                { icon: "camera-outline", text: t('kyc.selfieCapture') },
+                { icon: "time-outline", text: t('kyc.timeEstimate') },
               ].map((item, i) => (
                 <View
                   key={i}
@@ -147,20 +147,20 @@ export default function KYCScreen() {
               weight="bold"
               className="text-2xl text-gray-900 text-center mb-6"
             >
-              Select ID Type
+              {t('kyc.selectIdType')}
             </AppText>
 
             <View className="w-full space-y-3 mb-10">
               {[
                 {
                   id: "NATIONAL_ID",
-                  label: "National ID Card (NiNE)",
+                  label: t('kyc.nationalId'),
                   icon: "card-outline",
                 },
-                { id: "PASSPORT", label: "Passport", icon: "journal-outline" },
+                { id: "PASSPORT", label: t('kyc.passport'), icon: "journal-outline" },
                 {
                   id: "DRIVING_LICENSE",
-                  label: "Driver's License",
+                  label: t('kyc.drivingLicense'),
                   icon: "car-outline",
                 },
               ].map((item) => (
@@ -197,29 +197,27 @@ export default function KYCScreen() {
                 <ActivityIndicator color="white" />
               ) : (
                 <AppText weight="bold" className="text-white text-lg">
-                  Start Scanning
+                  {t('kyc.startScanning')}
                 </AppText>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => setStep("intro")} className="mt-6">
-              <AppText className="text-gray-400 font-semibold">Go Back</AppText>
+              <AppText className="text-gray-400 font-semibold">{t('common.goBack')}</AppText>
             </TouchableOpacity>
           </>
         )}
 
         <TouchableOpacity onPress={() => router.back()} className="mt-4 p-2">
           <AppText className="text-gray-400 font-semibold">
-            {step === "intro" ? "Maybe Later" : ""}
+            {step === "intro" ? t('profile.maybeLater') : ""}
           </AppText>
         </TouchableOpacity>
       </View>
 
       <View className="px-8 pb-10">
         <AppText className="text-[10px] text-gray-400 text-center">
-          By continuing, you agree to share your identity data with our
-          verification partner (Smile ID) strictly for account verification
-          purposes.
+          {t('kyc.privacyNotice')}
         </AppText>
       </View>
     </View>

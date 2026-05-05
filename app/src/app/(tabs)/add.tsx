@@ -8,7 +8,10 @@ import ScreenHeader from "@/components/ui/ScreenHeader";
 import CustomAlert from "@/components/ui/CustomAlert";
 import { useAlert } from "@/hooks/useAlert";
 
+import { useTranslation } from "react-i18next";
+
 export default function AddScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const createAdMutation = useCreateAd();
   const { alertConfig, showAlert, hideAlert } = useAlert();
@@ -19,9 +22,9 @@ export default function AddScreen() {
       router.push("/profile/my-ads");
     } catch (error: any) {
       console.error(error);
-      const msg = error?.response?.data?.message || "Failed to create ad. Please try again.";
+      const msg = error?.response?.data?.message || t('ads.createError');
       showAlert({
-        title: "Error",
+        title: t('common.error'),
         message: msg,
         icon: "alert-circle-outline",
         iconColor: "#ef4444",
@@ -35,8 +38,8 @@ export default function AddScreen() {
       <StatusBar style="light" />
       {/* Header */}
       <ScreenHeader
-        title="What are you listing?"
-        subtitle="Fill in the details for your new ad"
+        title={t('ads.whatAreYouListing')}
+        subtitle={t('ads.fillDetails')}
         showBackButton={false}
       />
 

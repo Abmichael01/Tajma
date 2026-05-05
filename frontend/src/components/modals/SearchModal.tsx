@@ -3,11 +3,12 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, X, Clock, Loader2, DollarSign, Tag } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { adsApi } from '@/api/ads'
 import { Ad } from '@/api/types'
 import { getMediaUrl } from '@/lib/utils'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 
 interface SearchModalProps {
   isOpen: boolean
@@ -15,6 +16,7 @@ interface SearchModalProps {
 }
 
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
+  const t = useTranslations('common')
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [recentSearches, setRecentSearches] = useState<string[]>([])
@@ -83,7 +85,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     <ResponsiveModal 
       isOpen={isOpen} 
       onClose={onClose}
-      title="What are you looking for?"
+      title={t('what_looking_for')}
       className="max-w-2xl"
     >
         <div className="py-2">
@@ -94,7 +96,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for items, brands..."
+                placeholder={t('search_items_placeholder')}
                 className="h-14 pl-14 pr-4 text-lg rounded-2xl border-gray-200 focus:border-primary/30 transition-all shadow-sm"
               />
               <div className="absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
@@ -113,7 +115,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
               <div>
                 <h3 className="text-[10px] font-black text-gray-400 mb-4 flex items-center gap-2 uppercase tracking-[0.2em]">
                   <Tag className="w-3.5 h-3.5" />
-                  Product Suggestions
+                  {t('product_suggestions')}
                 </h3>
                 
                 {suggestions.length > 0 ? (
@@ -147,7 +149,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-primary font-black text-xs">
-                              {ad.currency} {ad.price ? Number(ad.price).toLocaleString() : 'Negotiable'}
+                              {ad.currency} {ad.price ? Number(ad.price).toLocaleString() : t('negotiable')}
                             </span>
                             {ad.category_details?.name && (
                               <span className="text-[10px] text-gray-400 font-medium truncate">
@@ -161,8 +163,8 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   </div>
                 ) : !isSearching ? (
                   <div className="py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                    <p className="text-sm text-gray-400 font-medium">No direct matches found</p>
-                    <p className="text-[10px] text-gray-300 mt-1">Try a different keyword or check categories</p>
+                    <p className="text-sm text-gray-400 font-medium">{t('no_matches_found')}</p>
+                    <p className="text-[10px] text-gray-300 mt-1">{t('try_different_keyword')}</p>
                   </div>
                 ) : null}
               </div>
@@ -173,7 +175,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
               <div>
                 <h3 className="text-[10px] font-black text-gray-400 mb-4 flex items-center gap-2 uppercase tracking-[0.2em]">
                   <Clock className="w-3.5 h-3.5" />
-                  Recent Searches
+                  {t('recent_searches')}
                 </h3>
                 <div className="flex flex-col gap-1">
                   {recentSearches.map((query) => (

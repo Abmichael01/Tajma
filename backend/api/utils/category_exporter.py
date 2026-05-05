@@ -10,7 +10,8 @@ from api.utils.image_url import build_full_image_url
 
 
 def build_category_tree() -> List[Dict]:
-    categories = Category.objects.filter(is_active=True).order_by('sort_order', 'name')
+    # Prefetch translations to avoid N+1
+    categories = Category.objects.filter(is_active=True).prefetch_related('translations').order_by('sort_order', 'id')
     by_parent = {}
     for category in categories:
         by_parent.setdefault(category.parent_id, []).append(category)
@@ -32,13 +33,16 @@ def build_category_tree() -> List[Dict]:
         children_count = sum(child.get('count', 0) for child in children)
         total_count = direct_count + children_count
         
+        # Get translation (default to French or first available)
+        translation = category.translations.filter(language='fr').first() or category.translations.first()
+        name = translation.name if translation else "Unnamed Category"
+        
         # Use build_full_image_url to ensure imageUrl is ready for the frontend
-        # We don't have a request object here, so it will use fallback host
         imageUrl = build_full_image_url(category.image_url)
         
         return {
             'id': category.slug,
-            'name': category.name,
+            'name': name,
             'slug': category.slug,
             'icon': category.icon or 'Package',
             'imageUrl': imageUrl,

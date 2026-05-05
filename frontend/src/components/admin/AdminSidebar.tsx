@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/i18n/routing";
+import { usePathname } from '@/i18n/routing';
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageSquare,
@@ -19,7 +19,7 @@ import {
   Megaphone,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { LayoutGrid } from "@/components/icons/icons/LayoutGrid";
 import { Users } from "@/components/icons/icons/Users";
 import { PackageOpen } from "@/components/icons/icons/PackageOpen";
