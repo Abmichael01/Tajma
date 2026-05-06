@@ -50,7 +50,9 @@ export default function AppText({
       style={[
         { 
           fontFamily: fontFamilyMap[weight],
-          fontWeight: "normal" as const, // Use "normal" since weight is in font name
+          fontWeight: "normal" as const,
+          includeFontPadding: false, // Fix Android custom font clipping
+          textAlignVertical: "center",
         },
         style,
       ]}
