@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select'
 import { Check } from 'lucide-react'
 import CategoryPicker from './CategoryPicker'
+import { useTranslations } from 'next-intl'
 import AdTypeIndicator from './AdTypeIndicator'
 import CategoryImage from '@/components/ui/CategoryImage'
 import type { CategoryTree } from '@/types/category'
@@ -38,6 +39,7 @@ export default function BasicInfoStep({
   selectedCategoryLabel,
   isEditMode = false
 }: BasicInfoStepProps) {
+  const t = useTranslations('create_ad')
   const [isChangingCategory, setIsChangingCategory] = React.useState(false)
 
   const selectedCategory = React.useMemo(() => {
@@ -62,9 +64,9 @@ export default function BasicInfoStep({
       {/* Title & Introduction */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-medium text-gray-900">Basic Information</h2>
+          <h2 className="text-xl font-medium text-gray-900">{t('basic_info')}</h2>
           <p className="text-sm text-gray-500 mt-1">
-            {isEditMode ? 'Update your ad details' : 'Tell us about what you are posting'}
+            {isEditMode ? t('update_ad_details') : t('tell_us_about_posting')}
           </p>
         </div>
         {formData.adType && <AdTypeIndicator adType={formData.adType} />}
@@ -75,10 +77,10 @@ export default function BasicInfoStep({
         <label className="text-sm font-medium text-gray-600 flex items-center justify-between">
           <span>
             {formData.adType === 'cv'
-                ? 'Professional Title'
+                ? t('professional_title')
                 : formData.adType === 'job'
-                ? 'Job Title'
-                : 'Ad Title'}{' '}
+                ? t('job_title')
+                : t('ad_title')}{' '}
             <span className="text-red-500 font-normal">*</span>
           </span>
           <span className={cn(
@@ -112,7 +114,7 @@ export default function BasicInfoStep({
       {/* 2. Category Selection */}
       <div className="space-y-4">
         <label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-          Category <span className="text-red-500 font-normal">*</span>
+          {t('category')} <span className="text-red-500 font-normal">*</span>
           {formData.category && !isChangingCategory && (
              <Button 
                 type="button" 
@@ -121,14 +123,14 @@ export default function BasicInfoStep({
                 onClick={() => setIsChangingCategory(true)}
                 className="h-auto p-0 text-xs text-primary font-medium hover:text-primary/80"
              >
-                Change
+                {t('change')}
              </Button>
           )}
         </label>
         
         {isEditMode || (formData.category && !isChangingCategory) ? (
           <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-             <div className="flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-[2.5rem] shadow-none hover:bg-gray-50/50 transition-all group">
+             <div className="flex items-center gap-4 p-5 bg-white border border-gray-200 rounded-2xl shadow-none hover:bg-gray-50/50 transition-all group">
                 <CategoryImage 
                     imageUrl={selectedCategory?.imageUrl} 
                     name={selectedCategory?.name}
@@ -136,7 +138,7 @@ export default function BasicInfoStep({
                     className="w-12 h-12 rounded-full border border-gray-100 shadow-sm"
                 />
                 <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-medium text-gray-400 tracking-tight">Selected Category</p>
+                    <p className="text-[10px] font-medium text-gray-400 tracking-tight">{t('selected_category')}</p>
                     <p className="text-base font-medium text-gray-900 truncate">
                         {selectedCategoryLabel || '—'}
                     </p>
@@ -149,7 +151,7 @@ export default function BasicInfoStep({
                         onClick={() => setIsChangingCategory(true)}
                         className="text-xs font-medium text-primary hover:bg-primary/5 rounded-full px-4"
                     >
-                        Edit
+                        {t('edit')}
                     </Button>
                 )}
              </div>

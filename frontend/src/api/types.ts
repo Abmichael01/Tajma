@@ -9,6 +9,9 @@ export interface User {
   avatar?: string | null
   phone?: string | null
   location?: string | null
+  location_id?: number | null
+  country?: number | null
+  country_id?: number | null
   address?: string | null
   is_seller: boolean
   is_seller_account_setup: boolean
@@ -92,6 +95,9 @@ export interface ProfileUpdateRequest {
   avatar?: string
   phone?: string
   location?: number | string
+  location_id?: number
+  country?: number
+  country_id?: number
   address?: string
   business_name?: string
   business_type?: string

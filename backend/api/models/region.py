@@ -4,9 +4,16 @@ from django.utils.text import slugify
 
 class Region(models.Model):
     """
-    Region model representing regions in Niger.
+    Generic model representing a subdivision of a country (Region, Department, Cercle, Province, Commune).
     """
     name = models.CharField(max_length=255)
+    country = models.ForeignKey(
+        'api.Country',
+        on_delete=models.CASCADE,
+        related_name='subdivisions',
+        null=True, # Temporarily null for migration
+        blank=True
+    )
     slug = models.SlugField(max_length=255, unique=True, blank=True)
     parent = models.ForeignKey(
         'self',
@@ -17,7 +24,18 @@ class Region(models.Model):
     )
     level = models.PositiveIntegerField(
         default=1,
-        help_text="1: Region, 2: Department, 3: Commune"
+        help_text="Hierarchy level (1, 2, 3...)"
+    )
+    subdivision_type = models.CharField(
+        max_length=50, 
+        blank=True, 
+        help_text="Local name for this level (e.g., Cercle, Province, Commune)"
+    )
+    full_name = models.CharField(
+        max_length=500, 
+        blank=True, 
+        db_index=True,
+        help_text="Denormalized full name for search (e.g., Bamako, Mali)"
     )
     p_code = models.CharField(max_length=50, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=True)

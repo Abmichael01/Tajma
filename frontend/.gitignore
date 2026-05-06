@@ -42,3 +42,5 @@ next-env.d.ts
 
 # CDN files (generated, should not be synced)
 /public/cdn/categories.json
+
+.agents

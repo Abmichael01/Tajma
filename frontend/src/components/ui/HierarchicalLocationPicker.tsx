@@ -1,117 +1,77 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
-import SearchableSelect from './SearchableSelect'
-import { useRegions } from '@/hooks/useRegions'
+import React, { useState, useEffect, useMemo } from 'react'
+import { SearchableSelect } from './SearchableSelect'
+import { useLocations } from '@/hooks/useLocations'
 import { Loader2 } from 'lucide-react'
 
 interface HierarchicalLocationPickerProps {
   initialRegionId?: number
   initialDepartmentId?: number
-  initialCommuneId?: number
   onLocationSelect: (locationId: number | null) => void
   errors?: {
     region?: string
     department?: string
-    commune?: string
   }
 }
 
 export default function HierarchicalLocationPicker({
   initialRegionId,
   initialDepartmentId,
-  initialCommuneId,
   onLocationSelect,
   errors = {}
 }: HierarchicalLocationPickerProps) {
-  // State for selected IDs
   const [selectedRegionId, setSelectedRegionId] = useState<number | undefined>(initialRegionId)
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<number | undefined>(initialDepartmentId)
-  const [selectedCommuneId, setSelectedCommuneId] = useState<number | undefined>(initialCommuneId)
 
-  // Fetch data for each level
-  const { data: regionsData, isLoading: regionsLoading } = useRegions({ parent: undefined, level: 1 }) // Level 1: Region
-  const { data: departmentsData, isLoading: departmentsLoading } = useRegions(selectedRegionId ? { parent: selectedRegionId, level: 2 } : { level: 2 }) // Level 2: Department
-  const { data: communesData, isLoading: communesLoading } = useRegions(selectedDepartmentId ? { parent: selectedDepartmentId, level: 3 } : { level: 3 }) // Level 3: Commune
+  const { data: regionsData, isLoading: regionsLoading } = useLocations({ level: 1 })
+  const { data: departmentsData, isLoading: departmentsLoading } = useLocations({ parent: selectedRegionId, level: 2 }, { enabled: !!selectedRegionId })
 
-  const regions = regionsData?.results || []
-  const departments = departmentsData?.results || []
-  const communes = communesData?.results || []
+  const regionOptions = useMemo(() => regionsData?.results.map(r => ({ value: r.id.toString(), label: r.name })) || [], [regionsData])
+  const departmentOptions = useMemo(() => departmentsData?.results.map(r => ({ value: r.id.toString(), label: r.name })) || [], [departmentsData])
 
-  // Synchronization with initial values (e.g. when loading profile)
   useEffect(() => {
     if (initialRegionId) setSelectedRegionId(initialRegionId)
-  }, [initialRegionId])
-
-  // Callbacks for selection
-  const handleRegionSelect = (option: { id: string | number } | null) => {
-    const id = option ? Number(option.id) : undefined
-    setSelectedRegionId(id)
-    setSelectedDepartmentId(undefined)
-    setSelectedCommuneId(undefined)
-    onLocationSelect(null) // Reset final location until commune is selected (or stay at region)
-    // If you want to allow selecting only a region, you could call onLocationSelect(id) here
-  }
-
-  const handleDepartmentSelect = (option: { id: string | number } | null) => {
-    const id = option ? Number(option.id) : undefined
-    setSelectedDepartmentId(id)
-    setSelectedCommuneId(undefined)
-    onLocationSelect(null)
-  }
-
-  const handleCommuneSelect = (option: { id: string | number } | null) => {
-    const id = option ? Number(option.id) : undefined
-    setSelectedCommuneId(id)
-    onLocationSelect(id || null)
-  }
+    if (initialDepartmentId) setSelectedDepartmentId(initialDepartmentId)
+  }, [initialRegionId, initialDepartmentId])
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Region Picker */}
-        <SearchableSelect
-          label="Region"
-          placeholder="Select Region"
-          searchPlaceholder="Search regions..."
-          options={regions}
-          value={selectedRegionId}
-          onSelect={handleRegionSelect}
-          disabled={regionsLoading}
-          error={errors.region}
-        />
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-500 ml-1">Location</label>
+          <SearchableSelect
+            placeholder="Select Location"
+            options={regionOptions}
+            value={selectedRegionId?.toString()}
+            onValueChange={(val) => {
+              const id = parseInt(val)
+              setSelectedRegionId(id)
+              setSelectedDepartmentId(undefined)
+              onLocationSelect(null)
+            }}
+            loading={regionsLoading}
+          />
+          {errors.region && <p className="text-[10px] text-red-500 ml-1">{errors.region}</p>}
+        </div>
 
-        {/* Department Picker */}
-        <SearchableSelect
-          label="Department"
-          placeholder={selectedRegionId ? "Select Department" : "Select Region first"}
-          searchPlaceholder="Search departments..."
-          options={departments}
-          value={selectedDepartmentId}
-          onSelect={handleDepartmentSelect}
-          disabled={!selectedRegionId || departmentsLoading}
-          error={errors.department}
-        />
-
-        {/* Commune Picker */}
-        <SearchableSelect
-          label="Commune"
-          placeholder={selectedDepartmentId ? "Select Commune" : "Select Department first"}
-          searchPlaceholder="Search communes..."
-          options={communes}
-          value={selectedCommuneId}
-          onSelect={handleCommuneSelect}
-          disabled={!selectedDepartmentId || communesLoading}
-          error={errors.commune}
-        />
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-500 ml-1">Department</label>
+          <SearchableSelect
+            placeholder={selectedRegionId ? "Select Department" : "Select Location first"}
+            options={departmentOptions}
+            value={selectedDepartmentId?.toString()}
+            onValueChange={(val) => {
+              const id = parseInt(val)
+              setSelectedDepartmentId(id)
+              onLocationSelect(id)
+            }}
+            loading={departmentsLoading}
+            disabled={!selectedRegionId}
+          />
+          {errors.department && <p className="text-[10px] text-red-500 ml-1">{errors.department}</p>}
+        </div>
       </div>
-
-      {(regionsLoading || (selectedRegionId && departmentsLoading) || (selectedDepartmentId && communesLoading)) && (
-          <div className="flex items-center gap-2 text-xs text-gray-500 animate-pulse ml-1">
-              <Loader2 className="w-3 h-3 animate-spin" />
-              <span>Loading subsidiary locations...</span>
-          </div>
-      )}
     </div>
   )
 }

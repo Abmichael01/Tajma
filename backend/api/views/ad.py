@@ -21,7 +21,8 @@ class AdViewSet(viewsets.ModelViewSet):
         .prefetch_related('category__parent__parent', 'saved_by_users', 'translations', 'category__translations')
     )
     serializer_class = AdSerializer
-    lookup_field = 'slug'
+    lookup_field = 'translations__slug'
+    lookup_url_kwarg = 'slug'
     from rest_framework.pagination import PageNumberPagination
     pagination_class = PageNumberPagination
 
@@ -133,6 +134,26 @@ class AdViewSet(viewsets.ModelViewSet):
                 qs = qs.filter(price__lte=float(max_price))
             except (ValueError, TypeError):
                 pass
+        
+        # Filter by country (Level 1)
+        country_slug = self.request.query_params.get('country')
+        if country_slug:
+            qs = qs.filter(seller__country__slug=country_slug)
+            
+        # Filter by region/department (Level 2)
+        region_slug = self.request.query_params.get('region')
+        if region_slug:
+            qs = qs.filter(seller__location__slug=region_slug)
+            
+        # Filter by condition (stored in attributes)
+        condition = self.request.query_params.get('condition')
+        if condition:
+            # Handle comma-separated list of conditions
+            conditions = condition.split(',')
+            if len(conditions) == 1:
+                qs = qs.filter(attributes__condition=conditions[0])
+            else:
+                qs = qs.filter(attributes__condition__in=conditions)
         
         return qs
 

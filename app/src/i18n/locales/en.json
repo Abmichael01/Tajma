@@ -4,6 +4,8 @@
   },
   "common": {
     "ok": "OK",
+    "apply": "Apply",
+    "reset": "Reset",
     "cancel": "Cancel",
     "error": "Error",
     "success": "Success",
@@ -33,7 +35,8 @@
     "hourAgo": "{{count}}h ago",
     "dayAgo": "{{count}}d ago",
     "weekAgo": "{{count}}w ago",
-    "note": "Note"
+    "note": "Note",
+    "currency": "Fr"
   },
   "auth": {
     "login": "Login",
@@ -125,20 +128,60 @@
     "searching": "Searching for ads...",
     "adsFound": "{{count}} Ads Found",
     "noResults": "No results found",
-    "noResultsDesc": "We couldn't find any ads matching \"{{query}}\" in {{region}}.",
+    "noResultsDesc": "We couldn't find any ads matching \"{{query}}\" in {{country}}.",
     "clearFilters": "Clear All Filters",
-    "allRegions": "All Regions",
+    "allCountries": "All Countries",
     "filters": {
       "title": "Refine Search",
       "priceRange": "Price Range",
       "reset": "Reset",
       "showResults": "Show Results ({{count}})",
+      "showResultsNone": "Show Results",
+      "all": "All Ads",
+      "activeFilters": "Active Filters ({{count}})",
+      "allAdsShowing": "All Ads Showing",
+      "tuneDesc": "Tune your search results",
       "min": "Min",
       "max": "Max",
-      "condition": "Condition"
+      "condition": "Condition",
+      "brandNew": "Brand New",
+      "foreignUsed": "Foreign Used",
+      "openBox": "Open Box",
+      "refurbished": "Refurbished"
+    },
+    "location": {
+      "selectCountry": "Select Country",
+      "selectDepartment": "Select Department",
+      "searchCountry": "Search country...",
+      "searchDepartment": "Search department...",
+      "allCountries": "All Countries",
+      "allLocations": "All Locations",
+      "allOf": "All of {{name}}",
+      "adsFromAllCountries": "Ads from all countries",
+      "adsInAllAreas": "Ads in all areas of this country",
+      "countries": "Countries",
+      "departments": "Departments",
+      "noMatches": "No matches found",
+      "noMatchesDesc": "We couldn't find matches for \"{{query}}\""
+    },
+    "category": {
+      "subcategories": "Subcategories",
+      "categories": "Categories",
+      "searchPlaceholder": "Search categories...",
+      "allCategories": "All Categories",
+      "exploreEverything": "Explore everything on Tajma",
+      "allIn": "All in {{name}}",
+      "selectThisCategory": "Select this category",
+      "searchResults": "Search Results",
+      "mainCategories": "Main Categories",
+      "loadingCategories": "Loading categories...",
+      "noCategoriesFound": "No categories found",
+      "noMatchesDesc": "We couldn't find matches for \"{{query}}\""
     }
   },
   "ads": {
+    "all": "All Ads",
+    "allAds": "All Ads",
     "myListings": "My Listings",
     "editListing": "Edit Listing",
     "newListing": "New Listing",
@@ -152,6 +195,8 @@
     "report": "Report",
     "loadError": "Ad Not Found",
     "loadErrorDesc": "The ad you're looking for doesn't exist or has been removed.",
+    "locationNotSpecified": "Location not specified",
+    "uncategorized": "Uncategorized",
     "sortBy": "Sort By",
     "sort": {
       "newest": "Newest First",

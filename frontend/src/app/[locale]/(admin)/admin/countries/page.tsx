@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo } from 'react'
 import DataTable, { Column } from '@/components/admin/DataTable'
-import { useRegions } from '@/hooks/useRegions'
-import type { Region } from '@/api/regions'
+import { useLocations } from '@/hooks/useLocations'
+import type { Location } from '@/api/countries'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -20,10 +20,10 @@ import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import apiClient from '@/api/apiClient'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-export default function AdminRegionsPage() {
+export default function AdminCountriesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
-  const [editingRegion, setEditingRegion] = useState<Region | null>(null)
+  const [editingRegion, setEditingRegion] = useState<Location | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     is_active: true,
@@ -40,9 +40,9 @@ export default function AdminRegionsPage() {
   
   // Delete confirmation state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [regionToDelete, setRegionToDelete] = useState<Region | null>(null)
+  const [regionToDelete, setRegionToDelete] = useState<Location | null>(null)
 
-  const { data: response, isLoading, refetch } = useRegions({
+  const { data: response, isLoading, refetch } = useLocations({
     page,
     search,
     level: activeLevel,
@@ -74,7 +74,7 @@ export default function AdminRegionsPage() {
 
     try {
       await apiClient.post('/regions/', formData)
-      toast.success('Region created successfully')
+      toast.success('Location created successfully')
       setShowCreateModal(false)
       setFormData({ name: '', is_active: true, sort_order: 0, level: 1, parent: null })
       refetch()
@@ -106,7 +106,7 @@ export default function AdminRegionsPage() {
 
     try {
       await apiClient.put(`/regions/${editingRegion.id}/`, formData)
-      toast.success('Region updated successfully')
+      toast.success('Location updated successfully')
       setShowEditModal(false)
       setEditingRegion(null)
       refetch()
@@ -130,7 +130,7 @@ export default function AdminRegionsPage() {
     }
   }
 
-  const handleDelete = async (region: Region) => {
+  const handleDelete = async (region: Location) => {
     setRegionToDelete(region)
     setShowDeleteDialog(true)
   }
@@ -140,7 +140,7 @@ export default function AdminRegionsPage() {
 
     try {
       await apiClient.delete(`/regions/${regionToDelete.id}/`)
-      toast.success('Region deleted successfully')
+      toast.success('Location deleted successfully')
       setShowDeleteDialog(false)
       setRegionToDelete(null)
       refetch()
@@ -149,7 +149,7 @@ export default function AdminRegionsPage() {
     }
   }
 
-  const handleToggleActive = async (region: Region) => {
+  const handleToggleActive = async (region: Location) => {
     if (!region.id) return
 
     try {
@@ -162,7 +162,7 @@ export default function AdminRegionsPage() {
     }
   }
 
-  const handleOpenEditModal = (region: Region) => {
+  const handleOpenEditModal = (region: Location) => {
     setEditingRegion(region)
     setFormData({
       name: region.name,
@@ -176,7 +176,7 @@ export default function AdminRegionsPage() {
 
   const handleOpenCreateModal = () => {
     const defaultLevel = activeParent ? (activeParent.level || 0) + 1 : 1
-    const finalLevel = defaultLevel > 3 ? 3 : defaultLevel
+    const finalLevel = defaultLevel > 2 ? 2 : defaultLevel
     
     setFormData({
       name: '',
@@ -188,7 +188,7 @@ export default function AdminRegionsPage() {
     setShowCreateModal(true)
   }
 
-  const handleDrillDown = (region: Region) => {
+  const handleDrillDown = (region: Location) => {
     setActiveParentId(region.id)
     setActiveLevel(((region.level || 0) + 1) as any)
     setPage(1)
@@ -200,15 +200,15 @@ export default function AdminRegionsPage() {
     setPage(1)
   }
 
-  const columns: Column<Region>[] = [
+  const columns: Column<Location>[] = [
     {
       key: 'name',
       header: 'Name',
       sortable: true,
       render: (region) => (
         <button 
-          onClick={() => (region.level && region.level < 3) ? handleDrillDown(region) : null}
-          className={region.level && region.level < 3 ? "text-primary hover:underline font-medium" : "font-medium"}
+          onClick={() => (region.level && region.level < 2) ? handleDrillDown(region) : null}
+          className={region.level && region.level < 2 ? "text-primary hover:underline font-medium" : "font-medium"}
         >
           {region.name}
         </button>
@@ -223,8 +223,8 @@ export default function AdminRegionsPage() {
       key: 'level',
       header: 'Level',
       render: (region) => (
-        <Badge variant={region.level === 1 ? 'default' : region.level === 2 ? 'secondary' : 'outline'}>
-          {region.level === 1 ? 'Region' : region.level === 2 ? 'Dept' : 'Commune'}
+        <Badge variant={region.level === 1 ? 'default' : 'secondary'}>
+          {region.level === 1 ? 'Country' : 'Department'}
         </Badge>
       ),
     },
@@ -249,12 +249,12 @@ export default function AdminRegionsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-medium text-gray-900">Regions</h1>
-            <p className="text-gray-600 mt-1">Manage location hierarchy</p>
+            <h1 className="text-2xl font-medium text-gray-900">Countries</h1>
+            <p className="text-gray-600 mt-1">Manage country hierarchy</p>
           </div>
           <Button onClick={handleOpenCreateModal}>
             <Plus className="w-4 h-4 mr-2" />
-            New {activeLevel === 2 ? 'Dept' : activeLevel === 3 ? 'Commune' : 'Region'}
+            New {activeLevel === 2 ? 'Dept' : 'Country'}
           </Button>
         </div>
 
@@ -268,9 +268,8 @@ export default function AdminRegionsPage() {
           }}>
             <TabsList>
               <TabsTrigger value="all">All Levels</TabsTrigger>
-              <TabsTrigger value="1">Regions</TabsTrigger>
+              <TabsTrigger value="1">Countries</TabsTrigger>
               <TabsTrigger value="2">Departments</TabsTrigger>
-              <TabsTrigger value="3">Communes</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -295,14 +294,14 @@ export default function AdminRegionsPage() {
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <AdminStatsCard
-              title="Total Regions"
+              title="Total Countries"
               value={stats.total.toLocaleString()}
               icon={MapPin}
-              href="/admin/regions"
+              href="/admin/countries"
               isPrimary={true}
             />
             <AdminStatsCard
-              title="Regions with Ads"
+              title="Countries with Ads"
               value={stats.active.toLocaleString()}
               icon={MapPin}
             />
@@ -335,7 +334,7 @@ export default function AdminRegionsPage() {
           emptyMessage={activeParentId ? `No sub-locations found in ${activeParent?.name || 'this location'}` : "No regions found"}
           actions={(region) => (
             <div className="flex items-center gap-2">
-              {region.level && region.level < 3 && (
+              {region.level && region.level < 2 && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="sm" onClick={() => handleDrillDown(region)}>
@@ -387,7 +386,7 @@ export default function AdminRegionsPage() {
         <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Region</DialogTitle>
+              <DialogTitle>Create New Location</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -410,22 +409,21 @@ export default function AdminRegionsPage() {
                     <SelectValue placeholder="Select level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Level 1 (Region)</SelectItem>
+                    <SelectItem value="1">Level 1 (Country)</SelectItem>
                     <SelectItem value="2">Level 2 (Department)</SelectItem>
-                    <SelectItem value="3">Level 3 (Commune)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {formData.level > 1 && (
                 <div>
-                  <Label htmlFor="parent">Parent {formData.level === 2 ? 'Region' : 'Department'} *</Label>
+                  <Label htmlFor="parent">Parent {formData.level === 2 ? 'Location' : 'Department'} *</Label>
                   <Select
                     value={formData.parent?.toString() || ""}
                     onValueChange={(val) => setFormData({ ...formData, parent: parseInt(val) })}
                   >
                     <SelectTrigger id="parent">
-                      <SelectValue placeholder={`Select ${formData.level === 2 ? 'Region' : 'Department'}`} />
+                      <SelectValue placeholder={`Select ${formData.level === 2 ? 'Location' : 'Department'}`} />
                     </SelectTrigger>
                     <SelectContent>
                       {regionsList
@@ -474,7 +472,7 @@ export default function AdminRegionsPage() {
         <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Region</DialogTitle>
+              <DialogTitle>Edit Location</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -496,22 +494,21 @@ export default function AdminRegionsPage() {
                     <SelectValue placeholder="Select level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Level 1 (Region)</SelectItem>
+                    <SelectItem value="1">Level 1 (Country)</SelectItem>
                     <SelectItem value="2">Level 2 (Department)</SelectItem>
-                    <SelectItem value="3">Level 3 (Commune)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {formData.level > 1 && (
                 <div>
-                  <Label htmlFor="edit_parent">Parent {formData.level === 2 ? 'Region' : 'Department'} *</Label>
+                  <Label htmlFor="edit_parent">Parent {formData.level === 2 ? 'Location' : 'Department'} *</Label>
                   <Select
                     value={formData.parent?.toString() || ""}
                     onValueChange={(val) => setFormData({ ...formData, parent: parseInt(val) })}
                   >
                     <SelectTrigger id="edit_parent">
-                      <SelectValue placeholder={`Select ${formData.level === 2 ? 'Region' : 'Department'}`} />
+                      <SelectValue placeholder={`Select ${formData.level === 2 ? 'Location' : 'Department'}`} />
                     </SelectTrigger>
                     <SelectContent>
                       {regionsList
@@ -561,8 +558,8 @@ export default function AdminRegionsPage() {
           open={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
           onConfirm={confirmDelete}
-          title={`Delete Region: ${regionToDelete?.name}?`}
-          description="Are you sure you want to delete this region? This action will also delete all sub-regions (departments and communes) associated with it. This action cannot be undone."
+          title={`Delete Location: ${regionToDelete?.name}?`}
+          description="Are you sure you want to delete this country? This action will also delete all sub-regions (departments) associated with it. This action cannot be undone."
           isLoading={isSubmitting} // Reusing isSubmitting for loading state if needed, but apiClient doesn't have a mutation state here
         />
       </div>

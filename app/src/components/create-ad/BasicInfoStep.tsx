@@ -79,7 +79,7 @@ export default function BasicInfoStep({
     }
   };
 
-  const currentCategoryName = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].name : t('search.allRegions'); // Wait, allRegions? No, allCategories. I should add a key.
+  const currentCategoryName = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].name : t('create_ad.fields.category');
   // Actually, t('search.allRegions') might be okay if it's the same idea. But let's check.
   // I'll add "allCategories" to en.json/ha.json if needed.
   // For now I'll use t('create_ad.fields.category')

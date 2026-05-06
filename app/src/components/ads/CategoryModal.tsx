@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   TouchableOpacity,
@@ -28,6 +29,7 @@ export default function CategoryModal({
   selectedCategoryId,
   parentId = null,
 }: CategoryModalProps) {
+  const { t } = useTranslation();
   const { categories, rootCategories, loading } = useCategories();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeParentId, setActiveParentId] = useState<string | null>(parentId);
@@ -74,8 +76,10 @@ export default function CategoryModal({
       );
       setActiveParentId(category.id);
     } else {
-      onSelect(category);
       onClose();
+      setTimeout(() => {
+        onSelect(category);
+      }, 100);
     }
   };
 
@@ -106,13 +110,29 @@ export default function CategoryModal({
     return parts.join(" > ");
   };
 
-  const CategoryImage = ({
-    category,
-    isSelected,
-  }: {
-    category: Category;
-    isSelected: boolean;
-  }) => {
+const sanitizeIconName = (name: string | null | undefined): any => {
+  if (!name) return "apps-outline";
+  let sanitized = name.toLowerCase();
+  
+  // Handle common Ionicons/Lucide mismatches
+  if (sanitized === "home") sanitized = "home-outline";
+  if (sanitized === "tv") sanitized = "tv-outline";
+  if (sanitized === "car") sanitized = "car-outline";
+  if (sanitized === "phone" || sanitized === "smartphone") sanitized = "smartphone-outline";
+  if (sanitized === "shirt") sanitized = "shirt-outline";
+  if (sanitized === "briefcase") sanitized = "briefcase-outline";
+  if (sanitized === "heart") sanitized = "heart-outline";
+  
+  return sanitized;
+};
+
+const CategoryImage = ({
+  category,
+  isSelected,
+}: {
+  category: Category;
+  isSelected: boolean;
+}) => {
     if (category.imageUrl) {
       return (
         <Image
@@ -124,12 +144,12 @@ export default function CategoryModal({
     }
     return (
       <View
-        className={`w-12 h-12 rounded-2xl items-center justify-center ${isSelected ? "bg-primary" : "bg-primary/10"}`}
+        className={`w-12 h-12 rounded-2xl items-center justify-center ${isSelected ? "bg-slate-900" : "bg-slate-900/10"}`}
       >
         <Ionicons
-          name={(category.icon as any) || "apps-outline"}
+          name={sanitizeIconName(category.icon)}
           size={24}
-          color={isSelected ? "white" : "#FF4F18"}
+          color={isSelected ? "white" : "#1e293b"}
         />
       </View>
     );
@@ -142,11 +162,11 @@ export default function CategoryModal({
         activeCategory
           ? activeCategory.name
           : parentId
-            ? "Subcategories"
-            : "Categories"
+            ? t('search.category.subcategories')
+            : t('search.category.categories')
       }
       onClose={onClose}
-      snapPoints={["85%"]}
+      snapPoints={["90%"]}
       headerLeft={
         navigationHistory.length > 0 ? (
           <TouchableOpacity onPress={handleBack} className="p-2">
@@ -167,7 +187,7 @@ export default function CategoryModal({
             />
             <TextInput
               className="flex-1 text-base text-gray-900 py-1"
-              placeholder="Search categories..."
+              placeholder={t('search.category.searchPlaceholder')}
               placeholderTextColor="#9ca3af"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -175,95 +195,69 @@ export default function CategoryModal({
           </View>
         </View>
 
-        {/* Categories List Content */}
-        {!activeParentId && !searchQuery && (
+        {/* All Categories / Select This Category option */}
+        {!searchQuery && (
           <TouchableOpacity
-            className={`flex-row items-center justify-between py-5 mb-2 rounded-full ${!selectedCategoryId ? "bg-primary/5 px-4 border border-primary/20" : ""}`}
+            className={`flex-row items-center justify-between py-4 mb-2 rounded-full ${(!selectedCategoryId && !activeParentId) || selectedCategoryId === activeParentId ? "bg-slate-900/5 px-4 border border-slate-900/10" : ""}`}
             onPress={() => {
-              onSelect(null);
               onClose();
+              setTimeout(() => {
+                if (!activeCategory) {
+                  onSelect(null);
+                } else {
+                  onSelect(activeCategory);
+                }
+              }, 100);
             }}
           >
             <View className="flex-row items-center gap-4">
               <View
-                className={`w-12 h-12 rounded-2xl items-center justify-center ${!selectedCategoryId ? "bg-primary" : "bg-gray-100"}`}
+                className={`w-10 h-10 rounded-2xl items-center justify-center ${(!selectedCategoryId && !activeParentId) || selectedCategoryId === activeParentId ? "bg-slate-900" : "bg-gray-100"}`}
               >
                 <Ionicons
                   name="grid-outline"
-                  size={24}
-                  color={!selectedCategoryId ? "white" : "#2D2D2D"}
+                  size={20}
+                  color={(!selectedCategoryId && !activeParentId) || selectedCategoryId === activeParentId ? "white" : "#2D2D2D"}
                 />
               </View>
               <View>
                 <AppText
                   weight="bold"
-                  className={`text-lg ${!selectedCategoryId ? "text-primary" : "text-gray-900"}`}
+                  className={`text-base ${(!selectedCategoryId && !activeParentId) || selectedCategoryId === activeParentId ? "text-slate-900" : "text-gray-900"}`}
                 >
-                  All Categories
+                  {activeCategory?.name 
+                    ? t('search.category.allIn', { name: activeCategory.name })
+                    : t('search.category.allCategories')}
                 </AppText>
-                <AppText className="text-gray-500 text-xs mt-0.5">
-                  Explore everything on Tajma
+                <AppText className="text-gray-500 text-[10px] mt-0.5">
+                  {activeCategory
+                    ? t('search.category.selectThisCategory')
+                    : t('search.category.exploreEverything')}
                 </AppText>
               </View>
             </View>
-            {!selectedCategoryId && (
-              <Ionicons name="checkmark-circle" size={24} color="#FF4F18" />
+            {((!selectedCategoryId && !activeParentId) || selectedCategoryId === activeParentId) && (
+              <Ionicons name="checkmark-circle" size={22} color="#1e293b" />
             )}
           </TouchableOpacity>
         )}
 
-        {/* Option to select current parent as category */}
-        {activeCategory && !searchQuery && (
-          <TouchableOpacity
-            className={`flex-row items-center justify-between py-5 mb-2 rounded-full ${selectedCategoryId === activeCategory.id ? "bg-primary/5 px-4 border border-primary/20" : ""}`}
-            onPress={() => {
-              onSelect(activeCategory);
-              onClose();
-            }}
-          >
-            <View className="flex-row items-center gap-4">
-              <CategoryImage
-                category={activeCategory}
-                isSelected={selectedCategoryId === activeCategory.id}
-              />
-              <View className="flex-1">
-                <AppText
-                  weight="bold"
-                  className={`text-lg ${selectedCategoryId === activeCategory.id ? "text-primary" : "text-gray-900"}`}
-                >
-                  All in {activeCategory.name}
-                </AppText>
-                <AppText
-                  className="text-gray-500 text-xs mt-0.5"
-                  numberOfLines={1}
-                >
-                  Select this category
-                </AppText>
-              </View>
-            </View>
-            {selectedCategoryId === activeCategory.id && (
-              <Ionicons name="checkmark-circle" size={24} color="#FF4F18" />
-            )}
-          </TouchableOpacity>
-        )}
-
-        <View className="h-4" />
         <AppText
           weight="bold"
           className="text-gray-400 text-[10px] tracking-widest mb-3 px-1 uppercase"
         >
           {searchQuery
-            ? "Search Results"
+            ? t('search.category.searchResults')
             : activeParentId
-              ? "Subcategories"
-              : "Main Categories"}
+              ? t('search.category.subcategories')
+              : t('search.category.mainCategories')}
         </AppText>
 
         {loading ? (
           <View className="py-20 items-center">
             <ActivityIndicator size="large" color="#FF4F18" />
             <AppText className="text-gray-400 mt-4">
-              Loading categories...
+              {t('search.category.loadingCategories')}
             </AppText>
           </View>
         ) : (
@@ -275,7 +269,7 @@ export default function CategoryModal({
             return (
               <TouchableOpacity
                 key={category.id}
-                className={`flex-row items-center justify-between py-5 mb-2 rounded-full ${isSelected ? "bg-primary/5 px-4 border border-primary/20" : ""}`}
+                className={`flex-row items-center justify-between py-5 mb-2 rounded-full ${isSelected ? "bg-slate-900/5 px-4 border border-slate-900/10" : ""}`}
                 onPress={() => handleCategoryPress(category)}
               >
                 <View className="flex-row items-center gap-4 flex-1">
@@ -283,7 +277,7 @@ export default function CategoryModal({
                   <View className="flex-1">
                     <AppText
                       weight="bold"
-                      className={`text-lg ${isSelected ? "text-primary" : "text-gray-900"}`}
+                      className={`text-lg ${isSelected ? "text-slate-900" : "text-gray-900"}`}
                     >
                       {category.name}
                     </AppText>
@@ -297,7 +291,7 @@ export default function CategoryModal({
                     <Ionicons
                       name="checkmark-circle"
                       size={24}
-                      color="#FF4F18"
+                      color="#1e293b"
                     />
                   )}
                   {hasSubcategories && !searchQuery && (
@@ -319,10 +313,10 @@ export default function CategoryModal({
               <Ionicons name="search-outline" size={32} color="#cbd5e1" />
             </View>
             <AppText weight="bold" className="text-gray-400 text-lg">
-              No categories found
+              {t('search.category.noCategoriesFound')}
             </AppText>
             <AppText className="text-gray-400 text-center px-10 mt-1">
-              We couldn't find matches for "{searchQuery}"
+              {t('search.category.noMatchesDesc', { query: searchQuery })}
             </AppText>
           </View>
         )}

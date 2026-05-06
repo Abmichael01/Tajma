@@ -14,11 +14,14 @@ interface CategoryPickerProps {
   initialPath?: string[]
 }
 
+import { useTranslations } from 'next-intl'
+
 export default function CategoryPicker({ 
   categoryTree, 
   onSelect,
   initialPath = [] 
 }: CategoryPickerProps) {
+  const t = useTranslations('create_ad')
   const [currentPath, setCurrentPath] = useState<string[]>(initialPath)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -89,7 +92,7 @@ export default function CategoryPicker({
               </Button>
             )}
             <h3 className="font-bold text-gray-900">
-              {currentParent ? currentParent.name : 'Select Category'}
+              {currentParent ? currentParent.name : t('select_category')}
             </h3>
           </div>
           {currentParent && (
@@ -100,7 +103,7 @@ export default function CategoryPicker({
               className="text-xs h-8 gap-1 border-gray-200 text-primary hover:bg-primary/5 rounded-full font-medium"
             >
               <Check className="h-3 w-3" />
-              Select this category
+              {t('select_this_category')}
             </Button>
           )}
         </div>
@@ -108,7 +111,7 @@ export default function CategoryPicker({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input 
-            placeholder="Search categories..." 
+            placeholder={t('search_categories')} 
             className="pl-9 bg-white border-gray-200 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary h-10 rounded-full text-sm transition-all"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -120,7 +123,7 @@ export default function CategoryPicker({
       <div className="max-h-[350px] overflow-y-auto divide-y divide-gray-50 custom-scrollbar">
         {currentNodes.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-400 text-sm italic">No categories found matching your search.</p>
+            <p className="text-gray-400 text-sm italic">{t('no_categories_found')}</p>
           </div>
         ) : (
           currentNodes.map((category) => {
@@ -167,7 +170,7 @@ export default function CategoryPicker({
                         }}
                         className="text-[10px] h-7 font-medium text-gray-400 hover:text-primary hover:bg-primary/10 rounded-full px-3 tracking-wide opacity-0 group-hover:opacity-100 transition-all"
                       >
-                        Select
+                        {t('edit')}
                       </Button>
                       <ChevronRight className="h-5 w-5 text-gray-200 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
                     </div>
@@ -186,7 +189,7 @@ export default function CategoryPicker({
       {/* Selection Path Footer */}
       {currentPath.length > 0 && (
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center gap-1 overflow-x-auto no-scrollbar">
-          <span className="text-[10px] font-medium text-gray-400 shrink-0">Path:</span>
+          <span className="text-[10px] font-medium text-gray-400 shrink-0">{t('path')}:</span>
           {currentPath.map((slug, idx) => (
             <React.Fragment key={slug}>
               <span className="text-[11px] font-medium text-gray-600 whitespace-nowrap">

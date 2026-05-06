@@ -1,0 +1,71 @@
+{
+    "version": "2.0.0",
+    "options": {
+        "shell": {
+            "executable": "/usr/bin/bash",
+            "args": ["-l", "-c"]
+        }
+    },
+    "tasks": [
+        {
+            "label": "1. Initialize Environment",
+            "type": "shell",
+            "command": "./scripts/setup-dev-env.sh",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "group": "setup"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "2. Start Backend (Django)",
+            "type": "shell",
+            "command": "PORT=$(cat .backend_port) && cd backend && poetry run uvicorn serverConfig.asgi:application --host 0.0.0.0 --port $PORT --reload",
+            "dependsOn": "1. Initialize Environment",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "3. Start Frontend (Next.js)",
+            "type": "shell",
+            "command": "PORT=$(cat .frontend_port) && cd frontend && pnpm dev --port $PORT",
+            "dependsOn": "1. Initialize Environment",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "4. Start App (Expo)",
+            "type": "shell",
+            "command": "cd app && pnpm start --lan",
+            "dependsOn": "1. Initialize Environment",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Launch All Services",
+            "dependsOn": [
+                "2. Start Backend (Django)",
+                "3. Start Frontend (Next.js)",
+                "4. Start App (Expo)"
+            ],
+            "runOptions": {
+                "runOn": "folderOpen"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

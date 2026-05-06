@@ -143,11 +143,14 @@ const normalizeCustomFields = (fields: CustomFieldConfig[] | string[]): CustomFi
   return oldFields.map(field => fieldConfigs[field] || { name: field, label: field, type: 'text' })
 }
 
+import { useTranslations } from 'next-intl'
+
 export default function DynamicFormFields({
   formData,
   customFields,
   onInputChange
 }: DynamicFormFieldsProps) {
+  const t = useTranslations('create_ad')
   const normalizedFields = normalizeCustomFields(customFields)
   
   if (normalizedFields.length === 0) return null
@@ -228,7 +231,7 @@ export default function DynamicFormFields({
             </label>
             <Select value={value || ''} onValueChange={(val) => onInputChange(field.name, val)}>
               <SelectTrigger>
-                <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+                <SelectValue placeholder={t('search_placeholder')} />
               </SelectTrigger>
               <SelectContent>
                 {field.options?.map((opt) => (
@@ -283,12 +286,12 @@ export default function DynamicFormFields({
                 className="flex items-center gap-1"
               >
                 <Plus className="w-4 h-4" />
-                Add {field.label}
+                {t('add_field', { field: field.label })}
               </Button>
             </div>
             
             {arrayValue.length === 0 && (
-              <p className="text-sm text-gray-500">No {field.label.toLowerCase()} added yet. Click "Add {field.label}" to add one.</p>
+              <p className="text-sm text-gray-500">{t('no_field_added', { field: field.label })}</p>
             )}
             
             {arrayValue.map((item: any, index: number) => (
@@ -382,3 +385,4 @@ export default function DynamicFormFields({
     </div>
   )
 }
+

@@ -8,7 +8,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 from django.utils import translation as django_translation
 
-from api.models import Category, Ad, User, Region, CategoryTranslation, AdTranslation
+from api.models import Category, Ad, User, Region, Country, CategoryTranslation, AdTranslation
 from api.utils.category_exporter import export_categories_to_json
 
 from api.management.commands.category_seeds.electronics import ELECTRONICS_CATEGORY
@@ -31,33 +31,54 @@ CATEGORY_TREE = [
     JOBS_CATEGORY,
 ]
 
+COUNTRIES_DATA = [
+    {
+        'name': 'Niger',
+        'code': 'NE',
+        'flag': '🇳🇪',
+        'departments': ['Niamey', 'Dosso', 'Maradi', 'Tahoua', 'Tillabéri', 'Zinder', 'Agadez', 'Diffa']
+    },
+    {
+        'name': 'Mali',
+        'code': 'ML',
+        'flag': '🇲🇱',
+        'departments': ['Bamako', 'Kayes', 'Koulikoro', 'Sikasso', 'Ségou', 'Mopti', 'Tombouctou', 'Gao', 'Kidal']
+    },
+    {
+        'name': 'Burkina Faso',
+        'code': 'BF',
+        'flag': '🇧🇫',
+        'departments': ['Ouagadougou', 'Bobo-Dioulasso', 'Koudougou', 'Ouahigouya', 'Banfora', 'Kaya', 'Tenkodogo', "Fada N'gourma"]
+    }
+]
+
 class Command(BaseCommand):
-    help = 'Clear and seed categories and ads with detailed translation-aware data.'
+    help = 'Clear and seed database with 3 countries, their departments, categories and ads in English (auto-translated).'
 
     def handle(self, *args, **options):
         # Paths for automation
         frontend_public = os.path.join(settings.BASE_DIR, '..', 'frontend', 'public')
         media_root = settings.MEDIA_ROOT
         
-        # Set default language for seeding
-        django_translation.activate('fr')
+        # Set default language for seeding (Source data is now in English)
+        django_translation.activate('en')
         
         with transaction.atomic():
             self.stdout.write('Syncing image assets from frontend...')
             self._copy_assets(frontend_public, media_root)
             
-            self.stdout.write('Checking Regions...')
-            self._ensure_regions()
-            
-            self.stdout.write('Clearing existing ads and translations...')
+            self.stdout.write('Clearing existing data...')
             AdTranslation.objects.all().delete()
             Ad.objects.all().delete()
-            
-            self.stdout.write('Clearing existing categories and translations...')
             CategoryTranslation.objects.all().delete()
             Category.objects.all().delete()
+            Region.objects.all().delete()
+            Country.objects.all().delete()
 
-            self.stdout.write('Seeding categories with translations...')
+            self.stdout.write('Seeding Countries and Departments...')
+            self._seed_locations()
+            
+            self.stdout.write('Seeding categories (English source, signals will auto-translate)...')
             for order, node in enumerate(CATEGORY_TREE):
                 self._create_category(node, parent=None, sort_order=order)
             
@@ -66,23 +87,43 @@ class Command(BaseCommand):
             self.stdout.write('Updating User locations...')
             self._update_user_locations()
             
-            self.stdout.write('Seeding ads with translations...')
+            self.stdout.write('Seeding ads (English source, signals will auto-translate)...')
             self._seed_ads()
 
-        self.stdout.write(self.style.SUCCESS('Successfully seeded everything and synced assets with Multi-Lingual support.'))
+        self.stdout.write(self.style.SUCCESS('Successfully seeded 3 countries, departments, and English source data. Background tasks will handle translations.'))
 
-    def _ensure_regions(self):
-        regions_list = ['Niamey', 'Dosso', 'Maradi', 'Tahoua', 'Tillabéri', 'Zinder', 'Agadez', 'Diffa']
-        for name in regions_list:
-            Region.objects.get_or_create(name=name, defaults={'is_active': True})
+    def _seed_locations(self):
+        for country_info in COUNTRIES_DATA:
+            country, _ = Country.objects.get_or_create(
+                code=country_info['code'],
+                defaults={
+                    'name': country_info['name'],
+                    'flag_emoji': country_info['flag'],
+                    'is_active': True
+                }
+            )
+            
+            for dept_name in country_info['departments']:
+                Region.objects.create(
+                    name=dept_name,
+                    country=country,
+                    level=1,
+                    subdivision_type='Department',
+                    is_active=True,
+                    full_name=f"{dept_name}, {country.name}"
+                )
 
     def _update_user_locations(self):
-        regions = list(Region.objects.all())
+        countries = list(Country.objects.all())
         users = User.objects.all()
         for user in users:
-            if regions:
-                user.location = random.choice(regions)
-                user.address = f"Street {random.randint(1, 100)}, {user.location.name}"
+            if countries:
+                country = random.choice(countries)
+                departments = list(country.subdivisions.filter(level=1))
+                user.country = country
+                if departments:
+                    user.location = random.choice(departments)
+                user.address = f"Street {random.randint(1, 100)}, {user.location.name if user.location else user.country.name}"
                 user.save()
 
     def _copy_assets(self, src_dir, dest_dir):
@@ -123,22 +164,14 @@ class Command(BaseCommand):
             is_active=True,
         )
 
-        # Create Translations
-        CategoryTranslation.objects.get_or_create(
-            category=category,
-            language='fr',
-            defaults={
-                'name': node['name'],
-                'description': node.get('description', f"Catégorie pour {node['name']}")
-            }
-        )
-        CategoryTranslation.objects.get_or_create(
+        # Create the Source Translation (English)
+        # This will trigger the trigger_category_translation signal
+        CategoryTranslation.objects.create(
             category=category,
             language='en',
-            defaults={
-                'name': node['name'],
-                'description': node.get('description', f"Category for {node['name']}")
-            }
+            name=node['name'],
+            description=node.get('description', f"Category for {node['name']}"),
+            is_original=True
         )
 
         for index, child in enumerate(node.get('children', [])):
@@ -155,15 +188,17 @@ class Command(BaseCommand):
             return Category.objects.first()
 
         ad_templates = [
-            {'title': 'Toyota Camry 2020 XLE - Full Option', 'price': 15500000, 'category': get_cat(['toyota', 'cars']), 'images': ['/car1.jpg'], 'desc': 'Foreign used, full options.'},
-            {'title': 'iPhone 15 Pro Max - 256GB Gold', 'price': 950000, 'category': get_cat(['smartphones', 'phones']), 'images': ['/electronics_banner.png'], 'desc': 'Brand new, factory unlocked.'},
-            {'title': 'Nike Air Force 1 - White Classic', 'price': 35000, 'category': get_cat(['shoes', 'fashion']), 'images': ['/shoe1.jpg'], 'desc': 'Size 40-45 available.'},
-            {'title': 'Luxury 5 Bedroom Duplex for Sale', 'price': 250000000, 'category': get_cat(['houses-apartments-for-sale']), 'images': ['/house1.png'], 'desc': 'Swimming pool and gym.'},
-            {'title': 'Senior Software Developer - Node.js', 'price': 1200000, 'category': get_cat(['technology-it']), 'images': ['/services_banner.png'], 'desc': 'Join our tech team.'},
+            {'title': 'Toyota Camry 2020 XLE - Full Option', 'price': 15500000, 'category': get_cat(['toyota', 'cars']), 'images': ['/car1.jpg'], 'desc': 'Foreign used, full options, leather seats, clean interior.'},
+            {'title': 'iPhone 15 Pro Max - 256GB Gold', 'price': 950000, 'category': get_cat(['smartphones', 'phones']), 'images': ['/electronics_banner.png'], 'desc': 'Brand new, factory unlocked, 1 year warranty.'},
+            {'title': 'Nike Air Force 1 - White Classic', 'price': 35000, 'category': get_cat(['shoes', 'fashion']), 'images': ['/shoe1.jpg'], 'desc': 'Available in all sizes 40-45. High quality material.'},
+            {'title': 'Luxury 5 Bedroom Duplex for Sale', 'price': 250000000, 'category': get_cat(['houses-apartments-for-sale']), 'images': ['/house1.png'], 'desc': 'Modern architecture, swimming pool, gym, and tight security.'},
+            {'title': 'Professional Web Development Services', 'price': 150000, 'category': get_cat(['technology-it', 'services']), 'images': ['/worker1.png'], 'desc': 'Get a professional website for your business today. SEO optimized and responsive.'},
+            {'title': 'Bose QuietComfort Ultra Headphones', 'price': 450000, 'category': get_cat(['audio-sound']), 'images': ['/electronics_banner.png'], 'desc': 'Best-in-class noise cancellation and spatial audio.'},
+            {'title': 'Office Desk & Chair Set - Ergonomic', 'price': 120000, 'category': get_cat(['office-furniture']), 'images': ['/office1.png'], 'desc': 'Perfect for home office or corporate use.'},
         ]
 
         for user in users:
-            for i in range(random.randint(3, 5)):
+            for i in range(random.randint(3, 6)):
                 template = random.choice(ad_templates)
                 title = f"{template['title']} #{random.randint(100, 999)}"
                 
@@ -178,6 +213,12 @@ class Command(BaseCommand):
                     published_at=timezone.now()
                 )
                 
-                # Create Translations
-                AdTranslation.objects.create(ad=ad, language='fr', title=title, description=template['desc'], is_original=True)
-                AdTranslation.objects.create(ad=ad, language='en', title=title, description=template['desc'], is_original=False)
+                # Create the Source Translation (English)
+                # This will trigger the trigger_ad_translation signal
+                AdTranslation.objects.create(
+                    ad=ad, 
+                    language='en', 
+                    title=title, 
+                    description=template['desc'], 
+                    is_original=True
+                )

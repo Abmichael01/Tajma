@@ -5,7 +5,7 @@ import { useRouter, Link } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { ChevronDown, ChevronUp, LayoutGrid } from 'lucide-react'
+import { ChevronUp, LayoutGrid, Banknote, Tag, List } from 'lucide-react'
 import { cn, getMediaUrl } from '@/lib/utils'
 import FiltersSection, { FilterGroup } from '@/components/ui/FiltersSection'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import AdsListSkeleton from '@/components/ui/AdsListSkeleton'
 import BackButton from '@/components/ui/BackButton'
 import { useAdsInfiniteList } from '@/hooks/useAds'
 import { useCategories } from '@/hooks/useCategories'
+import { useCountries } from '@/hooks/useLocations'
 import { useLocationStore } from '@/store/locationStore'
 import { searchFilters, getFiltersByCategory, getCategoryIcon, getSubcategoryIcon } from '@/data/filterConfigs'
 import {
@@ -23,8 +24,13 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer'
-import { Filter as FilterIcon, ChevronRight } from 'lucide-react'
+import { Filter as FilterIcon, ChevronRight, MapPin } from 'lucide-react'
+import LocationSelectorModal from '../modals/LocationSelectorModal'
 import type { Ad } from '@/api/types'
+
+const stripEmoji = (str: string) => {
+  return str.replace(/[\u{1F300}-\u{1F9FF}]|[\u{1F1E6}-\u{1F1FF}]/gu, '').trim();
+}
 
 interface AdsListingLayoutProps {
   initialFilters?: {
@@ -48,8 +54,10 @@ export default function AdsListingLayout({
   const router = useRouter()
   const searchParams = useSearchParams()
   const { categoryTree } = useCategories()
-  const { selectedRegion, setSelectedRegion } = useLocationStore()
+  const { data: countries } = useCountries()
+  const { selectedCountry, setSelectedCountry } = useLocationStore()
   const [activeDrawer, setActiveDrawer] = useState<string | null>(null)
+  const [isCountryModalOpen, setIsCountryModalOpen] = useState(false)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
   // Filter state - map categorySlug to category for internal use
@@ -127,6 +135,12 @@ export default function AdsListingLayout({
       const categoryFilters = getFiltersByCategory(filters.category)
       const otherFilters = categoryFilters.filter((group) => group.id !== 'category' && group.id !== 'subcategory')
       groups.push(...otherFilters)
+
+      // Ensure Country is always there
+      if (!groups.find(g => g.id === 'country')) {
+        const countryFilter = searchFilters.find(f => f.id === 'country')
+        if (countryFilter) groups.push(countryFilter)
+      }
       
       return groups
     }
@@ -135,7 +149,6 @@ export default function AdsListingLayout({
     if (mode === 'search' && categoryTree && categoryTree.length > 0) {
       const searchFiltersWithRealData = searchFilters.map((group) => {
         if (group.id === 'category') {
-          // Replace with real category data from tree
           return {
             ...group,
             options: categoryTree.map((cat) => ({
@@ -150,6 +163,17 @@ export default function AdsListingLayout({
             })),
           }
         }
+        if (group.id === 'country') {
+          return {
+            ...group,
+            type: 'radio' as const,
+            options: countries?.map((c: any) => ({
+              id: String(c.id),
+              label: c.name,
+              icon: <span className="text-xl">{c.flag_emoji}</span>
+            })) || []
+          }
+        }
         return group
       })
       return searchFiltersWithRealData
@@ -157,7 +181,7 @@ export default function AdsListingLayout({
     
     // Fallback to default search filters
     return searchFilters
-  }, [mode, filters.category, currentCategory, categoryTree])
+  }, [mode, filters.category, currentCategory, categoryTree, countries])
 
   // Build API params from filters
   const apiParams = useMemo(() => {
@@ -208,10 +232,9 @@ export default function AdsListingLayout({
     // Add location filter
     if (filters.location && Array.isArray(filters.location) && filters.location.length > 0) {
       // If multiple locations selected, we'll filter by the first one
-      // Backend can be extended to support multiple locations if needed
-      params.seller_location = filters.location[0]
+      params.seller_location = stripEmoji(filters.location[0])
     } else if (filters.location && typeof filters.location === 'string') {
-      params.seller_location = filters.location
+      params.seller_location = stripEmoji(filters.location)
     }
 
     // Debug log for API params
@@ -268,12 +291,17 @@ export default function AdsListingLayout({
       return // Don't update filters state, let the navigation handle it
     }
     
-    if (filterId === 'location') {
-      if (Array.isArray(value) && value.length > 0) {
-        setSelectedRegion(value[0])
-      } else if (value === 'any' || (Array.isArray(value) && value.length === 0)) {
-        setSelectedRegion('All Regions')
-      }
+    if (filterId === 'country') {
+        const countryId = Array.isArray(value) ? value[0] : value
+        if (countryId && countryId !== 'any') {
+            const country = countries?.find((c: any) => String(c.id) === countryId)
+            if (country) {
+                setFilters(prev => ({ ...prev, country: country.id, location: undefined }))
+            }
+        } else {
+            setFilters(prev => ({ ...prev, country: undefined, location: undefined }))
+        }
+        return
     }
     
     setFilters((prev) => ({
@@ -289,16 +317,16 @@ export default function AdsListingLayout({
 
   // Sync with global location store
   useEffect(() => {
-    if (selectedRegion && selectedRegion !== 'All Regions') {
-      setFilters(prev => ({ ...prev, location: [selectedRegion] }))
-    } else if (selectedRegion === 'All Regions') {
+    if (selectedCountry && selectedCountry !== 'All Countries') {
+      setFilters(prev => ({ ...prev, location: selectedCountry }))
+    } else if (selectedCountry === 'All Countries') {
       setFilters(prev => {
         const next = { ...prev }
         delete next.location
         return next
       })
     }
-  }, [selectedRegion])
+  }, [selectedCountry])
 
   // Update filters when URL changes (for category navigation)
   useEffect(() => {
@@ -397,39 +425,46 @@ export default function AdsListingLayout({
 
       <div className="container py-4 sm:py-6">
 
-        {/* Mobile Filter Chips - Premium Horizontal Scroll - Sticky at Top */}
         <div className="lg:hidden -mx-4 px-4 py-1.5 bg-[#F8F9FA] border-b border-gray-100 overflow-x-auto no-scrollbar flex items-center gap-2">
-          {/* Main Filter Toggle */}
-          <Button
-            variant={activeDrawer === 'all' ? 'primary' : 'outline'}
-            size="sm"
-            onClick={() => setActiveDrawer('all')}
-            className="rounded-full whitespace-nowrap gap-1.5 h-10 px-4"
-          >
-            <FilterIcon className="w-3.5 h-3.5" />
-            {t('filters')}
-          </Button>
-
           {/* Individual Category-specific chips */}
-          {filterGroups.map((group) => {
+          {[...filterGroups].sort((a, b) => {
+            if (a.id === 'country' || a.id === 'location') return -1;
+            if (b.id === 'country' || b.id === 'location') return 1;
+            return 0;
+          })
+            .map((group) => {
             const hasValue = filters[group.id] && filters[group.id] !== 'any' && (!Array.isArray(filters[group.id]) || filters[group.id].length > 0)
+            let IconComponent = Tag
+            if (group.id === 'category') IconComponent = LayoutGrid
+            if (group.id === 'subcategory') IconComponent = List
+            if (group.id === 'country' || group.id === 'location') IconComponent = MapPin
+            if (group.id === 'price') IconComponent = Banknote
             
             return (
               <Button
                 key={group.id}
                 variant={hasValue ? 'primary' : 'outline'}
                 size="sm"
-                onClick={() => setActiveDrawer(group.id)}
+                onClick={() => {
+                  if (window.innerWidth >= 1024) return; // Ignore on desktop chips if they exist
+                  if (group.id === 'country' || group.id === 'location') {
+                    setIsCountryModalOpen(true)
+                  } else {
+                    setActiveDrawer(group.id)
+                  }
+                }}
                 className={cn(
-                  "rounded-full whitespace-nowrap h-10 px-4 border-gray-200 bg-white",
-                  hasValue ? "border-primary" : "text-gray-600"
+                  "rounded-full whitespace-nowrap h-9 px-4 text-[12px] font-bold transition-all gap-2",
+                  hasValue 
+                    ? "bg-slate-900 text-white shadow-md shadow-slate-900/20 border-transparent" 
+                    : "bg-white text-slate-900 border border-slate-900"
                 )}
               >
+                <IconComponent className="w-3.5 h-3.5" />
                 {group.title}
                 {hasValue && (
-                  <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  <span className="ml-1 w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 )}
-                <ChevronDown className="w-3.5 h-3.5 ml-1 opacity-50" />
               </Button>
             )
           })}
@@ -437,13 +472,33 @@ export default function AdsListingLayout({
 
         {/* Global Drawer for Filters */}
         <Drawer open={!!activeDrawer} onOpenChange={(open) => !open && setActiveDrawer(null)}>
-          <DrawerContent className="max-h-[85vh]">
-            <DrawerHeader className="border-b border-gray-50 pb-4">
-              <DrawerTitle className="text-left">
-                {activeDrawer === 'all' 
-                  ? t('filters') 
-                  : filterGroups.find(g => g.id === activeDrawer)?.title}
-              </DrawerTitle>
+          <DrawerContent className="max-h-[85vh] !rounded-t-[40px]">
+            <DrawerHeader className="border-b border-gray-50 pb-4 flex-row items-center justify-between">
+              <div className="flex flex-col">
+                <DrawerTitle className="text-left text-sm uppercase tracking-widest text-gray-500">
+                  {activeDrawer === 'all' 
+                    ? t('filters') 
+                    : filterGroups.find(g => g.id === activeDrawer)?.title}
+                </DrawerTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleFilterChange('reset', '')}
+                  className="h-8 px-3 rounded-full text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-500"
+                >
+                  {t('reset')}
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setActiveDrawer(null)}
+                  className="h-8 px-4 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm"
+                >
+                  {t('apply')}
+                </Button>
+              </div>
             </DrawerHeader>
             <div className="overflow-y-auto p-4 pb-12">
               <FiltersSection
@@ -453,38 +508,23 @@ export default function AdsListingLayout({
                 filterId={activeDrawer === 'all' ? undefined : activeDrawer || undefined}
                 hideHeader={true}
                 className="border-none shadow-none p-0 rounded-none bg-transparent"
+                variant="mobile-app"
               />
             </div>
-            {activeDrawer && (
-              <div className="p-4 border-t border-gray-50 bg-white sticky bottom-0 z-10">
-                <Button 
-                  className="w-full h-12 rounded-full"
-                  onClick={() => setActiveDrawer(null)}
-                >
-                  {t('show_results')}
-                </Button>
-              </div>
-            )}
           </DrawerContent>
         </Drawer>
 
         {/* Main Content Area */}
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Left Sidebar: Filters */}
-          <aside className={cn(
-            "lg:w-[300px] flex-shrink-0 transition-all duration-300",
-            "hidden lg:block"
-          )}>
-            <div>
-              <FiltersSection
-                filters={filterGroups}
-                selectedValues={filters}
-                onFilterChange={handleFilterChange}
-                className="rounded-3xl border border-gray-200 overflow-hidden shadow-none"
-              />
-            </div>
+          {/* Left Sidebar: Filters (Desktop only) */}
+          <aside className="hidden lg:block w-72 flex-shrink-0">
+            <FiltersSection
+              filters={filterGroups}
+              selectedValues={filters}
+              onFilterChange={handleFilterChange}
+              className="w-72"
+            />
           </aside>
-
           {/* Right Content: Ads Grid */}
           <main className="flex-1 min-w-0">
             {isLoading ? (
@@ -544,6 +584,18 @@ export default function AdsListingLayout({
           </main>
         </div>
       </div>
+      
+      {/* Location Selector Modal */}
+      <LocationSelectorModal
+          isOpen={isCountryModalOpen}
+          onClose={() => setIsCountryModalOpen(false)}
+          selectedLocation={selectedCountry}
+          onSelectLocation={(location, country) => {
+              const countryPrefix = country ? `${country.flag_emoji} ` : ''
+              setSelectedCountry(location ? `${countryPrefix}${location.name}` : (country ? `${countryPrefix}${country.name}` : 'All Countries'))
+              setIsCountryModalOpen(false)
+          }}
+      />
     </div>
   )
 }

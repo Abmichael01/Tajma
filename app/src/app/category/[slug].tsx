@@ -8,32 +8,34 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
+import { useTranslation } from "react-i18next";
 import AppText from "@/components/ui/AppText";
 import { SearchBar } from "@/components/home/Hero";
 import AdsList from "@/components/ads/AdsList";
-import RegionModal from "@/components/ads/RegionModal";
+import CountryModal from "@/components/ads/CountryModal";
 import FilterModal, { FilterState } from "@/components/ads/FilterModal";
 import CategoryModal from "@/components/ads/CategoryModal";
 import FilterChips, { FilterChip } from "@/components/ads/FilterChips";
 import { useAdsInfiniteList } from "@/hooks/useAds";
 import { useCategories } from "@/hooks/useCategories";
-import type { Region } from "@/hooks/useRegions";
+import type { Country } from "@/hooks/useLocations";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import Breadcrumbs, { BreadcrumbItem } from "@/components/ui/Breadcrumbs";
 import SortModal, { SortOption } from "@/components/ads/SortModal";
 
 export default function CategoryDetailScreen() {
+  const { t } = useTranslation();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const { categories, loading: categoriesLoading } = useCategories();
 
   const category = categories.find((c) => c.slug === slug);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<any>(
     category || null,
   );
-  const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
+  const [isCountryModalVisible, setIsCountryModalVisible] = useState(false);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [filterMode, setFilterMode] = useState<"all" | "price">("all");
   const [isSubcategoryModalVisible, setIsSubcategoryModalVisible] =
@@ -42,7 +44,7 @@ export default function CategoryDetailScreen() {
   const [sortBy, setSortBy] = useState<SortOption>("newest");
 
   const [filters, setFilters] = useState<FilterState>({
-    region: null,
+    country: null,
     category: category || null,
     minPrice: "",
     maxPrice: "",
@@ -71,7 +73,7 @@ export default function CategoryDetailScreen() {
   } = useAdsInfiniteList({
     category: selectedCategory?.slug || slug || undefined,
     search: searchQuery,
-    region: selectedRegion?.slug,
+    country: selectedCountry?.slug,
     min_price: filters.minPrice || undefined,
     max_price: filters.maxPrice || undefined,
     condition: filters.condition.join(","),
@@ -105,7 +107,7 @@ export default function CategoryDetailScreen() {
 
   const handleApplyFilters = (newFilters: FilterState) => {
     setFilters(newFilters);
-    setSelectedRegion(newFilters.region);
+    setSelectedCountry(newFilters.country);
     setSelectedCategory(newFilters.category);
     setIsFilterModalVisible(false);
   };
@@ -125,10 +127,10 @@ export default function CategoryDetailScreen() {
       icon: "options-outline" as any,
     },
     {
-      id: "region",
-      label: selectedRegion?.name || "Region",
-      isActive: !!selectedRegion,
-      onPress: () => setIsRegionModalVisible(true),
+      id: "country",
+      label: selectedCountry?.name || t('search.allCountries'),
+      isActive: !!selectedCountry,
+      onPress: () => setIsCountryModalVisible(true),
       icon: "location-outline" as any,
     },
     ...(hasSubcategories
@@ -143,39 +145,6 @@ export default function CategoryDetailScreen() {
           },
         ]
       : []),
-    {
-      id: "price",
-      label:
-        filters.minPrice || filters.maxPrice
-          ? `Price: ${filters.minPrice}-${filters.maxPrice}`
-          : "Price",
-      isActive: !!filters.minPrice || !!filters.maxPrice,
-      onPress: () => {
-        setFilterMode("price");
-        setIsFilterModalVisible(true);
-      },
-      icon: "cash-outline" as any,
-    },
-    {
-      id: "sort",
-      label: `Sort: ${sortBy.charAt(0).toUpperCase() + sortBy.slice(1).replace("-", " ")}`,
-      isActive: sortBy !== "newest",
-      onPress: () => setIsSortModalVisible(true),
-      icon: "swap-vertical-outline" as any,
-    },
-    {
-      id: "condition",
-      label:
-        filters.condition.length > 0
-          ? `Condition: ${filters.condition.length}`
-          : "Condition",
-      isActive: filters.condition.length > 0,
-      onPress: () => {
-        setFilterMode("all");
-        setIsFilterModalVisible(true);
-      },
-      icon: "shield-checkmark-outline" as any,
-    },
   ];
 
   const breadcrumbItems = useMemo(() => {
@@ -213,11 +182,11 @@ export default function CategoryDetailScreen() {
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          selectedRegion={selectedRegion?.name || "All Regions"}
-          onRegionPress={() => setIsRegionModalVisible(true)}
+          selectedCountry={selectedCountry?.name || t('search.allCountries')}
+          onCountryPress={() => setIsCountryModalVisible(true)}
           onFilterPress={() => setIsFilterModalVisible(true)}
           onSearch={handleSearch}
-          showRegion={false}
+          showCountry={false}
           showFilter={false}
         />
       </ScreenHeader>
@@ -227,13 +196,13 @@ export default function CategoryDetailScreen() {
         chips={chips}
         onClearAll={() => {
           setFilters({
-            region: null,
+            country: null,
             category: category || null,
             minPrice: "",
             maxPrice: "",
             condition: [],
           });
-          setSelectedRegion(null);
+          setSelectedCountry(null);
           setSelectedCategory(category);
           handleSearch();
         }}
@@ -294,13 +263,13 @@ export default function CategoryDetailScreen() {
               className="mt-8 bg-primary px-10 py-4 rounded-full shadow-md shadow-primary/30"
               onPress={() => {
                 setFilters({
-                  region: null,
+                  country: null,
                   category: category || null,
                   minPrice: "",
                   maxPrice: "",
                   condition: [],
                 });
-                setSelectedRegion(null);
+                setSelectedCountry(null);
                 setSelectedCategory(category);
                 handleSearch();
               }}
@@ -314,14 +283,14 @@ export default function CategoryDetailScreen() {
         <View className="h-32" />
       </ScrollView>
 
-      <RegionModal
-        visible={isRegionModalVisible}
-        onClose={() => setIsRegionModalVisible(false)}
-        onSelect={(region) => {
-          setSelectedRegion(region);
-          setFilters((prev) => ({ ...prev, region }));
+      <CountryModal
+        visible={isCountryModalVisible}
+        onClose={() => setIsCountryModalVisible(false)}
+        onSelect={(country) => {
+          setSelectedCountry(country);
+          setFilters((prev) => ({ ...prev, country }));
         }}
-        selectedRegionId={selectedRegion?.id}
+        selectedCountryId={selectedCountry?.id}
       />
 
       <FilterModal

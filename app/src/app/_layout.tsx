@@ -1,4 +1,4 @@
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack } from "expo-router";
 import { View, StyleSheet, Platform } from "react-native";
 import "../../global.css";
 import React, { useEffect, useState } from "react";
@@ -9,48 +9,17 @@ import * as SplashScreen from "expo-splash-screen";
 import * as NavigationBar from "expo-navigation-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-
-import "@/i18n";
 import QueryProvider from "@/providers/QueryProvider";
-import { useAuthStore } from "@/store/authStore";
 import AppSplashScreenComponent from "@/components/ui/SplashScreen";
 import { usePresence } from "@/hooks/usePresence";
 import { usePushNotifications } from "@/hooks/useNotifications";
 
-// Keep the native splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync().catch(() => {
-  /* ignore */
-});
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
-function AuthNavigationGuard() {
-  const { isAuthenticated, hasHydrated } = useAuthStore();
-  const segments = useSegments();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!hasHydrated) return;
-
-    const inTabsGroup = segments[0] === "(tabs)";
-    const inAuthGroup = segments[0] === "(auth)";
-
-    if (!isAuthenticated && inTabsGroup) {
-      router.replace("/");
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace("/home");
-    }
-  }, [isAuthenticated, hasHydrated, router, segments]);
-
-  return null;
-}
-
-function RootLayoutContent() {
+export default function RootLayout() {
   const [isAppReady, setIsAppReady] = useState(false);
   const [isSplashComplete, setIsSplashComplete] = useState(false);
-
-  // Manage user presence
   usePresence();
-
-  // Register for Push Notifications
   usePushNotifications();
 
   const [fontsLoaded, fontError] = useFonts({
@@ -66,67 +35,35 @@ function RootLayoutContent() {
   useEffect(() => {
     if (fontsLoaded || fontError) {
       setIsAppReady(true);
-      SplashScreen.hideAsync().catch(() => {
-        /* ignore */
-      });
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
     if (Platform.OS === "android") {
-      const configureNavigationBar = async () => {
-        try {
-          await NavigationBar.setButtonStyleAsync("dark");
-        } catch (e) {
-          console.warn("Failed to configure navigation bar:", e);
-        }
-      };
-      configureNavigationBar();
+      NavigationBar.setButtonStyleAsync("dark").catch(() => {});
     }
   }, []);
 
-  const showOverlay = !isSplashComplete;
-
-  return (
-    <SafeAreaProvider>
-      <StatusBar style="dark" />
-
-      <AuthNavigationGuard />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: "fade",
-        }}
-      />
-
-      {showOverlay && (
-        <View
-          style={StyleSheet.absoluteFill}
-          pointerEvents={isSplashComplete ? "none" : "auto"}
-        >
-          {isAppReady ? (
-            <AppSplashScreenComponent
-              onAnimationComplete={() => setIsSplashComplete(true)}
-            />
-          ) : (
-            <View style={{ flex: 1, backgroundColor: "#FFFFFF" }} />
-          )}
-        </View>
-      )}
-    </SafeAreaProvider>
-  );
-}
-
-function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <QueryProvider>
-          <RootLayoutContent />
-        </QueryProvider>
-      </BottomSheetModalProvider>
+      <QueryProvider>
+        <BottomSheetModalProvider>
+          <SafeAreaProvider>
+            <StatusBar style="dark" />
+            <Stack screenOptions={{ headerShown: false, animation: "fade" }} />
+            {!isSplashComplete && (
+              <View style={StyleSheet.absoluteFill} pointerEvents={isSplashComplete ? "none" : "auto"}>
+                {isAppReady ? (
+                  <AppSplashScreenComponent onAnimationComplete={() => setIsSplashComplete(true)} />
+                ) : (
+                  <View style={{ flex: 1, backgroundColor: "#FFFFFF" }} />
+                )}
+              </View>
+            )}
+          </SafeAreaProvider>
+        </BottomSheetModalProvider>
+      </QueryProvider>
     </GestureHandlerRootView>
   );
 }
-
-export default RootLayout;

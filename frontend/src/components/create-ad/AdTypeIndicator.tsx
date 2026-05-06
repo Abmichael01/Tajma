@@ -2,17 +2,19 @@
 
 import React from 'react'
 import { Package, Wrench, Briefcase, FileText, Users } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface AdTypeIndicatorProps {
   adType: 'product' | 'service' | 'job' | 'cv'
 }
 
 export default function AdTypeIndicator({ adType }: AdTypeIndicatorProps) {
+  const t = useTranslations('create_ad')
   const config = {
-    product: { icon: Package, label: 'Selling Product', color: 'text-secondary' },
-    service: { icon: Wrench, label: 'Offering Service', color: 'text-primary' },
-    job: { icon: Users, label: 'Hiring', color: 'text-green-600' },
-    cv: { icon: FileText, label: 'Posting CV', color: 'text-blue-600' }
+    product: { icon: Package, label: t('selling_product'), color: 'text-secondary' },
+    service: { icon: Wrench, label: t('offering_service'), color: 'text-primary' },
+    job: { icon: Users, label: t('hiring'), color: 'text-green-600' },
+    cv: { icon: FileText, label: t('posting_cv'), color: 'text-blue-600' }
   }
   
   const { icon: Icon, label, color } = config[adType]

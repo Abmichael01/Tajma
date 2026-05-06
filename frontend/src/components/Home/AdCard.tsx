@@ -128,7 +128,7 @@ export default function AdCard({
               </div>
             )}
             {displayCategoryName && (
-              <div className="bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-[10px] font-medium w-fit">
+              <div className="bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-[10px] font-medium max-w-[60%] truncate">
                 {displayCategoryName}
               </div>
             )}

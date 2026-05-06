@@ -20,7 +20,7 @@ class RegionViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name', 'slug']
-    filterset_fields = ['level', 'parent', 'is_active']
+    filterset_fields = ['level', 'parent', 'country', 'is_active']
     
     def retrieve(self, request, slug=None):
         """

@@ -33,7 +33,8 @@
     "hourAgo": "Il y a {{count}}h",
     "dayAgo": "Il y a {{count}}j",
     "weekAgo": "Il y a {{count}}s",
-    "note": "Note"
+    "note": "Note",
+    "currency": "Fr"
   },
   "auth": {
     "login": "Connexion",
@@ -125,20 +126,60 @@
     "searching": "Recherche d'annonces...",
     "adsFound": "{{count}} annonces trouvées",
     "noResults": "Aucun résultat trouvé",
-    "noResultsDesc": "Nous n'avons trouvé aucune annonce correspondant à \"{{query}}\" dans {{region}}.",
+    "noResultsDesc": "Nous n'avons trouvé aucune annonce correspondant à \"{{query}}\" dans {{country}}.",
     "clearFilters": "Effacer tous les filtres",
-    "allRegions": "Toutes les régions",
+    "allCountries": "Tous les pays",
     "filters": {
       "title": "Affiner la recherche",
       "priceRange": "Gamme de prix",
       "reset": "Réinitialiser",
       "showResults": "Afficher les résultats ({{count}})",
+      "showResultsNone": "Afficher les résultats",
+      "all": "Toutes les annonces",
+      "activeFilters": "Filtres actifs ({{count}})",
+      "allAdsShowing": "Toutes les annonces s'affichent",
+      "tuneDesc": "Affinez vos résultats de recherche",
       "min": "Min",
       "max": "Max",
-      "condition": "Condition"
+      "condition": "État",
+      "brandNew": "Neuf",
+      "foreignUsed": "Occasion Europe",
+      "openBox": "Boîte ouverte",
+      "refurbished": "Remis à neuf"
+    },
+    "location": {
+      "selectCountry": "Sélectionner le pays",
+      "selectDepartment": "Sélectionner le département",
+      "searchCountry": "Rechercher un pays...",
+      "searchDepartment": "Rechercher un département...",
+      "allCountries": "Tous les pays",
+      "allLocations": "Tous les emplacements",
+      "allOf": "Tout dans {{name}}",
+      "adsFromAllCountries": "Annonces de tous les pays",
+      "adsInAllAreas": "Annonces dans toutes les zones de ce pays",
+      "countries": "Pays",
+      "departments": "Départements",
+      "noMatches": "Aucune correspondance trouvée",
+      "noMatchesDesc": "Nous n'avons trouvé aucune correspondance pour \"{{query}}\""
+    },
+    "category": {
+      "subcategories": "Sous-catégories",
+      "categories": "Catégories",
+      "searchPlaceholder": "Rechercher des catégories...",
+      "allCategories": "Toutes les catégories",
+      "exploreEverything": "Tout explorer sur Tajma",
+      "allIn": "Tout dans {{name}}",
+      "selectThisCategory": "Sélectionner cette catégorie",
+      "searchResults": "Résultats de recherche",
+      "mainCategories": "Catégories principales",
+      "loadingCategories": "Chargement des catégories...",
+      "noCategoriesFound": "Aucune catégorie trouvée",
+      "noMatchesDesc": "Nous n'avons trouvé aucune correspondance pour \"{{query}}\""
     }
   },
   "ads": {
+    "all": "Toutes les annonces",
+    "allAds": "Toutes les annonces",
     "myListings": "Mes annonces",
     "editListing": "Modifier l'annonce",
     "newListing": "Nouvelle annonce",
@@ -152,6 +193,8 @@
     "report": "Signaler",
     "loadError": "Annonce non trouvée",
     "loadErrorDesc": "L'annonce que vous recherchez n'existe pas ou a été supprimée.",
+    "locationNotSpecified": "Emplacement non spécifié",
+    "uncategorized": "Non catégorisé",
     "sortBy": "Trier par",
     "sort": {
       "newest": "Plus récent",

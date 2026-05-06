@@ -158,32 +158,31 @@ export default function AlertsScreen() {
       />
 
       {/* Filter Bar & Bulk Action */}
-      <View className="bg-white border-b border-border pt-5 pb-5">
+      <View className="bg-white border-b border-gray-50 py-4">
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
-          className={hasNotifications && unreadCount > 0 ? "mb-5" : ""}
         >
           {NOTIFICATION_TYPES.map((type) => (
             <TouchableOpacity
               key={type.value}
               onPress={() => setSelectedType(type.value)}
-              className={`flex-row items-center gap-2 px-6 py-2.5 rounded-full border ${
+              className={`flex-row items-center gap-2 px-5 py-2 rounded-full ${
                 selectedType === type.value
-                  ? "bg-secondary border-secondary"
-                  : "bg-white border-border"
+                  ? "bg-slate-900 shadow-sm shadow-slate-900/20"
+                  : "bg-slate-50 border border-slate-100"
               }`}
             >
               <Ionicons
                 name={type.icon as any}
                 size={16}
-                color={selectedType === type.value ? "white" : "#6b7280"}
+                color={selectedType === type.value ? "white" : "#64748B"}
               />
               <AppText
-                weight={selectedType === type.value ? "bold" : "semibold"}
-                className={`text-[14px] ${
-                  selectedType === type.value ? "text-white" : "text-slate-500"
+                weight="bold"
+                className={`text-xs ${
+                  selectedType === type.value ? "text-white" : "text-slate-600"
                 }`}
               >
                 {t(type.label)}
@@ -195,10 +194,10 @@ export default function AlertsScreen() {
         {hasNotifications && unreadCount > 0 && (
           <TouchableOpacity
             onPress={handleMarkAllAsRead}
-            className="mx-6 flex-row items-center justify-center gap-2 py-3 bg-[#FF4F18]/5 border border-[#FF4F18]/10 rounded-full"
+            className="mx-6 flex-row items-center justify-center gap-2 py-2 mt-4 bg-primary/5 border border-primary/10 rounded-full"
           >
-            <Ionicons name="checkmark-done" size={20} color="#FF4F18" />
-            <AppText weight="bold" className="text-[#FF4F18] text-sm uppercase">
+            <Ionicons name="checkmark-done" size={16} color="#FF4F18" />
+            <AppText weight="bold" className="text-primary text-xs uppercase">
               {t('alerts.markAllRead')}
             </AppText>
           </TouchableOpacity>

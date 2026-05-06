@@ -3,9 +3,10 @@ from api.models import User, KYCVerification, UserOnlineStatus
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'username', 'is_active', 'is_seller', 'is_staff', 'kyc_status', 'ad_count_display')
-    search_fields = ('email', 'username')
-    list_filter = ('is_active', 'is_seller', 'is_staff', 'kyc_status')
+    list_display = ('email', 'username', 'country', 'location', 'is_active', 'is_seller', 'is_staff', 'kyc_status', 'ad_count_display')
+    search_fields = ('email', 'username', 'first_name', 'last_name')
+    list_filter = ('country', 'is_active', 'is_seller', 'is_staff', 'kyc_status')
+    autocomplete_fields = ['country', 'location']
     readonly_fields = ('id', 'date_joined', 'last_login')
 
     def get_queryset(self, request):

@@ -29,7 +29,7 @@ export default function AdImagePicker({
 
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: false,
         quality: 0.8,
         allowsMultipleSelection: true,
@@ -43,8 +43,9 @@ export default function AdImagePicker({
 
         for (const asset of selectedAssets) {
           // Check file size (5MB = 5 * 1024 * 1024 bytes)
-          const fileInfo = await FileSystem.getInfoAsync(asset.uri);
-          if (fileInfo.exists && fileInfo.size && fileInfo.size > 5 * 1024 * 1024) {
+          const info = await FileSystem.getInfoAsync(asset.uri);
+          const size = info.exists ? info.size : 0;
+          if (size > 5 * 1024 * 1024) {
             Alert.alert('File too large', `Image "${asset.fileName || 'selected'}" exceeds the 5MB limit.`);
             continue;
           }

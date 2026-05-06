@@ -33,12 +33,6 @@ interface FormData {
   [key: string]: any
 }
 
-const STEPS = [
-  { num: 1, label: 'Basic Info', desc: 'Category & Overview' },
-  { num: 2, label: 'Details', desc: 'Description & Pricing' },
-  { num: 3, label: 'Review', desc: 'Confirm & Publish' },
-]
-
 const ATTRIBUTE_FIELDS = [
   'brand',
   'model',
@@ -89,6 +83,12 @@ const fileToBase64 = (file: File) =>
 export default function CreateAdClient() {
   const t = useTranslations('create_ad')
   const tCommon = useTranslations('common')
+  
+  const steps = useMemo(() => [
+    { num: 1, label: t('steps.basic_info'), desc: t('steps.basic_info_desc') },
+    { num: 2, label: t('steps.details'), desc: t('steps.details_desc') },
+    { num: 3, label: t('steps.review'), desc: t('steps.review_desc') },
+  ], [t])
   const router = useRouter()
   const createAd = useCreateAd()
   const { categoryTree, loading: categoriesLoading } = useCategories()
@@ -320,20 +320,20 @@ export default function CreateAdClient() {
     const nextErrors: Record<string, string> = {}
     
     if (stepNumber === 1) {
-      if (!formData.category) nextErrors.category = 'Category is required'
-      if (!formData.title.trim()) nextErrors.title = 'Title is required'
+      if (!formData.category) nextErrors.category = t('errors.category_required')
+      if (!formData.title.trim()) nextErrors.title = t('errors.title_required')
     }
     
     if (stepNumber === 2) {
-      if (!formData.description.trim()) nextErrors.description = 'Description is required'
+      if (!formData.description.trim()) nextErrors.description = t('errors.description_required')
       if (formData.adType === 'product' && !formData.contactForPrice && !formData.price.trim()) {
-        nextErrors.price = 'Price is required for product listings, or select "Contact for price"'
+        nextErrors.price = t('errors.price_required')
       }
       if (formData.adType === 'job' && !formData.salary_range?.trim()) {
-        nextErrors.salary_range = 'Salary range is required for job postings'
+        nextErrors.salary_range = t('errors.salary_range_required')
       }
       if (formData.adType === 'cv' && !formData.cv_file) {
-        nextErrors.cv_file = 'Please upload your CV'
+        nextErrors.cv_file = t('errors.cv_required')
       }
       
       // Validate required custom fields
@@ -345,10 +345,10 @@ export default function CreateAdClient() {
         if (fieldConfig?.required) {
           if (fieldConfig.type === 'array') {
             if (!Array.isArray(value) || value.length === 0) {
-              nextErrors[fieldName] = `${fieldConfig.label} is required`
+              nextErrors[fieldName] = t('errors.field_required', { field: fieldConfig.label })
             }
           } else if (!value || (typeof value === 'string' && !value.trim())) {
-            nextErrors[fieldName] = `${fieldConfig.label} is required`
+            nextErrors[fieldName] = t('errors.field_required', { field: fieldConfig.label })
           }
         }
       })
@@ -430,7 +430,7 @@ export default function CreateAdClient() {
     // Ensure we have a category selected
     const categorySlug = selectedCategory?.slug || categoryPath[categoryPath.length - 1] || formData.category
     if (!categorySlug) {
-      toast.error('Please select a category')
+      toast.error(t('errors.category_required'))
       return
     }
 
@@ -448,8 +448,9 @@ export default function CreateAdClient() {
       }
 
       console.log('Submitting payload:', payload)
+      console.log('Submitting payload:', payload)
       await createAd.mutateAsync(payload)
-      toast.success('Ad created successfully!')
+      toast.success(t('success.ad_created'))
       router.push('/profile?tab=ads')
     } catch (error: any) {
       console.error('Create ad error:', error)
@@ -458,16 +459,16 @@ export default function CreateAdClient() {
         console.error('Error details:', errorData)
         // Show specific field errors if available
         if (errorData.category) {
-          toast.error(`Category: ${Array.isArray(errorData.category) ? errorData.category[0] : errorData.category}`)
+          toast.error(`${t('category')}: ${Array.isArray(errorData.category) ? errorData.category[0] : errorData.category}`)
         } else if (errorData.price) {
-          toast.error(`Price: ${Array.isArray(errorData.price) ? errorData.price[0] : errorData.price}`)
+          toast.error(`${tCommon('price')}: ${Array.isArray(errorData.price) ? errorData.price[0] : errorData.price}`)
         } else if (errorData.non_field_errors) {
           toast.error(Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors)
         } else {
-          toast.error(errorData.message || errorData.detail || 'Failed to create ad. Please check all fields.')
+          toast.error(errorData.message || errorData.detail || t('errors.failed_to_create'))
         }
       } else {
-        toast.error('Failed to create ad. Please try again.')
+        toast.error(t('errors.failed_to_create'))
       }
     }
   }
@@ -492,7 +493,7 @@ export default function CreateAdClient() {
             </p>
           </div>
 
-          <ProgressStepper currentStep={step} steps={STEPS} showMeta={false} />
+          <ProgressStepper currentStep={step} steps={steps} />
 
           <form onSubmit={handleSubmit}>
             {step === 1 && (
@@ -552,7 +553,7 @@ export default function CreateAdClient() {
                 disabled={step === 1}
                 className="order-2 sm:order-1 rounded-full h-12 px-8 font-bold text-gray-400 hover:text-gray-900 transition-all"
               >
-                {t('buttons.previous')}
+                {tCommon('back')}
               </Button>
               
               {step < 3 ? (

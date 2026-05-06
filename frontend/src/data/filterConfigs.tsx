@@ -14,32 +14,36 @@ import {
   Gamepad,
   ShieldCheck,
   Calendar,
-  DollarSign
+  DollarSign,
+  Monitor,
+  Watch,
+  BaggageClaim,
+  WashingMachine
 } from 'lucide-react'
 
 // Category Icon Mapping
 export const getCategoryIcon = (slug: string) => {
   switch (slug) {
-    case 'electronics': return <Laptop className="w-4 h-4" />
-    case 'vehicles': return <Car className="w-4 h-4" />
-    case 'real-estate': return <Home className="w-4 h-4" />
-    case 'jobs': return <Briefcase className="w-4 h-4" />
-    case 'fashion': return <Shirt className="w-4 h-4" />
-    case 'services': return <Wrench className="w-4 h-4" />
-    default: return <Tag className="w-4 h-4" />
+    case 'electronics': return <Laptop className="w-4 h-4 text-primary" />
+    case 'vehicles': return <Car className="w-4 h-4 text-primary" />
+    case 'real-estate': return <Home className="w-4 h-4 text-primary" />
+    case 'jobs': return <Briefcase className="w-4 h-4 text-primary" />
+    case 'fashion': return <Shirt className="w-4 h-4 text-primary" />
+    case 'services': return <Wrench className="w-4 h-4 text-primary" />
+    default: return <Tag className="w-4 h-4 text-primary" />
   }
 }
 
 // Subcategory Icon Mapping
 export const getSubcategoryIcon = (slug: string) => {
-  if (slug?.includes('phone')) return <Smartphone className="w-4 h-4" />
-  if (slug?.includes('laptop')) return <Laptop className="w-4 h-4" />
-  if (slug?.includes('gaming')) return <Gamepad className="w-4 h-4" />
-  return <Layers className="w-4 h-4" />
+  if (slug?.includes('phone')) return <Smartphone className="w-4 h-4 text-primary" />
+  if (slug?.includes('laptop')) return <Laptop className="w-4 h-4 text-primary" />
+  if (slug?.includes('gaming')) return <Gamepad className="w-4 h-4 text-primary" />
+  return <Layers className="w-4 h-4 text-primary" />
 }
 
-// Niger Regions Data
-const nigerRegions = [
+// Niger Departments Data
+const nigerDepartments = [
   { id: "niamey", label: "Niamey" },
   { id: "dosso", label: "Dosso" },
   { id: "maradi", label: "Maradi" },
@@ -58,12 +62,12 @@ export const searchFilters: FilterGroup[] = [
     type: "checkbox",
     defaultExpanded: true,
     options: [
-      { id: "electronics", label: "Electronics" },
-      { id: "vehicles", label: "Vehicles" },
-      { id: "real-estate", label: "Real Estate" },
-      { id: "jobs", label: "Jobs" },
-      { id: "fashion", label: "Fashion" },
-      { id: "services", label: "Services" },
+      { id: "electronics", label: "Electronics", icon: <Laptop className="w-4 h-4 text-primary" /> },
+      { id: "vehicles", label: "Vehicles", icon: <Car className="w-4 h-4 text-primary" /> },
+      { id: "real-estate", label: "Real Estate", icon: <Home className="w-4 h-4 text-primary" /> },
+      { id: "jobs", label: "Jobs", icon: <Briefcase className="w-4 h-4 text-primary" /> },
+      { id: "fashion", label: "Fashion", icon: <Shirt className="w-4 h-4 text-primary" /> },
+      { id: "services", label: "Services", icon: <Wrench className="w-4 h-4 text-primary" /> },
     ]
   },
   {
@@ -74,11 +78,11 @@ export const searchFilters: FilterGroup[] = [
     options: []
   },
   {
-    id: "location",
-    title: "Location",
-    type: "checkbox",
+    id: "country",
+    title: "Country",
+    type: "radio",
     defaultExpanded: true,
-    options: nigerRegions.map(r => ({ ...r, icon: <MapPin className="w-4 h-4" /> }))
+    options: []
   },
   {
     id: "condition",
@@ -86,9 +90,9 @@ export const searchFilters: FilterGroup[] = [
     type: "checkbox",
     defaultExpanded: false,
     options: [
-      { id: "new", label: "New" },
-      { id: "used", label: "Used" },
-      { id: "refurbished", label: "Refurbished" },
+      { id: "new", label: "New", icon: <Tag className="w-4 h-4 text-primary" /> },
+      { id: "used", label: "Used", icon: <Tag className="w-4 h-4 text-primary" /> },
+      { id: "refurbished", label: "Refurbished", icon: <Wrench className="w-4 h-4 text-primary" /> },
     ]
   }
 ]
@@ -105,33 +109,33 @@ export const electronicsFilters: FilterGroup[] = [
         id: "phones",
         label: "Phones",
         action: "/category/electronics/phones",
-        icon: <Smartphone className="w-4 h-4" />,
+        icon: <Smartphone className="w-4 h-4 text-primary" />,
         children: [
-          { id: "iphone", label: "iPhone", action: "/category/electronics/phones/iphone" },
-          { id: "samsung", label: "Samsung", action: "/category/electronics/phones/samsung" },
-          { id: "xiaomi", label: "Xiaomi", action: "/category/electronics/phones/xiaomi" },
-          { id: "huawei", label: "Huawei", action: "/category/electronics/phones/huawei" },
+          { id: "iphone", label: "iPhone", action: "/category/electronics/phones/iphone", icon: <Smartphone className="w-4 h-4 text-primary" /> },
+          { id: "samsung", label: "Samsung", action: "/category/electronics/phones/samsung", icon: <Smartphone className="w-4 h-4 text-primary" /> },
+          { id: "xiaomi", label: "Xiaomi", action: "/category/electronics/phones/xiaomi", icon: <Smartphone className="w-4 h-4 text-primary" /> },
+          { id: "huawei", label: "Huawei", action: "/category/electronics/phones/huawei", icon: <Smartphone className="w-4 h-4 text-primary" /> },
         ]
       },
       {
         id: "laptops",
         label: "Laptops",
         action: "/category/electronics/laptops",
-        icon: <Laptop className="w-4 h-4" />,
+        icon: <Laptop className="w-4 h-4 text-primary" />,
         children: [
-          { id: "macbook", label: "MacBook", action: "/category/electronics/laptops/macbook" },
-          { id: "dell", label: "Dell", action: "/category/electronics/laptops/dell" },
-          { id: "hp", label: "HP", action: "/category/electronics/laptops/hp" },
+          { id: "macbook", label: "MacBook", action: "/category/electronics/laptops/macbook", icon: <Laptop className="w-4 h-4 text-primary" /> },
+          { id: "dell", label: "Dell", action: "/category/electronics/laptops/dell", icon: <Laptop className="w-4 h-4 text-primary" /> },
+          { id: "hp", label: "HP", action: "/category/electronics/laptops/hp", icon: <Laptop className="w-4 h-4 text-primary" /> },
         ]
       },
       {
         id: "gaming",
         label: "Gaming",
         action: "/category/electronics/gaming",
-        icon: <Gamepad className="w-4 h-4" />,
+        icon: <Gamepad className="w-4 h-4 text-primary" />,
         children: [
-          { id: "consoles", label: "Consoles", action: "/category/electronics/gaming/consoles" },
-          { id: "accessories", label: "Accessories", action: "/category/electronics/gaming/accessories" },
+          { id: "consoles", label: "Consoles", action: "/category/electronics/gaming/consoles", icon: <Gamepad className="w-4 h-4 text-primary" /> },
+          { id: "accessories", label: "Accessories", action: "/category/electronics/gaming/accessories", icon: <Gamepad className="w-4 h-4 text-primary" /> },
         ]
       }
     ]
@@ -142,13 +146,13 @@ export const electronicsFilters: FilterGroup[] = [
     type: "checkbox",
     defaultExpanded: true,
     options: [
-      { id: "apple", label: "Apple" },
-      { id: "samsung", label: "Samsung" },
-      { id: "xiaomi", label: "Xiaomi" },
-      { id: "huawei", label: "Huawei" },
-      { id: "dell", label: "Dell" },
-      { id: "hp", label: "HP" },
-      { id: "sony", label: "Sony" },
+      { id: "apple", label: "Apple", icon: <Laptop className="w-4 h-4 text-primary" /> },
+      { id: "samsung", label: "Samsung", icon: <Smartphone className="w-4 h-4 text-primary" /> },
+      { id: "xiaomi", label: "Xiaomi", icon: <Smartphone className="w-4 h-4 text-primary" /> },
+      { id: "huawei", label: "Huawei", icon: <Smartphone className="w-4 h-4 text-primary" /> },
+      { id: "dell", label: "Dell", icon: <Laptop className="w-4 h-4 text-primary" /> },
+      { id: "hp", label: "HP", icon: <Laptop className="w-4 h-4 text-primary" /> },
+      { id: "sony", label: "Sony", icon: <Gamepad className="w-4 h-4 text-primary" /> },
     ]
   },
   {
@@ -164,10 +168,10 @@ export const electronicsFilters: FilterGroup[] = [
     type: "checkbox",
     defaultExpanded: true,
     options: [
-      { id: "new", label: "New" },
-      { id: "used", label: "Used" },
-      { id: "refurbished", label: "Refurbished" },
-      { id: "damaged", label: "Damaged" },
+      { id: "new", label: "New", icon: <Tag className="w-4 h-4 text-primary" /> },
+      { id: "used", label: "Used", icon: <Tag className="w-4 h-4 text-primary" /> },
+      { id: "refurbished", label: "Refurbished", icon: <Wrench className="w-4 h-4 text-primary" /> },
+      { id: "damaged", label: "Damaged", icon: <Tag className="w-4 h-4 text-red-400" /> },
     ]
   }
 ]
@@ -184,23 +188,23 @@ export const vehiclesFilters: FilterGroup[] = [
         id: "cars",
         label: "Cars",
         action: "/category/vehicles/cars",
-        icon: <Car className="w-4 h-4" />,
+        icon: <Car className="w-4 h-4 text-primary" />,
         children: [
-          { id: "sedan", label: "Sedan", action: "/category/vehicles/cars/sedan" },
-          { id: "suv", label: "SUV", action: "/category/vehicles/cars/suv" },
-          { id: "hatchback", label: "Hatchback", action: "/category/vehicles/cars/hatchback" },
-          { id: "coupe", label: "Coupe", action: "/category/vehicles/cars/coupe" },
+          { id: "sedan", label: "Sedan", action: "/category/vehicles/cars/sedan", icon: <Car className="w-4 h-4 text-primary" /> },
+          { id: "suv", label: "SUV", action: "/category/vehicles/cars/suv", icon: <Car className="w-4 h-4 text-primary" /> },
+          { id: "hatchback", label: "Hatchback", action: "/category/vehicles/cars/hatchback", icon: <Car className="w-4 h-4 text-primary" /> },
+          { id: "coupe", label: "Coupe", action: "/category/vehicles/cars/coupe", icon: <Car className="w-4 h-4 text-primary" /> },
         ]
       },
       {
         id: "motorcycles",
         label: "Motorcycles",
         action: "/category/vehicles/motorcycles",
-        icon: <Car className="w-4 h-4" />, // Need a motorcycle icon? Using Car as fallback or bike below
+        icon: <Car className="w-4 h-4 text-primary" />, 
         children: [
-          { id: "sport", label: "Sport", action: "/category/vehicles/motorcycles/sport" },
-          { id: "cruiser", label: "Cruiser", action: "/category/vehicles/motorcycles/cruiser" },
-          { id: "scooter", label: "Scooter", action: "/category/vehicles/motorcycles/scooter" },
+          { id: "sport", label: "Sport", action: "/category/vehicles/motorcycles/sport", icon: <Car className="w-4 h-4 text-primary" /> },
+          { id: "cruiser", label: "Cruiser", action: "/category/vehicles/motorcycles/cruiser", icon: <Car className="w-4 h-4 text-primary" /> },
+          { id: "scooter", label: "Scooter", action: "/category/vehicles/motorcycles/scooter", icon: <Car className="w-4 h-4 text-primary" /> },
         ]
       }
     ]
@@ -211,12 +215,12 @@ export const vehiclesFilters: FilterGroup[] = [
     type: "checkbox",
     defaultExpanded: true,
     options: [
-      { id: "toyota", label: "Toyota" },
-      { id: "honda", label: "Honda" },
-      { id: "nissan", label: "Nissan" },
-      { id: "hyundai", label: "Hyundai" },
-      { id: "ford", label: "Ford" },
-      { id: "mercedes", label: "Mercedes" },
+      { id: "toyota", label: "Toyota", icon: <Car className="w-4 h-4 text-primary" /> },
+      { id: "honda", label: "Honda", icon: <Car className="w-4 h-4 text-primary" /> },
+      { id: "nissan", label: "Nissan", icon: <Car className="w-4 h-4 text-primary" /> },
+      { id: "hyundai", label: "Hyundai", icon: <Car className="w-4 h-4 text-primary" /> },
+      { id: "ford", label: "Ford", icon: <Car className="w-4 h-4 text-primary" /> },
+      { id: "mercedes", label: "Mercedes", icon: <Car className="w-4 h-4 text-primary" /> },
     ]
   },
   {
@@ -225,13 +229,13 @@ export const vehiclesFilters: FilterGroup[] = [
     type: "checkbox",
     defaultExpanded: true,
     options: [
-      { id: "2024", label: "2024" },
-      { id: "2023", label: "2023" },
-      { id: "2022", label: "2022" },
-      { id: "2021", label: "2021" },
-      { id: "2020", label: "2020" },
-      { id: "2019", label: "2019" },
-      { id: "older", label: "2018 & Older" },
+      { id: "2024", label: "2024", icon: <Calendar className="w-4 h-4 text-primary" /> },
+      { id: "2023", label: "2023", icon: <Calendar className="w-4 h-4 text-primary" /> },
+      { id: "2022", label: "2022", icon: <Calendar className="w-4 h-4 text-primary" /> },
+      { id: "2021", label: "2021", icon: <Calendar className="w-4 h-4 text-primary" /> },
+      { id: "2020", label: "2020", icon: <Calendar className="w-4 h-4 text-primary" /> },
+      { id: "2019", label: "2019", icon: <Calendar className="w-4 h-4 text-primary" /> },
+      { id: "older", label: "2018 & Older", icon: <Calendar className="w-4 h-4 text-primary" /> },
     ]
   },
   {

@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import AppText from "@/components/ui/AppText";
 import { resolveImageUrl } from "@/utils/imageUtils";
+import { useTranslation } from "react-i18next";
 
 interface Ad {
   id: string;
@@ -30,6 +31,7 @@ interface AdCardProps {
 }
 
 export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
@@ -41,14 +43,14 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
 
   // Format price
   const formattedPrice = ad.price
-    ? `${ad.currency || 'Fr'} ${parseFloat(String(ad.price)).toLocaleString()}`
-    : 'Contact for price';
+    ? `${ad.currency || t('common.currency')} ${parseFloat(String(ad.price)).toLocaleString()}`
+    : t('ads.contactForPrice');
 
   // Get location from seller
-  const location = ad.seller?.location || 'Location not specified';
+  const location = ad.seller?.location || t('ads.locationNotSpecified');
 
   // Get category name
-  const categoryName = ad.category_details?.name || 'Uncategorized';
+  const categoryName = ad.category_details?.name || t('ads.uncategorized');
 
   const handlePress = () => {
     router.push(`/ads/${ad.slug}`);
@@ -104,8 +106,8 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
 
         {/* Category Badge */}
         {categoryName && (
-          <View className="absolute top-2 left-2 bg-secondary/90 px-2 py-1 rounded-lg">
-            <AppText variant="caption" weight="medium" className="text-white text-xs">
+          <View className="absolute top-2 left-2 bg-secondary/90 px-2 py-1 rounded-lg max-w-[60%]">
+            <AppText variant="caption" weight="medium" className="text-white text-xs" numberOfLines={1}>
               {categoryName}
             </AppText>
           </View>

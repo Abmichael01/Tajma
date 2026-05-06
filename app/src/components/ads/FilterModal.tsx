@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import { View, TouchableOpacity, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
-import { Region } from "@/hooks/useRegions";
+import { Country } from "@/hooks/useLocations";
 import { Category } from "@/types/category";
-import RegionModal from "./RegionModal";
+import CountryModal from "./CountryModal";
 import CategoryModal from "./CategoryModal";
 import BottomSheet, { BottomSheetRef } from "@/components/ui/BottomSheet";
 
@@ -14,11 +14,11 @@ interface FilterModalProps {
   onClose: () => void;
   onApply: (filters: FilterState) => void;
   initialFilters: FilterState;
-  mode?: "all" | "price";
+  mode?: "all" | "price" | "category" | "condition";
 }
 
 export interface FilterState {
-  region: Region | null;
+  country: Country | null;
   category: Category | null;
   minPrice: string;
   maxPrice: string;
@@ -42,12 +42,12 @@ export default function FilterModal({
   const { t } = useTranslation();
   const CONDITIONS = getConditions(t);
   const [filters, setFilters] = useState<FilterState>(initialFilters);
-  const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
+  const [isCountryModalVisible, setIsCountryModalVisible] = useState(false);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hasPriceFilter = Boolean(filters.minPrice || filters.maxPrice);
   const activeFilterCount = [
-    filters.region,
+    filters.country,
     filters.category,
     hasPriceFilter,
     filters.condition.length > 0,
@@ -64,8 +64,10 @@ export default function FilterModal({
   }, [visible, initialFilters]);
 
   const handleApply = () => {
-    onApply(filters);
     onClose();
+    setTimeout(() => {
+      onApply(filters);
+    }, 100);
   };
 
   const toggleCondition = (value: string) => {
@@ -78,7 +80,7 @@ export default function FilterModal({
 
   const clearAll = () => {
     setFilters({
-      region: null,
+      country: null,
       category: null,
       minPrice: "",
       maxPrice: "",
@@ -90,112 +92,48 @@ export default function FilterModal({
     <>
       <BottomSheet
         ref={bottomSheetRef}
-        title={mode === "price" ? t('search.filters.priceRange') : t('search.filters.title')}
+        title={
+          mode === "price" ? t('search.filters.priceRange') : 
+          mode === "category" ? t('create_ad.fields.category') :
+          mode === "condition" ? t('search.filters.condition') :
+          t('search.filters.title')
+        }
         onClose={onClose}
-        snapPoints={mode === "price" ? ["55%"] : ["90%"]}
+        snapPoints={["90%"]}
         headerLeft={
           <TouchableOpacity
             onPress={clearAll}
-            className="px-2"
+            className={`px-4 py-2 rounded-full ${hasActiveFilters ? "bg-slate-100" : "bg-gray-50"}`}
             disabled={!hasActiveFilters}
           >
             <AppText
               weight="bold"
               className={
                 hasActiveFilters
-                  ? "text-gray-600 text-sm"
-                  : "text-gray-300 text-sm"
+                  ? "text-slate-900 text-xs"
+                  : "text-gray-300 text-xs"
               }
             >
               {t('search.filters.reset')}
             </AppText>
           </TouchableOpacity>
         }
-        footer={
-          <View className="flex-row gap-3">
-            <TouchableOpacity
-              onPress={clearAll}
-              disabled={!hasActiveFilters}
-              className={`h-14 px-5 rounded-full items-center justify-center border ${hasActiveFilters ? "border-gray-200 bg-white" : "border-gray-100 bg-gray-50"}`}
+        headerRight={
+          <TouchableOpacity
+            onPress={handleApply}
+            className="px-4 py-2 bg-primary rounded-full"
+          >
+            <AppText
+              weight="bold"
+              className="text-white text-xs"
             >
-              <AppText
-                weight="bold"
-                className={hasActiveFilters ? "text-gray-700" : "text-gray-300"}
-              >
-                {t('search.filters.reset')}
-              </AppText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleApply}
-              className="flex-1 h-14 rounded-full bg-primary items-center justify-center shadow-md shadow-primary/30"
-            >
-              <AppText weight="bold" className="text-white">
-                {hasActiveFilters
-                  ? t('search.filters.showResults', { count: activeFilterCount })
-                  : t('search.filters.showResults_none')}
-              </AppText>
-            </TouchableOpacity>
-          </View>
+              {t('common.apply')}
+            </AppText>
+          </TouchableOpacity>
         }
       >
-        <View className="px-6 pt-4 pb-3">
-          <View className="bg-[#111111] rounded-[28px] px-5 py-4 mb-6 flex-row items-center justify-between">
-            <View className="flex-1 pr-4">
-              <AppText weight="bold" className="text-white text-base">
-                {hasActiveFilters
-                  ? t('search.filters.activeFilters', { count: activeFilterCount })
-                  : t('search.filters.allAdsShowing')}
-              </AppText>
-              <AppText className="text-white/60 text-xs mt-1">
-                {t('search.filters.tuneDesc')}
-              </AppText>
-            </View>
-            <View className="w-11 h-11 rounded-full bg-white/10 items-center justify-center">
-              <Ionicons name="options-outline" size={22} color="#FF4F18" />
-            </View>
-          </View>
-
-          {mode === "all" && (
-            <>
-              {/* Region Section */}
-              <View className="mb-6">
-                <AppText
-                  weight="bold"
-                  className="text-gray-400 text-[10px] tracking-widest mb-3 uppercase"
-                >
-                  {t('create_ad.fields.location')}
-                </AppText>
-                <TouchableOpacity
-                  onPress={() => setIsRegionModalVisible(true)}
-                  className={`flex-row items-center justify-between rounded-full p-4 border ${filters.region ? "bg-primary/10 border-primary/20" : "bg-gray-50 border-gray-100"}`}
-                >
-                  <View className="flex-row items-center gap-3">
-                    <View className="w-10 h-10 rounded-full bg-white items-center justify-center border border-gray-100">
-                      <Ionicons
-                        name="location-outline"
-                        size={20}
-                        color="#FF4F18"
-                      />
-                    </View>
-                    <View>
-                      <AppText
-                        weight="bold"
-                        className={
-                          filters.region ? "text-gray-900" : "text-gray-500"
-                        }
-                      >
-                        {filters.region?.name || t('search.allRegions')}
-                      </AppText>
-                      <AppText className="text-gray-400 text-xs mt-0.5">
-                        {t('search.filters.tuneDesc')}
-                      </AppText>
-                    </View>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Category Section */}
+        <View className="px-6 pt-4 pb-24">
+          {(mode === "all" || mode === "category") && (
               <View className="mb-6">
                 <AppText
                   weight="bold"
@@ -205,7 +143,7 @@ export default function FilterModal({
                 </AppText>
                 <TouchableOpacity
                   onPress={() => setIsCategoryModalVisible(true)}
-                  className={`flex-row items-center justify-between rounded-full p-4 border ${filters.category ? "bg-secondary/10 border-secondary/20" : "bg-gray-50 border-gray-100"}`}
+                  className={`flex-row items-center justify-between rounded-full p-4 border ${filters.category ? "bg-slate-900 border-slate-900" : "bg-gray-50 border-gray-100"}`}
                 >
                   <View className="flex-row items-center gap-3">
                     <View className="w-10 h-10 rounded-full bg-white items-center justify-center border border-gray-100">
@@ -215,69 +153,71 @@ export default function FilterModal({
                       <AppText
                         weight="bold"
                         className={
-                          filters.category ? "text-gray-900" : "text-gray-500"
+                          filters.category ? "text-white" : "text-gray-500"
                         }
                       >
-                        {filters.category?.name || t('ads.all')}
+                        {filters.category?.name || t('create_ad.fields.category')}
                       </AppText>
-                      <AppText className="text-gray-400 text-xs mt-0.5">
-                        {t('search.filters.tuneDesc')}
-                      </AppText>
+                      {filters.category && (
+                         <AppText className="text-gray-400 text-xs mt-0.5">
+                            Selected
+                         </AppText>
+                      )}
                     </View>
                   </View>
                   <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
                 </TouchableOpacity>
               </View>
-            </>
           )}
 
-          {/* Price Section */}
-          <View className="mb-6">
-            <AppText
-              weight="bold"
-              className="text-gray-400 text-[10px] tracking-widest mb-3 uppercase"
-            >
-              {t('search.filters.priceRange')} (Fr)
-            </AppText>
-            <View className="flex-row gap-3">
-              <View
-                className={`flex-1 border rounded-[22px] p-4 ${filters.minPrice ? "bg-primary/10 border-primary/20" : "bg-gray-50 border-gray-100"}`}
+          {(mode === "all" || mode === "price") && (
+            <View className="mb-6">
+              <AppText
+                weight="bold"
+                className="text-gray-400 text-[10px] tracking-widest mb-3 uppercase"
               >
-                <AppText className="text-[10px] text-gray-400 mb-1">
-                  {t('search.filters.min')}
-                </AppText>
-                <TextInput
-                  className="text-gray-900 font-bold p-0 text-base"
-                  placeholder="0"
-                  placeholderTextColor="#9ca3af"
-                  keyboardType="numeric"
-                  value={filters.minPrice}
-                  onChangeText={(text) =>
-                    setFilters({ ...filters, minPrice: text })
-                  }
-                />
-              </View>
-              <View
-                className={`flex-1 border rounded-[22px] p-4 ${filters.maxPrice ? "bg-primary/10 border-primary/20" : "bg-gray-50 border-gray-100"}`}
-              >
-                <AppText className="text-[10px] text-gray-400 mb-1">
-                  {t('search.filters.max')}
-                </AppText>
-                <TextInput
-                  className="text-gray-900 font-bold p-0 text-base"
-                  placeholder={t('common.all')}
-                  placeholderTextColor="#9ca3af"
-                  keyboardType="numeric"
-                  value={filters.maxPrice}
-                  onChangeText={(text) =>
-                    setFilters({ ...filters, maxPrice: text })
-                  }
-                />
+                {t('search.filters.priceRange')} ({t('common.currency')})
+              </AppText>
+              <View className="flex-row gap-3">
+                <View
+                  className={`flex-1 border rounded-[22px] p-4 ${filters.minPrice ? "bg-slate-900 border-slate-900" : "bg-gray-50 border-gray-100"}`}
+                >
+                  <AppText className={`text-[10px] ${filters.minPrice ? "text-white/60" : "text-gray-400"} mb-1`}>
+                    {t('search.filters.min')}
+                  </AppText>
+                  <TextInput
+                    className={`${filters.minPrice ? "text-white" : "text-gray-900"} font-bold p-0 text-base`}
+                    placeholder="0"
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="numeric"
+                    value={filters.minPrice}
+                    onChangeText={(text) =>
+                      setFilters({ ...filters, minPrice: text })
+                    }
+                  />
+                </View>
+                <View
+                  className={`flex-1 border rounded-[22px] p-4 ${filters.maxPrice ? "bg-slate-900 border-slate-900" : "bg-gray-50 border-gray-100"}`}
+                >
+                  <AppText className={`text-[10px] ${filters.maxPrice ? "text-white/60" : "text-gray-400"} mb-1`}>
+                    {t('search.filters.max')}
+                  </AppText>
+                  <TextInput
+                    className={`${filters.maxPrice ? "text-white" : "text-gray-900"} font-bold p-0 text-base`}
+                    placeholder={t('common.all')}
+                    placeholderTextColor="#9ca3af"
+                    keyboardType="numeric"
+                    value={filters.maxPrice}
+                    onChangeText={(text) =>
+                      setFilters({ ...filters, maxPrice: text })
+                    }
+                  />
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
-          {mode === "all" && (
+          {(mode === "all" || mode === "condition") && (
             <View className="mb-8">
                 <AppText
                 weight="bold"
@@ -292,7 +232,7 @@ export default function FilterModal({
                     <TouchableOpacity
                       key={cond.value}
                       onPress={() => toggleCondition(cond.value)}
-                      className={`px-4 py-4 rounded-[22px] border flex-row items-center justify-between ${isSelected ? "bg-primary border-primary" : "bg-gray-50 border-gray-100"}`}
+                      className={`px-4 py-4 rounded-[22px] border flex-row items-center justify-between ${isSelected ? "bg-slate-900 border-slate-900" : "bg-gray-50 border-gray-100"}`}
                     >
                       <AppText
                         weight="bold"
@@ -307,7 +247,7 @@ export default function FilterModal({
                           <Ionicons
                             name="checkmark"
                             size={16}
-                            color="#FF4F18"
+                            color="#1e293b"
                           />
                         )}
                       </View>
@@ -320,11 +260,11 @@ export default function FilterModal({
         </View>
       </BottomSheet>
 
-      <RegionModal
-        visible={isRegionModalVisible}
-        onClose={() => setIsRegionModalVisible(false)}
-        onSelect={(region) => setFilters({ ...filters, region })}
-        selectedRegionId={filters.region?.id}
+      <CountryModal
+        visible={isCountryModalVisible}
+        onClose={() => setIsCountryModalVisible(false)}
+        onSelect={(country) => setFilters({ ...filters, country })}
+        selectedCountryId={filters.country?.id}
       />
 
       <CategoryModal

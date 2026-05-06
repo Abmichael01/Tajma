@@ -91,6 +91,9 @@ class CategoryTranslation(models.Model):
     # Optional: Translate custom field labels and options
     # Store as: {'field_name': {'label': 'Marque', 'options': {'Apple': 'Pomme'}}}
     custom_fields_translations = models.JSONField(default=dict, blank=True)
+    
+    is_original = models.BooleanField(default=False)
+    is_auto_translated = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('category', 'language')

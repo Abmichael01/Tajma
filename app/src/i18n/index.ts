@@ -18,18 +18,22 @@ const resources: Record<string, any> = {
 const languageDetector: LanguageDetectorAsyncModule = {
   type: 'languageDetector',
   async: true,
-  detect: async (callback: (lng: string) => void) => {
+  detect: async (callback: (lng: string | readonly string[] | undefined) => void | undefined) => {
     try {
       const savedLanguage = await AsyncStorage.getItem(STORAGE_KEY);
       if (savedLanguage) {
-        return callback(savedLanguage);
+        callback(savedLanguage);
+        return savedLanguage;
       }
       
       const deviceLanguage = Localization.getLocales()[0]?.languageCode || 'en';
-      return callback(resources[deviceLanguage] ? deviceLanguage : 'en');
+      const lang = resources[deviceLanguage] ? deviceLanguage : 'en';
+      callback(lang);
+      return lang;
     } catch (error) {
       console.log('Error detecting language:', error);
       callback('en');
+      return 'en';
     }
   },
   init: () => {},

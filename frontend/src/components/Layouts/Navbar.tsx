@@ -23,13 +23,14 @@ import {
   MessageCircleMore,
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  SlidersHorizontal
 } from 'lucide-react'
 import { useCategories } from '@/hooks/useCategories'
 import CategoryImage from '@/components/ui/CategoryImage'
 import { useLocation } from '@/hooks/useLocation'
 import { useLocationStore } from '@/store/locationStore'
-import RegionSelectorModal from '../modals/RegionSelectorModal'
+import LocationSelectorModal from '../modals/LocationSelectorModal'
 
 export default function Navbar() {
     const t = useTranslations('common');
@@ -46,8 +47,8 @@ export default function Navbar() {
     const { rootCategories, loading: categoriesLoading, error: categoriesError } = useCategories()
     const { getLocationString, getShortLocationString, loading: locationLoading } = useLocation()
     // Location State
-    const { selectedRegion, setSelectedRegion } = useLocationStore()
-    const [isRegionModalOpen, setIsRegionModalOpen] = useState(false)
+    const { selectedCountry, setSelectedCountry } = useLocationStore()
+    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false)
 
     // Get count from paginated response or calculate from results
     const favoritesCount = savedAdsData?.count ?? (savedAdsData?.results?.length || 0)
@@ -177,17 +178,17 @@ export default function Navbar() {
                         <span className='hidden sm:inline'>{t('welcome_msg')}</span>
                         <span className='sm:hidden'>Tajma</span>
                         <button 
-                            onClick={() => setIsRegionModalOpen(true)}
+                            onClick={() => setIsLocationModalOpen(true)}
                             className='flex items-center gap-1 sm:gap-2 hover:text-primary transition-colors cursor-pointer group'
                         >
                             <MapPin className='w-3 h-3 sm:w-4 sm:h-4 group-hover:animate-bounce' />
                             {!locationLoading ? (
                                 <>
                                     <span className='hidden xs:inline sm:inline'>
-                                        {selectedRegion === 'All Regions' ? getLocationString() : selectedRegion}
+                                        {selectedCountry === 'All Countries' ? getLocationString() : selectedCountry}
                                     </span>
                                     <span className='xs:hidden sm:hidden'>
-                                        {selectedRegion === 'All Regions' ? getShortLocationString() : selectedRegion.split(',')[0]}
+                                        {selectedCountry === 'All Countries' ? getShortLocationString() : selectedCountry.split(',')[0]}
                                     </span>
                                 </>
                             ) : (
@@ -213,19 +214,19 @@ export default function Navbar() {
                     </div>
 
                     {/* Search Bar - Desktop */}
-                    <div className='hidden md:block flex-1 max-w-xl mx-4 lg:mx-8 relative'>
-                        <form onSubmit={handleSearch} className="relative w-full">
+                    <div className='hidden md:flex flex-1 max-w-xl mx-4 lg:mx-8 relative items-center gap-2'>
+                        <form onSubmit={handleSearch} className="relative flex-1">
                             <input
                                 type="text"
                                 placeholder={t("search_placeholder")}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full bg-gray-100 hover:bg-gray-200 focus:bg-white border border-transparent focus:border-primary/20 
-                                transition-colors px-5 py-2.5 rounded-full outline-none text-sm text-gray-900"
+                                transition-colors px-5 py-2.5 rounded-full outline-none text-sm text-gray-900 pr-10"
                             />
                             <button 
                                 type="submit"
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-primary transition-colors bg-white rounded-full shadow-sm"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white bg-primary hover:bg-primary/90 transition-all rounded-full shadow-md active:scale-95"
                             >
                                 <Search className='w-4 h-4' />
                             </button>
@@ -431,12 +432,15 @@ export default function Navbar() {
                 onClose={() => setIsSearchModalOpen(false)} 
             />
 
-            {/* Region Selector Modal (Drawer on Mobile) */}
-            <RegionSelectorModal
-                isOpen={isRegionModalOpen}
-                onClose={() => setIsRegionModalOpen(false)}
-                selectedRegion={selectedRegion}
-                onSelectRegion={(region) => setSelectedRegion(region?.name || 'All Regions')}
+            {/* Location Selector Modal (Drawer on Mobile) */}
+            <LocationSelectorModal
+                isOpen={isLocationModalOpen}
+                onClose={() => setIsLocationModalOpen(false)}
+                selectedLocation={selectedCountry}
+                onSelectLocation={(location: any, country: any) => {
+                    const countryPrefix = country ? `${country.flag_emoji} ` : ''
+                    setSelectedCountry(location ? `${countryPrefix}${location.name}` : (country ? `${countryPrefix}${country.name}` : 'All Countries'))
+                }}
             />
         </header>
     )

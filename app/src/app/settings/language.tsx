@@ -5,6 +5,7 @@ import AppText from "@/components/ui/AppText";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 
 const LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸' },
@@ -15,9 +16,12 @@ const LANGUAGES = [
 export default function LanguageScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleLanguageChange = (code: string) => {
     i18n.changeLanguage(code);
+    // Invalidate all queries to fetch data in the new language
+    queryClient.invalidateQueries();
   };
 
   return (

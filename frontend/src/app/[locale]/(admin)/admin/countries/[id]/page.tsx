@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useRouter } from '@/i18n/routing'
-import { useRegionDetail } from '@/hooks/useRegions'
+import { useLocationDetail } from '@/hooks/useLocations'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import { Button } from '@/components/ui/button'
@@ -13,20 +13,20 @@ import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { getUserFullName } from '@/utils/user'
 import { Link } from '@/i18n/routing'
 
-export default function AdminRegionDetailPage() {
+export default function AdminLocationDetailPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const regionSlug = params.id as string
+  const countrySlug = params.id as string
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1', 10))
 
-  const { data: region, isLoading, error } = useRegionDetail(regionSlug)
+  const { data: country, isLoading, error } = useLocationDetail(countrySlug)
 
   // Calculate stats from region data
-  const regionStats = useMemo(() => {
-    if (!region) return null
+  const countryStats = useMemo(() => {
+    if (!country) return null
 
-    const ads = region.ads || []
+    const ads = country.ads || []
     const total = ads.length
     const published = ads.filter((ad: any) => ad.status === 'published').length
     const draft = ads.filter((ad: any) => ad.status === 'draft').length
@@ -38,7 +38,7 @@ export default function AdminRegionDetailPage() {
       draft,
       archived,
     }
-  }, [region])
+  }, [country])
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -103,13 +103,13 @@ export default function AdminRegionDetailPage() {
     )
   }
 
-  if (error || !region) {
+  if (error || !country) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <p className="text-red-600">Failed to load region details</p>
-        <Button variant="outline" onClick={() => router.push('/admin/regions')}>
+        <p className="text-red-600">Failed to load country details</p>
+        <Button variant="outline" onClick={() => router.push('/admin/countries')}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Regions
+          Back to Countries
         </Button>
       </div>
     )
@@ -120,16 +120,16 @@ export default function AdminRegionDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => router.push('/admin/regions')}>
+          <Button variant="outline" onClick={() => router.push('/admin/countries')}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-medium text-gray-900">{region.name}</h1>
-            <p className="text-gray-600 mt-1">Region Details</p>
+            <h1 className="text-2xl font-medium text-gray-900">{country.name}</h1>
+            <p className="text-gray-600 mt-1">Country Details</p>
           </div>
         </div>
-        <Badge variant={region.is_active ? 'default' : 'destructive'}>
-          {region.is_active ? (
+        <Badge variant={country.is_active ? 'default' : 'destructive'}>
+          {country.is_active ? (
             <>
               <CheckCircle className="w-3 h-3 mr-1" />
               Active
@@ -144,51 +144,51 @@ export default function AdminRegionDetailPage() {
       </div>
 
       {/* Statistics Cards - Moved First */}
-      {regionStats && (
+      {countryStats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <AdminStatsCard
             title="Total Ads"
-            value={regionStats.total.toLocaleString()}
+            value={countryStats.total.toLocaleString()}
             icon={MapPin}
             isPrimary={true}
           />
           <AdminStatsCard
             title="Published"
-            value={regionStats.published.toLocaleString()}
+            value={countryStats.published.toLocaleString()}
             icon={CheckCircle}
           />
           <AdminStatsCard
             title="Draft"
-            value={regionStats.draft.toLocaleString()}
+            value={countryStats.draft.toLocaleString()}
             icon={XCircle}
           />
           <AdminStatsCard
             title="Archived"
-            value={regionStats.archived.toLocaleString()}
+            value={countryStats.archived.toLocaleString()}
             icon={XCircle}
           />
         </div>
       )}
 
-      {/* Region Info - Each item in container with border and rounded */}
+      {/* Location Info - Each item in container with border and rounded */}
       <div className="bg-white rounded-xl border p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Region Information</h2>
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Country Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="border border-gray-200 rounded-xl p-4">
             <p className="text-sm text-gray-500 mb-1">Name</p>
-            <p className="text-base font-medium">{region.name}</p>
+            <p className="text-base font-medium">{country.name}</p>
           </div>
           <div className="border border-gray-200 rounded-xl p-4">
             <p className="text-sm text-gray-500 mb-1">Slug</p>
-            <p className="text-base font-medium">{region.slug}</p>
+            <p className="text-base font-medium">{country.slug}</p>
           </div>
           <div className="border border-gray-200 rounded-xl p-4">
             <p className="text-sm text-gray-500 mb-1">Sort Order</p>
-            <p className="text-base font-medium">{region.sort_order}</p>
+            <p className="text-base font-medium">{country.sort_order}</p>
           </div>
           <div className="border border-gray-200 rounded-xl p-4">
             <p className="text-sm text-gray-500 mb-1">Status</p>
-            <p className="text-base font-medium">{region.is_active ? 'Active' : 'Inactive'}</p>
+            <p className="text-base font-medium">{country.is_active ? 'Active' : 'Inactive'}</p>
           </div>
         </div>
       </div>
@@ -196,10 +196,10 @@ export default function AdminRegionDetailPage() {
       {/* Ads Table */}
       <div className="bg-white rounded-xl border">
         <div className="p-6 border-b">
-          <h2 className="text-lg font-medium text-gray-900">Ads in this Region</h2>
+          <h2 className="text-lg font-medium text-gray-900">Ads in this Country</h2>
         </div>
         <DataTable
-          data={region.ads || []}
+          data={country.ads || []}
           columns={columns}
           loading={false}
         />

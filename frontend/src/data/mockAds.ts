@@ -433,7 +433,7 @@ export const filterAds = (
       }
     }
 
-    // Region filter
+    // Location filter
     if (filters.region && ad.region !== filters.region) {
       return false
     }

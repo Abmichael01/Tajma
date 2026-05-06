@@ -125,9 +125,9 @@
     "searching": "Ana neman talla...",
     "adsFound": "An sami talla {{count}}",
     "noResults": "Ba a sami komai ba",
-    "noResultsDesc": "Ba mu sami tallan da ya dace da \"{{query}}\" a {{region}} ba.",
+    "noResultsDesc": "Ba mu sami tallan da ya dace da \"{{query}}\" a {{country}} ba.",
     "clearFilters": "Goge Duka",
-    "allRegions": "Duk Wurare",
+    "allCountries": "Duk Kasashe",
     "filters": {
       "title": "Tace Nema",
       "priceRange": "Farashi",

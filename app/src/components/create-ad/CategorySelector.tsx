@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Pressable, Modal, ScrollView, SafeAreaView, ActivityIndicator, TextInput } from 'react-native';
+import { View, Pressable, Modal, ScrollView, ActivityIndicator, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../ui/AppText';
 import { useCategories } from '@/hooks/useCategories';

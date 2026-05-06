@@ -62,8 +62,8 @@ export default function LanguageSwitcher() {
           className="flex items-center gap-2 px-2 hover:bg-gray-100 transition-colors rounded-full"
         >
           <Globe className="w-5 h-5 text-gray-600" />
-          <span className="text-xs font-bold text-gray-700 hidden lg:inline uppercase">
-            {currentLanguage.code}
+          <span className="text-xs font-bold text-gray-700 hidden lg:inline">
+            {currentLanguage.name}
           </span>
         </Button>
       </DropdownMenuTrigger>

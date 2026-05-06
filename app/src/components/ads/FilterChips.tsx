@@ -16,19 +16,22 @@ export interface FilterChip {
 interface FilterChipsProps {
   chips: FilterChip[];
   onClearAll?: () => void;
+  variant?: 'default' | 'secondary';
 }
 
-export default function FilterChips({ chips, onClearAll }: FilterChipsProps) {
+export default function FilterChips({ chips, onClearAll, variant = 'default' }: FilterChipsProps) {
   const allChip = chips.find(c => c.id === 'all');
   const otherChips = chips.filter(c => c.id !== 'all');
   const hasActiveFilters = chips.some(c => c.id !== 'all' && c.isActive);
+
+  const isSecondary = variant === 'secondary';
 
   return (
     <View className="py-4 border-b border-gray-100 bg-white">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 24, gap: 10 }}
+        contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
         className="flex-row"
       >
         {/* Main Filter Icon Chip */}
@@ -36,18 +39,18 @@ export default function FilterChips({ chips, onClearAll }: FilterChipsProps) {
           <TouchableOpacity
             onPress={allChip.onPress}
             className={cn(
-              "flex-row items-center justify-center border rounded-full h-10 px-4",
+              "flex-row items-center gap-2 px-5 py-2 rounded-full",
               allChip.isActive 
-                ? "bg-primary border-primary" 
-                : "bg-gray-50 border-gray-200"
+                ? isSecondary ? "bg-secondary shadow-sm shadow-secondary/20" : "bg-slate-900 shadow-sm shadow-slate-900/20" 
+                : isSecondary ? "bg-white border border-secondary" : "bg-slate-50 border border-slate-100"
             )}
           >
             <Ionicons 
               name={allChip.icon || "options-outline"} 
-              size={18} 
-              color={allChip.isActive ? 'white' : '#2D2D2D'} 
+              size={14} 
+              color={allChip.isActive ? 'white' : isSecondary ? '#2D2D2D' : '#64748B'} 
             />
-            <AppText weight="bold" className={cn("ml-2 text-[14px]", allChip.isActive ? "text-white" : "text-gray-900")}>
+            <AppText weight="bold" className={cn("text-[12px]", allChip.isActive ? "text-white" : isSecondary ? "text-secondary" : "text-slate-600")}>
               {allChip.label}
             </AppText>
           </TouchableOpacity>
@@ -58,28 +61,27 @@ export default function FilterChips({ chips, onClearAll }: FilterChipsProps) {
             key={chip.id}
             onPress={chip.onPress}
             className={cn(
-              "flex-row items-center justify-center border rounded-full h-10 px-5",
+              "flex-row items-center gap-2 px-5 py-2 rounded-full",
               chip.isActive 
-                ? "bg-primary border-primary" 
-                : "bg-white border-gray-200"
+                ? isSecondary ? "bg-secondary shadow-sm shadow-secondary/20" : "bg-slate-900 shadow-sm shadow-slate-900/20" 
+                : isSecondary ? "bg-white border border-secondary" : "bg-slate-50 border border-slate-100"
             )}
           >
             {chip.icon && (
               <Ionicons 
                 name={chip.icon} 
-                size={16} 
-                color={chip.isActive ? 'white' : '#FF4F18'} 
-                style={{ marginRight: 6 }}
+                size={14} 
+                color={chip.isActive ? 'white' : isSecondary ? '#2D2D2D' : '#64748B'} 
               />
             )}
             <AppText
               weight="bold"
-              className={cn("text-[14px]", chip.isActive ? "text-white" : "text-gray-700")}
+              className={cn("text-[12px]", chip.isActive ? "text-white" : isSecondary ? "text-secondary" : "text-slate-600")}
             >
               {chip.label}
             </AppText>
             {chip.isActive && (
-              <View className="ml-2 w-1.5 h-1.5 rounded-full bg-white opacity-80" />
+              <View className="ml-2 w-1 h-1 rounded-full bg-white opacity-80" />
             )}
           </TouchableOpacity>
         ))}
@@ -87,10 +89,19 @@ export default function FilterChips({ chips, onClearAll }: FilterChipsProps) {
         {hasActiveFilters && onClearAll && (
           <TouchableOpacity
             onPress={onClearAll}
-            className="flex-row items-center justify-center bg-gray-50 border border-dashed border-gray-300 rounded-full h-10 px-5"
+            className={cn(
+              "flex-row items-center gap-2 rounded-full px-5 py-2",
+              isSecondary ? "bg-white border border-secondary" : "bg-red-50 border border-red-100"
+            )}
           >
-            <Ionicons name="close-circle-outline" size={16} color="#ef4444" style={{ marginRight: 6 }} />
-            <AppText weight="bold" className="text-red-500 text-[14px]">Clear</AppText>
+            <Ionicons 
+              name="close-circle-outline" 
+              size={14} 
+              color={isSecondary ? "#2D2D2D" : "#ef4444"} 
+            />
+            <AppText weight="bold" className={cn("text-[12px]", isSecondary ? "text-secondary" : "text-red-500")}>
+              Clear
+            </AppText>
           </TouchableOpacity>
         )}
       </ScrollView>

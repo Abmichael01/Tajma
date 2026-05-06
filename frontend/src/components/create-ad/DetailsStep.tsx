@@ -8,6 +8,8 @@ import DynamicFormFields from './DynamicFormFields'
 import type { CustomFieldConfig } from './DynamicFormFields'
 import { cn } from '@/lib/utils'
 
+import { useTranslations } from 'next-intl'
+
 interface DetailsStepProps {
   formData: any
   errors: any
@@ -27,6 +29,7 @@ export default function DetailsStep({
   onImageUpload,
   onRemoveImage,
 }: DetailsStepProps) {
+  const t = useTranslations('create_ad')
   const imagePreviews = useMemo(() => {
     return (formData.images || []).map((img: File | string) => {
       if (typeof img === 'string') return img
@@ -48,8 +51,8 @@ export default function DetailsStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-900">Details & Pricing</h2>
-        <p className="text-sm text-gray-600 mt-1">Provide detailed information</p>
+        <h2 className="text-lg font-medium text-gray-900">{t('details_pricing')}</h2>
+        <p className="text-sm text-gray-600 mt-1">{t('provide_detailed_info')}</p>
       </div>
 
       {/* Custom Fields from Category Configuration - Shown First */}
@@ -58,7 +61,7 @@ export default function DetailsStep({
       {/* Ad Model Fields - Shown Last */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-2">
-          Price (CFA) {formData.adType === 'product' && !formData.contactForPrice ? <span className="text-red-500">*</span> : ''}
+          {t('price_cfa')} {formData.adType === 'product' && !formData.contactForPrice ? <span className="text-red-500">*</span> : ''}
         </label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 font-medium">Fr</span>
@@ -68,14 +71,14 @@ export default function DetailsStep({
             disabled={formData.contactForPrice}
             placeholder={
               formData.adType === 'product'
-                ? 'Enter price'
+                ? t('enter_price')
                 : formData.adType === 'service'
-                  ? 'Starting from...'
+                  ? t('starting_from')
                   : formData.adType === 'job'
-                    ? 'e.g., Salary range'
+                    ? t('salary_range_placeholder')
                     : formData.adType === 'cv'
-                      ? 'e.g., Expected salary'
-                      : 'Enter price'
+                      ? t('expected_salary')
+                      : t('enter_price')
             }
             type="text"
             className={cn(
@@ -99,7 +102,7 @@ export default function DetailsStep({
                 }}
               />
               <label htmlFor="contactForPrice" className="text-sm text-gray-900 cursor-pointer font-medium">
-                Contact for price
+                {t('contact_for_price')}
               </label>
             </div>
           </div>
@@ -113,7 +116,7 @@ export default function DetailsStep({
                   onCheckedChange={(checked) => onInputChange('isNegotiable', checked === true)}
                 />
                 <label htmlFor="negotiable" className="text-sm text-gray-900 cursor-pointer font-medium">
-                  Price is negotiable
+                  {t('price_is_negotiable')}
                 </label>
               </div>
             </div>
@@ -125,19 +128,19 @@ export default function DetailsStep({
 
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-2">
-          Description <span className="text-red-500">*</span>
+          {t('description')} <span className="text-red-500">*</span>
         </label>
         <textarea
           value={formData.description}
           onChange={(e) => onInputChange('description', e.target.value)}
           placeholder={
             formData.adType === 'cv'
-              ? "Describe your experience, skills, and what you're looking for..."
+              ? t('describe_cv')
               : formData.adType === 'job'
-                ? 'Describe the job role, responsibilities, requirements, and what you offer...'
+                ? t('describe_job')
                 : formData.adType === 'service'
-                  ? 'Describe the service you offer, your experience, and what clients can expect...'
-                  : 'Describe your item in detail - condition, features, etc...'
+                  ? t('describe_service')
+                  : t('describe_product')
           }
           rows={6}
           maxLength={5000}
@@ -155,7 +158,7 @@ export default function DetailsStep({
       {formData.adType === 'cv' && (
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">
-            Upload Your CV <span className="text-red-500">*</span>
+            {t('upload_cv')} <span className="text-red-500">*</span>
           </label>
           <div
             className={cn(
@@ -180,12 +183,12 @@ export default function DetailsStep({
                 <div className="text-secondary font-medium text-sm">✓ {formData.cv_file.name}</div>
               ) : formData.existingCvFileName ? (
                 <div className="text-secondary font-medium text-sm">
-                  Current file: {formData.existingCvFileName}
+                  {t('current_file')}: {formData.existingCvFileName}
                 </div>
               ) : (
                 <>
-                  <p className="text-gray-600 text-sm mb-1">Click to upload your CV</p>
-                  <p className="text-xs text-gray-500">PDF or Word (Max 5MB)</p>
+                  <p className="text-gray-600 text-sm mb-1">{t('click_to_upload_cv')}</p>
+                  <p className="text-xs text-gray-500">{t('pdf_word_max_5mb')}</p>
                 </>
               )}
             </label>
@@ -196,7 +199,7 @@ export default function DetailsStep({
 
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-2">
-          Images {formData.adType === 'product' ? '(Recommended)' : '(Optional)'}
+          {t('images')} {formData.adType === 'product' ? t('recommended') : t('optional')}
         </label>
         <div className="border-2 border-dashed border-gray-200 p-10 rounded-[2.5rem] bg-gray-50/50 text-center hover:border-primary/50 transition-all group">
           <input
@@ -211,8 +214,8 @@ export default function DetailsStep({
             <div className="w-16 h-16 rounded-full bg-white mx-auto mb-4 flex items-center justify-center text-gray-400 group-hover:text-primary transition-colors border border-gray-100 shadow-sm">
                 <ImageIcon className="w-8 h-8" />
             </div>
-            <p className="text-gray-900 font-medium text-sm mb-1">Upload images</p>
-            <p className="text-xs text-gray-500">PNG, JPG up to 5MB (max 10 images)</p>
+            <p className="text-gray-900 font-medium text-sm mb-1">{t('upload_images')}</p>
+            <p className="text-xs text-gray-500">{t('png_jpg_max_5mb')}</p>
           </label>
         </div>
 
@@ -234,7 +237,7 @@ export default function DetailsStep({
                 </button>
                 {index === 0 && (
                   <div className="absolute bottom-1 left-1 bg-secondary text-white text-xs px-2 py-0.5 rounded">
-                    Cover
+                    {t('cover')}
                   </div>
                 )}
               </div>

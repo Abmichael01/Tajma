@@ -19,28 +19,32 @@ import { useTranslation } from "react-i18next";
 export function SearchBar({
   searchQuery,
   setSearchQuery,
-  selectedRegion,
-  onRegionPress,
+  selectedCountry,
+  onCountryPress,
   onFilterPress,
   onSearch,
-  showRegion = true,
+  showCountry = true,
   showFilter = true,
+  isFilterActive = false,
 }: {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  selectedRegion: string;
-  onRegionPress: () => void;
+  selectedCountry: string;
+  onCountryPress: () => void;
   onFilterPress?: () => void;
   onSearch: () => void;
-  showRegion?: boolean;
+  showCountry?: boolean;
   showFilter?: boolean;
+  isFilterActive?: boolean;
 }) {
   const { t } = useTranslation();
   return (
     <View className="flex-row gap-2">
       {/* Search Input */}
-      <View className="flex-1 flex-row items-center bg-white border border-gray-200 rounded-full px-4 py-2">
-        <Ionicons name="search-outline" size={20} color="#9ca3af" style={{ marginRight: 8 }} />
+      <View className="flex-1 flex-row items-center bg-white border border-gray-200 rounded-full pl-1.5 pr-4 py-1.5">
+        <View className="bg-primary rounded-full w-9 h-9 items-center justify-center mr-2">
+          <Ionicons name="search" size={16} color="white" />
+        </View>
         <TextInput
           className="flex-1 text-base text-gray-900 py-1"
           placeholder={t('search.placeholder')}
@@ -57,26 +61,26 @@ export function SearchBar({
         )}
       </View>
 
-      {/* Region Selector */}
-      {showRegion && (
+      {/* Country Selector */}
+      {showCountry && (
         <TouchableOpacity
           className="flex-row items-center bg-white border border-gray-200 rounded-full px-4 h-12"
-          onPress={onRegionPress}
+          onPress={onCountryPress}
         >
           <Ionicons name="location-outline" size={18} color="#FF4F18" style={{ marginRight: 4 }} />
           <AppText weight="medium" className="text-gray-700 text-xs" numberOfLines={1}>
-            {selectedRegion}
+            {selectedCountry}
           </AppText>
         </TouchableOpacity>
       )}
 
-      {/* Filter */}
-      {showFilter && (
+      {/* Filter Button */}
+      {showFilter && onFilterPress && (
         <TouchableOpacity
-          className="flex-row items-center justify-center p-2.5 bg-white border border-gray-200 rounded-full w-12 h-12"
+          className={`w-12 h-12 items-center justify-center rounded-full border ${isFilterActive ? "bg-primary border-primary" : "bg-white border-gray-200"}`}
           onPress={onFilterPress}
         >
-          <Ionicons name="options-outline" size={22} color="#FF4F18" />
+          <Ionicons name="options-outline" size={20} color={isFilterActive ? "white" : "#1e293b"} />
         </TouchableOpacity>
       )}
     </View>

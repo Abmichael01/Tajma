@@ -49,8 +49,8 @@ export async function generateMetadata({ params }: ProfilePageProps) {
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { uid } = await params
   
-  // Validate uid format (basic validation)
-  if (!uid || uid.length < 3) {
+  // Validate uid exists
+  if (!uid) {
     notFound()
   }
   

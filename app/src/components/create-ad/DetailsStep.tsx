@@ -96,7 +96,7 @@ export default function DetailsStep({
             className="flex-row items-center bg-primary/10 px-3 py-1.5 rounded-full"
           >
             <Ionicons name="map-outline" size={14} color="#FF4F18" />
-            <AppText weight="bold" className="text-primary text-[10px] ml-1 uppercase">{t('search.allRegions')}</AppText>
+            <AppText weight="bold" className="text-primary text-[10px] ml-1 uppercase">{t('search.allCountries')}</AppText>
           </TouchableOpacity>
         </View>
         <Input

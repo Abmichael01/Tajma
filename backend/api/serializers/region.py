@@ -7,7 +7,11 @@ class RegionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Region
-        fields = ['id', 'name', 'slug', 'level', 'parent', 'parent_name', 'adsCount', 'is_active', 'sort_order']
+        fields = [
+            'id', 'name', 'slug', 'level', 'parent', 'parent_name', 
+            'country', 'subdivision_type', 'full_name', 
+            'adsCount', 'is_active', 'sort_order'
+        ]
 
     def get_adsCount(self, obj):
         # Optimized count: directly in region or descendants

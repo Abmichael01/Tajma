@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -12,9 +13,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useUpdateProfile, useChangePassword } from '@/hooks/useAuth'
-import { useRegions } from '@/hooks/useRegions'
-import type { Region } from '@/api/regions'
+import { useLocations } from '@/hooks/useLocations'
+import type { Location, Country } from '@/api/countries'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
+import SmartLocationSearch from '@/components/ui/SmartLocationSearch'
+import { SearchableSelect } from '@/components/ui/SearchableSelect'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import {
@@ -30,6 +33,7 @@ import {
   AlertTriangle,
   ChevronRight
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { User, ProfileUpdateResponse } from '@/api/types'
 import { getUserFullName, getUserInitials, normalizeAvatarUrl } from '@/utils/user'
 
@@ -48,6 +52,7 @@ const profileSchema = z.object({
     .optional()
     .or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
+  country_id: z.string().optional().or(z.literal('')),
   address: z.string().max(500, 'Address is too long').optional().or(z.literal('')),
   email_notifications: z.boolean(),
   sms_notifications: z.boolean(),
@@ -69,9 +74,10 @@ type ProfileFormValues = z.infer<typeof profileSchema>
 type PasswordFormValues = z.infer<typeof passwordSchema>
 
 export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsProps) {
+  const t = useTranslations('settings')
   const updateProfile = useUpdateProfile()
   const changePassword = useChangePassword()
-  const { data: regions, isLoading: regionsLoading } = useRegions()
+  const { data: regions, isLoading: regionsLoading } = useLocations()
   
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -82,11 +88,27 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
+  const [addressSearch, setAddressSearch] = useState('')
+  const { data: addressSuggestions, isLoading: addressLoading } = useLocations(
+    { 
+      search: addressSearch.length >= 2 ? addressSearch : undefined,
+      level: 'all'
+    },
+    { enabled: addressSearch.length >= 2 }
+  )
+
+  const addressOptions = React.useMemo(() => 
+    addressSuggestions?.results.map(r => ({
+      value: r.name,
+      label: r.name,
+      description: r.full_name
+    })) || [], 
+    [addressSuggestions]
+  )
+
   // Get region ID from user location by matching region name
   const getUserRegionId = () => {
-    if (!user?.location || !regions?.results) return ''
-    const matchingRegion = regions.results.find((r: Region) => r.name === user.location)
-    return matchingRegion?.id.toString() || ''
+    return user.location_id?.toString() || ''
   }
 
   const profileForm = useForm<ProfileFormValues>({
@@ -96,7 +118,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
       last_name: user.last_name || '',
       username: user.username || '',
       phone: user.phone || '',
-      location: getUserRegionId(),
+      location: user.location_id?.toString() || '',
+      country_id: user.country_id?.toString() || '',
       address: user.address || '',
       email_notifications: user.email_notifications ?? true,
       sms_notifications: user.sms_notifications ?? false,
@@ -114,13 +137,13 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
   })
 
   useEffect(() => {
-    const regionId = getUserRegionId()
     profileForm.reset({
       first_name: user.first_name || '',
       last_name: user.last_name || '',
       username: user.username || '',
       phone: user.phone || '',
-      location: regionId,
+      location: user.location_id?.toString() || '',
+      country_id: user.country_id?.toString() || '',
       address: user.address || '',
       email_notifications: user.email_notifications ?? true,
       sms_notifications: user.sms_notifications ?? false,
@@ -128,9 +151,9 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
     })
     setAvatarPreview(user.avatar || null)
     setAvatarFile(null)
-  }, [user, profileForm, regions])
+  }, [user, profileForm])
 
-  const profileFieldNames: Array<keyof ProfileFormValues> = ['first_name', 'last_name', 'phone', 'location', 'address', 'email_notifications', 'sms_notifications', 'marketing_notifications']
+  const profileFieldNames: Array<keyof ProfileFormValues> = ['first_name', 'last_name', 'phone', 'location', 'country_id', 'address', 'email_notifications', 'sms_notifications', 'marketing_notifications']
   const passwordFieldNames: Array<keyof PasswordFormValues> = ['old_password', 'new_password', 'new_password_confirm']
 
   const handleProfileSubmit = profileForm.handleSubmit(async (values) => {
@@ -148,9 +171,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
         if (values.phone?.trim()) {
           formData.append('phone', values.phone.trim())
         }
-        if (values.location) {
-          formData.append('location', parseInt(values.location).toString())
-        }
+        if (values.location) formData.append('location', values.location)
+        if (values.country_id) formData.append('country', values.country_id)
         if (values.address?.trim()) {
           formData.append('address', values.address.trim())
         }
@@ -184,7 +206,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
           first_name: values.first_name.trim(),
           last_name: values.last_name.trim(),
           phone: values.phone?.trim() || undefined,
-          location: values.location ? parseInt(values.location) : undefined,
+          location: values.location || undefined,
+          country: values.country_id ? parseInt(values.country_id) : undefined,
           address: values.address?.trim() || undefined,
           email_notifications: values.email_notifications,
           sms_notifications: values.sms_notifications,
@@ -193,10 +216,10 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
 
         response = await updateProfile.mutateAsync(payload)
       }
-      toast.success('Profile updated successfully')
+      toast.success(t('success.profile_updated'))
       
       // Get region name for display
-      const selectedRegion = regions?.results?.find((r: Region) => r.id === (values.location ? parseInt(values.location) : undefined))
+      const selectedRegion = regions?.results?.find((r: Location) => r.id === (values.location ? parseInt(values.location) : undefined))
       const locationDisplay = selectedRegion?.name || ''
 
       profileForm.reset({
@@ -293,7 +316,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
     try {
       await changePassword.mutateAsync(values)
       setPasswordSuccess(true)
-      toast.success('Password updated successfully')
+      toast.success(t('success.password_updated'))
       passwordForm.reset({
         old_password: '',
         new_password: '',
@@ -330,8 +353,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex items-end justify-between px-2">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Account Settings</h2>
-          <p className="text-sm text-gray-500 font-medium">Manage your personal information and preferences</p>
+          <h2 className="text-xl font-semibold text-gray-900 tracking-tight">{t('title')}</h2>
+          <p className="text-sm text-gray-500 font-medium">{t('subtitle')}</p>
         </div>
       </div>
       
@@ -369,7 +392,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                       className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity duration-300 text-white z-10"
                     >
                       <Camera className="w-6 h-6 mb-1" />
-                      <span className="text-[10px] font-semibold">Change</span>
+                      <span className="text-[10px] font-semibold">{t('change_avatar')}</span>
                     </button>
                   </Avatar>
                 )
@@ -387,7 +410,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                   onClick={handleRemoveAvatar}
                   className="text-[10px] font-semibold text-red-500 hover:text-red-600"
                 >
-                  Discard Changes
+                  {t('discard_changes')}
                 </button>
               )}
             </div>
@@ -399,12 +422,12 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
             {user.is_verified ? (
               <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100 mt-2">
                 <Shield className="w-3.5 h-3.5" />
-                Verified Seller
+                {t('verified_seller')}
               </div>
             ) : (
               <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 mt-2">
                 <AlertTriangle className="w-3.5 h-3.5" />
-                Verification Required
+                {t('verification_required')}
               </div>
             )}
           </div>
@@ -413,15 +436,15 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
 
         <Form {...profileForm}>
           <form onSubmit={handleProfileSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-6 max-w-2xl">
               <FormField
                 control={profileForm.control}
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-gray-500">First Name</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">{t('first_name')}</FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="Enter first name" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12" />
+                      <Input type="text" placeholder={t('first_name')} {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 w-full" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -432,9 +455,9 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-gray-500">Last Name</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">{t('last_name')}</FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="Enter last name" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12" />
+                      <Input type="text" placeholder={t('last_name')} {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 w-full" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -442,7 +465,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
               />
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-2.5">
-                  Username
+                  {t('username')}
                 </label>
                 <Input 
                   type="text" 
@@ -456,9 +479,9 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-gray-500">Phone Number</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">{t('phone')}</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="+227 92 64 99 99" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12" />
+                      <Input type="tel" placeholder="+227 92 64 99 99" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 w-full" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -469,30 +492,17 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-gray-500">Business Region</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">{t('location')}</FormLabel>
                     <FormControl>
-                      {regionsLoading ? (
-                        <div className="flex items-center gap-2 py-3 bg-gray-50/30 rounded-full border border-gray-100 px-4 h-12">
-                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                          <span className="text-xs text-gray-400 font-medium">Loading regions...</span>
-                        </div>
-                      ) : (
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12">
-                            <SelectValue placeholder="Select your region" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl border-gray-200">
-                            {regions?.results?.map((region: Region) => (
-                              <SelectItem key={region.id} value={region.id.toString()}>
-                                {region.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
+                        <SmartLocationSearch
+                            initialLocationId={user.location_id || undefined}
+                            initialCountryId={user.country_id || undefined}
+                            onLocationSelect={(location: Location | null, country: Country | null) => {
+                                profileForm.setValue('location', location?.id.toString() || '')
+                                profileForm.setValue('country_id', country?.id.toString() || '')
+                            }}
+                            error={profileForm.formState.errors.location?.message}
+                        />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -503,9 +513,20 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-gray-500">Physical Address</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">{t('address')}</FormLabel>
                     <FormControl>
-                      <Input type="text" placeholder="e.g., 123 Main Street" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12" />
+                      <SearchableSelect
+                        options={addressOptions}
+                        value={field.value}
+                        onValueChange={(val) => {
+                          field.onChange(val)
+                        }}
+                        onSearchChange={setAddressSearch}
+                        placeholder={t('address')}
+                        searchPlaceholder={t('address')}
+                        loading={addressLoading}
+                        className={cn("w-full", profileForm.formState.errors.address && "border-red-500")}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -524,10 +545,10 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                   {updateProfile.isPending || profileForm.formState.isSubmitting ? (
                     <>
                       <MarketplaceLoader inline size="sm" white />
-                      <span className="ml-2">Saving...</span>
+                      <span className="ml-2">{t('saving')}</span>
                     </>
                   ) : (
-                    'Save Changes'
+                    t('save_changes')
                   )}
                 </Button>
               </motion.div>
@@ -536,13 +557,13 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 variant="ghost"
                 className="rounded-full px-8 h-12 text-xs font-semibold text-gray-400 hover:text-gray-900"
                 onClick={() => {
-                  const regionId = getUserRegionId()
                   profileForm.reset({
                     first_name: user.first_name || '',
                     last_name: user.last_name || '',
                     username: user.username || '',
                     phone: user.phone || '',
-                    location: regionId,
+                    location: user.location_id?.toString() || '',
+                    country_id: user.country_id?.toString() || '',
                     address: user.address || '',
                     email_notifications: user.email_notifications ?? true,
                     sms_notifications: user.sms_notifications ?? false,
@@ -550,7 +571,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                   })
                 }}
               >
-                Reset
+                {t('reset')}
               </Button>
             </div>
           </form>
@@ -567,8 +588,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
             <Lock className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 tracking-tight">Security & Privacy</h4>
-            <p className="text-xs text-gray-500 font-medium">Keep your account safe with a strong password</p>
+            <h4 className="text-lg font-semibold text-gray-900 tracking-tight">{t('security')}</h4>
+            <p className="text-xs text-gray-500 font-medium">{t('subtitle')}</p>
           </div>
         </div>
 
@@ -582,8 +603,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
             >
               <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-green-900 text-sm">Security updated!</p>
-                <p className="text-xs text-green-700 mt-0.5 font-medium">Your password has been changed successfully.</p>
+                <p className="font-semibold text-green-900 text-sm">{t('success.security_updated')}</p>
+                <p className="text-xs text-green-700 mt-0.5 font-medium">{t('success.password_updated')}</p>
               </div>
             </motion.div>
           )}
@@ -608,13 +629,13 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
               name="old_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-semibold text-gray-500">Current Password</FormLabel>
+                  <FormLabel className="text-xs font-semibold text-gray-500">{t('current_password')}</FormLabel>
                   <div className="relative">
                     <FormControl>
                       <Input
                         {...field}
                         type={showCurrentPassword ? 'text' : 'password'}
-                        className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 pr-12"
+                        className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 pr-12 w-full"
                         placeholder="••••••••"
                       />
                     </FormControl>
@@ -631,19 +652,19 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
               )}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-5">
               <FormField
                 control={passwordForm.control}
                 name="new_password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-gray-500">New Password</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">{t('new_password')}</FormLabel>
                     <div className="relative">
                       <FormControl>
                         <Input
                           {...field}
                           type={showNewPassword ? 'text' : 'password'}
-                          className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 pr-12"
+                          className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 pr-12 w-full"
                           placeholder="••••••••"
                         />
                       </FormControl>
@@ -665,13 +686,13 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 name="new_password_confirm"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-gray-500">Confirm New Password</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-gray-500">{t('confirm_password')}</FormLabel>
                     <div className="relative">
                       <FormControl>
                         <Input
                           {...field}
                           type={showConfirmPassword ? 'text' : 'password'}
-                          className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 pr-12"
+                          className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 pr-12 w-full"
                           placeholder="••••••••"
                         />
                       </FormControl>
@@ -700,10 +721,10 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                   {changePassword.isPending || passwordForm.formState.isSubmitting ? (
                     <>
                       <MarketplaceLoader inline size="sm" white />
-                      <span className="ml-2">Updating...</span>
+                      <span className="ml-2">{t('saving')}</span>
                     </>
                   ) : (
-                    'Update Password'
+                    t('update_password')
                   )}
                 </Button>
               </motion.div>
@@ -722,8 +743,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
             <Bell className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-lg font-semibold text-gray-900 tracking-tight">Notification Preferences</h4>
-            <p className="text-xs text-gray-500 font-medium">Control how and when you hear from us</p>
+            <h4 className="text-lg font-semibold text-gray-900 tracking-tight">{t('notifications')}</h4>
+            <p className="text-xs text-gray-500 font-medium">{t('subtitle')}</p>
           </div>
         </div>
         
@@ -736,8 +757,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 render={({ field }) => (
                   <div className="flex items-center justify-between py-5 border-b border-gray-50">
                     <div className="max-w-md">
-                      <p className="font-semibold text-gray-900 text-sm mb-0.5">Marketing & Offers</p>
-                      <p className="text-xs text-gray-400 font-medium">Stay updated with promotional offers and platform news</p>
+                      <p className="font-semibold text-gray-900 text-sm mb-0.5">{t('marketing_label')}</p>
+                      <p className="text-xs text-gray-400 font-medium">{t('marketing_desc')}</p>
                     </div>
                     <Checkbox 
                       checked={field.value} 
@@ -753,8 +774,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 render={({ field }) => (
                   <div className="flex items-center justify-between py-5 border-b border-gray-50">
                     <div className="max-w-md">
-                      <p className="font-semibold text-gray-900 text-sm mb-0.5">Email Notifications</p>
-                      <p className="text-xs text-gray-400 font-medium">Receive updates about your ads and messages via email</p>
+                      <p className="font-semibold text-gray-900 text-sm mb-0.5">{t('email_label')}</p>
+                      <p className="text-xs text-gray-400 font-medium">{t('email_desc')}</p>
                     </div>
                     <Checkbox 
                       checked={field.value} 
@@ -770,8 +791,8 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                 render={({ field }) => (
                   <div className="flex items-center justify-between py-5">
                     <div className="max-w-md">
-                      <p className="font-semibold text-gray-900 text-sm mb-0.5">SMS Notifications</p>
-                      <p className="text-xs text-gray-400 font-medium">Get critical alerts directly to your phone via SMS</p>
+                      <p className="font-semibold text-gray-900 text-sm mb-0.5">{t('sms_label')}</p>
+                      <p className="text-xs text-gray-400 font-medium">{t('sms_desc')}</p>
                     </div>
                     <Checkbox 
                       checked={field.value} 
@@ -789,7 +810,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                   className="rounded-full px-8 h-10 text-xs font-semibold border-gray-200 hover:bg-gray-50"
                   disabled={updateProfile.isPending || profileForm.formState.isSubmitting}
                 >
-                  {updateProfile.isPending || profileForm.formState.isSubmitting ? 'Saving...' : 'Save Preferences'}
+                  {updateProfile.isPending || profileForm.formState.isSubmitting ? t('saving') : t('save_preferences')}
                 </Button>
               </div>
             </form>

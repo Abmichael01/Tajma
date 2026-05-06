@@ -11,7 +11,7 @@ const apiClient: AxiosInstance = axios.create({
   },
 })
 
-// Request interceptor - Add JWT Access Token to requests
+// Request interceptor - Add JWT Access Token and Language to requests
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
@@ -19,7 +19,19 @@ apiClient.interceptors.request.use(
       const token = useAuthStore.getState().accessToken
 
       if (token && config.headers) {
-        config.headers.Authorization = "Bearer " + token
+        config.headers.Authorization = `Bearer ${token}`
+      }
+
+      // Add Language Header from NEXT_LOCALE cookie
+      const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+      };
+      
+      const locale = getCookie('NEXT_LOCALE') || 'en';
+      if (config.headers) {
+        config.headers['Accept-Language'] = locale;
       }
     }
     return config

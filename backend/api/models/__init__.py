@@ -1,4 +1,5 @@
 from .user import User
+from .country import Country
 from .category import Category, CategoryTranslation
 from .ad import Ad, AdView, AdTranslation
 from .review import Review
@@ -16,6 +17,7 @@ from .transaction import Transaction
 
 __all__ = [
     'User', 
+    'Country',
     'Category', 'CategoryTranslation',
     'Ad', 'AdView', 'AdTranslation',
     'Review', 'Notification', 

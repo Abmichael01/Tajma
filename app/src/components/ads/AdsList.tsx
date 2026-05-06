@@ -2,6 +2,7 @@ import { View, ScrollView } from "react-native";
 import { useState, useMemo } from "react";
 import AppText from "@/components/ui/AppText";
 import AdCard from "./AdCard";
+import { useTranslation } from "react-i18next";
 
 interface Ad {
   id: string;
@@ -32,14 +33,7 @@ interface AdsListProps {
 
 type SortOption = 'newest' | 'oldest' | 'price-low' | 'price-high' | 'views' | 'title';
 
-const sortOptions: { value: SortOption; label: string }[] = [
-  { value: 'newest', label: 'Newest First' },
-  { value: 'oldest', label: 'Oldest First' },
-  { value: 'price-low', label: 'Price: Low to High' },
-  { value: 'price-high', label: 'Price: High to Low' },
-  { value: 'views', label: 'Most Viewed' },
-  { value: 'title', label: 'Title A-Z' },
-];
+
 
 // Sort function for backend Ad format
 const sortAds = (ads: Ad[], sortBy: SortOption): Ad[] => {
@@ -90,6 +84,16 @@ export default function AdsList({
   className = "",
   sortBy: externalSortBy
 }: AdsListProps & { sortBy?: SortOption }) {
+  const { t } = useTranslation();
+  
+  const sortOptions: { value: SortOption; label: string }[] = useMemo(() => [
+    { value: 'newest', label: t('ads.sort.newest') },
+    { value: 'oldest', label: t('ads.sort.oldest') },
+    { value: 'price-low', label: t('ads.sort.price-low') },
+    { value: 'price-high', label: t('ads.sort.price-high') },
+    { value: 'views', label: t('ads.sort.views') },
+    { value: 'title', label: t('ads.sort.title') },
+  ], [t]);
   const [internalSortBy, setInternalSortBy] = useState<SortOption>('newest');
   const sortBy = externalSortBy || internalSortBy;
 

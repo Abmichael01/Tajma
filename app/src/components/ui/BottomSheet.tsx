@@ -7,6 +7,7 @@ import {
   BottomSheetBackdropProps,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from './AppText';
 
 export interface BottomSheetProps {
@@ -51,12 +52,13 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       []
     );
 
+    const insets = useSafeAreaInsets();
     const ContentContainer = scrollable ? BottomSheetScrollView : BottomSheetView;
 
     return (
       <BottomSheetModal
         ref={bottomSheetModalRef}
-        index={0}
+        index={snapPoints.length - 1}
         snapPoints={snapPoints}
         backdropComponent={renderBackdrop}
         enablePanDownToClose={true}
@@ -86,7 +88,13 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
             </ContentContainer>
           </View>
           {footer && (
-            <View className="px-6 py-4 border-t border-gray-100 bg-white">
+            <View 
+              className="px-6 border-t border-gray-100 bg-white"
+              style={{ 
+                paddingTop: 16,
+                paddingBottom: Math.max(insets.bottom, 16) 
+              }}
+            >
               {footer}
             </View>
           )}
@@ -99,8 +107,8 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
 const styles = StyleSheet.create({
   background: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
+    borderTopLeftRadius: 48,
+    borderTopRightRadius: 48,
   },
   indicator: {
     backgroundColor: '#e5e7eb',

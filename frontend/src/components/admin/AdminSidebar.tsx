@@ -64,8 +64,8 @@ const menuItems = [
     isAnimated: true,
   },
   {
-    label: "Regions",
-    href: "/admin/regions",
+    label: "Countries",
+    href: "/admin/countries",
     icon: MapPin,
     isAnimated: true,
   },

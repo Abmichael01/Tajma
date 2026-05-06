@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from '@/i18n/routing'
 import ProgressStepper from '@/components/create-ad/ProgressStepper'
 import { useAuthStore } from '@/store/authStore'
-import { useRegions } from '@/hooks/useRegions'
+import { useLocations } from '@/hooks/useLocations'
+import { type Location, type Country } from '@/api/countries'
 import { useUpdateProfile, useCSRFToken } from '@/hooks/useAuth'
 import { toast } from 'sonner'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
@@ -20,7 +21,7 @@ export default function SellerSetupClient() {
   const { user, completeSellerSetup, isAuthenticated } = useAuthStore()
   const updateProfile = useUpdateProfile()
   const { data: csrfData } = useCSRFToken()
-  const { data: regions } = useRegions()
+  const { data: regions } = useLocations()
 
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 3
@@ -28,23 +29,29 @@ export default function SellerSetupClient() {
 
   const [formData, setFormData] = useState({
     phone: user?.phone || '',
-    locationId: '',
+    locationId: user?.location_id?.toString() || '',
     address: user?.address || '',
     businessName: user?.business_name || '',
     businessType: user?.business_type || '',
     website: user?.website || '',
     bio: user?.bio || ''
   })
+  const [selectedCountryId, setSelectedCountryId] = useState<number | null>(user?.country_id || null)
   const [avatarBase64, setAvatarBase64] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [generalError, setGeneralError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (regions?.results && user?.location && !formData.locationId) {
-      const matchingRegion = regions.results.find((r: any) => r.name === user.location)
-      if (matchingRegion) setFormData(prev => ({ ...prev, locationId: matchingRegion.id.toString() }))
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        phone: user.phone || prev.phone,
+        locationId: user.location_id?.toString() || prev.locationId,
+        address: user.address || prev.address
+      }))
+      setSelectedCountryId(user.country_id || null)
     }
-  }, [regions, user?.location])
+  }, [user])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -80,8 +87,9 @@ export default function SellerSetupClient() {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
   }
 
-  const handleLocationSelect = (id: number | null) => {
-    setFormData(prev => ({ ...prev, locationId: id ? id.toString() : '' }))
+  const handleLocationSelect = (location: Location | null, country: Country | null) => {
+    setFormData(prev => ({ ...prev, locationId: location?.id ? location.id.toString() : '' }))
+    setSelectedCountryId(country?.id || null)
     if (errors.location) setErrors(prev => ({ ...prev, location: '' }))
   }
 
@@ -103,6 +111,7 @@ export default function SellerSetupClient() {
     try {
       await updateProfile.mutateAsync({
         phone: formData.phone,
+        country: selectedCountryId || undefined,
         location: formData.locationId ? parseInt(formData.locationId) : undefined,
         address: formData.address || undefined,
         business_name: formData.businessName || undefined,
@@ -140,7 +149,21 @@ export default function SellerSetupClient() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6 mt-8">
-            {currentStep === 1 && <ContactStep formData={formData} handleInputChange={handleInputChange} handleLocationSelect={handleLocationSelect} avatarBase64={avatarBase64} setAvatarBase64={setAvatarBase64} errors={errors} setErrors={setErrors} user={user} />}
+            {currentStep === 1 && (
+              <ContactStep 
+                formData={formData} 
+                handleInputChange={handleInputChange} 
+                handleLocationSelect={handleLocationSelect} 
+                initialLocationId={user?.location_id || undefined}
+                initialCountryId={user?.country_id || undefined}
+                avatarBase64={avatarBase64} 
+                setAvatarBase64={setAvatarBase64} 
+                errors={errors} 
+                setErrors={setErrors} 
+                user={user} 
+                onCountrySelect={(country) => setSelectedCountryId(country?.id || null)}
+              />
+            )}
             {currentStep === 2 && <BusinessStep formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />}
             {currentStep === 3 && <ReviewStep formData={formData} regions={regions} />}
 

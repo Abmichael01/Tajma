@@ -1,4 +1,4 @@
-import { ResponsiveModal } from '@/components/ui/responsive-modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, X, Clock, Loader2, DollarSign, Tag } from 'lucide-react'
@@ -82,12 +82,11 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   }
 
   return (
-    <ResponsiveModal 
-      isOpen={isOpen} 
-      onClose={onClose}
-      title={t('what_looking_for')}
-      className="max-w-2xl"
-    >
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{t('what_looking_for')}</DialogTitle>
+        </DialogHeader>
         <div className="py-2">
           {/* Search Input */}
           <form onSubmit={handleSubmit} className="mb-6">
@@ -200,7 +199,8 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             )}
           </div>
         </div>
-    </ResponsiveModal>
+      </DialogContent>
+    </Dialog>
   )
 }
 

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select'
 import { Building2, Globe } from 'lucide-react'
 import { businessTypes } from './constants'
+import { useTranslations } from 'next-intl'
 
 interface BusinessStepProps {
   formData: any
@@ -22,17 +23,18 @@ export default function BusinessStep({
   handleInputChange,
   setFormData
 }: BusinessStepProps) {
+  const t = useTranslations('business')
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900">Business Information</h3>
-        <p className="text-sm text-gray-600 mt-1">Tell potential buyers more about your store. These fields are optional but recommended.</p>
+        <h3 className="text-lg font-medium text-gray-900">{t('title')}</h3>
+        <p className="text-sm text-gray-600 mt-1">{t('description')}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="space-y-6">
         <div>
           <label htmlFor="businessName" className="block text-sm font-medium text-gray-700">
-            Business Name
+            {t('name_label')}
           </label>
           <div className="mt-1 relative">
             <Input
@@ -41,8 +43,8 @@ export default function BusinessStep({
               type="text"
               value={formData.businessName}
               onChange={handleInputChange}
-              className="pl-10 h-12 rounded-full border-gray-200"
-              placeholder="Your business name"
+              className="pl-10 h-12 w-full rounded-full border-gray-200"
+              placeholder={t('name_placeholder')}
             />
             <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           </div>
@@ -50,14 +52,14 @@ export default function BusinessStep({
 
         <div>
           <label htmlFor="businessType" className="block text-sm font-medium text-gray-700">
-            Business Type
+            {t('type_label')}
           </label>
           <Select
             value={formData.businessType}
             onValueChange={(value) => setFormData((prev: any) => ({ ...prev, businessType: value }))}
           >
-            <SelectTrigger className="h-12 rounded-full border-gray-200">
-              <SelectValue placeholder="Select business type" />
+            <SelectTrigger className="h-12 w-full rounded-full border-gray-200">
+              <SelectValue placeholder={t('type_placeholder')} />
             </SelectTrigger>
             <SelectContent>
               {businessTypes.map((type) => (
@@ -72,25 +74,25 @@ export default function BusinessStep({
 
       <div>
         <label htmlFor="website" className="block text-sm font-medium text-gray-700">
-          Website (Optional)
+          {t('website_label')}
         </label>
         <div className="mt-1 relative">
-          <Input
-            id="website"
-            name="website"
-            type="url"
-            value={formData.website}
-            onChange={handleInputChange}
-            className="pl-10 h-12 rounded-full border-gray-200"
-            placeholder="https://yourstore.com"
-          />
+            <Input
+              id="website"
+              name="website"
+              type="url"
+              value={formData.website}
+              onChange={handleInputChange}
+              className="pl-10 h-12 w-full rounded-full border-gray-200"
+              placeholder={t('website_placeholder')}
+            />
           <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         </div>
       </div>
 
       <div>
         <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-          About Your Business (Optional)
+          {t('bio_label')}
         </label>
         <Textarea
           id="bio"
@@ -99,10 +101,10 @@ export default function BusinessStep({
           onChange={handleInputChange}
           rows={5}
           className="mt-1 rounded-2xl border-gray-200"
-          placeholder="Share what makes your business unique, your experience, and what buyers can expect..."
+          placeholder={t('bio_placeholder')}
           maxLength={500}
         />
-        <p className="mt-1 text-xs text-gray-500">{formData.bio.length}/500</p>
+        <p className="mt-1 text-xs text-gray-500">{t('bio_chars', { count: formData.bio.length })}</p>
       </div>
     </div>
   )

@@ -43,6 +43,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Profile fields
     avatar = models.URLField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True)
+    country = models.ForeignKey(
+        'api.Country',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users'
+    )
     location = models.ForeignKey(
         'api.Region',
         on_delete=models.SET_NULL,

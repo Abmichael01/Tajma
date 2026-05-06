@@ -6,12 +6,14 @@ import Hero, { SearchBar } from "@/components/home/Hero";
 import CategoriesSection from "@/components/home/CategoriesSection";
 import AdsList from "@/components/ads/AdsList";
 import AdsListSkeleton from "@/components/ads/AdsListSkeleton";
-import RegionModal from "@/components/ads/RegionModal";
+import CountryModal from "@/components/ads/CountryModal";
+import CategoryModal from "@/components/ads/CategoryModal";
 import AppText from "@/components/ui/AppText";
 import { useCategories } from "@/hooks/useCategories";
 import { useAdsInfiniteList } from "@/hooks/useAds";
 import { useRouter } from "expo-router";
-import { Region } from "@/hooks/useRegions";
+import { useLocations, Country } from "@/hooks/useLocations";
+import { Category } from "@/types/category";
 import { useAuthStore } from "@/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -24,8 +26,10 @@ export default function HomeScreen() {
     useCategories();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
-  const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [isCountryModalVisible, setIsCountryModalVisible] = useState(false);
+  const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const stickyOpacity = useRef(new Animated.Value(0)).current;
@@ -40,18 +44,22 @@ export default function HomeScreen() {
     isFetchingNextPage,
   } = useAdsInfiniteList({
     status: "published",
-    region: selectedRegion?.slug,
+    country: selectedCountry?.slug,
+    category: selectedCategory?.slug,
   });
 
   const ads = adsData?.pages.flatMap((page) => page.results) || [];
 
   const handleSearch = () => {
-    if (searchQuery.trim() || selectedRegion) {
-      const regionParam = selectedRegion
-        ? `&region=${selectedRegion.slug}&regionName=${encodeURIComponent(selectedRegion.name)}`
+    if (searchQuery.trim() || selectedCountry || selectedCategory) {
+      const countryParam = selectedCountry
+        ? `&country=${selectedCountry.slug}&countryName=${encodeURIComponent(selectedCountry.name)}`
+        : "";
+      const categoryParam = selectedCategory
+        ? `&category=${selectedCategory.slug}`
         : "";
       router.push(
-        `/search?q=${encodeURIComponent(searchQuery.trim())}${regionParam}` as any,
+        `/search?q=${encodeURIComponent(searchQuery.trim())}${countryParam}${categoryParam}` as any,
       );
     }
   };
@@ -128,15 +136,15 @@ export default function HomeScreen() {
             <SearchBar
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              selectedRegion={selectedRegion?.name || t('search.allRegions')}
-              onRegionPress={() => setIsRegionModalVisible(true)}
+              selectedCountry={selectedCountry?.name || t('search.allCountries')}
+              onCountryPress={() => setIsCountryModalVisible(true)}
+              showFilter={false}
+              
               onSearch={handleSearch}
             />
           </View>
         </SafeAreaView>
       </Animated.View>
-
-
 
       <Animated.ScrollView
         className="flex-1"
@@ -167,10 +175,10 @@ export default function HomeScreen() {
                   <Ionicons name="search" size={20} color="white" />
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  onPress={() => setIsRegionModalVisible(true)}
-                  className="w-10 h-10 items-center justify-center rounded-full border border-white/40"
+                  onPress={() => setIsCountryModalVisible(true)}
+                  className={`w-10 h-10 items-center justify-center rounded-full border ${selectedCountry ? "bg-white border-white" : "border-white/40"}`}
                 >
-                  <Ionicons name="location" size={20} color="white" />
+                  <Ionicons name="location" size={20} color={selectedCountry ? "#FF4F18" : "white"} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -179,8 +187,6 @@ export default function HomeScreen() {
 
         {/* Banner carousel hero (mirrors web) */}
         <Hero />
-
-
 
         <CategoriesSection
           categories={categoriesData}
@@ -202,15 +208,31 @@ export default function HomeScreen() {
         <View className="h-24" />
       </Animated.ScrollView>
 
-      <RegionModal
-        visible={isRegionModalVisible}
-        onClose={() => setIsRegionModalVisible(false)}
-        onSelect={setSelectedRegion}
-        selectedRegionId={selectedRegion?.id}
+      <CountryModal
+        visible={isCountryModalVisible}
+        onClose={() => setIsCountryModalVisible(false)}
+        onSelect={setSelectedCountry}
+        selectedCountryId={selectedCountry?.id}
+      />
+
+      <CategoryModal
+        visible={isCategoryModalVisible}
+        onClose={() => setIsCategoryModalVisible(false)}
+        onSelect={(category) => {
+          setSelectedCategory(category);
+          if (category) {
+            const countryParam = selectedCountry
+              ? `&country=${selectedCountry.slug}&countryName=${encodeURIComponent(selectedCountry.name)}`
+              : "";
+            router.push(`/search?category=${category.slug}${countryParam}` as any);
+          }
+        }}
+        selectedCategoryId={selectedCategory?.id}
       />
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   section: {
     paddingVertical: 20,

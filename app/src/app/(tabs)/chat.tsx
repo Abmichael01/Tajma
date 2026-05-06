@@ -80,7 +80,7 @@ export default function ChatScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+          contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
         >
           {FILTERS.map((filter) => (
             <TouchableOpacity
@@ -89,7 +89,7 @@ export default function ChatScreen() {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setSelectedFilter(filter.value);
               }}
-              className={`flex-row items-center gap-2 px-6 py-2.5 rounded-full ${selectedFilter === filter.value
+              className={`flex-row items-center gap-2 px-5 py-2 rounded-full ${selectedFilter === filter.value
                 ? 'bg-slate-900 shadow-sm shadow-slate-900/20'
                 : 'bg-slate-50 border border-slate-100'
                 }`}

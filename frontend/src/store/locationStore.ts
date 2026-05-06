@@ -2,15 +2,15 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 interface LocationState {
-  selectedRegion: string
-  setSelectedRegion: (region: string) => void
+  selectedCountry: string
+  setSelectedCountry: (country: string) => void
 }
 
 export const useLocationStore = create<LocationState>()(
   persist(
     (set) => ({
-      selectedRegion: 'All Regions',
-      setSelectedRegion: (region) => set({ selectedRegion: region }),
+      selectedCountry: 'All Countries',
+      setSelectedCountry: (country) => set({ selectedCountry: country }),
     }),
     {
       name: 'location-storage',
