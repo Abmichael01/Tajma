@@ -74,7 +74,8 @@ export default function FiltersSection({
     let newValue: string | string[]
     
     if (type === 'checkbox') {
-      const current = (selectedValues[groupId] as string[] || []).map(String)
+      const rawVal = selectedValues[groupId]
+      const current = (Array.isArray(rawVal) ? rawVal : rawVal ? [String(rawVal)] : []).map(String)
       newValue = current.includes(String(optionId)) 
         ? current.filter(id => id !== String(optionId))
         : [...current, String(optionId)]
@@ -131,7 +132,7 @@ export default function FiltersSection({
                 ) : (
                   group.options.map((option) => {
                     const isSelected = group.type === 'checkbox' 
-                      ? (selectedValues[group.id] as string[] || []).map(String).includes(String(option.id))
+                      ? (() => { const v = selectedValues[group.id]; return (Array.isArray(v) ? v : v ? [String(v)] : []).map(String).includes(String(option.id)) })()
                       : String(selectedValues[group.id]) === String(option.id)
 
                     return (
@@ -279,7 +280,7 @@ function FilterGroupItem({
               ) : (
                 group.options.map((option) => {
                 const isSelected = group.type === 'checkbox' 
-                  ? (selectedValues[group.id] as string[] || []).map(String).includes(String(option.id))
+                  ? (() => { const v = selectedValues[group.id]; return (Array.isArray(v) ? v : v ? [String(v)] : []).map(String).includes(String(option.id)) })()
                   : String(selectedValues[group.id]) === String(option.id)
 
                 return (
