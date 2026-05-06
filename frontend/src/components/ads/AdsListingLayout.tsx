@@ -146,21 +146,23 @@ export default function AdsListingLayout({
     }
     
     // Search page: show all search filters with real category data
-    if (mode === 'search' && categoryTree && categoryTree.length > 0) {
+    if (mode === 'search') {
       const searchFiltersWithRealData = searchFilters.map((group) => {
         if (group.id === 'category') {
           return {
             ...group,
-            options: categoryTree.map((cat) => ({
-              id: cat.slug,
-              label: cat.name,
-              count: cat.adsCount || 0,
-              icon: cat.imageUrl ? (
-                <div className="w-4 h-4 rounded overflow-hidden relative">
-                  <Image src={getMediaUrl(cat.imageUrl)} alt={cat.name} fill className="object-cover" />
-                </div>
-              ) : <LayoutGrid className="w-4 h-4" />,
-            })),
+            options: (categoryTree && categoryTree.length > 0)
+              ? categoryTree.map((cat) => ({
+                  id: cat.slug,
+                  label: cat.name,
+                  count: cat.adsCount || 0,
+                  icon: cat.imageUrl ? (
+                    <div className="w-4 h-4 rounded overflow-hidden relative">
+                      <Image src={getMediaUrl(cat.imageUrl)} alt={cat.name} fill className="object-cover" />
+                    </div>
+                  ) : <LayoutGrid className="w-4 h-4" />,
+                }))
+              : group.options, // fall back to static defaults while loading
           }
         }
         if (group.id === 'country') {
