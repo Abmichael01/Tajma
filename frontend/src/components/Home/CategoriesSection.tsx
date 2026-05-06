@@ -140,20 +140,20 @@ export default function CategoriesSection() {
         />
       </div>
 
-      {/* Flyout Subcategories Menu - Now outside the overflow container */}
+      {/* Flyout Subcategories Menu */}
       {hoveredCategory && hoveredCategory.children && hoveredCategory.children.length > 0 && (
         <div 
-          className="absolute left-full pl-2 z-50 animate-in fade-in slide-in-from-left-2 duration-200"
-          style={{ top: hoveredCategoryTop }}
+          className="absolute top-0 bottom-0 left-full pl-2 z-50 animate-in fade-in slide-in-from-left-2 duration-200"
           onMouseEnter={() => setHoveredCategory(hoveredCategory)}
         >
-          <div className="w-64 bg-white border border-gray-200 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3 border-b border-gray-50 pb-2">
+          <div className="w-64 h-full bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-lg">
+            <div className="flex items-center justify-between mb-3 border-b border-gray-50 pb-2 flex-shrink-0">
               <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">{hoveredCategory.name}</span>
               <span className="text-[10px] text-gray-400">{hoveredCategory.children?.length} {t('subcategories')}</span>
             </div>
-            <div className="grid grid-cols-1 gap-1">
-              {hoveredCategory.children?.slice(0, 10).map((sub) => (
+            
+            <div className="flex-1 overflow-y-auto space-y-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pr-1">
+              {hoveredCategory.children?.map((sub) => (
                 <Link 
                   key={sub.id} 
                   href={`/category/${sub.slug}`}
@@ -163,14 +163,6 @@ export default function CategoriesSection() {
                   <span className="text-[10px] text-gray-400 group-hover/sub:text-primary/70">{sub.adsCount || 0}</span>
                 </Link>
               ))}
-              {hoveredCategory.children && hoveredCategory.children.length > 10 && (
-                <Link 
-                  href={`/category/${hoveredCategory.slug}`}
-                  className="text-[11px] text-primary font-medium mt-2 px-2 hover:underline"
-                >
-                  {t('view_all_subcategories')}
-                </Link>
-              )}
             </div>
           </div>
         </div>
