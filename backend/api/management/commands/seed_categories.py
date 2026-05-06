@@ -243,6 +243,7 @@ class Command(BaseCommand):
                 'custom_fields': node.get('custom_fields', []),
                 'sort_order': sort_order,
                 'is_active': True,
+                'parent': parent
             }
         )
 
@@ -250,6 +251,8 @@ class Command(BaseCommand):
             category.icon = node.get('icon', category.icon)
             category.image_url = node.get('image_url', category.image_url)
             category.custom_fields = node.get('custom_fields', category.custom_fields)
+            category.parent = parent
+            category.sort_order = sort_order
             category.save()
 
         # Create or update English translation
