@@ -126,6 +126,8 @@
     "no": "Non",
     "back": "Retour",
     "next": "Suivant",
+    "apply": "Appliquer",
+    "reset": "Réinitialiser",
     "publish_ad": "Publier l'annonce",
     "publishing": "Publication",
     "footer": {
@@ -287,6 +289,9 @@
       "cv_required": "Veuillez télécharger votre CV",
       "field_required": "{field} est requis",
       "failed_to_create": "Échec de la création de l'annonce. Veuillez réessayer."
+    },
+    "success": {
+      "ad_created": "Annonce créée avec succès !"
     },
     "steps": {
       "basic_info": "Info de base",

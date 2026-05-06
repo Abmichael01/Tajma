@@ -126,6 +126,8 @@
     "no": "A'a",
     "back": "Baya",
     "next": "Gaba",
+    "apply": "Aiwatar",
+    "reset": "Sake Saita",
     "publish_ad": "Buga Talla",
     "publishing": "Ana Bugawa",
     "footer": {
@@ -291,6 +293,9 @@
       "field_required": "Ana buƙatar {field}",
       "failed_to_create": "An kasa buga talla. Da fatan za a sake gwadawa."
     },
+    "success": {
+      "ad_created": "An buga talla cikin nasara!"
+    },
     "steps": {
       "basic_info": "Bayanai na Asali",
       "basic_info_desc": "Rukuni & Bayyani",
@@ -303,19 +308,30 @@
   "setup": {
     "title": "Kammala Bayanan Ka",
     "subtitle": "Kammala bayanan ka don fara amfani da Tajma",
+    "description": "Cika bayanan ka don buga tallace-tallace a wannan rukunin.",
     "contact_info": "Bayanin Tuntuɓa",
     "business_info": "Bayanin Kasuwanci",
     "profile_image": "Hoton Ka",
+    "profile_image_desc": "Cika waɗannan bayanai don fara buga tallace-tallace",
     "first_name_label": "Suna",
     "last_name_label": "Sunan Uba",
     "phone_label": "Lambar Wayar",
+    "phone_placeholder": "+227 92 64 99 99",
     "location_label": "Wuri",
     "address_label": "Adireshin Gida / Unguwa",
+    "address_placeholder": "misali, Plateau, Rue 123",
+    "complete_button": "Kammala",
     "complete_setup": "Kammala",
+    "saving": "Ana Ajiyewa...",
+    "cancel": "Soke",
+    "setup_here": "Sanya Bayanan Ka Anan",
+    "go_to_setup": "Je zuwa Shafin Sanya Bayanan",
+    "maybe_later": "Watakila Daga Baya",
     "errors": {
       "first_name_required": "Ana buƙatar suna",
       "last_name_required": "Sunan uba yana da mahimmanci",
       "phone_required": "Lambar waya tana da mahimmanci",
+      "phone_invalid": "Lambar waya ba daidai ba ce",
       "location_required": "Wuri yana da mahimmanci",
       "address_required": "Adireshin gida yana da mahimmanci",
       "avatar_required": "Hoton ka yana da mahimmanci"

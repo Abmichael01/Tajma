@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react'
 import { Link } from '@/i18n/routing'
-import { ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronUp } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import CategoryImage from '@/components/ui/CategoryImage'
 import { useCategories } from '@/hooks/useCategories'
@@ -19,6 +19,12 @@ export default function CategoriesSection() {
   const [scrollHeight, setScrollHeight] = useState(0)
   const [isAtBottom, setIsAtBottom] = useState(true)
   const scrollRef = React.useRef<HTMLDivElement>(null)
+
+  // Dropdown scroll state
+  const [dropScrollTop, setDropScrollTop] = useState(0)
+  const [dropScrollHeight, setDropScrollHeight] = useState(0)
+  const [dropIsAtBottom, setDropIsAtBottom] = useState(true)
+  const dropScrollRef = React.useRef<HTMLDivElement>(null)
 
   const displayedCategories = useMemo(() => categoryTree, [categoryTree])
 
@@ -37,22 +43,39 @@ export default function CategoriesSection() {
     }
   }, [displayedCategories]);
 
+  // Reset dropdown scroll state when hovered category changes
+  React.useEffect(() => {
+    const el = dropScrollRef.current;
+    if (el) {
+      el.scrollTop = 0;
+      setDropScrollTop(0);
+      setDropScrollHeight(el.scrollHeight);
+      setDropIsAtBottom(el.scrollHeight <= el.clientHeight);
+    }
+  }, [hoveredCategory]);
+
   return (
     <div
-      className="hidden lg:flex flex-col w-full bg-white border border-gray-200 rounded-xl p-5 relative z-40 h-full categories-section-container"
+      className="hidden lg:flex flex-col w-full bg-white border border-gray-200 rounded-xl py-5 relative z-40 h-full categories-section-container"
       onMouseLeave={() => setHoveredCategory(null)}
     >
-      <h3 className="font-semibold text-gray-900 mb-1">{t('categories')}</h3>
-      <p className="text-[11px] text-gray-500 mb-4">{t('hover_preview')}</p>
+      <div className="px-5">
+        <h3 className="font-semibold text-gray-900 mb-1">{t('categories')}</h3>
+        <p className="text-[11px] text-gray-500 mb-4">{t('hover_preview')}</p>
+      </div>
 
       <div className="relative flex-1 min-h-0">
-        {/* Top Fade Indicator */}
+        {/* Top Fade + Chevron Up */}
         <div 
           className={cn(
-            "absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none transition-opacity duration-300",
+            "absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 flex items-start justify-center pt-1.5",
             scrollTop > 0 ? "opacity-100" : "opacity-0"
           )} 
-        />
+        >
+          <div className="bg-white border border-gray-200 shadow-sm rounded-full p-0.5">
+            <ChevronUp className="w-4 h-4 text-gray-600" />
+          </div>
+        </div>
 
         <div 
           ref={scrollRef}
@@ -61,7 +84,7 @@ export default function CategoriesSection() {
             setScrollTop(target.scrollTop);
             setIsAtBottom(target.scrollTop + target.clientHeight >= target.scrollHeight - 2);
           }}
-          className="h-full space-y-0.5 pr-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           {loading && (
             <div className="space-y-1">
@@ -102,8 +125,8 @@ export default function CategoriesSection() {
             >
               <Link href={`/category/${category.slug}`}>
                 <div className={cn(
-                  "flex items-center gap-3 py-2 px-2.5 cursor-pointer group w-full transition-all duration-200 rounded-lg",
-                  isHovered ? "bg-primary/5 translate-x-1" : "hover:bg-gray-50"
+                  "flex items-center gap-3 py-2.5 px-5 cursor-pointer group w-full transition-colors duration-200",
+                  isHovered ? "bg-primary/5" : "hover:bg-gray-50"
                 )}>
                   <CategoryImage 
                       imageUrl={category.imageUrl} 
@@ -131,13 +154,17 @@ export default function CategoriesSection() {
         })}
         </div>
 
-        {/* Bottom Fade Indicator */}
+        {/* Bottom Fade + Chevron Down */}
         <div 
           className={cn(
-            "absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none transition-opacity duration-300",
+            "absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 flex items-end justify-center pb-1.5",
             !isAtBottom && scrollHeight > 0 ? "opacity-100" : "opacity-0"
           )} 
-        />
+        >
+          <div className="bg-white border border-gray-200 shadow-sm rounded-full p-0.5">
+            <ChevronDown className="w-4 h-4 text-gray-600" />
+          </div>
+        </div>
       </div>
 
       {/* Flyout Subcategories Menu */}
@@ -146,23 +173,61 @@ export default function CategoriesSection() {
           className="absolute top-0 bottom-0 left-full pl-2 z-50 animate-in fade-in slide-in-from-left-2 duration-200"
           onMouseEnter={() => setHoveredCategory(hoveredCategory)}
         >
-          <div className="w-64 h-full bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-lg">
-            <div className="flex items-center justify-between mb-3 border-b border-gray-50 pb-2 flex-shrink-0">
-              <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">{hoveredCategory.name}</span>
-              <span className="text-[10px] text-gray-400">{hoveredCategory.children?.length} {t('subcategories')}</span>
+          <div className="w-[280px] h-full bg-white border border-gray-200 rounded-xl py-4 flex flex-col shadow-lg">
+            <div className="mb-3 border-b border-gray-50 pb-2 px-5 flex-shrink-0">
+              <span className="block text-xs font-bold text-gray-900 uppercase tracking-wider">{hoveredCategory.name}</span>
+              <span className="block text-[10px] text-gray-400 mt-0.5">{hoveredCategory.children?.length} {t('subcategories')}</span>
             </div>
             
-            <div className="flex-1 overflow-y-auto space-y-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pr-1">
-              {hoveredCategory.children?.map((sub) => (
-                <Link 
-                  key={sub.id} 
-                  href={`/category/${sub.slug}`}
-                  className="text-sm text-gray-600 hover:text-primary hover:bg-primary/5 px-2 py-1.5 rounded-md transition-all flex items-center justify-between group/sub"
-                >
-                  <span className="truncate">{sub.name}</span>
-                  <span className="text-[10px] text-gray-400 group-hover/sub:text-primary/70">{sub.adsCount || 0}</span>
-                </Link>
-              ))}
+            <div className="flex-1 relative min-h-0 overflow-hidden">
+              {/* Dropdown Top Fade + Chevron */}
+              <div className={cn(
+                "absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 flex items-start justify-center pt-1.5",
+                dropScrollTop > 0 ? "opacity-100" : "opacity-0"
+              )}>
+                <div className="bg-white border border-gray-200 shadow-sm rounded-full p-0.5">
+                  <ChevronUp className="w-4 h-4 text-gray-600" />
+                </div>
+              </div>
+
+              <div
+                ref={dropScrollRef}
+                onScroll={(e) => {
+                  const target = e.currentTarget;
+                  setDropScrollTop(target.scrollTop);
+                  setDropIsAtBottom(target.scrollTop + target.clientHeight >= target.scrollHeight - 2);
+                }}
+                className="h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {hoveredCategory.children?.map((sub) => (
+                  <Link 
+                    key={sub.id} 
+                    href={`/category/${sub.slug}`}
+                    className="px-5 py-2 transition-colors flex items-center gap-3 hover:bg-primary/5 group/sub border-b border-gray-50 last:border-b-0"
+                  >
+                    <CategoryImage 
+                      imageUrl={sub.imageUrl} 
+                      name={sub.name}
+                      size={32}
+                      className="w-8 h-8 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-gray-700 block truncate group-hover/sub:text-gray-900">{sub.name}</span>
+                      <span className="text-[10px] text-gray-400">{sub.adsCount || 0} {t('listings')}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Dropdown Bottom Fade + Chevron */}
+              <div className={cn(
+                "absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none transition-opacity duration-300 flex items-end justify-center pb-1.5",
+                !dropIsAtBottom && dropScrollHeight > 0 ? "opacity-100" : "opacity-0"
+              )}>
+                <div className="bg-white border border-gray-200 shadow-sm rounded-full p-0.5">
+                  <ChevronDown className="w-4 h-4 text-gray-600" />
+                </div>
+              </div>
             </div>
           </div>
         </div>

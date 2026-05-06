@@ -22,17 +22,12 @@ OPTIMIZED_CATEGORIES = [
             {"name": "fuel_type", "label": "Fuel Type", "type": "select", "options": [{"value": "petrol", "label": "Petrol"}, {"value": "diesel", "label": "Diesel"}, {"value": "hybrid", "label": "Hybrid"}], "required": False}
         ],
         "children": [
-            {
-                "name": "Cars", 
-                "slug": "cars",
-                "children": [
-                    {"name": "Toyota", "slug": "toyota-cars"},
-                    {"name": "Mercedes-Benz", "slug": "mercedes-benz-cars"},
-                    {"name": "Nissan", "slug": "nissan-cars"}
-                ]
-            },
-            {"name": "Motorcycles", "slug": "motorcycles"},
-            {"name": "Trucks & Commercial", "slug": "trucks"}
+            {"name": "Cars", "slug": "cars", "icon": "Car"},
+            {"name": "Motorcycles", "slug": "motorcycles", "icon": "Bike"},
+            {"name": "Trucks & Commercial", "slug": "trucks", "icon": "Truck"},
+            {"name": "Auto Parts & Accessories", "slug": "auto-parts", "icon": "Wrench"},
+            {"name": "Buses & Microbuses", "slug": "buses", "icon": "Bus"},
+            {"name": "Watercraft & Boats", "slug": "watercraft", "icon": "Ship"}
         ]
     },
     {
@@ -48,10 +43,12 @@ OPTIMIZED_CATEGORIES = [
             {"name": "square_meters", "label": "Square Meters", "type": "number", "required": False}
         ],
         "children": [
-            {"name": "Houses & Apartments for Sale", "slug": "houses-for-sale"},
-            {"name": "Houses & Apartments for Rent", "slug": "houses-for-rent"},
-            {"name": "Land & Plots", "slug": "land-for-sale"},
-            {"name": "Commercial Property", "slug": "commercial-property"}
+            {"name": "Houses & Apartments for Sale", "slug": "houses-for-sale", "icon": "Home"},
+            {"name": "Houses & Apartments for Rent", "slug": "houses-for-rent", "icon": "Key"},
+            {"name": "Land & Plots", "slug": "land-for-sale", "icon": "Map"},
+            {"name": "Commercial Property", "slug": "commercial-property", "icon": "Building"},
+            {"name": "Short Let Property", "slug": "short-lets", "icon": "Calendar"},
+            {"name": "Event Centers & Venues", "slug": "venues", "icon": "PartyPopper"}
         ]
     },
     {
@@ -66,10 +63,12 @@ OPTIMIZED_CATEGORIES = [
             {"name": "ram", "label": "RAM size", "type": "select", "options": [{"value": "4gb", "label": "4 GB"}, {"value": "6gb", "label": "6 GB"}, {"value": "8gb", "label": "8 GB"}, {"value": "12gb", "label": "12 GB"}], "required": False}
         ],
         "children": [
-            {"name": "Mobile Phones", "slug": "mobile-phones"},
-            {"name": "Tablets", "slug": "tablets"},
-            {"name": "Smartwatches", "slug": "smartwatches"},
-            {"name": "Phone Accessories", "slug": "phone-accessories"}
+            {"name": "Mobile Phones", "slug": "mobile-phones", "icon": "Smartphone"},
+            {"name": "Tablets", "slug": "tablets", "icon": "Tablet"},
+            {"name": "Smartwatches", "slug": "smartwatches", "icon": "Watch"},
+            {"name": "Phone Accessories", "slug": "phone-accessories", "icon": "Headphones"},
+            {"name": "Power Banks", "slug": "power-banks", "icon": "Battery"},
+            {"name": "SIM Cards & Data", "slug": "sim-cards", "icon": "Wifi"}
         ]
     },
     {
@@ -82,18 +81,12 @@ OPTIMIZED_CATEGORIES = [
             {"name": "condition", "label": "Condition", "type": "select", "options": [{"value": "new", "label": "Brand New"}, {"value": "used", "label": "Used"}], "required": True}
         ],
         "children": [
-            {
-                "name": "Computers & Laptops",
-                "slug": "computers-laptops",
-                "custom_fields": [
-                    {"name": "processor", "label": "Processor", "type": "text"},
-                    {"name": "ram", "label": "RAM (GB)", "type": "number"},
-                    {"name": "storage_capacity", "label": "Storage (GB/TB)", "type": "text"}
-                ]
-            },
-            {"name": "TV & Audio", "slug": "tv-audio"},
-            {"name": "Video Games & Consoles", "slug": "video-games"},
-            {"name": "Cameras & Lenses", "slug": "cameras"}
+            {"name": "Computers & Laptops", "slug": "computers-laptops", "icon": "Laptop"},
+            {"name": "TV & Audio", "slug": "tv-audio", "icon": "Tv"},
+            {"name": "Video Games & Consoles", "slug": "video-games", "icon": "Gamepad2"},
+            {"name": "Cameras & Lenses", "slug": "cameras", "icon": "Camera"},
+            {"name": "Security & Surveillance", "slug": "security", "icon": "Shield"},
+            {"name": "Printers & Scanners", "slug": "printers", "icon": "Printer"}
         ]
     },
     {
@@ -106,9 +99,12 @@ OPTIMIZED_CATEGORIES = [
             {"name": "condition", "label": "Condition", "type": "select", "options": [{"value": "new", "label": "Brand New"}, {"value": "used", "label": "Used"}], "required": True}
         ],
         "children": [
-            {"name": "Living Room Furniture", "slug": "living-room"},
-            {"name": "Kitchen Appliances", "slug": "kitchen-appliances"},
-            {"name": "Home Decor", "slug": "home-decor"}
+            {"name": "Living Room Furniture", "slug": "living-room", "icon": "Sofa"},
+            {"name": "Kitchen Appliances", "slug": "kitchen-appliances", "icon": "ChefHat"},
+            {"name": "Home Decor", "slug": "home-decor", "icon": "Lamp"},
+            {"name": "Bedroom Furniture", "slug": "bedroom-furniture", "icon": "Bed"},
+            {"name": "Office Furniture", "slug": "office-furniture", "icon": "Briefcase"},
+            {"name": "Outdoor & Garden", "slug": "outdoor-garden", "icon": "TreeDeciduous"}
         ]
     },
     {
@@ -122,10 +118,12 @@ OPTIMIZED_CATEGORIES = [
             {"name": "size", "label": "Size", "type": "text", "placeholder": "e.g. M, L, XL, 42"}
         ],
         "children": [
-            {"name": "Clothing", "slug": "clothing"},
-            {"name": "Shoes", "slug": "shoes"},
-            {"name": "Watches & Jewelry", "slug": "watches-jewelry"},
-            {"name": "Bags & Accessories", "slug": "bags"}
+            {"name": "Clothing", "slug": "clothing", "icon": "Shirt"},
+            {"name": "Shoes", "slug": "shoes", "icon": "Footprints"},
+            {"name": "Watches & Jewelry", "slug": "watches-jewelry", "icon": "Watch"},
+            {"name": "Bags & Accessories", "slug": "bags", "icon": "Briefcase"},
+            {"name": "Wedding Wear", "slug": "wedding-wear", "icon": "Heart"},
+            {"name": "Kids Fashion", "slug": "kids-fashion", "icon": "Baby"}
         ]
     },
     {
@@ -135,9 +133,11 @@ OPTIMIZED_CATEGORIES = [
         "type": "product",
         "description": "Skincare, makeup, hair care, and fragrances.",
         "children": [
-            {"name": "Makeup", "slug": "makeup"},
-            {"name": "Hair Care", "slug": "hair-care"},
-            {"name": "Fragrances", "slug": "fragrances"}
+            {"name": "Makeup", "slug": "makeup", "icon": "Palette"},
+            {"name": "Hair Care", "slug": "hair-care", "icon": "Scissors"},
+            {"name": "Fragrances", "slug": "fragrances", "icon": "Wind"},
+            {"name": "Skin Care", "slug": "skin-care", "icon": "Sparkles"},
+            {"name": "Vitamins & Supplements", "slug": "vitamins", "icon": "Pill"}
         ]
     },
     {
@@ -147,9 +147,12 @@ OPTIMIZED_CATEGORIES = [
         "type": "service",
         "description": "Professional services, cleaning, catering, and more.",
         "children": [
-            {"name": "Cleaning Services", "slug": "cleaning-services"},
-            {"name": "Legal Services", "slug": "legal-services"},
-            {"name": "Catering & Events", "slug": "catering"}
+            {"name": "Cleaning Services", "slug": "cleaning-services", "icon": "Sparkles"},
+            {"name": "Legal Services", "slug": "legal-services", "icon": "Scale"},
+            {"name": "Catering & Events", "slug": "catering", "icon": "Utensils"},
+            {"name": "Education & Tutoring", "slug": "education", "icon": "BookOpen"},
+            {"name": "Health & Wellness", "slug": "health-wellness", "icon": "HeartPulse"},
+            {"name": "Creative & Design", "slug": "creative-design", "icon": "PenTool"}
         ]
     },
     {
@@ -158,9 +161,12 @@ OPTIMIZED_CATEGORIES = [
         "icon": "Wrench",
         "type": "service",
         "children": [
-            {"name": "Plumbing", "slug": "plumbing"},
-            {"name": "Electrical", "slug": "electrical"},
-            {"name": "Building Materials", "slug": "building-materials"}
+            {"name": "Plumbing", "slug": "plumbing", "icon": "Droplet"},
+            {"name": "Electrical", "slug": "electrical", "icon": "Zap"},
+            {"name": "Building Materials", "slug": "building-materials", "icon": "BrickWall"},
+            {"name": "Painting & Decorating", "slug": "painting", "icon": "Paintbrush"},
+            {"name": "Roofing", "slug": "roofing", "icon": "Home"},
+            {"name": "Tools & Hardware", "slug": "tools", "icon": "Hammer"}
         ]
     },
     {
@@ -169,9 +175,10 @@ OPTIMIZED_CATEGORIES = [
         "icon": "Truck",
         "type": "product",
         "children": [
-            {"name": "Industrial Machinery", "slug": "machinery"},
-            {"name": "Office Furniture", "slug": "office-furniture"},
-            {"name": "Farming Tools", "slug": "farming-tools"}
+            {"name": "Industrial Machinery", "slug": "machinery", "icon": "Factory"},
+            {"name": "Medical Supplies", "slug": "medical-supplies", "icon": "Stethoscope"},
+            {"name": "Restaurant Equipment", "slug": "restaurant-equipment", "icon": "UtensilsCrossed"},
+            {"name": "Stationery & Office Supplies", "slug": "stationery", "icon": "Paperclip"}
         ]
     },
     {
@@ -180,9 +187,12 @@ OPTIMIZED_CATEGORIES = [
         "icon": "Ticket",
         "type": "product",
         "children": [
-            {"name": "Sports Equipment", "slug": "sports"},
-            {"name": "Musical Instruments", "slug": "music"},
-            {"name": "Books & Games", "slug": "books"}
+            {"name": "Sports Equipment", "slug": "sports", "icon": "Trophy"},
+            {"name": "Musical Instruments", "slug": "music", "icon": "Music"},
+            {"name": "Books & Games", "slug": "books", "icon": "Book"},
+            {"name": "Event Tickets", "slug": "tickets", "icon": "Ticket"},
+            {"name": "Travel Packages", "slug": "travel", "icon": "Plane"},
+            {"name": "Bicycles", "slug": "bicycles", "icon": "Bike"}
         ]
     },
     {
@@ -191,9 +201,11 @@ OPTIMIZED_CATEGORIES = [
         "icon": "Heart",
         "type": "product",
         "children": [
-            {"name": "Toys", "slug": "toys"},
-            {"name": "Kids Clothing", "slug": "kids-clothing"},
-            {"name": "Baby Gear", "slug": "baby-gear"}
+            {"name": "Toys", "slug": "toys", "icon": "Gamepad"},
+            {"name": "Kids Clothing", "slug": "kids-clothing", "icon": "Shirt"},
+            {"name": "Baby Gear", "slug": "baby-gear", "icon": "Baby"},
+            {"name": "Baby Food", "slug": "baby-food", "icon": "Cookie"},
+            {"name": "Strollers & Prams", "slug": "strollers", "icon": "Car"}
         ]
     },
     {
@@ -202,9 +214,11 @@ OPTIMIZED_CATEGORIES = [
         "icon": "Leaf",
         "type": "product",
         "children": [
-            {"name": "Farm Produce", "slug": "produce"},
-            {"name": "Livestock", "slug": "livestock"},
-            {"name": "Processed Foods", "slug": "processed-foods"}
+            {"name": "Farm Produce", "slug": "produce", "icon": "Carrot"},
+            {"name": "Livestock", "slug": "livestock", "icon": "Cow"},
+            {"name": "Processed Foods", "slug": "processed-foods", "icon": "Coffee"},
+            {"name": "Feeds & Supplements", "slug": "feeds", "icon": "Wheat"},
+            {"name": "Farm Machinery", "slug": "farm-machinery", "icon": "Tractor"}
         ]
     },
     {
@@ -213,9 +227,11 @@ OPTIMIZED_CATEGORIES = [
         "icon": "Paw",
         "type": "product",
         "children": [
-            {"name": "Dogs", "slug": "dogs"},
-            {"name": "Cats", "slug": "cats"},
-            {"name": "Pet Accessories", "slug": "pet-accessories"}
+            {"name": "Dogs", "slug": "dogs", "icon": "Dog"},
+            {"name": "Cats", "slug": "cats", "icon": "Cat"},
+            {"name": "Pet Accessories", "slug": "pet-accessories", "icon": "Bone"},
+            {"name": "Birds", "slug": "birds", "icon": "Bird"},
+            {"name": "Fish & Reptiles", "slug": "fish", "icon": "Fish"}
         ]
     }
 ]
