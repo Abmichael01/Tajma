@@ -10,199 +10,212 @@ from api.models import Category, CategoryTranslation, Ad, AdTranslation
 # We use English as the source for all translations
 OPTIMIZED_CATEGORIES = [
     {
-        "name": "Electronics & Gadgets",
-        "slug": "electronics-and-gadgets",
-        "icon": "Smartphone",
-        "type": "product",
-        "description": "Buy and sell new and used electronics, smartphones, laptops, and home appliances in Niger, Mali, and Burkina Faso.",
-        "custom_fields": [
-            {
-                "name": "condition",
-                "label": "Condition",
-                "type": "select",
-                "options": [
-                    {"value": "brand-new", "label": "Brand New"},
-                    {"value": "foreign-used", "label": "Foreign Used"},
-                    {"value": "nigerian-used", "label": "Local Used"},
-                    {"value": "refurbished", "label": "Refurbished"}
-                ],
-                "required": True
-            }
-        ],
-        "children": [
-            {
-                "name": "Phones & Tablets",
-                "slug": "phones-and-tablets",
-                "description": "Latest smartphones, iPhones, Android tablets, and mobile accessories.",
-                "custom_fields": [
-                    {
-                        "name": "storage_capacity",
-                        "label": "Storage Capacity",
-                        "type": "select",
-                        "options": [
-                            {"value": "64gb", "label": "64 GB"},
-                            {"value": "128gb", "label": "128 GB"},
-                            {"value": "256gb", "label": "256 GB"},
-                            {"value": "512gb", "label": "512 GB"}
-                        ]
-                    },
-                    {
-                        "name": "ram",
-                        "label": "RAM size",
-                        "type": "select",
-                        "options": [
-                            {"value": "4gb", "label": "4 GB"},
-                            {"value": "6gb", "label": "6 GB"},
-                            {"value": "8gb", "label": "8 GB"},
-                            {"value": "12gb", "label": "12 GB"}
-                        ]
-                    }
-                ],
-                "children": [
-                    {"name": "Smartphones", "slug": "buy-smartphones"},
-                    {"name": "Tablets & iPads", "slug": "tablets-and-ipads"},
-                    {"name": "Mobile Accessories", "slug": "mobile-phone-accessories"}
-                ]
-            },
-            {
-                "name": "Computers & Laptops",
-                "slug": "computers-and-laptops",
-                "description": "High-performance laptops, desktop computers, and networking gear.",
-                "custom_fields": [
-                    {
-                        "name": "processor",
-                        "label": "Processor",
-                        "type": "text",
-                        "placeholder": "e.g. Intel Core i7, Apple M2"
-                    },
-                    {
-                        "name": "ram",
-                        "label": "RAM (GB)",
-                        "type": "number"
-                    },
-                    {
-                        "name": "storage_capacity",
-                        "label": "Storage (GB/TB)",
-                        "type": "text"
-                    }
-                ],
-                "children": [
-                    {"name": "Laptops", "slug": "laptops-for-sale"},
-                    {"name": "Desktop Computers", "slug": "desktop-computers-and-monitors"},
-                    {"name": "Computer Accessories", "slug": "computer-parts-and-accessories"}
-                ]
-            },
-            {
-                "name": "TV, Audio & Video",
-                "slug": "tv-audio-and-video",
-                "description": "Smart TVs, home theater systems, cameras, and gaming consoles.",
-                "children": [
-                    {"name": "Televisions", "slug": "smart-tvs-and-leds"},
-                    {"name": "Audio & Speakers", "slug": "sound-systems-and-speakers"},
-                    {"name": "Video Games & Consoles", "slug": "gaming-consoles-ps5-xbox"}
-                ]
-            }
-        ]
-    },
-    {
-        "name": "Vehicles & Motors",
-        "slug": "vehicles-and-motors",
+        "name": "Vehicles",
+        "slug": "vehicles",
         "icon": "Car",
         "type": "vehicle",
-        "description": "Find the best deals on new and used cars, motorcycles, and trucks across the Sahel region.",
+        "description": "Find the best deals on new and used cars, motorcycles, and trucks.",
         "custom_fields": [
-            {
-                "name": "transmission",
-                "label": "Transmission",
-                "type": "select",
-                "options": [
-                    {"value": "automatic", "label": "Automatic"},
-                    {"value": "manual", "label": "Manual"}
-                ],
-                "required": True
-            },
-            {
-                "name": "year",
-                "label": "Year",
-                "type": "number",
-                "required": True
-            },
-            {
-                "name": "fuel_type",
-                "label": "Fuel Type",
-                "type": "select",
-                "options": [
-                    {"value": "petrol", "label": "Petrol"},
-                    {"value": "diesel", "label": "Diesel"},
-                    {"value": "hybrid", "label": "Hybrid"}
-                ]
-            }
+            {"name": "condition", "label": "Condition", "type": "select", "options": [{"value": "foreign-used", "label": "Foreign Used"}, {"value": "local-used", "label": "Local Used"}, {"value": "new", "label": "Brand New"}], "required": True},
+            {"name": "transmission", "label": "Transmission", "type": "select", "options": [{"value": "automatic", "label": "Automatic"}, {"value": "manual", "label": "Manual"}], "required": True},
+            {"name": "year", "label": "Year", "type": "number", "required": True},
+            {"name": "fuel_type", "label": "Fuel Type", "type": "select", "options": [{"value": "petrol", "label": "Petrol"}, {"value": "diesel", "label": "Diesel"}, {"value": "hybrid", "label": "Hybrid"}], "required": False}
         ],
         "children": [
             {
                 "name": "Cars", 
-                "slug": "cars-for-sale",
+                "slug": "cars",
                 "children": [
                     {"name": "Toyota", "slug": "toyota-cars"},
                     {"name": "Mercedes-Benz", "slug": "mercedes-benz-cars"},
-                    {"name": "Nissan", "slug": "nissan-cars"},
-                    {"name": "Hyundai & Kia", "slug": "hyundai-kia-cars"}
+                    {"name": "Nissan", "slug": "nissan-cars"}
                 ]
             },
-            {"name": "Motorcycles & Scooters", "slug": "motorcycles-and-bikes"},
-            {"name": "Trucks & Commercial Vehicles", "slug": "trucks-and-heavy-machinery"}
+            {"name": "Motorcycles", "slug": "motorcycles"},
+            {"name": "Trucks & Commercial", "slug": "trucks"}
         ]
     },
     {
-        "name": "Real Estate & Property",
-        "slug": "real-estate-and-property",
+        "name": "Property",
+        "slug": "property",
         "icon": "Home",
         "type": "property",
-        "description": "Rent or buy houses, apartments, land, and commercial properties in Niamey, Bamako, and Ouagadougou.",
+        "description": "Rent or buy houses, apartments, land, and commercial properties.",
+        "custom_fields": [
+            {"name": "bedrooms", "label": "Bedrooms", "type": "number", "required": False},
+            {"name": "bathrooms", "label": "Bathrooms", "type": "number", "required": False},
+            {"name": "furnished", "label": "Furnished", "type": "select", "options": [{"value": "yes", "label": "Yes"}, {"value": "no", "label": "No"}], "required": False},
+            {"name": "square_meters", "label": "Square Meters", "type": "number", "required": False}
+        ],
         "children": [
-            {"name": "Houses & Apartments for Sale", "slug": "houses-apartments-for-sale"},
-            {"name": "Houses & Apartments for Rent", "slug": "houses-apartments-for-rent"},
-            {"name": "Land & Plots", "slug": "land-and-plots-for-sale"},
-            {"name": "Commercial Property", "slug": "commercial-real-estate"}
+            {"name": "Houses & Apartments for Sale", "slug": "houses-for-sale"},
+            {"name": "Houses & Apartments for Rent", "slug": "houses-for-rent"},
+            {"name": "Land & Plots", "slug": "land-for-sale"},
+            {"name": "Commercial Property", "slug": "commercial-property"}
         ]
     },
     {
-        "name": "Fashion & Clothing",
-        "slug": "fashion-and-clothing",
+        "name": "Phones & Tablets",
+        "slug": "phones-tablets",
+        "icon": "Smartphone",
+        "type": "product",
+        "description": "Latest smartphones, iPhones, Android tablets, and mobile accessories.",
+        "custom_fields": [
+            {"name": "condition", "label": "Condition", "type": "select", "options": [{"value": "new", "label": "Brand New"}, {"value": "used", "label": "Used"}, {"value": "refurbished", "label": "Refurbished"}], "required": True},
+            {"name": "storage_capacity", "label": "Storage Capacity", "type": "select", "options": [{"value": "64gb", "label": "64 GB"}, {"value": "128gb", "label": "128 GB"}, {"value": "256gb", "label": "256 GB"}, {"value": "512gb", "label": "512 GB"}], "required": False},
+            {"name": "ram", "label": "RAM size", "type": "select", "options": [{"value": "4gb", "label": "4 GB"}, {"value": "6gb", "label": "6 GB"}, {"value": "8gb", "label": "8 GB"}, {"value": "12gb", "label": "12 GB"}], "required": False}
+        ],
+        "children": [
+            {"name": "Mobile Phones", "slug": "mobile-phones"},
+            {"name": "Tablets", "slug": "tablets"},
+            {"name": "Smartwatches", "slug": "smartwatches"},
+            {"name": "Phone Accessories", "slug": "phone-accessories"}
+        ]
+    },
+    {
+        "name": "Electronics",
+        "slug": "electronics",
+        "icon": "Laptop",
+        "type": "product",
+        "description": "Computers, TVs, home theater systems, cameras, and gaming consoles.",
+        "custom_fields": [
+            {"name": "condition", "label": "Condition", "type": "select", "options": [{"value": "new", "label": "Brand New"}, {"value": "used", "label": "Used"}], "required": True}
+        ],
+        "children": [
+            {
+                "name": "Computers & Laptops",
+                "slug": "computers-laptops",
+                "custom_fields": [
+                    {"name": "processor", "label": "Processor", "type": "text"},
+                    {"name": "ram", "label": "RAM (GB)", "type": "number"},
+                    {"name": "storage_capacity", "label": "Storage (GB/TB)", "type": "text"}
+                ]
+            },
+            {"name": "TV & Audio", "slug": "tv-audio"},
+            {"name": "Video Games & Consoles", "slug": "video-games"},
+            {"name": "Cameras & Lenses", "slug": "cameras"}
+        ]
+    },
+    {
+        "name": "Home, Furniture & Appliances",
+        "slug": "home-furniture",
+        "icon": "Sofa",
+        "type": "product",
+        "description": "Furniture, home decor, and essential home appliances.",
+        "custom_fields": [
+            {"name": "condition", "label": "Condition", "type": "select", "options": [{"value": "new", "label": "Brand New"}, {"value": "used", "label": "Used"}], "required": True}
+        ],
+        "children": [
+            {"name": "Living Room Furniture", "slug": "living-room"},
+            {"name": "Kitchen Appliances", "slug": "kitchen-appliances"},
+            {"name": "Home Decor", "slug": "home-decor"}
+        ]
+    },
+    {
+        "name": "Fashion",
+        "slug": "fashion",
         "icon": "Shirt",
         "type": "product",
-        "description": "Trending fashion, designer clothing, shoes, and jewelry for men, women, and children.",
+        "description": "Trending fashion, designer clothing, shoes, and jewelry.",
+        "custom_fields": [
+            {"name": "gender", "label": "Gender", "type": "select", "options": [{"value": "male", "label": "Men"}, {"value": "female", "label": "Women"}, {"value": "unisex", "label": "Unisex"}]},
+            {"name": "size", "label": "Size", "type": "text", "placeholder": "e.g. M, L, XL, 42"}
+        ],
         "children": [
-            {"name": "Men's Fashion", "slug": "mens-fashion-and-wear"},
-            {"name": "Women's Fashion", "slug": "womens-fashion-and-style"},
-            {"name": "Watches & Jewelry", "slug": "watches-and-jewelry"},
-            {"name": "Shoes & Footwear", "slug": "shoes-and-sneakers"}
+            {"name": "Clothing", "slug": "clothing"},
+            {"name": "Shoes", "slug": "shoes"},
+            {"name": "Watches & Jewelry", "slug": "watches-jewelry"},
+            {"name": "Bags & Accessories", "slug": "bags"}
         ]
     },
     {
-        "name": "Jobs & Careers",
-        "slug": "jobs-and-careers",
+        "name": "Beauty & Personal Care",
+        "slug": "beauty-personal-care",
+        "icon": "Sparkles",
+        "type": "product",
+        "description": "Skincare, makeup, hair care, and fragrances.",
+        "children": [
+            {"name": "Makeup", "slug": "makeup"},
+            {"name": "Hair Care", "slug": "hair-care"},
+            {"name": "Fragrances", "slug": "fragrances"}
+        ]
+    },
+    {
+        "name": "Services",
+        "slug": "services",
         "icon": "Briefcase",
-        "type": "job",
-        "description": "Find your next career opportunity. Browse job openings in IT, sales, teaching, and more.",
+        "type": "service",
+        "description": "Professional services, cleaning, catering, and more.",
         "children": [
-            {"name": "Sales & Marketing", "slug": "sales-and-marketing-jobs"},
-            {"name": "Information Technology", "slug": "it-and-software-jobs"},
-            {"name": "Teaching & Education", "slug": "teaching-and-education-jobs"},
-            {"name": "Driver & Transport", "slug": "driver-and-transport-jobs"}
+            {"name": "Cleaning Services", "slug": "cleaning-services"},
+            {"name": "Legal Services", "slug": "legal-services"},
+            {"name": "Catering & Events", "slug": "catering"}
         ]
     },
     {
-        "name": "Professional Services",
-        "slug": "professional-services",
+        "name": "Repair & Construction",
+        "slug": "repair-construction",
         "icon": "Wrench",
         "type": "service",
-        "description": "Hire expert services for home repairs, business consulting, legal advice, and event planning.",
         "children": [
-            {"name": "Home Repairs & Maintenance", "slug": "home-repairs-and-plumbing"},
-            {"name": "Business & Legal Services", "slug": "business-consulting-and-legal"},
-            {"name": "Cleaning Services", "slug": "cleaning-and-sanitation-services"},
-            {"name": "Events & Catering", "slug": "event-planning-and-catering"}
+            {"name": "Plumbing", "slug": "plumbing"},
+            {"name": "Electrical", "slug": "electrical"},
+            {"name": "Building Materials", "slug": "building-materials"}
+        ]
+    },
+    {
+        "name": "Commercial Equipment & Tools",
+        "slug": "commercial-equipment",
+        "icon": "Truck",
+        "type": "product",
+        "children": [
+            {"name": "Industrial Machinery", "slug": "machinery"},
+            {"name": "Office Furniture", "slug": "office-furniture"},
+            {"name": "Farming Tools", "slug": "farming-tools"}
+        ]
+    },
+    {
+        "name": "Leisure & Activities",
+        "slug": "leisure-activities",
+        "icon": "Ticket",
+        "type": "product",
+        "children": [
+            {"name": "Sports Equipment", "slug": "sports"},
+            {"name": "Musical Instruments", "slug": "music"},
+            {"name": "Books & Games", "slug": "books"}
+        ]
+    },
+    {
+        "name": "Babies & Kids",
+        "slug": "babies-kids",
+        "icon": "Heart",
+        "type": "product",
+        "children": [
+            {"name": "Toys", "slug": "toys"},
+            {"name": "Kids Clothing", "slug": "kids-clothing"},
+            {"name": "Baby Gear", "slug": "baby-gear"}
+        ]
+    },
+    {
+        "name": "Food, Agriculture & Farming",
+        "slug": "food-agriculture",
+        "icon": "Leaf",
+        "type": "product",
+        "children": [
+            {"name": "Farm Produce", "slug": "produce"},
+            {"name": "Livestock", "slug": "livestock"},
+            {"name": "Processed Foods", "slug": "processed-foods"}
+        ]
+    },
+    {
+        "name": "Animals & Pets",
+        "slug": "animals-pets",
+        "icon": "Paw",
+        "type": "product",
+        "children": [
+            {"name": "Dogs", "slug": "dogs"},
+            {"name": "Cats", "slug": "cats"},
+            {"name": "Pet Accessories", "slug": "pet-accessories"}
         ]
     }
 ]
