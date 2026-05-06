@@ -20,7 +20,7 @@ export default function CategoriesSection() {
 
   return (
     <div
-      className="hidden lg:flex flex-col lg:min-w-[260px] lg:max-w-[320px] bg-white border border-gray-200 rounded-xl p-5 relative z-40 h-full categories-section-container"
+      className="hidden lg:flex flex-col w-full bg-white border border-gray-200 rounded-xl p-5 relative z-40 h-full categories-section-container"
       onMouseLeave={() => setHoveredCategory(null)}
     >
       <h3 className="font-semibold text-gray-900 mb-1">{t('categories')}</h3>

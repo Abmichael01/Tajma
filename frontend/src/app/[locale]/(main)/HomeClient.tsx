@@ -47,7 +47,11 @@ export default function HomeClient() {
       <div className="container py-4 sm:py-8">
         <div className="flex flex-col-reverse lg:flex-row gap-6 lg:gap-8 mb-6 sm:mb-8">
           {/* Categories Section - Desktop Sidebar */}
-          <CategoriesSection />
+          <div className="hidden lg:block relative lg:min-w-[260px] lg:max-w-[320px] w-1/4">
+            <div className="absolute inset-0">
+              <CategoriesSection />
+            </div>
+          </div>
 
           {/* Main Content */}
           <div className="flex-1 min-w-0 flex flex-col">
