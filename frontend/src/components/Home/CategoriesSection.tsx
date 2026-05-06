@@ -15,8 +15,27 @@ export default function CategoriesSection() {
   const { categoryTree, loading } = useCategories()
   const [hoveredCategory, setHoveredCategory] = useState<CategoryTree | null>(null)
   const [hoveredCategoryTop, setHoveredCategoryTop] = useState<number>(0)
+  const [scrollTop, setScrollTop] = useState(0)
+  const [scrollHeight, setScrollHeight] = useState(0)
+  const [isAtBottom, setIsAtBottom] = useState(true)
+  const scrollRef = React.useRef<HTMLDivElement>(null)
 
   const displayedCategories = useMemo(() => categoryTree, [categoryTree])
+
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (el) {
+      const updateScrollState = () => {
+        setScrollHeight(el.scrollHeight);
+        setIsAtBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 2);
+      };
+      // Check initially and whenever categories change
+      updateScrollState();
+      // Also check on window resize
+      window.addEventListener('resize', updateScrollState);
+      return () => window.removeEventListener('resize', updateScrollState);
+    }
+  }, [displayedCategories]);
 
   return (
     <div
@@ -26,21 +45,38 @@ export default function CategoriesSection() {
       <h3 className="font-semibold text-gray-900 mb-1">{t('categories')}</h3>
       <p className="text-[11px] text-gray-500 mb-4">{t('hover_preview')}</p>
 
-      <div className="flex-1 space-y-0.5 custom-scrollbar-categories pr-1 overflow-y-auto min-h-0">
-        {loading && (
-          <div className="space-y-1">
-            {[...Array(9)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 py-2 px-2.5">
-                <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-3 w-[70%] rounded-full" />
-                  <Skeleton className="h-2 w-[40%] rounded-full" />
+      <div className="relative flex-1 min-h-0">
+        {/* Top Fade Indicator */}
+        <div 
+          className={cn(
+            "absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none transition-opacity duration-300",
+            scrollTop > 0 ? "opacity-100" : "opacity-0"
+          )} 
+        />
+
+        <div 
+          ref={scrollRef}
+          onScroll={(e) => {
+            const target = e.currentTarget;
+            setScrollTop(target.scrollTop);
+            setIsAtBottom(target.scrollTop + target.clientHeight >= target.scrollHeight - 2);
+          }}
+          className="h-full space-y-0.5 pr-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {loading && (
+            <div className="space-y-1">
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3 py-2 px-2.5">
+                  <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3 w-[70%] rounded-full" />
+                    <Skeleton className="h-2 w-[40%] rounded-full" />
+                  </div>
+                  <Skeleton className="w-4 h-4 rounded-full opacity-20" />
                 </div>
-                <Skeleton className="w-4 h-4 rounded-full opacity-20" />
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
         {!loading && displayedCategories.length === 0 && (
           <div className="text-sm text-gray-500">{t('no_categories')}</div>
@@ -93,6 +129,15 @@ export default function CategoriesSection() {
             </div>
           )
         })}
+        </div>
+
+        {/* Bottom Fade Indicator */}
+        <div 
+          className={cn(
+            "absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none transition-opacity duration-300",
+            !isAtBottom && scrollHeight > 0 ? "opacity-100" : "opacity-0"
+          )} 
+        />
       </div>
 
       {/* Flyout Subcategories Menu - Now outside the overflow container */}
