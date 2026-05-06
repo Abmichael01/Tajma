@@ -207,8 +207,6 @@ OPTIMIZED_CATEGORIES = [
     }
 ]
 
-]
-
 class Command(BaseCommand):
     help = 'Production seed for Countries, Departments, and SEO-optimized Categories.'
 
