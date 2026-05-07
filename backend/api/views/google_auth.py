@@ -7,6 +7,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.contrib.auth import login
+from django.core import signing
+from django.core.signing import BadSignature, SignatureExpired
 from django.views.decorators.csrf import csrf_exempt
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
@@ -15,6 +17,8 @@ from api.views.auth import get_tokens_for_user
 from api.models.user import User
 
 SUPPORTED_LOCALES = {'en', 'fr', 'ha'}
+MOBILE_EXCHANGE_SALT = 'tajma.google-mobile-oauth'
+MOBILE_EXCHANGE_MAX_AGE_SECONDS = 300
 
 def _get_locale(request):
     """Read locale from Accept-Language header sent by the frontend API client."""
@@ -27,6 +31,37 @@ def _locale_redirect_uri(request):
     locale = _get_locale(request)
     frontend = settings.FRONTEND_URL.rstrip('/')
     return f'{frontend}/{locale}/auth/google/callback'
+
+
+def _auth_payload(user):
+    """Build the API auth payload returned after Google sign-in succeeds."""
+    tokens = get_tokens_for_user(user)
+    return {
+        'user': UserDetailsSerializer(user).data,
+        'message': 'Google authentication successful',
+        'access': tokens['access'],
+        'refresh': tokens['refresh']
+    }
+
+
+def _create_mobile_exchange_token(user):
+    """Create a short-lived signed token the mobile app can exchange for JWTs."""
+    return signing.dumps(
+        {'user_id': user.pk},
+        salt=MOBILE_EXCHANGE_SALT,
+        compress=True,
+    )
+
+
+def _exchange_mobile_token(exchange_token):
+    data = signing.loads(
+        exchange_token,
+        salt=MOBILE_EXCHANGE_SALT,
+        max_age=MOBILE_EXCHANGE_MAX_AGE_SECONDS,
+    )
+    user_id = data.get('user_id')
+    user = User.objects.get(pk=user_id)
+    return _auth_payload(user)
 
 
 @csrf_exempt
@@ -48,7 +83,10 @@ def google_login(request):
         redirect_uri = redirect_uri.rstrip('/')
         
         # Check if this is a mobile app request
-        mobile_app = request.GET.get('mobile_app', 'false').lower() == 'true'
+        mobile_app = (
+            request.GET.get('mobile_app', 'false').lower() == 'true'
+            or 'mobile_app=true' in redirect_uri
+        )
         
         # Remove mobile_app param from redirect_uri for Google (Google needs exact match)
         # We'll use state parameter to pass mobile_app flag through OAuth flow
@@ -114,6 +152,22 @@ def google_callback(request):
     import logging
     
     logger = logging.getLogger(__name__)
+
+    if request.method == 'POST' and request.data.get('mobile_exchange_token'):
+        try:
+            return Response(
+                _exchange_mobile_token(request.data.get('mobile_exchange_token'))
+            )
+        except SignatureExpired:
+            return Response(
+                {'error': 'Google sign-in expired. Please try again.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except (BadSignature, User.DoesNotExist):
+            return Response(
+                {'error': 'Invalid Google sign-in token. Please try again.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
     # Handle both GET (redirect from Google) and POST (API call) requests
     if request.method == 'GET':
@@ -250,18 +304,19 @@ def google_callback(request):
             # Redirect to app deep link
             # The app will intercept this deep link and complete the login
             from django.http import HttpResponseRedirect
+            from urllib.parse import urlencode
+
             app_scheme = getattr(settings, 'MOBILE_APP_SCHEME', 'tajma')
-            redirect_url = f'{app_scheme}://auth/google/callback?success=true&code={code}'
+            exchange_token = _create_mobile_exchange_token(user)
+            redirect_params = urlencode({
+                'success': 'true',
+                'exchange_token': exchange_token,
+            })
+            redirect_url = f'{app_scheme}://auth/google/callback?{redirect_params}'
             return HttpResponseRedirect(redirect_url)
         
         # For web/API requests, return JSON response
-        tokens = get_tokens_for_user(user)
-        return Response({
-            'user': UserDetailsSerializer(user).data,
-            'message': 'Google authentication successful',
-            'access': tokens['access'],
-            'refresh': tokens['refresh']
-        })
+        return Response(_auth_payload(user))
         
     except Exception as e:
         import traceback
@@ -273,4 +328,3 @@ def google_callback(request):
             },
             status=status.HTTP_400_BAD_REQUEST
         )
-

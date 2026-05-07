@@ -23,18 +23,21 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Tajma Marketplace <noreply@tajma.net>')
 
-# Media storage strategy: Cloudinary for production, Local for development
-if ENVIRONMENT == 'production' and os.getenv('CLOUDINARY_CLOUD_NAME'):
+# Media storage strategy: Cloudinary if credentials provided, otherwise Local
+CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
-        'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
-        'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': CLOUDINARY_API_KEY,
+        'API_SECRET': CLOUDINARY_API_SECRET,
     }
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 else:
     # Use local FileSystemStorage for development
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    # Ensure MEDIA_URL and MEDIA_ROOT are used for local serving
 
 # Categories JSON export path
 CATEGORIES_JSON_PATH = os.getenv(

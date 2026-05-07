@@ -37,7 +37,17 @@ const nextConfig: NextConfig = {
         hostname: 'www.tajma.net',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.tajma.net',
+        pathname: '/**',
+      },
       // 4. Third-party: Essential External Services
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
