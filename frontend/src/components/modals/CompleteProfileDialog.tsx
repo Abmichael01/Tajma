@@ -10,15 +10,13 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from '@/i18n/routing'
 import { useAuthStore } from '@/store/authStore'
 import { useUpdateProfile, useCSRFToken, useCurrentUser } from '@/hooks/useAuth'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useLocations } from '@/hooks/useLocations'
 import { useTranslations } from 'next-intl'
-import { UserCircle, Phone, MapPin } from 'lucide-react'
+import { Phone } from 'lucide-react'
 import ImageUploader from '@/components/ui/ImageUploader'
 import SmartLocationSearch from '@/components/ui/SmartLocationSearch'
 import { type Location, type Country } from '@/api/countries'
@@ -39,24 +37,6 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
   const queryClient = useQueryClient()
   const { refetch: refetchUser } = useCurrentUser()
 
-  const [addressSearch, setAddressSearch] = useState('')
-  const { data: addressSuggestions, isLoading: addressLoading } = useLocations(
-    { 
-      search: addressSearch.length >= 2 ? addressSearch : undefined,
-      level: 'all' // HDX data detail
-    },
-    { enabled: addressSearch.length >= 2 }
-  )
-
-  const addressOptions = React.useMemo(() => 
-    addressSuggestions?.results.map(r => ({
-      value: r.name,
-      label: r.name,
-      description: r.full_name
-    })) || [], 
-    [addressSuggestions]
-  )
-
   const [formData, setFormData] = useState({
     phone: user?.phone || '',
     locationId: user?.location_id?.toString() || '',
@@ -67,6 +47,9 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
     bio: user?.bio || '',
     countryId: user?.country_id?.toString() || ''
   })
+  const [showInlineForm, setShowInlineForm] = useState(showForm)
+  const [avatarBase64, setAvatarBase64] = useState<string | null>(null)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Sync with user data once loaded
   useEffect(() => {
@@ -81,9 +64,11 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
     }
   }, [user])
 
-  const [showInlineForm, setShowInlineForm] = useState(showForm)
-  const [avatarBase64, setAvatarBase64] = useState<string | null>(null)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  useEffect(() => {
+    if (isOpen && showForm) {
+      setShowInlineForm(true)
+    }
+  }, [isOpen, showForm])
 
   const handleLocationSelect = (location: Location | null, country: Country | null) => {
     setFormData(prev => ({ 
@@ -97,12 +82,8 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
   }
 
   const handleCompleteProfile = () => {
-    if (showInlineForm) {
-      setShowInlineForm(true)
-    } else {
-      onClose()
-      router.push('/seller/setup')
-    }
+    onClose()
+    router.push('/seller/setup')
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -201,7 +182,7 @@ export default function CompleteProfileDialog({ isOpen, onClose, showForm = fals
           <SheetTitle>{t('title')}</SheetTitle>
           <SheetDescription>{t('description')}</SheetDescription>
         </SheetHeader>
-        <div className="mt-4 pb-4">
+        <div className="px-6 sm:px-8 pt-8 pb-8">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-900">{t('title')}</h2>
             <p className="text-sm text-gray-500 mt-1">{t('profile_image_desc')}</p>

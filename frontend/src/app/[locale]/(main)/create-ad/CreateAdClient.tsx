@@ -15,6 +15,7 @@ import { useCreateAd } from '@/hooks/useAds'
 import { useAuthStore } from '@/store/authStore'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import CompleteProfileDialog from '@/components/modals/CompleteProfileDialog'
+import SellerSetupChoiceDialog from '@/components/modals/SellerSetupChoiceDialog'
 import type { CategoryTree, CategoryType } from '@/types/category'
 
 const VALID_AD_TYPES = new Set<string>(['product', 'service', 'job', 'cv'])
@@ -104,8 +105,25 @@ export default function CreateAdClient() {
   const [customFields, setCustomFields] = useState<CustomFieldConfig[] | string[]>([])
   const [categoryPath, setCategoryPath] = useState<string[]>([])
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
-  const [showProfileDialog, setShowProfileDialog] = useState(false)
+  const [showProfileChoiceDialog, setShowProfileChoiceDialog] = useState(false)
+  const [showProfileSheet, setShowProfileSheet] = useState(false)
   const [hasShownDialogForCategory, setHasShownDialogForCategory] = useState<string | null>(null)
+
+  const openSellerSetupChoice = React.useCallback(() => {
+    setShowProfileSheet(false)
+    setShowProfileChoiceDialog(true)
+  }, [])
+
+  const handleSetupHere = () => {
+    setShowProfileChoiceDialog(false)
+    setShowProfileSheet(true)
+  }
+
+  const handleGoToSellerSetup = () => {
+    setShowProfileChoiceDialog(false)
+    setShowProfileSheet(false)
+    router.push('/seller/setup')
+  }
 
   // All hooks must be called before any conditional returns
   const findNodeBySlug = React.useCallback((nodes: CategoryTree[], slug: string): CategoryTree | null => {
@@ -200,7 +218,7 @@ export default function CreateAdClient() {
         // Only show dialog once per category selection
         const categoryKey = categoryPath[0]
         if (!hasBusinessProfile && hasShownDialogForCategory !== categoryKey) {
-          setShowProfileDialog(true)
+          openSellerSetupChoice()
           setHasShownDialogForCategory(categoryKey)
         } else if (hasBusinessProfile) {
           // Reset the flag if profile is now set up
@@ -226,7 +244,7 @@ export default function CreateAdClient() {
       setCustomFields([])
       setFormData((prev) => ({ ...prev, category: '', adType: '' }))
     }
-  }, [categoryPath, categoryTree, getNodeByPath, resetAttributeFields, user])
+  }, [categoryPath, categoryTree, getNodeByPath, hasShownDialogForCategory, openSellerSetupChoice, resetAttributeFields, user])
 
   const selectedCategory = useMemo(
     () => getNodeByPath(categoryTree, categoryPath),
@@ -365,7 +383,7 @@ export default function CreateAdClient() {
   const handleNext = () => {
     // Check if seller profile is required
     if (requiresSellerProfile) {
-      setShowProfileDialog(true)
+      openSellerSetupChoice()
       return
     }
     
@@ -421,7 +439,7 @@ export default function CreateAdClient() {
     
     // Check if seller profile is required before submitting
     if (requiresSellerProfile) {
-      setShowProfileDialog(true)
+      openSellerSetupChoice()
       return
     }
     
@@ -566,7 +584,7 @@ export default function CreateAdClient() {
                   onClick={(e) => {
                     e.preventDefault()
                     if (requiresSellerProfile) {
-                      setShowProfileDialog(true)
+                      openSellerSetupChoice()
                     } else {
                       handleNext()
                     }
@@ -579,10 +597,12 @@ export default function CreateAdClient() {
               ) : (
                 <Button 
                   type="submit" 
-                  disabled={createAd.isPending || requiresSellerProfile} 
+                  disabled={createAd.isPending} 
                   className="order-1 sm:order-2 rounded-full h-12 px-10 font-bold bg-secondary text-white hover:bg-secondary/90 transition-all active:scale-[0.98] shadow-sm"
                 >
-                  {createAd.isPending ? (
+                  {requiresSellerProfile ? (
+                    t('buttons.setup_profile')
+                  ) : createAd.isPending ? (
                     <>
                       <span className="animate-spin mr-2">⏳</span>
                       {t('buttons.publishing')}
@@ -608,11 +628,17 @@ export default function CreateAdClient() {
         </div>
       </div>
 
+      <SellerSetupChoiceDialog
+        isOpen={showProfileChoiceDialog}
+        onClose={() => setShowProfileChoiceDialog(false)}
+        onSetupHere={handleSetupHere}
+        onGoToSetup={handleGoToSellerSetup}
+      />
+
       <CompleteProfileDialog
-        isOpen={showProfileDialog}
-        onClose={() => {
-          setShowProfileDialog(false)
-        }}
+        isOpen={showProfileSheet}
+        onClose={() => setShowProfileSheet(false)}
+        showForm
       />
     </div>
   )
