@@ -394,7 +394,7 @@ const MessageBubble = React.memo(
             <View style={bubbleStyle} className="flex-col">
               {message.parent_message && (
                 <TouchableOpacity
-                  activeOpacity={0.7}
+                  activeOpacity={0.6}
                   disabled={isSelectionMode}
                   onPress={() =>
                     message.parent_message?.id &&
@@ -412,41 +412,53 @@ const MessageBubble = React.memo(
                     },
                   ]}
                 >
-                  <AppText
-                    weight="bold"
-                    style={[
-                      styles.replyPreviewName,
-                      {
-                        color: isMe
-                          ? CHAT_COLORS.sentText
-                          : CHAT_COLORS.brandAccent,
-                      },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {message.parent_message.sender?.full_name ||
-                      message.parent_message.sender?.username ||
-                      "Reply"}
-                  </AppText>
-                  <AppText
-                    style={[
-                      styles.replyPreviewText,
-                      {
-                        color: isMe
-                          ? "rgba(255,255,255,0.70)"
-                          : CHAT_COLORS.receivedMeta,
-                      },
-                    ]}
-                    numberOfLines={2}
-                  >
-                    {message.parent_message.message_type === "image"
-                      ? "📷 Photo"
-                      : message.parent_message.message_type === "audio"
-                        ? "🎤 Voice Message"
-                        : message.parent_message.message_type === "document"
-                          ? "📄 Document"
-                          : message.parent_message.content}
-                  </AppText>
+                  <View style={{ flex: 1 }}>
+                    <AppText
+                      weight="bold"
+                      style={[
+                        styles.replyPreviewName,
+                        {
+                          color: isMe
+                            ? CHAT_COLORS.sentText
+                            : CHAT_COLORS.brandAccent,
+                        },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {message.parent_message.sender?.full_name ||
+                        message.parent_message.sender?.username ||
+                        "Reply"}
+                    </AppText>
+                    <AppText
+                      style={[
+                        styles.replyPreviewText,
+                        {
+                          color: isMe
+                            ? "rgba(255,255,255,0.70)"
+                            : CHAT_COLORS.receivedMeta,
+                        },
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {message.parent_message.message_type === "image"
+                        ? "📷 Photo"
+                        : message.parent_message.message_type === "audio"
+                          ? "🎤 Voice Message"
+                          : message.parent_message.message_type === "document"
+                            ? "📄 Document"
+                            : message.parent_message.content}
+                    </AppText>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={14}
+                    color={
+                      isMe
+                        ? "rgba(255,255,255,0.55)"
+                        : CHAT_COLORS.receivedMeta
+                    }
+                    style={{ marginLeft: 6 }}
+                  />
                 </TouchableOpacity>
               )}
 
@@ -602,7 +614,7 @@ const MessageBubble = React.memo(
 const styles = StyleSheet.create({
   outerRow: {
     flexDirection: "row",
-    paddingHorizontal: 8,
+    paddingHorizontal: 14,
   },
   bubbleWrapper: {
     position: "relative",
@@ -611,8 +623,8 @@ const styles = StyleSheet.create({
   bubbleBase: {
     borderBottomLeftRadius: BUBBLE_RADIUS,
     borderBottomRightRadius: BUBBLE_RADIUS,
-    paddingHorizontal: 5,
-    paddingVertical: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 7,
   },
   tailRight: {
     position: "absolute",
@@ -632,8 +644,8 @@ const styles = StyleSheet.create({
   },
   selectedRow: {
     backgroundColor: "rgba(255, 79, 24, 0.12)",
-    marginHorizontal: -8,
-    paddingHorizontal: 8,
+    marginHorizontal: -14,
+    paddingHorizontal: 14,
   },
   statusIcon: { marginLeft: 3 },
   messageText: {
@@ -651,14 +663,17 @@ const styles = StyleSheet.create({
   },
   textBlock: {
     marginBottom: 0,
-    paddingHorizontal: 2,
+    paddingHorizontal: 4,
+    paddingVertical: 0,
   },
   replyPreview: {
-    marginBottom: 5,
-    paddingHorizontal: 7,
-    paddingVertical: 5,
-    borderRadius: 12,
-    borderLeftWidth: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+    paddingHorizontal: 9,
+    paddingVertical: 7,
+    borderRadius: 8,
+    borderLeftWidth: 3,
   },
   replyPreviewName: {
     fontSize: 12,
@@ -688,7 +703,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   metadataAfterText: {
-    marginTop: 0,
+    marginTop: -3,
   },
   metadataStandalone: {
     marginTop: 0,
@@ -700,6 +715,8 @@ const styles = StyleSheet.create({
   contentContainer: {
     zIndex: 20,
     minWidth: 40,
+    paddingHorizontal: 2,
+    paddingVertical: 1,
   },
   audioBlock: {
     paddingVertical: 0,

@@ -255,7 +255,7 @@ export default function Navbar() {
                         {!isAuthenticated ? (
                             <div className='flex items-center gap-1 sm:gap-2'>
                                 <Link href="/login" className="hidden sm:block">
-                                    <Button variant="secondary" size="sm" className="hover:bg-secondary/90">
+                                    <Button variant="primary" size="sm">
                                         {t('login')}
                                     </Button>
                                 </Link>

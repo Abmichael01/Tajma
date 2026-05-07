@@ -1,6 +1,6 @@
-import { View, ScrollView, TouchableOpacity, RefreshControl, Linking, Alert, ActivityIndicator } from "react-native";
+import { View, Animated, TouchableOpacity, RefreshControl, Linking, ActivityIndicator } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
@@ -14,23 +14,17 @@ import { useAuthStore } from "@/store/authStore";
 import { useGetOrCreateChat } from "@/hooks/useChat";
 import { AdsList, AdsListSkeleton } from "@/components/ads";
 import Skeleton from "@/components/ui/Skeleton";
-import ScreenHeader from "@/components/ui/ScreenHeader";
 import CustomAlert from "@/components/ui/CustomAlert";
 import { useAlert } from "@/hooks/useAlert";
 import { useCreateNotification } from "@/hooks/useNotifications";
-import * as Clipboard from 'expo-clipboard';
+import ScrollAwareHeader from "@/components/ui/ScrollAwareHeader";
+import { useTranslation } from "react-i18next";
 
 type TabType = 'ads' | 'reviews';
 
 export default function UserProfileScreen() {
+  const { t } = useTranslation();
   const { slug } = useLocalSearchParams<{ slug: string }>();
-
-  if (!slug) {
-    console.warn('[UserProfileScreen] Missing slug param');
-  } else {
-    console.log('[UserProfileScreen] Fetching profile for slug:', slug);
-  }
-
   const router = useRouter();
   const { alertConfig, showAlert, hideAlert } = useAlert();
   const { user: currentUser, isAuthenticated } = useAuthStore();
@@ -44,6 +38,7 @@ export default function UserProfileScreen() {
   const { mutate: notifyUser } = useCreateNotification();
   const { mutateAsync: getOrCreateChat, isPending: isGettingChat } = useGetOrCreateChat();
 
+  const scrollY = useRef(new Animated.Value(0)).current;
   const isOwner = currentUser && profile && String(currentUser.id) === String(profile.id);
   const ads = Array.isArray(adsData) ? adsData : ((adsData as any)?.results || []);
   const reviews = Array.isArray(reviewsData) ? reviewsData : ((reviewsData as any)?.results || []);
@@ -88,8 +83,7 @@ export default function UserProfileScreen() {
           </TouchableOpacity>
           <AppText variant="heading" weight="bold" className="text-white text-3xl">Profile</AppText>
         </View>
-        <ScrollView className="flex-1">
-          {/* Profile Header Skeleton */}
+        <Animated.ScrollView className="flex-1">
           <View className="bg-white border-b border-gray-200 px-4 py-8">
             <View className="items-center mb-6">
               <Skeleton className="w-20 h-20 rounded-full mb-4" variant="circular" />
@@ -97,29 +91,8 @@ export default function UserProfileScreen() {
               <Skeleton variant="text" className="w-24 h-4 mb-2" />
               <Skeleton variant="text" className="w-40 h-4" />
             </View>
-            <View className="flex-row gap-3 mb-6">
-              <Skeleton className="flex-1 h-12 rounded-full" />
-              <Skeleton className="flex-1 h-12 rounded-full" />
-            </View>
           </View>
-
-          {/* Tabs Skeleton */}
-          <View className="bg-white border-b border-gray-200 px-4">
-            <View className="flex-row gap-2">
-              <Skeleton className="flex-1 h-12 rounded-t-lg" />
-              <Skeleton className="flex-1 h-12 rounded-t-lg" />
-            </View>
-          </View>
-
-          {/* Tab Content Skeleton */}
-          <View className="px-4 py-6">
-            <View className="flex-row flex-wrap gap-2">
-              {Array.from({ length: 4 }).map((_, idx) => (
-                <Skeleton key={idx} className="w-[48%] h-64 rounded" />
-              ))}
-            </View>
-          </View>
-        </ScrollView>
+        </Animated.ScrollView>
       </View >
     );
   }
@@ -159,43 +132,60 @@ export default function UserProfileScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <ScreenHeader
-        title={isOwner ? "My Profile" : userName}
+      <StatusBar style="dark" />
+      
+      <ScrollAwareHeader 
+        title={isOwner ? "My Profile" : userName} 
+        scrollY={scrollY} 
+        showAt={100}
       />
 
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#FF4F18" />
         }
       >
-        {/* Profile Header */}
-        <View className="bg-white border-b border-gray-200 px-4 py-8">
+        {/* Top Header with Back Button */}
+        <View className="bg-white px-6 pt-12 pb-4 flex-row items-center">
+           <BackButton isStatic />
+           <AppText weight="bold" className="text-gray-900 text-2xl ml-4">
+              {isOwner ? "My Profile" : userName}
+           </AppText>
+        </View>
+
+        {/* Profile Info */}
+        <View className="bg-white border-b border-gray-100 px-6 py-8">
           <View className="items-center mb-6">
             <Avatar
               src={profile.avatar || undefined}
               alt={userName}
               fallback={getUserInitials()}
-              size={80}
-              className="mb-4"
+              size={100}
+              className="mb-5 shadow-lg"
             />
 
             <View className="flex-row items-center gap-2 mb-2">
-              <AppText variant="heading" weight="semibold" className="text-gray-900">
+              <AppText variant="heading" weight="bold" className="text-gray-900 text-2xl">
                 {userName}
               </AppText>
               {profile.is_verified && (
-                <Ionicons name="shield-checkmark" size={20} color="#10b981" />
+                <Ionicons name="shield-checkmark" size={24} color="#FF4F18" />
               )}
             </View>
 
-            <View className="flex-row items-center gap-1 mb-3">
-              <Ionicons name="star" size={16} color="#eab308" />
-              <AppText weight="semibold" className="text-gray-900">
+            <View className="flex-row items-center gap-1 mb-4">
+              <Ionicons name="star" size={18} color="#FF4F18" />
+              <AppText weight="bold" className="text-gray-900 text-lg">
                 {rating.toFixed(1)}
               </AppText>
-              <AppText variant="default" className="text-gray-500">
+              <AppText variant="default" className="text-gray-500 font-medium">
                 ({totalReviews} reviews)
               </AppText>
               <AppText variant="caption" className="text-gray-400 ml-2">
@@ -204,17 +194,17 @@ export default function UserProfileScreen() {
             </View>
 
             {profile.location && (
-              <View className="flex-row items-center gap-1 mb-2">
+              <View className="flex-row items-center gap-1 mb-3 bg-gray-50 px-4 py-1.5 rounded-full">
                 <Ionicons name="location-outline" size={14} color="#6b7280" />
-                <AppText variant="default" className="text-gray-600 text-sm">
+                <AppText variant="default" className="text-gray-600 text-sm font-medium">
                   {profile.location}
                 </AppText>
               </View>
             )}
 
             {profile.bio && (
-              <AppText variant="default" className="text-gray-600 text-center mt-3 px-4">
-                {profile.bio}
+              <AppText variant="default" className="text-gray-500 text-center mt-3 px-4 italic">
+                "{profile.bio}"
               </AppText>
             )}
           </View>
@@ -222,11 +212,8 @@ export default function UserProfileScreen() {
           {/* Action Buttons */}
           {!isOwner && (
             <View className="flex-row gap-3">
-              <Button
-                size="lg"
-                className="flex-1"
+              <TouchableOpacity
                 disabled={isGettingChat}
-                leftIcon={isGettingChat ? <ActivityIndicator color="white" size="small" /> : <Ionicons name="chatbubble-ellipses-outline" size={20} color="#ffffff" />}
                 onPress={async () => {
                   if (!isAuthenticated) {
                     router.push("/(auth)/login");
@@ -248,19 +235,23 @@ export default function UserProfileScreen() {
                     }
                   }
                 }}
+                className="flex-1 bg-gray-900 h-14 rounded-full flex-row items-center justify-center shadow-sm"
               >
-                Contact
-              </Button>
+                {isGettingChat ? (
+                   <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="chatbubble-ellipses-outline" size={20} color="#ffffff" />
+                    <AppText weight="bold" className="text-white ml-2">Contact</AppText>
+                  </>
+                )}
+              </TouchableOpacity>
+              
               {profile.phone && (
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="flex-1"
-                  leftIcon={<Ionicons name={showPhone ? "call-outline" : "eye-outline"} size={20} color="#ffffff" />}
+                <TouchableOpacity
                   onPress={() => {
                     if (!showPhone) {
                       setShowPhone(true);
-                      // Notify user that their number was viewed
                       if (currentUser && profile.id && String(currentUser.id) !== String(profile.id)) {
                         notifyUser({
                           recipient: Number(profile.id),
@@ -274,29 +265,34 @@ export default function UserProfileScreen() {
                       Linking.openURL(`tel:${profile.phone}`);
                     }
                   }}
+                  className="flex-1 bg-primary h-14 rounded-full flex-row items-center justify-center shadow-sm"
+                  style={{ backgroundColor: '#FF4F18' }}
                 >
-                  {showPhone ? "Call" : "Show Number"}
-                </Button>
+                  <Ionicons name={showPhone ? "call-outline" : "eye-outline"} size={20} color="#ffffff" />
+                  <AppText weight="bold" className="text-white ml-2">
+                    {showPhone ? "Call" : "Show Number"}
+                  </AppText>
+                </TouchableOpacity>
               )}
             </View>
           )}
         </View>
 
         {/* Tabs */}
-        <View className="bg-white border-b border-gray-200 px-4">
-          <View className="flex-row gap-2">
+        <View className="bg-white border-b border-gray-100 px-6">
+          <View className="flex-row gap-8">
             {(['ads', 'reviews'] as TabType[]).map((tab) => (
               <TouchableOpacity
                 key={tab}
                 onPress={() => setActiveTab(tab)}
-                className={`flex-1 py-3 rounded-t-lg border-b-2 ${activeTab === tab
+                className={`py-4 border-b-2 ${activeTab === tab
                   ? 'border-primary'
                   : 'border-transparent'
                   }`}
               >
                 <AppText
-                  weight={activeTab === tab ? 'semibold' : 'medium'}
-                  className={`text-center capitalize ${activeTab === tab ? 'text-primary' : 'text-gray-600'
+                  weight={activeTab === tab ? 'bold' : 'bold'}
+                  className={`capitalize text-lg ${activeTab === tab ? 'text-primary' : 'text-gray-300'
                     }`}
                 >
                   {tab}
@@ -307,17 +303,17 @@ export default function UserProfileScreen() {
         </View>
 
         {/* Tab Content */}
-        <View className="flex-1">
+        <View className="flex-1 bg-gray-50/50 pb-20">
           {activeTab === 'ads' && (
             <View className="flex-1">
               {adsLoading ? (
                 <AdsListSkeleton />
               ) : ads.length === 0 ? (
                 <View className="flex-1 items-center justify-center py-20 px-4 min-h-[300px]">
-                  <Ionicons name="cube-outline" size={48} color="#d1d5db" />
-                  <AppText variant="default" weight="medium" className="text-gray-500 mt-4">
-                    No ads yet
-                  </AppText>
+                  <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-4">
+                    <Ionicons name="cube-outline" size={32} color="#94a3b8" />
+                  </View>
+                  <AppText weight="bold" className="text-gray-400">No ads yet</AppText>
                 </View>
               ) : (
                 <AdsList ads={ads} columns={2} />
@@ -326,23 +322,22 @@ export default function UserProfileScreen() {
           )}
 
           {activeTab === 'reviews' && (
-            <View className="p-4 pb-8">
+            <View className="p-6">
               {reviewsLoading ? (
                 <View>
                   {Array.from({ length: 3 }).map((_, idx) => (
-                    <View key={idx} className="mb-4 p-4 border border-gray-200 rounded-xl">
+                    <View key={idx} className="mb-4 p-4 border border-gray-100 bg-white rounded-2xl">
                       <Skeleton variant="text" className="w-32 h-5 mb-2" />
                       <Skeleton variant="text" className="w-full h-4 mb-1" />
-                      <Skeleton variant="text" className="w-3/4 h-4" />
                     </View>
                   ))}
                 </View>
               ) : reviews.length === 0 ? (
                 <View className="flex-1 items-center justify-center py-20 min-h-[300px]">
-                  <Ionicons name="star-outline" size={48} color="#d1d5db" />
-                  <AppText variant="default" weight="medium" className="text-gray-500 mt-4">
-                    No reviews yet
-                  </AppText>
+                  <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-4">
+                    <Ionicons name="star-outline" size={32} color="#94a3b8" />
+                  </View>
+                  <AppText weight="bold" className="text-gray-400">No reviews yet</AppText>
                 </View>
               ) : (
                 <View>
@@ -351,40 +346,40 @@ export default function UserProfileScreen() {
                     const reviewerInitials = reviewerName.split(' ').map((n: string) => n.charAt(0)).join('').slice(0, 2).toUpperCase();
 
                     return (
-                      <View key={review.id} className="mb-4 p-4 border border-gray-200 rounded-xl">
-                        <View className="flex-row items-start gap-3 mb-3">
+                      <View key={review.id} className="mb-4 p-5 bg-white border border-gray-100 rounded-[24px]">
+                        <View className="flex-row items-start gap-3 mb-4">
                           <Avatar
                             src={review.reviewer_avatar || review.reviewer?.avatar}
                             alt={reviewerName}
                             fallback={reviewerInitials}
-                            size={40}
+                            size={44}
                           />
                           <View className="flex-1">
-                            <AppText variant="default" weight="medium" className="text-gray-900 mb-1">
+                            <AppText weight="bold" className="text-gray-900 mb-1">
                               {reviewerName}
                             </AppText>
-                            <View className="flex-row items-center gap-2 mb-2">
+                            <View className="flex-row items-center gap-2">
                               <View className="flex-row">
                                 {Array.from({ length: 5 }).map((_, i) => (
                                   <Ionicons
                                     key={i}
                                     name={i < review.rating ? 'star' : 'star-outline'}
-                                    size={16}
-                                    color="#eab308"
+                                    size={14}
+                                    color="#FF4F18"
                                   />
                                 ))}
                               </View>
-                              <AppText variant="caption" className="text-gray-500">
+                              <AppText variant="caption" className="text-gray-400">
                                 {new Date(review.created_at).toLocaleDateString()}
                               </AppText>
                             </View>
-                            {review.comment && (
-                              <AppText variant="default" className="text-gray-700">
-                                {review.comment}
-                              </AppText>
-                            )}
                           </View>
                         </View>
+                        {review.comment && (
+                          <AppText className="text-gray-600 leading-5">
+                            {review.comment}
+                          </AppText>
+                        )}
                       </View>
                     );
                   })}
@@ -392,9 +387,8 @@ export default function UserProfileScreen() {
               )}
             </View>
           )}
-
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       <CustomAlert
         visible={alertConfig.visible}

@@ -367,62 +367,74 @@ export default function ChatRoomScreen() {
         style={{ height: searchBarHeight, overflow: "hidden" }}
         className="bg-white border-b border-gray-100"
       >
-        <View className="flex-row items-center px-3 py-1.5 bg-gray-100/80 m-2 rounded-2xl border border-gray-100">
-          <Ionicons name="search-outline" size={18} color="#64748B" />
-          <TextInput
-            className="flex-1 ml-2 text-[15px] text-gray-900 h-9"
-            placeholder="Search messages..."
-            placeholderTextColor="#94A3B8"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoFocus={isSearchVisible}
-            style={{ paddingVertical: 0 }}
-            multiline={false}
-          />
-          {searchQuery.length > 0 && totalMatches > 0 && (
-            <View className="flex-row items-center bg-white/50 px-2 py-0.5 rounded-lg border border-gray-200/50">
-              <AppText className="text-[11px] text-slate-500 font-bold mr-2">
-                {currentMatchIndex + 1} / {totalMatches}
-              </AppText>
-              <View className="flex-row items-center border-l border-gray-200 pl-1 ml-1 gap-1">
-                <Pressable
-                  onPress={() =>
-                    setCurrentMatchIndex((prev) => (prev + 1) % totalMatches)
-                  }
-                  className="p-1"
-                  hitSlop={8}
-                >
-                  <Ionicons name="chevron-up" size={18} color="#475569" />
-                </Pressable>
-                <Pressable
-                  onPress={() =>
-                    setCurrentMatchIndex(
-                      (prev) => (prev - 1 + totalMatches) % totalMatches,
-                    )
-                  }
-                  className="p-1"
-                  hitSlop={8}
-                >
-                  <Ionicons name="chevron-down" size={18} color="#475569" />
-                </Pressable>
+        <View className="flex-row items-center m-2 gap-2">
+          <View className="flex-1 flex-row items-center px-3 py-1.5 bg-gray-100/80 rounded-2xl border border-gray-100">
+            <Ionicons name="search-outline" size={18} color="#64748B" />
+            <TextInput
+              className="flex-1 ml-2 text-[15px] text-gray-900 h-9"
+              placeholder="Search messages..."
+              placeholderTextColor="#94A3B8"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus={isSearchVisible}
+              style={{ paddingVertical: 0 }}
+              multiline={false}
+            />
+            {searchQuery.length > 0 && totalMatches > 0 && (
+              <View className="flex-row items-center bg-white/50 px-2 py-0.5 rounded-lg border border-gray-200/50">
+                <AppText className="text-[11px] text-slate-500 font-bold mr-2">
+                  {currentMatchIndex + 1} / {totalMatches}
+                </AppText>
+                <View className="flex-row items-center border-l border-gray-200 pl-1 ml-1 gap-1">
+                  <Pressable
+                    onPress={() =>
+                      setCurrentMatchIndex((prev) => (prev + 1) % totalMatches)
+                    }
+                    className="p-1"
+                    hitSlop={8}
+                  >
+                    <Ionicons name="chevron-up" size={18} color="#475569" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() =>
+                      setCurrentMatchIndex(
+                        (prev) => (prev - 1 + totalMatches) % totalMatches,
+                      )
+                    }
+                    className="p-1"
+                    hitSlop={8}
+                  >
+                    <Ionicons name="chevron-down" size={18} color="#475569" />
+                  </Pressable>
+                </View>
               </View>
-            </View>
-          )}
-          {searchQuery.length > 0 && (
-            <Pressable
-              onPress={() => setSearchQuery("")}
-              className="ml-2"
-              hitSlop={8}
-            >
-              <Ionicons name="close-circle" size={18} color="#94A3B8" />
-            </Pressable>
-          )}
+            )}
+            {searchQuery.length > 0 && (
+              <Pressable
+                onPress={() => setSearchQuery("")}
+                className="ml-2"
+                hitSlop={8}
+              >
+                <Ionicons name="close-circle" size={18} color="#94A3B8" />
+              </Pressable>
+            )}
+          </View>
+          {/* Cancel button — closes the search bar entirely */}
+          <Pressable
+            onPress={() => setIsSearchVisible(false)}
+            hitSlop={10}
+            className="px-2"
+          >
+            <AppText weight="bold" className="text-primary text-sm">
+              Cancel
+            </AppText>
+          </Pressable>
         </View>
       </Animated.View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 56 : 0}
         className="flex-1"
         style={{ backgroundColor: "#ECE5DD" }}
       >

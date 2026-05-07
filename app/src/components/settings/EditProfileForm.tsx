@@ -30,6 +30,18 @@ export default function EditProfileForm() {
   const [avatar, setAvatar] = useState<string | null>(user?.avatar || null);
 
   const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      showAlert({
+        title: "Permission Required",
+        message: "We need your permission to access your photos to update your profile picture.",
+        icon: "image-outline",
+        iconColor: "#FF4F18",
+        buttons: [{ text: "OK" }],
+      });
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,

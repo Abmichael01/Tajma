@@ -33,7 +33,7 @@ export default function ReviewsScreen() {
     <View className="flex-1 bg-gray-50">
       <ScreenHeader
         title={t('profile.reviews')}
-        subtitle={reviews.length > 0 ? t('reviews_interact.reviewsReceived', { count: reviews.length }) : t('reviews_interact.yourFeedback')}
+        subtitle={reviews.length > 0 ? t('profile.reviews_interact.reviewsReceived', { count: reviews.length }) : t('profile.reviews_interact.yourFeedback')}
       />
 
       {isLoading && !isRefetching ? (
@@ -52,7 +52,7 @@ export default function ReviewsScreen() {
           ListHeaderComponent={
             reviews.length > 0 ? (
               <AppText variant="default" className="text-gray-500 mb-4">
-                {reviews.length} {reviews.length === 1 ? t('reviews_interact.review') : t('reviews_interact.reviews')}
+                {reviews.length} {reviews.length === 1 ? t('profile.reviews_interact.review') : t('profile.reviews_interact.reviews')}
               </AppText>
             ) : null
           }
@@ -62,10 +62,10 @@ export default function ReviewsScreen() {
                 <Ionicons name="star-outline" size={32} color="#9ca3af" />
               </View>
               <AppText variant="heading" weight="medium" className="text-gray-900 mb-2">
-                {t('reviews_interact.noReviewsTitle')}
+                {t('profile.reviews_interact.noReviewsTitle')}
               </AppText>
               <AppText variant="default" className="text-gray-500 text-center px-8">
-                {t('reviews_interact.noReviewsDesc')}
+                {t('profile.reviews_interact.noReviewsDesc')}
               </AppText>
             </View>
           }
@@ -106,7 +106,7 @@ export default function ReviewsScreen() {
                 {review.ad_title && (
                   <View className="bg-gray-50 rounded-lg p-3 flex-row items-center justify-between border border-gray-100">
                     <View className="flex-1 mr-2">
-                      <AppText variant="caption" className="text-gray-500 mb-0.5">{t('reviews_interact.reviewedItem')}:</AppText>
+                      <AppText variant="caption" className="text-gray-500 mb-0.5">{t('profile.reviews_interact.reviewedItem')}:</AppText>
                       <AppText variant="default" weight="medium" className="text-gray-900" numberOfLines={1}>
                         {review.ad_title}
                       </AppText>
@@ -114,7 +114,7 @@ export default function ReviewsScreen() {
                     <Link href={`/ads/${review.ad_slug || review.ad}`} asChild>
                       <TouchableOpacity className="bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
                         <AppText variant="caption" weight="medium" className="text-secondary">
-                          {t('reviews_interact.viewAd')}
+                          {t('profile.reviews_interact.viewAd')}
                         </AppText>
                       </TouchableOpacity>
                     </Link>

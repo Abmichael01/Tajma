@@ -3,6 +3,7 @@ import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
 import { Ad } from "@/api/types";
+import { useTranslation } from "react-i18next";
 
 import { resolveImageUrl } from "@/utils/imageUtils";
 
@@ -12,6 +13,7 @@ interface HorizontalAdCardProps {
 }
 
 export default function HorizontalAdCard({ ad, showStatus = false }: HorizontalAdCardProps) {
+  const { t } = useTranslation();
   const imageUrl = resolveImageUrl(ad.images?.[0] || null) || "https://via.placeholder.com/400x300?text=No+Image";
 
   const formattedPrice = ad.price
@@ -20,9 +22,9 @@ export default function HorizontalAdCard({ ad, showStatus = false }: HorizontalA
 
   // Status badge config
   const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-    published: { label: 'Active', color: '#16a34a', bgColor: '#f0fdf4' },
-    archived: { label: 'Archived', color: '#6b7280', bgColor: '#f9fafb' },
-    draft: { label: 'Draft', color: '#eab308', bgColor: '#fefce8' },
+    published: { label: t('ads.active'), color: '#16a34a', bgColor: '#f0fdf4' },
+    archived: { label: t('ads.archived'), color: '#6b7280', bgColor: '#f9fafb' },
+    draft: { label: t('ads.draft'), color: '#eab308', bgColor: '#fefce8' },
   };
 
   const statusInfo = ad.status ? statusConfig[ad.status] : null;
@@ -65,7 +67,7 @@ export default function HorizontalAdCard({ ad, showStatus = false }: HorizontalA
               </AppText>
               {ad.is_negotiable && (
                 <View className="bg-primary-50 px-1.5 rounded">
-                  <AppText className="text-[#FF4F18]" style={{ fontSize: 8 }} weight="bold">NEGOTIABLE</AppText>
+                  <AppText className="text-[#FF4F18]" style={{ fontSize: 8 }} weight="bold">{t('create_ad.fields.negotiable').toUpperCase()}</AppText>
                 </View>
               )}
             </View>

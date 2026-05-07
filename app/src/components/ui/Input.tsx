@@ -34,7 +34,7 @@ export default function Input({
       )}
       <TextInput
         className={cn(
-          "px-5 py-3 w-full bg-gray-50 border text-gray-900 text-base",
+          "px-5 py-4 w-full bg-gray-50 border text-gray-900 text-base",
           multiline ? "rounded-2xl" : "rounded-full", // Full rounded for single line
           leftIcon ? "pl-12" : "",
           (rightIcon || secureTextEntry) ? "pr-12" : "",

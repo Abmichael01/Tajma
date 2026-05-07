@@ -1,21 +1,17 @@
 import {
   View,
-  ScrollView,
+  Animated,
   TouchableOpacity,
   Platform,
   Linking,
-  Alert,
   ActivityIndicator,
   Share,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import AppText from "@/components/ui/AppText";
 import BackButton from "@/components/ui/BackButton";
 import { useAdDetails } from "@/hooks/useAds";
@@ -36,6 +32,7 @@ import CustomAlert from "@/components/ui/CustomAlert";
 import { useAlert } from "@/hooks/useAlert";
 import ReportAdModal from "@/components/ads/ReportAdModal";
 import { useTranslation } from "react-i18next";
+import ScrollAwareHeader from "@/components/ui/ScrollAwareHeader";
 
 export default function AdsDetailScreen() {
   const { t } = useTranslation();
@@ -51,6 +48,8 @@ export default function AdsDetailScreen() {
     useGetOrCreateChat();
   const { recordInteraction } = useLeads();
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // Check if current user is the ad owner
   const isOwner = user && ad && user.id === ad.seller?.id;
@@ -72,12 +71,13 @@ export default function AdsDetailScreen() {
 
   const handleShare = async () => {
     try {
-      const shareUrl = `https://tajma.com/ads/${ad.slug}`; // Fallback or dynamic link
+      if (!ad) return;
+      const shareUrl = `https://tajma.com/ads/${ad.slug}`; 
       const message = `Check out this ${ad.title} on Tajma!\n\nPrice: ${formattedPrice}\nLocation: ${location}\n\n${shareUrl}`;
 
       await Share.share({
         message,
-        url: shareUrl, // iOS only
+        url: shareUrl, 
         title: ad.title,
       });
     } catch (error) {
@@ -127,14 +127,33 @@ export default function AdsDetailScreen() {
     <View className="flex-1 bg-white">
       <StatusBar style="dark" />
 
-      {/* Floating Back Button - Handles insets internally */}
-      <BackButton />
+      <ScrollAwareHeader 
+        title={ad.title} 
+        scrollY={scrollY} 
+        showAt={300}
+        rightElement={
+          <TouchableOpacity onPress={handleShare}>
+            <Ionicons name="share-social-outline" size={22} color="#0f172b" />
+          </TouchableOpacity>
+        }
+      />
 
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
+        {!adImages || adImages.length === 0 ? (
+           <View style={{ paddingTop: insets.top + 10 }} className="px-6">
+              <BackButton isStatic />
+           </View>
+        ) : null}
+        
         {/* Image Gallery */}
         <AdImageGallery
           images={adImages}
@@ -196,7 +215,7 @@ export default function AdsDetailScreen() {
 
         {/* Safety Tips */}
         <AdSafetyTips />
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Sticky Bottom Actions */}
       <View
@@ -226,10 +245,9 @@ export default function AdsDetailScreen() {
                       ad_id: ad.id,
                     });
 
-                    // Track as interaction
                     recordInteraction({
                       seller_id: ad.seller.id,
-                      source: "phone_view", // Or maybe a new 'chat_start' source?
+                      source: "phone_view", 
                       ad_id: ad.id,
                     }).catch(console.error);
 

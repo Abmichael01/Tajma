@@ -2,8 +2,10 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 
 export default function AuthLeftSection() {
+  const t = useTranslations('auth')
   return (
     <div className="hidden lg:flex lg:fixed lg:left-0 lg:top-0 lg:h-screen lg:w-1/2 relative overflow-hidden">
       {/* Background Image */}
@@ -53,17 +55,17 @@ export default function AuthLeftSection() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-5xl font-bold text-white mb-6"
           >
-            Welcome to{' '}
+            {t('welcome_to')}{' '}
             <span className="text-secondary">Tajma</span>
           </motion.h1>
-          
+
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-xl text-gray-300 mb-8"
           >
-            Your marketplace for everything you need
+            {t('marketplace_tagline')}
           </motion.p>
 
           <motion.div
@@ -74,15 +76,15 @@ export default function AuthLeftSection() {
           >
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 bg-secondary rounded-full" />
-              <span className="text-gray-300">Buy and sell with confidence</span>
+              <span className="text-gray-300">{t('feature_buy_sell')}</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 bg-secondary rounded-full" />
-              <span className="text-gray-300">Connect with local sellers</span>
+              <span className="text-gray-300">{t('feature_connect')}</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 bg-secondary rounded-full" />
-              <span className="text-gray-300">Safe and secure transactions</span>
+              <span className="text-gray-300">{t('feature_secure')}</span>
             </div>
           </motion.div>
         </motion.div>

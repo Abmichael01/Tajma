@@ -12,8 +12,10 @@ import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import { Checkbox } from '@/components/ui/checkbox'
 import Logo from '@/components/General/Logo'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 
 export default function LoginClient() {
+  const t = useTranslations('auth')
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect') || '/'
@@ -40,7 +42,7 @@ export default function LoginClient() {
   useEffect(() => {
     const authRequired = searchParams.get('auth_required')
     if (authRequired === 'true') {
-      toast.info('Please login to continue', {
+      toast.info(t('login_required_toast'), {
         duration: 5000,
       })
     }
@@ -52,15 +54,15 @@ export default function LoginClient() {
     const newErrors: Record<string, string> = {}
 
     if (!formData.email) {
-      newErrors.email = 'Email is required'
+      newErrors.email = t('validation.email_required')
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid'
+      newErrors.email = t('validation.email_invalid')
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required'
+      newErrors.password = t('validation.password_required')
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters'
+      newErrors.password = t('validation.password_min_6')
     }
 
     setErrors(newErrors)
@@ -100,7 +102,7 @@ export default function LoginClient() {
           setErrors(prev => ({ ...prev, general: apiErrors.message }))
         }
       } else {
-        setErrors({ general: 'An error occurred. Please try again.' })
+        setErrors({ general: t('general_error') })
       }
     }
   }
@@ -124,12 +126,12 @@ export default function LoginClient() {
           <Logo />
         </div>
         <h2 className="mt-6 text-center lg:text-left text-3xl font-semibold text-gray-900">
-          Welcome back
+          {t('welcome_back')}
         </h2>
         <p className="mt-2 text-center lg:text-left text-sm text-gray-600">
-          Don't have an account?{' '}
+          {t('no_account')}{' '}
           <Link href="/register" className="font-medium text-primary hover:text-primary/80">
-            Sign up for free
+            {t('sign_up_free')}
           </Link>
         </p>
       </div>
@@ -148,7 +150,7 @@ export default function LoginClient() {
                     window.location.href = authorization_url
                   } catch (error) {
                     console.error('Failed to initiate Google login:', error)
-                    alert('Failed to initiate Google login. Please try again.')
+                    alert(t('google_login_failed'))
                   }
                 }}
               >
@@ -170,7 +172,7 @@ export default function LoginClient() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                Continue with Google
+                {t('continue_with_google')}
               </Button>
               {isLocal && (
                 <Button
@@ -183,10 +185,10 @@ export default function LoginClient() {
                       email: 'admin@gmail.com',
                       password: 'password123'
                     }))
-                    toast.success('Admin credentials filled')
+                    toast.success(t('admin_credentials_filled'))
                   }}
                 >
-                  Auto-fill Admin (Dev Only)
+                  {t('admin_dev_only')}
                 </Button>
               )}
             </div>
@@ -196,7 +198,7 @@ export default function LoginClient() {
                 <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+                <span className="px-2 bg-white text-gray-500">{t('or_continue_with_email')}</span>
               </div>
             </div>
           </div>
@@ -205,7 +207,7 @@ export default function LoginClient() {
             {/* Email Input */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                {t('email_label')}
               </label>
               <div className="mt-1 relative">
                 <Input
@@ -215,7 +217,7 @@ export default function LoginClient() {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`pl-10 h-11 ${errors.email ? 'border-red-500' : ''}`}
                   placeholder="you@example.com"
                 />
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -228,7 +230,7 @@ export default function LoginClient() {
             {/* Password Input */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
+                {t('password_label')}
               </label>
               <div className="mt-1 relative">
                 <Input
@@ -238,7 +240,7 @@ export default function LoginClient() {
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`pl-10 pr-10 h-11 ${errors.password ? 'border-red-500' : ''}`}
                   placeholder="••••••••"
                 />
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -270,13 +272,13 @@ export default function LoginClient() {
                   }}
                 />
                 <label htmlFor="rememberMe" className="block text-sm text-gray-700 cursor-pointer">
-                  Remember me
+                  {t('remember_me')}
                 </label>
               </div>
 
               <div className="text-sm">
                 <Link href="/forgot-password" className="font-medium text-primary hover:text-primary/80">
-                  Forgot password?
+                  {t('forgot_password')}
                 </Link>
               </div>
             </div>
@@ -292,6 +294,7 @@ export default function LoginClient() {
             <div>
               <Button
                 type="submit"
+                size="lg"
                 className="w-full min-w-0"
                 disabled={loginMutation.isPending}
               >
@@ -299,10 +302,10 @@ export default function LoginClient() {
                   {loginMutation.isPending ? (
                     <>
                       <MarketplaceLoader inline size="sm" />
-                      <span className="truncate ml-2">Signing in...</span>
+                      <span className="truncate ml-2">{t('signing_in')}</span>
                     </>
                   ) : (
-                    <span className="truncate">Sign in</span>
+                    <span className="truncate">{t('sign_in')}</span>
                   )}
                 </span>
               </Button>

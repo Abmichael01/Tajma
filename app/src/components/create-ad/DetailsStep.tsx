@@ -6,6 +6,7 @@ import AppText from '../ui/AppText';
 import Input from '../ui/Input';
 import TextArea from '../ui/TextArea';
 import AdImagePicker from './AdImagePicker';
+import DynamicFormFields from './DynamicFormFields';
 
 interface DetailsStepProps {
   formData: any;
@@ -30,6 +31,34 @@ export default function DetailsStep({
 
   return (
     <View className="flex-1">
+      {/* Images — moved to top: photos sell, encourage upload first */}
+      <View className="bg-primary-50/50 border-2 border-dashed border-primary-200 rounded-[32px] p-6 mb-6">
+        <View className="flex-row items-center gap-3 mb-4">
+          <View className="w-10 h-10 bg-primary-100 rounded-full items-center justify-center">
+            <Ionicons name="images" size={20} color="#FF4F18" />
+          </View>
+          <View>
+            <AppText variant="heading" className="text-lg text-gray-900">{t('create_ad.actions.addPhotos')} ({images.length}/10)</AppText>
+            <AppText className="text-gray-500 text-xs">{t('create_ad.actions.addPhotos')}</AppText>
+          </View>
+        </View>
+
+        <AdImagePicker
+          images={images}
+          onImagesChange={onImagesChange}
+          maxImages={10}
+        />
+      </View>
+
+      {/* Category-specific dynamic fields (Brand, Model, Year, etc.) */}
+      {dynamicFields && dynamicFields.length > 0 && (
+        <DynamicFormFields
+          formData={formData}
+          customFields={dynamicFields}
+          onInputChange={onInputChange}
+        />
+      )}
+
       {/* Price Section */}
       <View className="mb-6">
         <View className="flex-row items-center justify-between mb-2">
@@ -91,7 +120,7 @@ export default function DetailsStep({
       <View className="mb-6">
         <View className="flex-row items-center justify-between mb-2">
           <AppText className="text-gray-700 font-medium">{t('create_ad.fields.location')}</AppText>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={onOpenMapPicker}
             className="flex-row items-center bg-primary/10 px-3 py-1.5 rounded-full"
           >
@@ -130,26 +159,6 @@ export default function DetailsStep({
         />
         {errors.description && <AppText className="text-red-500 text-xs mt-1 ml-2">{errors.description}</AppText>}
       </View>
-
-      {/* Images (Bottom) - Standout Section */}
-      <View className="bg-primary-50/50 border-2 border-dashed border-primary-200 rounded-[32px] p-6 mb-10">
-        <View className="flex-row items-center gap-3 mb-4">
-          <View className="w-10 h-10 bg-primary-100 rounded-full items-center justify-center">
-            <Ionicons name="images" size={20} color="#FF4F18" />
-          </View>
-          <View>
-            <AppText variant="heading" className="text-lg text-gray-900">{t('create_ad.actions.addPhotos')} ({images.length}/10)</AppText>
-            <AppText className="text-gray-500 text-xs">{t('create_ad.actions.addPhotos')}</AppText>
-          </View>
-        </View>
-
-        <AdImagePicker
-          images={images}
-          onImagesChange={onImagesChange}
-          maxImages={10}
-        />
-      </View>
-
     </View>
   );
 }

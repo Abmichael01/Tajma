@@ -137,7 +137,7 @@ export default function KYCScreen() {
               style={{ backgroundColor: "#FF4F18" }}
             >
               <AppText weight="bold" className="text-white text-lg">
-                Continue
+                {t('common.continue')}
               </AppText>
             </TouchableOpacity>
           </>

@@ -18,8 +18,8 @@ interface SwipeableMessageProps {
   isMe: boolean;
 }
 
-const SWIPE_THRESHOLD = 58;
-const MAX_SWIPE = 72;
+const SWIPE_THRESHOLD = 32;
+const MAX_SWIPE = 60;
 
 export default function SwipeableMessage({
   children,
@@ -38,8 +38,8 @@ export default function SwipeableMessage({
   }
 
   const pan = Gesture.Pan()
-    .activeOffsetX(12)
-    .failOffsetY([-18, 18])
+    .activeOffsetX(6)
+    .failOffsetY([-14, 14])
     .onBegin(() => {
       "worklet";
       hapticFired.value = false;
@@ -53,12 +53,12 @@ export default function SwipeableMessage({
 
       translateX.value = interpolate(
         e.translationX,
-        [0, 150],
+        [0, 70],
         [0, MAX_SWIPE],
         Extrapolate.CLAMP,
       );
 
-      if (translateX.value >= 40 && !hapticFired.value) {
+      if (translateX.value >= 22 && !hapticFired.value) {
         hapticFired.value = true;
         runOnJS(triggerHaptic)();
       }
@@ -83,13 +83,13 @@ export default function SwipeableMessage({
   const iconContainerStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       translateX.value,
-      [0, 30, 60],
-      [0, 0.5, 1],
+      [0, 16, 32],
+      [0, 0.6, 1],
       Extrapolate.CLAMP,
     );
     const scale = interpolate(
       translateX.value,
-      [0, 60],
+      [0, 32],
       [0.6, 1],
       Extrapolate.CLAMP,
     );

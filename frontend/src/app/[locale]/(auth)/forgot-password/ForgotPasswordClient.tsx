@@ -9,8 +9,10 @@ import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import Logo from '@/components/General/Logo'
 import { authApi } from '@/api/auth'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 
 export default function ForgotPasswordClient() {
+  const t = useTranslations('auth')
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -18,11 +20,11 @@ export default function ForgotPasswordClient() {
 
   const validateEmail = () => {
     if (!email) {
-      setError('Email is required')
+      setError(t('validation.email_required'))
       return false
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setError('Email is invalid')
+      setError(t('validation.email_invalid'))
       return false
     }
     return true
@@ -41,7 +43,7 @@ export default function ForgotPasswordClient() {
       setIsSuccess(true)
     } catch (err: any) {
       console.error('Password reset request failed:', err)
-      const message = err.response?.data?.detail || err.response?.data?.message || 'Failed to send reset instructions. Please try again.'
+      const message = err.response?.data?.detail || err.response?.data?.message || t('reset_send_failed')
       setError(message)
       toast.error(message)
     } finally {
@@ -71,28 +73,28 @@ export default function ForgotPasswordClient() {
               </div>
               
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                Check your email
+                {t('check_your_email')}
               </h2>
-              
+
               <p className="text-gray-600 mb-6">
-                We've sent a password reset link to:
+                {t('reset_link_sent_to')}
               </p>
-              
+
               <p className="font-medium text-gray-900 mb-6">
                 {email}
               </p>
-              
+
               <p className="text-sm text-gray-600 mb-8">
-                Click the link in the email to reset your password. The link will expire in 1 hour.
+                {t('reset_link_expires')}
               </p>
-              
+
               <div className="space-y-3">
                 <Link href="/login">
-                  <Button className="w-full">
-                    Back to Login
+                  <Button size="lg" className="w-full">
+                    {t('back_to_login')}
                   </Button>
                 </Link>
-                
+
                 <button
                   onClick={() => {
                     setIsSuccess(false)
@@ -100,7 +102,7 @@ export default function ForgotPasswordClient() {
                   }}
                   className="w-full text-sm text-primary hover:text-primary/80 font-medium"
                 >
-                  Didn't receive the email? Try again
+                  {t('didnt_receive_try_again')}
                 </button>
               </div>
             </div>
@@ -117,10 +119,10 @@ export default function ForgotPasswordClient() {
           <Logo />
         </div>
         <h2 className="mt-6 text-center lg:text-left text-3xl font-semibold text-gray-900">
-          Forgot your password?
+          {t('forgot_title')}
         </h2>
         <p className="mt-2 text-center lg:text-left text-sm text-gray-600">
-          No worries! Enter your email and we'll send you reset instructions.
+          {t('forgot_subtitle')}
         </p>
       </div>
 
@@ -129,7 +131,7 @@ export default function ForgotPasswordClient() {
             {/* Email Input */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+                {t('email_label')}
               </label>
               <div className="mt-1 relative">
                 <Input
@@ -139,7 +141,7 @@ export default function ForgotPasswordClient() {
                   autoComplete="email"
                   value={email}
                   onChange={handleInputChange}
-                  className={`pl-10 ${error ? 'border-red-500' : ''}`}
+                  className={`pl-10 h-11 ${error ? 'border-red-500' : ''}`}
                   placeholder="you@example.com"
                 />
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -153,6 +155,7 @@ export default function ForgotPasswordClient() {
             <div>
               <Button
                 type="submit"
+                size="lg"
                 className="w-full min-w-0"
                 disabled={isLoading}
               >
@@ -160,10 +163,10 @@ export default function ForgotPasswordClient() {
                   {isLoading ? (
                     <>
                       <MarketplaceLoader inline size="sm" />
-                      <span className="truncate">Sending...</span>
+                      <span className="truncate">{t('sending')}</span>
                     </>
                   ) : (
-                    <span className="truncate">Send reset instructions</span>
+                    <span className="truncate">{t('send_reset_instructions')}</span>
                   )}
                 </span>
               </Button>
@@ -177,7 +180,7 @@ export default function ForgotPasswordClient() {
               className="flex items-center justify-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Login
+              {t('back_to_login')}
             </Link>
           </div>
       </div>

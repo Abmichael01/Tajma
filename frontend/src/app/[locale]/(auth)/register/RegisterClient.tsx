@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Link } from '@/i18n/routing'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useRegister } from '@/hooks/useAuth'
@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import Logo from '@/components/General/Logo'
 
 export default function RegisterClient() {
+  const t = useTranslations('auth')
   const locale = useLocale()
   const registerMutation = useRegister()
 
@@ -37,23 +38,23 @@ export default function RegisterClient() {
     const newErrors: Record<string, string> = {}
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required'
+      newErrors.firstName = t('validation.first_name_required')
     } else if (formData.firstName.length < 2) {
-      newErrors.firstName = 'First name must be at least 2 characters'
+      newErrors.firstName = t('validation.first_name_min')
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required'
+      newErrors.lastName = t('validation.last_name_required')
     } else if (formData.lastName.length < 2) {
-      newErrors.lastName = 'Last name must be at least 2 characters'
+      newErrors.lastName = t('validation.last_name_min')
     }
 
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required'
+      newErrors.username = t('validation.username_required')
     } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters'
+      newErrors.username = t('validation.username_min')
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores'
+      newErrors.username = t('validation.username_chars')
     }
 
     setErrors(newErrors)
@@ -64,27 +65,27 @@ export default function RegisterClient() {
     const newErrors: Record<string, string> = {}
 
     if (!formData.email) {
-      newErrors.email = 'Email is required'
+      newErrors.email = t('validation.email_required')
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid'
+      newErrors.email = t('validation.email_invalid')
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required'
+      newErrors.password = t('validation.password_required')
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters'
+      newErrors.password = t('validation.password_min_8')
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain uppercase, lowercase and number'
+      newErrors.password = t('validation.password_strength')
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password'
+      newErrors.confirmPassword = t('validation.confirm_password_required')
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match'
+      newErrors.confirmPassword = t('validation.passwords_dont_match')
     }
 
     if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions'
+      newErrors.agreeToTerms = t('validation.agree_terms_required')
     }
 
     setErrors(newErrors)
@@ -100,7 +101,7 @@ export default function RegisterClient() {
         window.location.href = authorization_url
       } catch (error) {
         console.error('Failed to initiate Google signup:', error)
-        alert('Failed to initiate Google signup. Please try again.')
+        alert(t('google_signup_failed'))
       }
     }
     // If email, currentStep stays at 1 and form shows
@@ -175,7 +176,7 @@ export default function RegisterClient() {
           setErrors(prev => ({ ...prev, general: apiErrors.message }))
         }
       } else {
-        setErrors({ general: 'An error occurred. Please try again.' })
+        setErrors({ general: t('general_error') })
       }
     }
   }
@@ -204,7 +205,7 @@ export default function RegisterClient() {
     if (/\d/.test(password)) strength++
     if (/[^a-zA-Z\d]/.test(password)) strength++
 
-    const labels = ['', 'Weak', 'Fair', 'Good', 'Strong']
+    const labels = ['', t('strength_weak'), t('strength_fair'), t('strength_good'), t('strength_strong')]
     const colors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500']
     
     return { strength, label: labels[Math.min(strength, 4)], color: colors[Math.min(strength, 4)] }
@@ -219,12 +220,12 @@ export default function RegisterClient() {
           <Logo />
         </div>
         <h2 className="mt-6 text-center lg:text-left text-3xl font-semibold text-gray-900">
-          Create your account
+          {t('create_account')}
         </h2>
         <p className="mt-2 text-center lg:text-left text-sm text-gray-600">
-          Already have an account?{' '}
+          {t('have_account')}{' '}
           <Link href="/login" className="font-medium text-primary hover:text-primary/80">
-            Sign in
+            {t('sign_in')}
           </Link>
         </p>
       </div>
@@ -234,8 +235,8 @@ export default function RegisterClient() {
           {!signupMethod && (
             <div className="space-y-4">
               <div className="text-center mb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Choose how to sign up</h3>
-                <p className="text-sm text-gray-600">Select your preferred signup method</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('choose_signup_method')}</h3>
+                <p className="text-sm text-gray-600">{t('select_method_subtitle')}</p>
               </div>
               
               <Button
@@ -261,7 +262,7 @@ export default function RegisterClient() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                Continue with Google
+                {t('continue_with_google')}
               </Button>
 
               <div className="relative">
@@ -269,7 +270,7 @@ export default function RegisterClient() {
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or</span>
+                  <span className="px-2 bg-white text-gray-500">{t('or')}</span>
                 </div>
               </div>
 
@@ -279,7 +280,7 @@ export default function RegisterClient() {
                 onClick={() => handleSignupMethodSelect('email')}
               >
                 <Mail className="w-5 h-5 mr-3" />
-                Continue with Email
+                {t('continue_with_email')}
               </Button>
             </div>
           )}
@@ -288,16 +289,48 @@ export default function RegisterClient() {
           {signupMethod === 'email' && (
             <>
               {/* Progress Indicator */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-gray-600">Step {currentStep} of 2</span>
-                  <span className="text-xs font-medium text-gray-600">{currentStep === 1 ? 'Basic Info' : 'Account Details'}</span>
+              <div className="mb-8" aria-label={t('step_progress', { step: currentStep })}>
+                <div className="flex items-center">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all duration-300 ${
+                      currentStep >= 1
+                        ? 'bg-primary text-white shadow-md shadow-primary/30 ring-4 ring-primary/15'
+                        : 'bg-gray-100 text-gray-400 border border-gray-200'
+                    }`}
+                  >
+                    {currentStep > 1 ? <Check className="w-5 h-5" strokeWidth={3} /> : '1'}
+                  </div>
+                  <div className="flex-1 h-1 mx-3 bg-gray-100 rounded-full relative overflow-hidden">
+                    <div
+                      className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all duration-500 ease-out"
+                      style={{ width: currentStep > 1 ? '100%' : '0%' }}
+                    />
+                  </div>
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-all duration-300 ${
+                      currentStep === 2
+                        ? 'bg-primary text-white shadow-md shadow-primary/30 ring-4 ring-primary/15'
+                        : 'bg-gray-100 text-gray-400 border border-gray-200'
+                    }`}
+                  >
+                    2
+                  </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-primary h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(currentStep / 2) * 100}%` }}
-                  />
+                <div className="flex justify-between mt-3 text-xs">
+                  <span
+                    className={`transition-colors duration-300 ${
+                      currentStep === 1 ? 'text-gray-900 font-semibold' : 'text-gray-400 font-medium'
+                    }`}
+                  >
+                    {t('step_basic_info')}
+                  </span>
+                  <span
+                    className={`transition-colors duration-300 ${
+                      currentStep === 2 ? 'text-gray-900 font-semibold' : 'text-gray-400 font-medium'
+                    }`}
+                  >
+                    {t('step_account_details')}
+                  </span>
                 </div>
               </div>
 
@@ -307,7 +340,7 @@ export default function RegisterClient() {
               <>
                 <div>
                   <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                    First Name <span className="text-red-500">*</span>
+                    {t('first_name_label')} <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-1 relative">
                     <Input
@@ -317,7 +350,7 @@ export default function RegisterClient() {
                       autoComplete="given-name"
                       value={formData.firstName}
                       onChange={handleInputChange}
-                      className={`pl-10 ${errors.firstName ? 'border-red-500' : ''}`}
+                      className={`pl-10 h-11 ${errors.firstName ? 'border-red-500' : ''}`}
                       placeholder="John"
                     />
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -329,7 +362,7 @@ export default function RegisterClient() {
 
             <div>
                   <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                    Last Name <span className="text-red-500">*</span>
+                    {t('last_name_label')} <span className="text-red-500">*</span>
               </label>
               <div className="mt-1 relative">
                 <Input
@@ -339,7 +372,7 @@ export default function RegisterClient() {
                       autoComplete="family-name"
                       value={formData.lastName}
                   onChange={handleInputChange}
-                      className={`pl-10 ${errors.lastName ? 'border-red-500' : ''}`}
+                      className={`pl-10 h-11 ${errors.lastName ? 'border-red-500' : ''}`}
                       placeholder="Doe"
                 />
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -351,7 +384,7 @@ export default function RegisterClient() {
 
                 <div>
                   <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                    Username <span className="text-red-500">*</span>
+                    {t('username_label')} <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-1 relative">
                     <Input
@@ -361,7 +394,7 @@ export default function RegisterClient() {
                       autoComplete="username"
                       value={formData.username}
                       onChange={handleInputChange}
-                      className={`pl-10 ${errors.username ? 'border-red-500' : ''}`}
+                      className={`pl-10 h-11 ${errors.username ? 'border-red-500' : ''}`}
                       placeholder="johndoe"
                     />
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -369,7 +402,7 @@ export default function RegisterClient() {
                   {errors.username && (
                     <p className="mt-1 text-sm text-red-600">{errors.username}</p>
                   )}
-                  <p className="mt-1 text-xs text-gray-500">Only letters, numbers, and underscores allowed</p>
+                  <p className="mt-1 text-xs text-gray-500">{t('username_helper')}</p>
                 </div>
               </>
             )}
@@ -379,7 +412,7 @@ export default function RegisterClient() {
               <>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                    Email address <span className="text-red-500">*</span>
+                    {t('email_label')} <span className="text-red-500">*</span>
               </label>
               <div className="mt-1 relative">
                 <Input
@@ -389,7 +422,7 @@ export default function RegisterClient() {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`pl-10 h-11 ${errors.email ? 'border-red-500' : ''}`}
                   placeholder="you@example.com"
                 />
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -401,7 +434,7 @@ export default function RegisterClient() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                    Password <span className="text-red-500">*</span>
+                    {t('password_label')} <span className="text-red-500">*</span>
               </label>
               <div className="mt-1 relative">
                 <Input
@@ -411,7 +444,7 @@ export default function RegisterClient() {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`pl-10 pr-10 h-11 ${errors.password ? 'border-red-500' : ''}`}
                   placeholder="••••••••"
                 />
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -447,7 +480,7 @@ export default function RegisterClient() {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                    Confirm Password <span className="text-red-500">*</span>
+                    {t('confirm_password_label')} <span className="text-red-500">*</span>
               </label>
               <div className="mt-1 relative">
                 <Input
@@ -457,7 +490,7 @@ export default function RegisterClient() {
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className={`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                  className={`pl-10 pr-10 h-11 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                   placeholder="••••••••"
                 />
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -475,7 +508,7 @@ export default function RegisterClient() {
               </div>
               {formData.confirmPassword && formData.password === formData.confirmPassword && (
                 <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> Passwords match
+                  <Check className="w-3 h-3" /> {t('passwords_match')}
                 </p>
               )}
               {errors.confirmPassword && (
@@ -497,13 +530,13 @@ export default function RegisterClient() {
                       className={errors.agreeToTerms ? 'border-red-500' : ''}
                     />
                     <label htmlFor="agreeToTerms" className="block text-sm text-gray-700 cursor-pointer">
-                  I agree to the{' '}
+                  {t('agree_to')}{' '}
                   <Link href="/terms" className="font-medium text-primary hover:text-primary/80">
-                    Terms and Conditions
+                    {t('terms_conditions')}
                   </Link>{' '}
-                  and{' '}
+                  {t('and')}{' '}
                   <Link href="/privacy" className="font-medium text-primary hover:text-primary/80">
-                    Privacy Policy
+                    {t('privacy_policy')}
                   </Link>
                 </label>
               </div>
@@ -527,12 +560,13 @@ export default function RegisterClient() {
                     <Button
                       type="button"
                       variant="ghost"
+                      size="lg"
                       onClick={handlePrevious}
                       className="flex-1 min-w-0"
                     >
                       <span className="flex items-center min-w-0">
                         <ChevronLeft className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">Back</span>
+                        <span className="truncate">{t('back')}</span>
                       </span>
                     </Button>
                   )}
@@ -540,17 +574,19 @@ export default function RegisterClient() {
                     <Button
                       type="button"
                       variant="ghost"
+                      size="lg"
                       onClick={handlePrevious}
                       className="flex-1 min-w-0"
                     >
                       <span className="flex items-center min-w-0">
                         <ChevronLeft className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">Previous</span>
+                        <span className="truncate">{t('previous')}</span>
                       </span>
                     </Button>
                   )}
               <Button
                 type="submit"
+                size="lg"
                     className="flex-1 min-w-0"
                 disabled={registerMutation.isPending}
               >
@@ -558,15 +594,15 @@ export default function RegisterClient() {
                           {registerMutation.isPending ? (
                             <>
                               <MarketplaceLoader inline size="sm" />
-                              <span className="truncate ml-2">{currentStep === 2 ? 'Creating...' : 'Loading...'}</span>
+                              <span className="truncate ml-2">{currentStep === 2 ? t('creating') : t('loading')}</span>
                             </>
                           ) : currentStep === 1 ? (
                         <>
-                          <span className="truncate">Next</span>
+                          <span className="truncate">{t('next')}</span>
                           <ChevronRight className="w-4 h-4 ml-2 flex-shrink-0" />
                   </>
                 ) : (
-                        <span className="truncate">Create account</span>
+                        <span className="truncate">{t('create_account_button')}</span>
                 )}
                     </span>
               </Button>
