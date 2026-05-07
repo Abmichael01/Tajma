@@ -1,18 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from "react";
+import { languages, type LanguageCode } from "@/i18n/languageConfig";
 
-export type LanguageCode = 'en' | 'fr' | 'ha'
-
-interface Language {
-  code: LanguageCode
-  name: string
-  nativeName: string
-}
-
-export const languages: Language[] = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'fr', name: 'French', nativeName: 'Français' },
-  { code: 'ha', name: 'Hausa', nativeName: 'Hausa' },
-]
+export { languages, type LanguageCode };
 
 /**
  * Hook to get current language
@@ -20,15 +9,15 @@ export const languages: Language[] = [
  * TODO: Integrate with AsyncStorage or expo-localization for persistence.
  */
 export function useLanguage() {
-  const [currentLang, setCurrentLang] = useState<LanguageCode>('en')
+  const [currentLang] = useState<LanguageCode>("en");
 
-  return currentLang
+  return currentLang;
 }
 
 /**
  * Get translated default messages based on language
  */
-export function getDefaultMessages(lang: LanguageCode = 'en'): string[] {
+export function getDefaultMessages(lang: LanguageCode = "en"): string[] {
   const messages: Record<LanguageCode, string[]> = {
     en: [
       "Is this still available?",
@@ -51,7 +40,7 @@ export function getDefaultMessages(lang: LanguageCode = 'en'): string[] {
       "Ina kuke?",
       "Yaushe zan iya karɓa?",
     ],
-  }
+  };
 
-  return messages[lang] || messages.en
+  return messages[lang] || messages.en;
 }

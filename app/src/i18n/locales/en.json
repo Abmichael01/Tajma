@@ -2,6 +2,10 @@
   "home": {
     "discoverDeals": "Discover great deals near you"
   },
+  "welcome": {
+    "tagline": "Your all-in-one marketplace for amazing deals",
+    "createAccount": "Create an account"
+  },
   "common": {
     "ok": "OK",
     "apply": "Apply",
@@ -58,6 +62,21 @@
     "alreadyHaveAccount": "Already have an account?",
     "continueWithGoogle": "Continue with Google",
     "connecting": "Connecting...",
+    "welcomeBack": "Welcome back",
+    "dontHaveAccount": "Don't have an account?",
+    "signUpForFree": "Sign up for free",
+    "orContinueWith": "Or continue with",
+    "loginFailed": "Login failed. Please try again.",
+    "networkError": "Cannot connect to server. Please check your network connection and try again.",
+    "forgotPasswordTitle": "Forgot password?",
+    "forgotPasswordDesc": "No worries. Enter the email tied to your account and we'll send you a link to reset it.",
+    "resetSendFailure": "Could not send reset link. Please try again.",
+    "checkEmail": "Check your email",
+    "resetInstructionsSent": "We sent password reset instructions to",
+    "backToSignIn": "Back to sign in",
+    "rememberedIt": "Remembered it?",
+    "sending": "Sending...",
+    "sendResetLink": "Send reset link",
     "validation": {
       "emailRequired": "Email is required",
       "emailInvalid": "Invalid email address",
@@ -95,6 +114,14 @@
     "termsConditions": "Terms & Conditions",
     "username": "Username",
     "usernameHelper": "Letters, numbers and underscores only"
+  },
+  "onboarding": {
+    "language": {
+      "title": "Choose your language",
+      "subtitle": "Select the language you want to use in Tajma.",
+      "suggested": "Suggested",
+      "changeLater": "You can change this anytime in Settings."
+    }
   },
   "messages": {
     "title": "Messages",

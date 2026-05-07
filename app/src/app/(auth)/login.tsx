@@ -25,13 +25,17 @@ import { useLogin } from "@/hooks/useAuth";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import { useTranslation } from "react-i18next";
 
-const loginSchema = z.object({
-  email: z.string().email("Email is invalid").min(1, "Email is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  rememberMe: z.boolean().optional(),
-});
+const getLoginSchema = (t: any) =>
+  z.object({
+    email: z
+      .string()
+      .email(t("auth.validation.emailInvalid"))
+      .min(1, t("auth.validation.emailRequired")),
+    password: z.string().min(8, t("auth.validation.passwordMin")),
+    rememberMe: z.boolean().optional(),
+  });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type LoginFormValues = z.infer<ReturnType<typeof getLoginSchema>>;
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -50,7 +54,7 @@ export default function LoginScreen() {
     setValue,
     formState: { errors, isValid },
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(getLoginSchema(t)),
     defaultValues: {
       email: "",
       password: "",
@@ -67,14 +71,13 @@ export default function LoginScreen() {
         password: data.password,
       });
     } catch (error: any) {
-      let errorMessage = "Login failed. Please try again.";
+      let errorMessage = t("auth.loginFailed");
 
       if (
         error?.code === "ERR_NETWORK" ||
         error?.message?.includes("Network Error")
       ) {
-        errorMessage =
-          "Cannot connect to server. Please check your network connection and ensure the backend server is running.";
+        errorMessage = t("auth.networkError");
       } else if (error?.response?.data) {
         // Handle Django validation errors
         const errorData = error.response.data;
@@ -140,13 +143,13 @@ export default function LoginScreen() {
               weight="semibold"
               className="mb-2 text-center"
             >
-              Welcome back
+              {t("auth.welcomeBack")}
             </AppText>
             <AppText variant="default" center className="mb-8">
-              Don't have an account?{" "}
+              {t("auth.dontHaveAccount")}{" "}
               <Link href="/(auth)/register" asChild>
                 <AppText weight="semibold" className="text-primary">
-                  Sign up for free
+                  {t("auth.signUpForFree")}
                 </AppText>
               </Link>
             </AppText>
@@ -159,7 +162,7 @@ export default function LoginScreen() {
             )}
 
             <FormGroup
-              label={t('auth.login')}
+              label={t("auth.emailAddress")}
               required
               error={errors.email?.message}
             >
@@ -169,7 +172,7 @@ export default function LoginScreen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     className="py-4 text-lg"
-                    placeholder={t('auth.emailPlaceholder')}
+                    placeholder={t("auth.emailPlaceholder")}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoComplete="email"
@@ -181,11 +184,7 @@ export default function LoginScreen() {
                     onBlur={onBlur}
                     error={!!errors.email}
                     leftIcon={
-                      <Ionicons
-                        name="mail-outline"
-                        size={20}
-                        color="#9ca3af"
-                      />
+                      <Ionicons name="mail-outline" size={20} color="#9ca3af" />
                     }
                   />
                 )}
@@ -193,7 +192,7 @@ export default function LoginScreen() {
             </FormGroup>
 
             <FormGroup
-              label="Password"
+              label={t("auth.password")}
               required
               error={errors.password?.message}
             >
@@ -203,7 +202,7 @@ export default function LoginScreen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     className="py-4 text-lg"
-                    placeholder={t('auth.passwordPlaceholder')}
+                    placeholder={t("auth.passwordPlaceholder")}
                     secureTextEntry
                     showPasswordToggle
                     autoCapitalize="none"
@@ -233,41 +232,10 @@ export default function LoginScreen() {
                 onPress={() => router.push("/(auth)/forgot-password")}
               >
                 <AppText variant="default" className="text-primary">
-                  {t('auth.forgotPassword')}
+                  {t("auth.forgotPassword")}
                 </AppText>
               </TouchableOpacity>
             </View>
-
-            {/* Divider */}
-            <View className="flex-row items-center mb-6">
-              <View className="flex-1 h-px bg-gray-300" />
-              <AppText variant="default" className="mx-4 text-gray-500">
-                Or continue with
-              </AppText>
-              <View className="flex-1 h-px bg-gray-300" />
-            </View>
-
-            {/* Google Button */}
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full"
-              leftIcon={
-                <Ionicons name="logo-google" size={20} color="#FFFFFF" />
-              }
-              onPress={handleGoogleAuth}
-              disabled={googleLoading || loginMutation.isPending}
-              loading={googleLoading}
-            >
-              {googleLoading ? "Connecting..." : "Continue with Google"}
-            </Button>
-
-            {/* Google Error Alert */}
-            {googleError && (
-              <Alert variant="destructive" className="mt-4">
-                <Alert.Description>{googleError}</Alert.Description>
-              </Alert>
-            )}
 
             {__DEV__ && (
               <TouchableOpacity
@@ -284,7 +252,7 @@ export default function LoginScreen() {
             )}
           </ScrollView>
 
-          {/* Sign in pinned to the base of the page */}
+          {/* Primary and social auth actions pinned to the base */}
           <View className="px-4 pt-3 pb-8 bg-white">
             <Button
               size="lg"
@@ -293,8 +261,30 @@ export default function LoginScreen() {
               disabled={loginMutation.isPending || !isValid}
               loading={loginMutation.isPending}
             >
-              {loginMutation.isPending ? t('common.loading') : t('auth.login')}
+              {loginMutation.isPending ? t("common.loading") : t("auth.login")}
             </Button>
+
+            <Button
+              variant="secondary"
+              size="lg"
+              className="w-full mt-3"
+              leftIcon={
+                <Ionicons name="logo-google" size={20} color="#FFFFFF" />
+              }
+              onPress={handleGoogleAuth}
+              disabled={googleLoading || loginMutation.isPending}
+              loading={googleLoading}
+            >
+              {googleLoading
+                ? t("auth.connecting")
+                : t("auth.continueWithGoogle")}
+            </Button>
+
+            {googleError && (
+              <Alert variant="destructive" className="mt-3">
+                <Alert.Description>{googleError}</Alert.Description>
+              </Alert>
+            )}
           </View>
         </View>
       </TouchableWithoutFeedback>

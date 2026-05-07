@@ -2,6 +2,10 @@
   "home": {
     "discoverDeals": "Découvrez de bonnes affaires près de chez vous"
   },
+  "welcome": {
+    "tagline": "Votre marketplace tout-en-un pour de bonnes affaires",
+    "createAccount": "Créer un compte"
+  },
   "common": {
     "ok": "OK",
     "cancel": "Annuler",
@@ -57,6 +61,21 @@
     "alreadyHaveAccount": "Vous avez déjà un compte ?",
     "continueWithGoogle": "Continuer avec Google",
     "connecting": "Connexion...",
+    "welcomeBack": "Bon retour",
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "signUpForFree": "Inscrivez-vous gratuitement",
+    "orContinueWith": "Ou continuer avec",
+    "loginFailed": "Échec de la connexion. Veuillez réessayer.",
+    "networkError": "Impossible de se connecter au serveur. Vérifiez votre connexion réseau et réessayez.",
+    "forgotPasswordTitle": "Mot de passe oublié ?",
+    "forgotPasswordDesc": "Pas d'inquiétude. Entrez l'email associé à votre compte et nous vous enverrons un lien pour le réinitialiser.",
+    "resetSendFailure": "Impossible d'envoyer le lien de réinitialisation. Veuillez réessayer.",
+    "checkEmail": "Vérifiez votre email",
+    "resetInstructionsSent": "Nous avons envoyé les instructions de réinitialisation à",
+    "backToSignIn": "Retour à la connexion",
+    "rememberedIt": "Vous vous en souvenez ?",
+    "sending": "Envoi...",
+    "sendResetLink": "Envoyer le lien de réinitialisation",
     "validation": {
       "emailRequired": "L'email est requis",
       "emailInvalid": "Email invalide",
@@ -94,6 +113,14 @@
     "termsConditions": "Conditions générales",
     "username": "Nom d'utilisateur",
     "usernameHelper": "Lettres, chiffres et tirets bas uniquement"
+  },
+  "onboarding": {
+    "language": {
+      "title": "Choisissez votre langue",
+      "subtitle": "Sélectionnez la langue que vous voulez utiliser dans Tajma.",
+      "suggested": "Suggéré",
+      "changeLater": "Vous pouvez changer cela à tout moment dans Paramètres."
+    }
   },
   "messages": {
     "title": "Messages",
