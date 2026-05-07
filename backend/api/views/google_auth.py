@@ -14,6 +14,20 @@ from api.serializers.user import UserDetailsSerializer
 from api.views.auth import get_tokens_for_user
 from api.models.user import User
 
+SUPPORTED_LOCALES = {'en', 'fr', 'ha'}
+
+def _get_locale(request):
+    """Read locale from Accept-Language header sent by the frontend API client."""
+    raw = request.headers.get('Accept-Language', 'en')
+    locale = raw.split(',')[0].strip().split('-')[0].lower()
+    return locale if locale in SUPPORTED_LOCALES else 'en'
+
+def _locale_redirect_uri(request):
+    """Build the locale-aware frontend callback URI."""
+    locale = _get_locale(request)
+    frontend = settings.FRONTEND_URL.rstrip('/')
+    return f'{frontend}/{locale}/auth/google/callback'
+
 
 @csrf_exempt
 @api_view(['GET'])
@@ -24,9 +38,12 @@ def google_login(request):
     Returns the authorization URL
     """
     from urllib.parse import urlencode
-    
+
     try:
-        redirect_uri = request.GET.get('redirect_uri', f'{settings.FRONTEND_URL}/auth/google/callback')
+        # Use the locale-aware URI as the default so the redirect_uri in the
+        # authorization URL already contains the correct locale prefix.
+        # The frontend can still override by passing redirect_uri explicitly.
+        redirect_uri = request.GET.get('redirect_uri', _locale_redirect_uri(request))
         # CRITICAL: Remove trailing slash - Google is very strict about exact match
         redirect_uri = redirect_uri.rstrip('/')
         
@@ -110,7 +127,7 @@ def google_callback(request):
         mobile_app = state == 'mobile_app'
     else:
         code = request.data.get('code')
-        redirect_uri = request.data.get('redirect_uri', f'{settings.FRONTEND_URL}/auth/google/callback')
+        redirect_uri = request.data.get('redirect_uri', _locale_redirect_uri(request))
         redirect_uri = redirect_uri.rstrip('/')
         mobile_app = request.data.get('mobile_app', False)
     

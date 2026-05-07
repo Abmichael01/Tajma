@@ -41,8 +41,10 @@ export default function GoogleCallbackPage() {
     // Mark as processed to prevent duplicate calls
     hasProcessed.current = true
 
-    // Get the redirect URI (current page URL without query params)
-    const redirectUri = `${window.location.origin}/auth/google/callback`
+    // Use the actual pathname so the locale prefix is included
+    // (e.g. https://tajma.net/en/auth/google/callback) — must match the
+    // redirect_uri used when the authorization URL was built.
+    const redirectUri = `${window.location.origin}${window.location.pathname}`
 
     // Call the backend to exchange code for user info
     googleLogin.mutate(

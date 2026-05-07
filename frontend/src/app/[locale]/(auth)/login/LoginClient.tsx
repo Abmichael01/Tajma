@@ -145,7 +145,9 @@ export default function LoginClient() {
                 className="w-full bg-secondary hover:bg-secondary/90 text-white"
                 onClick={async () => {
                   try {
-                    const redirectUri = `${window.location.origin}/auth/google/callback`
+                    // Extract locale from current path (/en/login → 'en')
+                    const locale = window.location.pathname.split('/')[1] || 'en'
+                    const redirectUri = `${window.location.origin}/${locale}/auth/google/callback`
                     const { authorization_url } = await authApi.getGoogleAuthUrl(redirectUri)
                     window.location.href = authorization_url
                   } catch (error) {

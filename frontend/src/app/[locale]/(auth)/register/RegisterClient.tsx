@@ -96,7 +96,8 @@ export default function RegisterClient() {
     setSignupMethod(method)
     if (method === 'google') {
       try {
-        const redirectUri = `${window.location.origin}/auth/google/callback`
+        const locale = window.location.pathname.split('/')[1] || 'en'
+        const redirectUri = `${window.location.origin}/${locale}/auth/google/callback`
         const { authorization_url } = await authApi.getGoogleAuthUrl(redirectUri)
         window.location.href = authorization_url
       } catch (error) {
