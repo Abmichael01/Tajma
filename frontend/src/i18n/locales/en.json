@@ -152,14 +152,14 @@
   },
   "nav": {
     "home": "Home",
-    "messages": "Inbox",
-    "alerts": "Notifications",
-    "profile": "Account",
+    "messages": "Messages",
+    "alerts": "Alerts",
+    "profile": "Profile",
     "support": "Help Center",
     "sell": "Sell",
     "buy": "Buy",
     "chats": "Chats",
-    "post": "Post Ads"
+    "post": "Post Ad"
   },
   "footer": {
     "about": "About Tajma",
@@ -180,7 +180,7 @@
   "user": {
     "profile": "Profile",
     "messages": "Messages",
-    "notifications": "Notifications",
+    "notifications": "Alerts",
     "my_ads": "My Ads",
     "potential_clients": "Potential Clients",
     "saved_ads": "Saved Ads",

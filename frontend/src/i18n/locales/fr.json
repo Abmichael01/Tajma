@@ -152,13 +152,13 @@
   },
   "nav": {
     "home": "Accueil",
-    "messages": "Boîte de réception",
-    "alerts": "Notifications",
-    "profile": "Compte",
+    "messages": "Messages",
+    "alerts": "Alertes",
+    "profile": "Profil",
     "support": "Aide",
     "sell": "Vendre",
     "buy": "Acheter",
-    "chats": "Discuter",
+    "chats": "Messagerie",
     "post": "Publier"
   },
   "footer": {
@@ -180,7 +180,7 @@
   "user": {
     "profile": "Profil",
     "messages": "Messages",
-    "notifications": "Notifications",
+    "notifications": "Alertes",
     "my_ads": "Mes annonces",
     "potential_clients": "Clients potentiels",
     "saved_ads": "Annonces enregistrées",
