@@ -20,14 +20,20 @@ import BackButton from "@/components/ui/BackButton";
 import Input from "@/components/ui/Input";
 import FormGroup from "@/components/ui/FormGroup";
 import Alert from "@/components/ui/Alert";
+import { useTranslation } from "react-i18next";
 
-const forgotPasswordSchema = z.object({
-  email: z.string().email("Email is invalid").min(1, "Email is required"),
-});
+const getForgotPasswordSchema = (t: any) =>
+  z.object({
+    email: z
+      .string()
+      .email(t("auth.validation.emailInvalid"))
+      .min(1, t("auth.validation.emailRequired")),
+  });
 
-type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
+type ForgotPasswordValues = z.infer<ReturnType<typeof getForgotPasswordSchema>>;
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [submitted, setSubmitted] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
@@ -39,7 +45,7 @@ export default function ForgotPasswordScreen() {
     handleSubmit,
     formState: { errors },
   } = useForm<ForgotPasswordValues>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(getForgotPasswordSchema(t)),
     defaultValues: { email: "" },
   });
 
@@ -54,9 +60,7 @@ export default function ForgotPasswordScreen() {
       setSubmittedEmail(data.email);
       setSubmitted(true);
     } catch (error: any) {
-      setFormError(
-        error?.message ?? "Could not send reset link. Please try again."
-      );
+      setFormError(error?.message ?? t("auth.resetSendFailure"));
     } finally {
       setIsSubmitting(false);
     }
@@ -88,10 +92,11 @@ export default function ForgotPasswordScreen() {
               weight="semibold"
               className="text-center mb-3"
             >
-              Check your email
+              {t("auth.checkEmail")}
             </AppText>
             <AppText className="text-center text-gray-500 leading-6">
-              We sent password reset instructions to{"\n"}
+              {t("auth.resetInstructionsSent")}
+              {"\n"}
               <AppText weight="semibold" className="text-gray-900">
                 {submittedEmail}
               </AppText>
@@ -105,7 +110,7 @@ export default function ForgotPasswordScreen() {
             className="w-full"
             onPress={() => router.replace("/(auth)/login")}
           >
-            Back to sign in
+            {t("auth.backToSignIn")}
           </Button>
         </View>
       </View>
@@ -146,11 +151,10 @@ export default function ForgotPasswordScreen() {
               weight="semibold"
               className="mb-2 text-center"
             >
-              Forgot password?
+              {t("auth.forgotPasswordTitle")}
             </AppText>
             <AppText center className="mb-8 text-gray-500 leading-6">
-              No worries — enter the email tied to your account and we'll send
-              you a link to reset it.
+              {t("auth.forgotPasswordDesc")}
             </AppText>
 
             {formError && (
@@ -160,7 +164,7 @@ export default function ForgotPasswordScreen() {
             )}
 
             <FormGroup
-              label="Email address"
+              label={t("auth.emailAddress")}
               required
               error={errors.email?.message}
             >
@@ -169,7 +173,7 @@ export default function ForgotPasswordScreen() {
                 name="email"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
-                    placeholder="you@example.com"
+                    placeholder={t("auth.emailPlaceholder")}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoComplete="email"
@@ -182,11 +186,7 @@ export default function ForgotPasswordScreen() {
                     onBlur={onBlur}
                     error={!!errors.email}
                     leftIcon={
-                      <Ionicons
-                        name="mail-outline"
-                        size={20}
-                        color="#9ca3af"
-                      />
+                      <Ionicons name="mail-outline" size={20} color="#9ca3af" />
                     }
                   />
                 )}
@@ -195,10 +195,10 @@ export default function ForgotPasswordScreen() {
 
             <View className="items-center mt-2">
               <AppText className="text-gray-500">
-                Remembered it?{" "}
+                {t("auth.rememberedIt")}{" "}
                 <Link href="/(auth)/login" asChild>
                   <AppText weight="semibold" className="text-primary">
-                    Sign in
+                    {t("auth.signIn")}
                   </AppText>
                 </Link>
               </AppText>
@@ -213,7 +213,7 @@ export default function ForgotPasswordScreen() {
               disabled={isSubmitting}
               loading={isSubmitting}
             >
-              {isSubmitting ? "Sending..." : "Send reset link"}
+              {isSubmitting ? t("auth.sending") : t("auth.sendResetLink")}
             </Button>
           </View>
         </View>

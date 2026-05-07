@@ -1,9 +1,9 @@
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable } from "react-native";
 import AppText from "@/components/ui/AppText";
 import { cn } from "@/utils/cn";
+import { useTranslation } from "react-i18next";
 
 function WelcomeButton({
   label,
@@ -39,16 +39,17 @@ function WelcomeButton({
 
 export default function WelcomeButtons() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <View className="w-full gap-3">
       <WelcomeButton
-        label="Login"
+        label={t("auth.login")}
         onPress={() => router.push("/(auth)/login")}
         variant="primary"
       />
       <WelcomeButton
-        label="Create an account"
+        label={t("welcome.createAccount")}
         onPress={() => router.push("/(auth)/register")}
         variant="secondary"
       />

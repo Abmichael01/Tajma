@@ -2,6 +2,10 @@
   "home": {
     "discoverDeals": "Nemo kaya masu kyau kusa da kai"
   },
+  "welcome": {
+    "tagline": "Kasuwarka ta komai don samun ciniki mai kyau",
+    "createAccount": "Ƙirƙiri asusu"
+  },
   "common": {
     "ok": "To",
     "cancel": "Soke",
@@ -57,6 +61,21 @@
     "alreadyHaveAccount": "Kana da asusu riga?",
     "continueWithGoogle": "Ci gaba da Google",
     "connecting": "Ana haɗawa...",
+    "welcomeBack": "Barka da dawowa",
+    "dontHaveAccount": "Ba ka da asusu?",
+    "signUpForFree": "Yi rajista kyauta",
+    "orContinueWith": "Ko ci gaba da",
+    "loginFailed": "Shiga ya gaza. Da fatan a sake gwadawa.",
+    "networkError": "Ba a iya haɗawa da uwar garke. Duba haɗin intanet ɗinka sannan ka sake gwadawa.",
+    "forgotPasswordTitle": "Ka manta kalmar sirri?",
+    "forgotPasswordDesc": "Ba damuwa. Shigar da imel ɗin asusunka, za mu aika maka hanyar sake saita kalmar sirri.",
+    "resetSendFailure": "Ba a iya aika hanyar sake saita kalmar sirri ba. Da fatan a sake gwadawa.",
+    "checkEmail": "Duba imel ɗinka",
+    "resetInstructionsSent": "Mun aika umarnin sake saita kalmar sirri zuwa",
+    "backToSignIn": "Koma shiga",
+    "rememberedIt": "Ka tuna?",
+    "sending": "Ana aikawa...",
+    "sendResetLink": "Aika hanyar sake saitawa",
     "validation": {
       "emailRequired": "Ana buƙatar imel",
       "emailInvalid": "Imel bai dace ba",
@@ -94,6 +113,14 @@
     "termsConditions": "Sharuɗɗa da Yanayi",
     "username": "Sunan mai amfani",
     "usernameHelper": "Haruffa, lambobi da underscore kawai"
+  },
+  "onboarding": {
+    "language": {
+      "title": "Zaɓi yarenka",
+      "subtitle": "Zaɓi yaren da kake son amfani da shi a Tajma.",
+      "suggested": "An ba da shawara",
+      "changeLater": "Za ka iya canja wannan a kowane lokaci a Saituna."
+    }
   },
   "messages": {
     "title": "Saƙonni",

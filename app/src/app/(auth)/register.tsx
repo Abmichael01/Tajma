@@ -28,41 +28,44 @@ import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 
 type RegisterFormValues = z.infer<ReturnType<typeof getRegisterSchema>>;
 
-const getRegisterSchema = (t: any) => z
-  .object({
-    firstName: z
-      .string()
-      .min(1, t("auth.validation.firstNameRequired"))
-      .min(2, t("auth.validation.firstNameMin")),
-    lastName: z
-      .string()
-      .min(1, t("auth.validation.lastNameRequired"))
-      .min(2, t("auth.validation.lastNameMin")),
-    username: z
-      .string()
-      .min(1, t("auth.validation.usernameRequired"))
-      .min(3, t("auth.validation.usernameMin"))
-      .regex(
-        /^[a-zA-Z0-9_]+$/,
-        t("auth.validation.usernameRegex")
-      ),
-    email: z.string().email(t("auth.validation.emailInvalid")).min(1, t("auth.validation.emailRequired")),
-    password: z
-      .string()
-      .min(8, t("auth.validation.passwordMin"))
-      .regex(
-        /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        t("auth.validation.passwordRegex")
-      ),
-    confirmPassword: z.string().min(1, t("auth.validation.confirmPasswordRequired")),
-    agreeToTerms: z.boolean().refine((val) => val === true, {
-      message: t("auth.validation.agreeToTerms"),
-    }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: t("auth.validation.passwordsDoNotMatch"),
-    path: ["confirmPassword"],
-  });
+const getRegisterSchema = (t: any) =>
+  z
+    .object({
+      firstName: z
+        .string()
+        .min(1, t("auth.validation.firstNameRequired"))
+        .min(2, t("auth.validation.firstNameMin")),
+      lastName: z
+        .string()
+        .min(1, t("auth.validation.lastNameRequired"))
+        .min(2, t("auth.validation.lastNameMin")),
+      username: z
+        .string()
+        .min(1, t("auth.validation.usernameRequired"))
+        .min(3, t("auth.validation.usernameMin"))
+        .regex(/^[a-zA-Z0-9_]+$/, t("auth.validation.usernameRegex")),
+      email: z
+        .string()
+        .email(t("auth.validation.emailInvalid"))
+        .min(1, t("auth.validation.emailRequired")),
+      password: z
+        .string()
+        .min(8, t("auth.validation.passwordMin"))
+        .regex(
+          /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+          t("auth.validation.passwordRegex"),
+        ),
+      confirmPassword: z
+        .string()
+        .min(1, t("auth.validation.confirmPasswordRequired")),
+      agreeToTerms: z.boolean().refine((val) => val === true, {
+        message: t("auth.validation.agreeToTerms"),
+      }),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("auth.validation.passwordsDoNotMatch"),
+      path: ["confirmPassword"],
+    });
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -74,7 +77,7 @@ export default function RegisterScreen() {
   } = useGoogleAuth();
 
   const [signupMethod, setSignupMethod] = useState<"google" | "email" | null>(
-    null
+    null,
   );
   const [step, setStep] = useState<1 | 2>(1);
   const [formError, setFormError] = useState<string | null>(null);
@@ -139,13 +142,14 @@ export default function RegisterScreen() {
         password_confirm: data.confirmPassword,
       });
     } catch (error: any) {
-      let errorMessage = t("auth.failedToCreate", { defaultValue: "Registration failed. Please try again." });
+      let errorMessage = t("auth.failedToCreate", {
+        defaultValue: "Registration failed. Please try again.",
+      });
       if (
         error?.code === "ERR_NETWORK" ||
         error?.message?.includes("Network Error")
       ) {
-        errorMessage =
-          "Cannot connect to server. Please check your network connection and ensure the backend server is running.";
+        errorMessage = t("auth.networkError");
       } else if (error?.response?.data) {
         const errorData = error.response.data;
         if (errorData.non_field_errors) {
@@ -244,9 +248,7 @@ export default function RegisterScreen() {
             variant="secondary"
             size="lg"
             className="w-full"
-            leftIcon={
-              <Ionicons name="logo-google" size={20} color="#FFFFFF" />
-            }
+            leftIcon={<Ionicons name="logo-google" size={20} color="#FFFFFF" />}
             onPress={async () => {
               try {
                 await handleGoogleAuth();
@@ -257,7 +259,9 @@ export default function RegisterScreen() {
             disabled={googleLoading}
             loading={googleLoading}
           >
-            {googleLoading ? t("auth.connecting") : t("auth.continueWithGoogle")}
+            {googleLoading
+              ? t("auth.connecting")
+              : t("auth.continueWithGoogle")}
           </Button>
         </View>
       </View>
@@ -288,11 +292,7 @@ export default function RegisterScreen() {
           >
             {/* Step 1 Fields */}
             <View style={{ display: step === 1 ? "flex" : "none" }}>
-              <AppText
-                variant="heading"
-                weight="semibold"
-                className="mb-2"
-              >
+              <AppText variant="heading" weight="semibold" className="mb-2">
                 {t("auth.tellUsAboutYou")}
               </AppText>
               <AppText className="mb-8 text-gray-500 leading-6">
@@ -385,11 +385,7 @@ export default function RegisterScreen() {
                       onBlur={onBlur}
                       error={!!errors.username}
                       leftIcon={
-                        <Ionicons
-                          name="at-outline"
-                          size={20}
-                          color="#9ca3af"
-                        />
+                        <Ionicons name="at-outline" size={20} color="#9ca3af" />
                       }
                     />
                   )}
@@ -399,11 +395,7 @@ export default function RegisterScreen() {
 
             {/* Step 2 Fields */}
             <View style={{ display: step === 2 ? "flex" : "none" }}>
-              <AppText
-                variant="heading"
-                weight="semibold"
-                className="mb-2"
-              >
+              <AppText variant="heading" weight="semibold" className="mb-2">
                 {t("auth.setupAccount")}
               </AppText>
               <AppText className="mb-8 text-gray-500 leading-6">
@@ -529,27 +521,17 @@ export default function RegisterScreen() {
                         }`}
                       >
                         {value && (
-                          <Ionicons
-                            name="checkmark"
-                            size={16}
-                            color="#fff"
-                          />
+                          <Ionicons name="checkmark" size={16} color="#fff" />
                         )}
                       </View>
                       <View className="flex-1">
                         <AppText className="text-gray-700">
                           {t("auth.agreeTo")}{" "}
-                          <AppText
-                            weight="semibold"
-                            className="text-primary"
-                          >
+                          <AppText weight="semibold" className="text-primary">
                             {t("auth.termsConditions")}
                           </AppText>{" "}
                           {t("auth.and")}{" "}
-                          <AppText
-                            weight="semibold"
-                            className="text-primary"
-                          >
+                          <AppText weight="semibold" className="text-primary">
                             {t("auth.privacyPolicy")}
                           </AppText>
                         </AppText>
@@ -567,7 +549,8 @@ export default function RegisterScreen() {
               className="w-full"
               onPress={step === 1 ? goToStep2 : handleSubmit(onSubmit)}
               disabled={
-                registerMutation.isPending || (step === 1 ? !isStep1Valid : !isStep2Valid)
+                registerMutation.isPending ||
+                (step === 1 ? !isStep1Valid : !isStep2Valid)
               }
               loading={registerMutation.isPending}
             >

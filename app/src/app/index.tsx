@@ -6,8 +6,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import AppText from "@/components/ui/AppText";
 import WelcomeButtons from "@/components/welcome/WelcomeButtons";
 import { useAuthStore } from "@/store/authStore";
+import { useTranslation } from "react-i18next";
 
 export default function WelcomeScreen() {
+  const { t } = useTranslation();
   const { isAuthenticated, hasHydrated } = useAuthStore();
 
   if (!hasHydrated) {
@@ -56,7 +58,7 @@ export default function WelcomeScreen() {
               letterSpacing: 0.5,
             }}
           >
-            Your all-in-one marketplace for amazing deals
+            {t("welcome.tagline")}
           </AppText>
 
           <WelcomeButtons />
