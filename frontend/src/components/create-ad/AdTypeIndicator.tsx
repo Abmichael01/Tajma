@@ -17,7 +17,7 @@ export default function AdTypeIndicator({ adType }: AdTypeIndicatorProps) {
     cv: { icon: FileText, label: t('posting_cv'), color: 'text-blue-600' }
   }
   
-  const { icon: Icon, label, color } = config[adType]
+  const { icon: Icon, label, color } = config[adType] ?? config['product']
   
   return (
     <div className={`inline-flex items-center gap-2 px-4 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-sm font-medium ${color}`}>

@@ -15,7 +15,11 @@ import { useCreateAd } from '@/hooks/useAds'
 import { useAuthStore } from '@/store/authStore'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
 import CompleteProfileDialog from '@/components/modals/CompleteProfileDialog'
-import type { CategoryTree } from '@/types/category'
+import type { CategoryTree, CategoryType } from '@/types/category'
+
+const VALID_AD_TYPES = new Set<string>(['product', 'service', 'job', 'cv'])
+const toAdType = (v?: string | null): 'product' | 'service' | 'job' | 'cv' =>
+  VALID_AD_TYPES.has(v ?? '') ? (v as CategoryType) : 'product'
 import type { CreateAdRequest } from '@/api/types'
 import type { CustomFieldConfig } from '@/components/create-ad/DynamicFormFields'
 
@@ -170,7 +174,7 @@ export default function CreateAdClient() {
     setFormData((prev) => ({
       ...prev,
       category: category.slug,
-      adType: category.type || prev.adType
+      adType: toAdType(category.type || (category as any).category_type) || prev.adType
     }))
     
     setErrors((prev) => {
@@ -210,7 +214,7 @@ export default function CreateAdClient() {
       setCustomFields(customFieldsToUse)
       setFormData((prev) => {
         const updates: Partial<FormData> = { 
-          adType: node.type || '',
+          adType: toAdType(node.type || (node as any).category_type),
           category: node.slug
         }
         
