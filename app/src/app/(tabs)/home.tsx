@@ -168,15 +168,15 @@ export default function HomeScreen() {
                 </AppText>
               </View>
               <View className="flex-row items-center gap-2">
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => router.push('/search' as any)}
-                  className="w-10 h-10 items-center justify-center rounded-full border border-white/40"
+                  className="w-10 h-10 items-center justify-center rounded-full border border-white/20 bg-white/5"
                 >
                   <Ionicons name="search" size={20} color="white" />
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => setIsCountryModalVisible(true)}
-                  className={`w-10 h-10 items-center justify-center rounded-full border ${selectedCountry ? "bg-white border-white" : "border-white/40"}`}
+                  className={`w-10 h-10 items-center justify-center rounded-full border ${selectedCountry ? "bg-white border-white" : "border-white/20 bg-white/5"}`}
                 >
                   <Ionicons name="location" size={20} color={selectedCountry ? "#FF4F18" : "white"} />
                 </TouchableOpacity>

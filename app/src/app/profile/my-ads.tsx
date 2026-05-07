@@ -211,28 +211,22 @@ export default function MyAdsScreen() {
                     <TouchableOpacity
                       key={filter.value}
                       onPress={() => setStatusFilter(filter.value)}
-                      className={`flex-row items-center gap-2 px-4 py-2.5 rounded-full border ${
+                      className={`flex-row items-center gap-2 px-5 py-2 rounded-full ${
                         statusFilter === filter.value
-                          ? "bg-secondary border-secondary"
-                          : "bg-white border-gray-200"
+                          ? "bg-slate-900 shadow-sm shadow-slate-900/20"
+                          : "bg-slate-50 border border-slate-100"
                       }`}
                     >
                       <Ionicons
                         name={filter.icon as any}
                         size={16}
-                        color={
-                          statusFilter === filter.value ? "#ffffff" : "#6b7280"
-                        }
+                        color={statusFilter === filter.value ? "#ffffff" : "#64748B"}
                       />
                       <AppText
-                        weight={
-                          statusFilter === filter.value ? "bold" : "medium"
-                        }
-                        className={
-                          statusFilter === filter.value
-                            ? "text-white"
-                            : "text-gray-600"
-                        }
+                        weight="bold"
+                        className={`text-xs ${
+                          statusFilter === filter.value ? "text-white" : "text-slate-600"
+                        }`}
                       >
                         {filter.label}
                       </AppText>

@@ -50,7 +50,17 @@ export default function CategoryCard({ category }: CategoryCardProps) {
               onError={() => setImageError(true)}
             />
           ) : (
-            <Ionicons name="grid-outline" size={44} color={accentColor} style={{ opacity: 0.3 }} />
+            <AppText
+              weight="bold"
+              style={{
+                fontSize: 72,
+                color: accentColor,
+                opacity: 0.25,
+                lineHeight: 80,
+              }}
+            >
+              {category.name.charAt(0).toUpperCase()}
+            </AppText>
           )}
         </View>
 
