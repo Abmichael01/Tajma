@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { View, TouchableOpacity, ScrollView, Modal, Pressable, TextInput } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { View, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppText from '../ui/AppText';
 import Input from '../ui/Input';
 import TextArea from '../ui/TextArea';
+import BottomSheet, { BottomSheetRef } from '../ui/BottomSheet';
 import {
     conditionOptions,
     transmissionOptions,
@@ -47,13 +49,13 @@ const normalizeCustomFields = (fields: CustomFieldConfig[] | string[]): CustomFi
     return oldFields.map(field => fieldConfigs[field] || { name: field, label: field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' '), type: 'text' });
 };
 
-// Simple Select Component using Modal
+// Select using the app's existing @gorhom/bottom-sheet — reliable, native-feel drawer
 const Select = ({
     label,
     value,
     options,
     onSelect,
-    placeholder = "Select option",
+    placeholder,
     required = false
 }: {
     label: string,
@@ -63,7 +65,8 @@ const Select = ({
     placeholder?: string,
     required?: boolean
 }) => {
-    const [visible, setVisible] = useState(false);
+    const { t } = useTranslation();
+    const sheetRef = useRef<BottomSheetRef>(null);
     const selectedOption = options?.find(o => o.value === value);
 
     return (
@@ -71,47 +74,53 @@ const Select = ({
             <AppText className="mb-2 text-gray-700 font-medium">
                 {label} {required && <AppText className="text-red-500">*</AppText>}
             </AppText>
+
             <TouchableOpacity
-                onPress={() => setVisible(true)}
+                onPress={() => sheetRef.current?.present()}
+                activeOpacity={0.7}
                 className="bg-gray-50 border border-gray-200 rounded-full px-5 py-4 flex-row justify-between items-center"
             >
                 <AppText className={`text-base ${selectedOption ? 'text-gray-900' : 'text-gray-400'}`}>
-                    {selectedOption ? selectedOption.label : placeholder}
+                    {selectedOption ? selectedOption.label : (placeholder ?? t('common.selectOption'))}
                 </AppText>
-                <Ionicons name="chevron-down" size={20} color="#64748b" />
+                <Ionicons name={selectedOption ? 'chevron-down' : 'chevron-down'} size={20} color={selectedOption ? '#FF4F18' : '#64748b'} />
             </TouchableOpacity>
 
-            <Modal visible={visible} transparent animationType="slide">
-                <Pressable
-                    className="flex-1 bg-black/50 justify-end"
-                    onPress={() => setVisible(false)}
-                >
-                    <View className="bg-white rounded-t-3xl max-h-[70%]">
-                        <View className="px-5 py-4 border-b border-gray-100 flex-row justify-between items-center">
-                            <AppText variant="heading" className="text-lg">Select {label}</AppText>
-                            <TouchableOpacity onPress={() => setVisible(false)}>
-                                <Ionicons name="close" size={24} color="#000" />
-                            </TouchableOpacity>
-                        </View>
-                        <ScrollView className="p-4" showsVerticalScrollIndicator={false}>
-                            {options?.map((opt) => (
-                                <TouchableOpacity
-                                    key={opt.value}
-                                    onPress={() => {
-                                        onSelect(opt.value);
-                                        setVisible(false);
-                                    }}
-                                    className={`py-4 px-4 rounded-xl mb-2 flex-row justify-between items-center ${value === opt.value ? 'bg-primary/10' : 'active:bg-gray-50'}`}
-                                >
-                                    <AppText className={`text-base font-medium ${value === opt.value ? 'text-primary' : 'text-gray-900'}`}>{opt.label}</AppText>
-                                    {value === opt.value && <Ionicons name="checkmark" size={20} color="#FF4F18" />}
-                                </TouchableOpacity>
-                            ))}
-                            <View className="h-10" />
-                        </ScrollView>
-                    </View>
-                </Pressable>
-            </Modal>
+            <BottomSheet
+                ref={sheetRef}
+                title={`Select ${label}`}
+                snapPoints={['45%']}
+                scrollable={true}
+            >
+                <View className="px-4 py-2">
+                    {options?.map((opt) => (
+                        <TouchableOpacity
+                            key={opt.value}
+                            activeOpacity={0.65}
+                            onPress={() => {
+                                onSelect(opt.value);
+                                sheetRef.current?.dismiss();
+                            }}
+                            className={`py-4 px-4 rounded-2xl mb-2 flex-row justify-between items-center ${
+                                value === opt.value ? 'bg-primary/10' : 'bg-gray-50'
+                            }`}
+                        >
+                            <AppText
+                                weight={value === opt.value ? 'bold' : 'medium'}
+                                className={`text-base ${value === opt.value ? 'text-primary' : 'text-gray-800'}`}
+                            >
+                                {opt.label}
+                            </AppText>
+                            {value === opt.value && (
+                                <View className="w-6 h-6 rounded-full bg-primary items-center justify-center">
+                                    <Ionicons name="checkmark" size={14} color="white" />
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                    ))}
+                    <View className="h-4" />
+                </View>
+            </BottomSheet>
         </View>
     );
 };
@@ -133,6 +142,7 @@ const Checkbox = ({ label, checked, onChange, required }: { label: string, check
 
 // Tags Input Component for Mobile
 const TagsInput = ({ label, value, onChange, placeholder, required }: { label: string, value: string[] | undefined, onChange: (val: string[]) => void, placeholder?: string, required?: boolean }) => {
+    const { t } = useTranslation();
     const [tagInput, setTagInput] = useState('');
     const tags = Array.isArray(value) ? value : [];
 
@@ -169,7 +179,7 @@ const TagsInput = ({ label, value, onChange, placeholder, required }: { label: s
                     onChangeText={setTagInput}
                     onSubmitEditing={addTag}
                     onBlur={addTag}
-                    placeholder={placeholder || "Type and press enter"}
+                    placeholder={placeholder || t('common.typeAndPressEnter')}
                     placeholderTextColor="#9ca3af"
                     className="text-base text-gray-900 px-2 py-1"
                     style={{ fontFamily: 'WorkSans-Regular' }}
@@ -185,6 +195,7 @@ export default function DynamicFormFields({
     customFields,
     onInputChange
 }: DynamicFormFieldsProps) {
+    const { t } = useTranslation();
     const normalizedFields = normalizeCustomFields(customFields);
 
     if (normalizedFields.length === 0) return null;
@@ -291,7 +302,7 @@ export default function DynamicFormFields({
                                 className="bg-primary/10 px-4 py-2 rounded-full flex-row items-center gap-2"
                             >
                                 <Ionicons name="add" size={18} color="#FF4F18" />
-                                <AppText className="text-primary font-semibold text-xs text-center leading-none">Add Item</AppText>
+                                <AppText className="text-primary font-semibold text-xs text-center leading-none">{t('common.addItem')}</AppText>
                             </TouchableOpacity>
                         </View>
 

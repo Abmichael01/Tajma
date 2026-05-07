@@ -48,14 +48,14 @@ export default function AppText({
         className
       )}
       style={[
-        { 
+        {
           fontFamily: fontFamilyMap[weight],
           fontWeight: "normal" as const,
-          includeFontPadding: false, // Fix Android custom font clipping
-          textAlignVertical: "center",
+          includeFontPadding: false,
         },
         style,
       ]}
+      maxFontSizeMultiplier={1}
       {...props}
     >
       {children}

@@ -33,7 +33,12 @@
     "hourAgo": "awa {{count}} da ya wuce",
     "dayAgo": "kwana {{count}} da ya wuce",
     "weekAgo": "sati {{count}} da ya wuce",
-    "note": "Lura"
+    "note": "Lura",
+    "apply": "Aiwatar",
+    "currency": "Fr",
+    "selectOption": "Zaɓi zaɓi",
+    "typeAndPressEnter": "Rubuta ka danna Enter",
+    "addItem": "Saka abu"
   },
   "auth": {
     "login": "Shiga",
@@ -56,8 +61,39 @@
       "emailRequired": "Ana buƙatar imel",
       "emailInvalid": "Imel bai dace ba",
       "passwordRequired": "Ana buƙatar kalmar sirri",
-      "passwordMin": "Kalmar sirri dole ta kai haruffa 8"
-    }
+      "passwordMin": "Kalmar sirri dole ta kai haruffa 8",
+      "agreeToTerms": "Dole ne ka yarda da sharuɗɗa",
+      "confirmPasswordRequired": "Da fatan ka tabbatar da kalmar sirrinka",
+      "firstNameMin": "Suna na farko dole ya kai haruffa 2",
+      "firstNameRequired": "Ana buƙatar suna na farko",
+      "lastNameMin": "Sunan mahaifi dole ya kai haruffa 2",
+      "lastNameRequired": "Ana buƙatar sunan mahaifi",
+      "passwordRegex": "Kalmar sirri dole ta ƙunshi babba, ƙarami da lamba",
+      "passwordsDoNotMatch": "Kalmomin sirri ba su dace ba",
+      "usernameMin": "Sunan mai amfani dole ya kai haruffa 3",
+      "usernameRegex": "Haruffa, lambobi da underscore kawai aka yarda",
+      "usernameRequired": "Ana buƙatar sunan mai amfani"
+    },
+    "agreeTo": "Na yarda da",
+    "and": "da",
+    "confirmPassword": "Tabbatar da kalmar sirri",
+    "continueWithEmail": "Ci gaba da Imel",
+    "creatingAccount": "Ana ƙirƙirar asusu...",
+    "detailsSetupProfile": "Za mu yi amfani da waɗannan bayanan don saita asusunka.",
+    "emailAddress": "Adireshin imel",
+    "failedToCreate": "An kasa aikawa. Da fatan a sake gwadawa.",
+    "firstName": "Suna na farko",
+    "firstNamePlaceholder": "Shigar da suna na farko",
+    "lastName": "Sunan mahaifi",
+    "lastNamePlaceholder": "Shigar da sunan mahaifi",
+    "passwordHelper": "Yi amfani da haruffa 8 tare da babba, ƙarami da lamba",
+    "privacyPolicy": "Manufar Sirri",
+    "setupAccount": "Saita asusunka",
+    "setupAccountDesc": "Ƙirƙira bayanan shiga don kammala rajista.",
+    "tellUsAboutYou": "Faɗa mana game da kanka",
+    "termsConditions": "Sharuɗɗa da Yanayi",
+    "username": "Sunan mai amfani",
+    "usernameHelper": "Haruffa, lambobi da underscore kawai"
   },
   "messages": {
     "title": "Saƙonni",
@@ -75,6 +111,17 @@
     "allMessages": "Duk Saƙonni"
   },
   "chat": {
+    "placeholder": "Rubuta saƙo...",
+    "slideToCancelHint": "Ja don soke",
+    "camera": "Kyamara",
+    "gallery": "Hotuna",
+    "document": "Takarda",
+    "micPermissionRequired": "Ana buƙatar izinin makirofon don yin rikodin saƙon murya.",
+    "recordingError": "Ba a iya fara yin rikodin. Da fatan za a sake gwadawa.",
+    "cameraRollPermission": "Ana buƙatar izinin hotuna.",
+    "galleryError": "Ba a iya buɗe hotunanku. Da fatan za a sake gwadawa.",
+    "cameraPermission": "Ana buƙatar izinin kyamara.",
+    "cameraError": "Ba a iya buɗe kyamara. Da fatan za a sake gwadawa.",
     "startError": "An kasa fara hira. Da fatan za a sake gwadawa.",
     "filters": {
       "all": "Duk Hira",
@@ -96,6 +143,7 @@
     "analytics": "Kididdiga",
     "analyticsDesc": "Bincika ayyukan tallarka da darajarka",
     "leads": "Masu sha'awa",
+    "leads_subtitle": "Mutanen da suke sha'awar tallarku",
     "reviews": "Sharhi",
     "wishlist": "Abubuwan Sha'awa",
     "listings": "Tallace-tallace",
@@ -110,11 +158,42 @@
     "shareApp": "Raba App",
     "language": "Harshe",
     "signOut": "Fita",
+    "accountManagement": "Sarrafa Asusu",
     "wishlist_interact": {
       "itemsSaved": "abubuwa {{count}} da aka ajiye",
       "noSavedAdsTitle": "Babu tallan da aka ajiye",
-      "noSavedAdsDesc": "Abubuwan da ka ajiye za su bayyana a nan."
-    }
+      "noSavedAdsDesc": "Abubuwan da ka ajiye za su bayyana a nan.",
+      "yourWishlist": "Abubuwan da ka ajiye",
+      "item": "abu",
+      "items": "abubuwa",
+      "startBrowsing": "Fara Dubawa"
+    },
+    "leads_interact": {
+      "viewedNumber": "An duba lambar waya",
+      "visitedProfile": "An ziyarci bayanan asusu",
+      "savedAd": "An ajiye talla",
+      "lastSeen": "An gani a {{date}}",
+      "connected": "An haɗu",
+      "newLead": "Sabo",
+      "interestedIn": "Mai sha'awar",
+      "sendMessage": "Aika saƙo",
+      "ignoreLeadTitle": "Share mai sha'awa",
+      "ignoreLeadMessage": "Shin kana da tabbacin kana son share wannan mai sha'awar? Za a cire shi daga lissafinka.",
+      "ignore": "Share",
+      "noLeadsTitle": "Babu masu sha'awa tukunna",
+      "noLeadsDesc": "Mutanen da suka nuna sha'awar tallarka za su bayyana a nan."
+    },
+    "reviews_interact": {
+      "reviewsReceived": "An sami sharhi {{count}}",
+      "yourFeedback": "Sharhinka",
+      "review": "sharhi",
+      "reviews": "sharhi",
+      "noReviewsTitle": "Babu sharhi tukunna",
+      "noReviewsDesc": "Sharhi daga mutanen da kuka yi harka da su zai bayyana a nan.",
+      "reviewedItem": "Abun da aka yi sharhi akai",
+      "viewAd": "Duba Talla"
+    },
+    "trustLevel": "Matakin Amincewa"
   },
   "search": {
     "title": "Nema",
@@ -135,7 +214,40 @@
       "showResults": "Nuna Sakamako ({{count}})",
       "min": "Ƙarami",
       "max": "Babba",
-      "condition": "Yanayi"
+      "condition": "Yanayi",
+      "brandNew": "Sabuwa",
+      "foreignUsed": "Wadda aka yi amfani da ita a ƙasa waje",
+      "openBox": "Akwatin a buɗe",
+      "refurbished": "An gyara"
+    },
+    "category": {
+      "allCategories": "Duk Rukunoni",
+      "allIn": "Duk a {{name}}",
+      "categories": "Rukunoni",
+      "exploreEverything": "Bincika komai a Tajma",
+      "loadingCategories": "Ana lodawa rukunoni...",
+      "mainCategories": "Manyan Rukunoni",
+      "noCategoriesFound": "Babu rukunoni da aka samu",
+      "noMatchesDesc": "Ba mu sami daidaitacce don \"{{query}}\" ba",
+      "searchPlaceholder": "Bincika rukunoni...",
+      "searchResults": "Sakamakon Bincike",
+      "selectThisCategory": "Zaɓi wannan rukuni",
+      "subcategories": "Rukunoni masu ƙanƙanta"
+    },
+    "location": {
+      "adsFromAllCountries": "Tallace-tallace daga duk ƙasashe",
+      "adsInAllAreas": "Tallace-tallace a duk yankunan wannan ƙasa",
+      "allCountries": "Duk Ƙasashe",
+      "allLocations": "Duk Wurare",
+      "allOf": "Duk {{name}}",
+      "countries": "Ƙasashe",
+      "departments": "Sassan",
+      "noMatches": "Ba a samu daidaitacce ba",
+      "noMatchesDesc": "Ba mu sami daidaitacce don \"{{query}}\" ba",
+      "searchCountry": "Bincika ƙasa...",
+      "searchDepartment": "Bincika sashen...",
+      "selectCountry": "Zaɓi Ƙasa",
+      "selectDepartment": "Zaɓi Sashen"
     }
   },
   "ads": {
@@ -153,6 +265,20 @@
     "loadError": "Ba a sami talla ba",
     "loadErrorDesc": "Tallan da kake nema ba ya nan ko an cire shi.",
     "sortBy": "Tsara Ta",
+    "all": "Duk Talla",
+    "active": "Masu aiki",
+    "archived": "Wadanda aka ajiye",
+    "draft": "Draft",
+    "yourAds": "Tallace-tallanka",
+    "noActiveAdsTitle": "Babu tallan da yake aiki",
+    "noActiveAdsDesc": "Ba ka da wata talla da take aiki a yanzu. Ƙirƙiri ɗaya don fara sayarwa!",
+    "createListing": "Ƙirƙiri Talla",
+    "deleteAdTitle": "Goge Talla",
+    "deleteAdMessage": "Shin kana da tabbacin kana son goge wannan tallar? Ba za a iya dawo da ita ba.",
+    "archive": "Ajiye",
+    "makeLive": "Wallafa",
+    "promote": "Haɓaka",
+    "edit": "Gyara",
     "sort": {
       "newest": "Sabo Farko",
       "oldest": "Tsoho Farko",
@@ -160,9 +286,26 @@
       "price-high": "Farashi: Sama zuwa Ƙasa",
       "views": "Wadanda aka fi kallo",
       "title": "Suna A-Z"
-    }
+    },
+    "createError": "An kasa ƙirƙirar talla. Da fatan a sake gwadawa.",
+    "locationNotSpecified": "Ba a saka wuri ba",
+    "uncategorized": "Ba a rarraba ba"
   },
   "create_ad": {
+    "pickCategoryTitle": "Zaɓi rukuni don ci gaba",
+    "pickCategoryDesc": "Da zarar ka zaɓi rukuni, za mu nuna maka filayen da suka dace da tallarka.",
+    "images": {
+      "addPhoto": "Saka Hoto",
+      "cover": "Murfin",
+      "limitReached": "An kai iyaka",
+      "limitReachedDesc": "Za ka iya saka hotuna {{max}} ne kawai.",
+      "permissionRequired": "Ana buƙatar izini",
+      "permissionDesc": "Muna buƙatar izninka don shiga hotunanka.",
+      "fileTooLarge": "Fayil ɗin ya yi girma",
+      "fileTooLargeDesc": "Hoto ya wuce iyakar 5MB.",
+      "onlyFirstAdded": "An saka hotuna {{count}} na farko kawai.",
+      "failedToPick": "An kasa zaɓar hotuna"
+    },
     "steps": {
       "basicInfo": "Bayanai",
       "details": "Ƙarin Bayani",
@@ -191,7 +334,8 @@
       "bedrooms": "Dakuna",
       "bathrooms": "Banɗaki",
       "furnishing": "Kayan daki",
-      "availability": "Samuwa"
+      "availability": "Samuwa",
+      "selectThisCategory": "Zaɓi wannan rukuni"
     },
     "validation": {
       "titleMin": "Suna dole ya kai haruffa 5",
@@ -199,7 +343,8 @@
       "categoryRequired": "Da fatan za a zaɓi rukuni",
       "photoRequired": "Da fatan za a saka aƙalla hoto ɗaya",
       "descriptionMin": "Bayanin talla dole ya kai haruffa 20",
-      "locationRequired": "Wuri ya zama dole"
+      "locationRequired": "Wuri ya zama dole",
+      "fieldRequired": "Ana buƙatar {{field}}"
     },
     "actions": {
       "publish": "Wallafa Yanzu",
@@ -236,7 +381,14 @@
       "wrong_category": "Rukuni mara kyau",
       "prohibited": "Kayan da aka haramta",
       "other": "Wani dalili"
-    }
+    },
+    "clearerDesc": "Da fatan ka ba da bayani sosai (aƙalla haruffa 10)",
+    "moreDetails": "Ana buƙatar ƙarin bayani",
+    "selectReason": "Da fatan ka zaɓi dalilin kara",
+    "selectionRequired": "Ana buƙatar zaɓi",
+    "submittedDesc": "Mun gode da rahotonku. Tawagar mu za ta duba shi nan ba da daɗewa ba.",
+    "submittedTitle": "An aika kara",
+    "reportUser": "Kai Karar Mai Amfani"
   },
   "tabs": {
     "home": "Farko",
@@ -246,13 +398,26 @@
     "profile": "Bayanai"
   },
   "analytics": {
-    "title": "Kididdigar Talla",
-    "totalAds": "Duk Talla",
-    "views": "Kallo",
-    "active": "Masu aiki",
+    "title": "Aiki",
+    "subtitle": "Bincika tallace-tallace da haɗin gwiwa",
+    "globalTitle": "Fahimtar Duniya",
+    "globalDesc": "Ayyukan ku na dindindin akan Tajma",
+    "totalAds": "Dukan tallace-tallace",
+    "views": "Dukan kallo",
+    "active": "Tallace-tallace masu aiki",
+    "response": "Yawan amsawa",
+    "daysActive": "Kwanaki masu aiki",
     "favorites": "Sha'awa",
-    "sold": "An sayar",
-    "rating": "Daraja"
+    "sold": "Abubuwan da aka sayar",
+    "rating": "Matsakaicin darajar",
+    "realtime": "Bayanai na ainihi",
+    "engagement": "Haɗin kai",
+    "engagementDesc": "Yadda masu amfani ke mu'amala",
+    "avgViews": "Matsakaicin kallo",
+    "conversion": "Canji",
+    "growth": "Girma",
+    "excellentReputation": "Suna mai kyau",
+    "sales": "Tallace-tallace"
   },
   "kyc": {
     "title": "Tabbatar da Kai",
@@ -260,8 +425,20 @@
     "introTitle": "Tabbatar da Wane ne Kai",
     "introDesc": "Domin samar da kasuwa mai aminci ga kowa, muna buƙatar masu sayarwa su tabbatar da kansu.",
     "idTypesList": "Passport / ID / DL na Niger",
-    "selfieCapture": "Ɗaukar hoto nan take",
-    "timeEstimate": "Kasa da minti 2"
+    "selfieCapture": "Ɗaukar hoto kai tsaye",
+    "timeEstimate": "Kasa da mintuna 2",
+    "selectIdType": "Zaɓi nau'in ID",
+    "nationalId": "Katin ID na ƙasa",
+    "passport": "Fasfo",
+    "drivingLicense": "Lasisin tuƙi",
+    "startScanning": "Fara hoton ID",
+    "privacyNotice": "An kiyaye bayananka kuma ana sarrafa su ta hanyar Smile ID don tabbatar da asali.",
+    "successTitle": "An tura tabbaci",
+    "successMessage": "An tura tabbatar da asalin ka cikin nasara kuma ana kan dubawa.",
+    "failedTitle": "Tabbatarwa ya gaza",
+    "errorGeneric": "Wani abu ya gaza. Da fatan za a sake gwadawa.",
+    "errorStart": "An kasa fara tsarin tabbatarwa.",
+    "errorInitiate": "An kasa fara zaman tabbatarwa."
   },
   "alerts": {
     "title": "Sanarwa",
@@ -280,6 +457,10 @@
     }
   },
   "settings": {
+    "title": "Saituna",
+    "subtitle": "Sarrafa asusunku da abubuwan da kuke so",
+    "editProfile": "Gyara Bayanan Martaba",
+    "security": "Tsaro",
     "languageNote": "Canja harshe zai sabunta dukkan aikace-aikacen. Wasu bayanan da masu amfani suka saka na iya kasancewa a harshensu na asali."
   }
 }

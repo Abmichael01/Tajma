@@ -317,7 +317,7 @@ export default function AdminUsersPage() {
           window.location.href = `/admin/users/${user.id}`
         }}
         onEdit={(user) => {
-          toast.info('Edit functionality coming soon')
+          window.location.href = `/admin/users/${user.id}`
         }}
         onDelete={handleDelete}
         pagination={{

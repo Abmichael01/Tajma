@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import { useLocations } from '@/hooks/useLocations'
 import type { Location } from '@/api/countries'
@@ -12,15 +12,23 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/comp
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, MapPin, CheckCircle, XCircle, Eye, Trash2, Edit, ChevronRight, Home } from 'lucide-react'
+import { Plus, MapPin, ChevronRight, Home, Eye, Trash2, Edit } from 'lucide-react'
 import { toast } from 'sonner'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
 import { Link } from '@/i18n/routing'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import apiClient from '@/api/apiClient'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function AdminCountriesPage() {
+  // ── View state ─────────────────────────────────────────────────────────────
+  // Start at level 1 (countries). Clicking a country drills into level 2 (departments).
+  const [activeLevel, setActiveLevel] = useState<1 | 2>(1)
+  const [activeParentId, setActiveParentId] = useState<number | null>(null)
+  const [activeParentName, setActiveParentName] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+
+  // ── Modal state ────────────────────────────────────────────────────────────
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingRegion, setEditingRegion] = useState<Location | null>(null)
@@ -33,77 +41,76 @@ export default function AdminCountriesPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [activeLevel, setActiveLevel] = useState<number | 'all'>('all')
-  const [activeParentId, setActiveParentId] = useState<number | null>(null)
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
-  
-  // Delete confirmation state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [regionToDelete, setRegionToDelete] = useState<Location | null>(null)
 
+  // ── Queries ────────────────────────────────────────────────────────────────
+  // Main table query — always scoped to the active level
   const { data: response, isLoading, refetch } = useLocations({
     page,
     search,
     level: activeLevel,
-    parent: activeParentId,
+    parent: activeLevel === 2 ? activeParentId ?? undefined : undefined,
   })
+
+  // Separate query for the parent dropdown in modals — always fetches all countries
+  const { data: countriesResponse } = useLocations({ level: 1, page: 1 })
+  const allCountries = countriesResponse?.results || []
 
   const regionsList = response?.results || []
   const totalCount = response?.count || 0
 
-  const activeParent = useMemo(() => {
-    if (!activeParentId) return null
-    // We might not have the active parent in the current page results
-    // For now we'll try to find it, but ideally we'd fetch it separately or pass its name
-    return regionsList.find(r => r.id === activeParentId)
-  }, [regionsList, activeParentId])
+  // ── Navigation ─────────────────────────────────────────────────────────────
+  const handleDrillDown = (region: Location) => {
+    setActiveParentId(region.id)
+    setActiveParentName(region.name)
+    setActiveLevel(2)
+    setPage(1)
+    setSearch('')
+  }
 
-  // Removed local filteredRegions useMemo as we now use backend results directly
+  const resetToCountries = () => {
+    setActiveParentId(null)
+    setActiveParentName(null)
+    setActiveLevel(1)
+    setPage(1)
+    setSearch('')
+  }
 
-  const stats = useMemo(() => {
-    const total = regionsList.length
-    const active = regionsList.filter(r => r.adsCount > 0).length
-    const totalAds = regionsList.reduce((sum, r) => sum + r.adsCount, 0)
-    return { total, active, totalAds }
-  }, [regionsList])
+  // ── CRUD ───────────────────────────────────────────────────────────────────
+  const extractErrors = (error: any): Record<string, string> => {
+    const data = error?.response?.data
+    if (!data) return {}
+    const fieldErrors: Record<string, string> = {}
+    Object.keys(data).forEach((key) => {
+      const value = data[key]
+      fieldErrors[key] = Array.isArray(value) ? value[0] : String(value)
+    })
+    return fieldErrors
+  }
 
   const handleCreate = async () => {
     setErrors({})
     setIsSubmitting(true)
-
     try {
       await apiClient.post('/regions/', formData)
       toast.success('Location created successfully')
       setShowCreateModal(false)
-      setFormData({ name: '', is_active: true, sort_order: 0, level: 1, parent: null })
+      setFormData({ name: '', is_active: true, sort_order: 0, level: activeLevel, parent: activeParentId })
       refetch()
     } catch (error: any) {
-      if (error?.response?.data) {
-        const fieldErrors: Record<string, string> = {}
-        Object.keys(error.response.data).forEach((key) => {
-          const value = error.response.data[key]
-          if (Array.isArray(value)) {
-            fieldErrors[key] = value[0]
-          } else if (typeof value === 'string') {
-            fieldErrors[key] = value
-          }
-        })
-        setErrors(fieldErrors)
-      } else {
-        toast.error('Failed to create region')
-      }
+      const fieldErrors = extractErrors(error)
+      if (Object.keys(fieldErrors).length) setErrors(fieldErrors)
+      else toast.error('Failed to create location')
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const handleUpdate = async () => {
-    if (!editingRegion || !editingRegion.id) return
-
+    if (!editingRegion?.id) return
     setErrors({})
     setIsSubmitting(true)
-
     try {
       await apiClient.put(`/regions/${editingRegion.id}/`, formData)
       toast.success('Location updated successfully')
@@ -111,54 +118,29 @@ export default function AdminCountriesPage() {
       setEditingRegion(null)
       refetch()
     } catch (error: any) {
-      if (error?.response?.data) {
-        const fieldErrors: Record<string, string> = {}
-        Object.keys(error.response.data).forEach((key) => {
-          const value = error.response.data[key]
-          if (Array.isArray(value)) {
-            fieldErrors[key] = value[0]
-          } else if (typeof value === 'string') {
-            fieldErrors[key] = value
-          }
-        })
-        setErrors(fieldErrors)
-      } else {
-        toast.error('Failed to update region')
-      }
+      const fieldErrors = extractErrors(error)
+      if (Object.keys(fieldErrors).length) setErrors(fieldErrors)
+      else toast.error('Failed to update location')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleDelete = async (region: Location) => {
+  const handleDelete = (region: Location) => {
     setRegionToDelete(region)
     setShowDeleteDialog(true)
   }
 
   const confirmDelete = async () => {
     if (!regionToDelete?.id) return
-
     try {
       await apiClient.delete(`/regions/${regionToDelete.id}/`)
       toast.success('Location deleted successfully')
       setShowDeleteDialog(false)
       setRegionToDelete(null)
       refetch()
-    } catch (error: any) {
-      toast.error('Failed to delete region')
-    }
-  }
-
-  const handleToggleActive = async (region: Location) => {
-    if (!region.id) return
-
-    try {
-      await apiClient.patch(`/regions/${region.id}/`, {
-        is_active: !region.adsCount, // This is a placeholder - we need to track is_active
-      })
-      refetch()
-    } catch (error: any) {
-      toast.error('Failed to update region')
+    } catch {
+      toast.error('Failed to delete location')
     }
   }
 
@@ -167,75 +149,50 @@ export default function AdminCountriesPage() {
     setFormData({
       name: region.name,
       is_active: true,
-      sort_order: 0,
-      level: region.level || 1,
-      parent: region.parent || null,
+      sort_order: region.sort_order ?? 0,
+      level: region.level || activeLevel,
+      parent: typeof region.parent === 'number' ? region.parent : null,
     })
     setShowEditModal(true)
   }
 
   const handleOpenCreateModal = () => {
-    const defaultLevel = activeParent ? (activeParent.level || 0) + 1 : 1
-    const finalLevel = defaultLevel > 2 ? 2 : defaultLevel
-    
     setFormData({
       name: '',
       is_active: true,
       sort_order: 0,
-      level: finalLevel,
-      parent: activeParentId,
+      level: activeLevel,
+      parent: activeLevel === 2 ? activeParentId : null,
     })
     setShowCreateModal(true)
   }
 
-  const handleDrillDown = (region: Location) => {
-    setActiveParentId(region.id)
-    setActiveLevel(((region.level || 0) + 1) as any)
-    setPage(1)
-  }
-
-  const resetFilters = () => {
-    setActiveParentId(null)
-    setActiveLevel('all')
-    setPage(1)
-  }
-
+  // ── Table columns ──────────────────────────────────────────────────────────
   const columns: Column<Location>[] = [
     {
       key: 'name',
       header: 'Name',
       sortable: true,
-      render: (region) => (
-        <button 
-          onClick={() => (region.level && region.level < 2) ? handleDrillDown(region) : null}
-          className={region.level && region.level < 2 ? "text-primary hover:underline font-medium" : "font-medium"}
-        >
-          {region.name}
-        </button>
-      )
+      render: (region) =>
+        activeLevel === 1 ? (
+          <button
+            onClick={() => handleDrillDown(region)}
+            className="font-medium text-primary hover:underline text-left"
+          >
+            {region.name}
+          </button>
+        ) : (
+          <span className="font-medium">{region.name}</span>
+        ),
     },
     {
       key: 'slug',
       header: 'Slug',
-      render: (region) => region.slug || '-',
-    },
-    {
-      key: 'level',
-      header: 'Level',
-      render: (region) => (
-        <Badge variant={region.level === 1 ? 'default' : 'secondary'}>
-          {region.level === 1 ? 'Country' : 'Department'}
-        </Badge>
-      ),
-    },
-    {
-      key: 'parent_name',
-      header: 'Parent',
-      render: (region) => (region as any).parent_name || '-',
+      render: (region) => <span className="text-gray-500 text-sm">{region.slug || '—'}</span>,
     },
     {
       key: 'adsCount',
-      header: 'Ads Count',
+      header: 'Ads',
       render: (region) => (
         <Badge variant="outline" className="bg-gray-50">
           {region.adsCount.toLocaleString()}
@@ -244,86 +201,77 @@ export default function AdminCountriesPage() {
     },
   ]
 
+  const isCountriesView = activeLevel === 1
+
   return (
     <TooltipProvider>
       <div className="space-y-6">
+
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-medium text-gray-900">Countries</h1>
-            <p className="text-gray-600 mt-1">Manage country hierarchy</p>
+            <p className="text-gray-600 mt-1">
+              {isCountriesView
+                ? 'All countries — click a country to view its departments'
+                : `Departments of ${activeParentName}`}
+            </p>
           </div>
           <Button onClick={handleOpenCreateModal}>
             <Plus className="w-4 h-4 mr-2" />
-            New {activeLevel === 2 ? 'Dept' : 'Country'}
+            {isCountriesView ? 'New Country' : 'New Department'}
           </Button>
         </div>
 
-        {/* Organization Tools */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <Tabs value={activeLevel.toString()} onValueChange={(v: string) => {
-            const nextLevel = v === 'all' ? 'all' : parseInt(v)
-            setActiveLevel(nextLevel as any)
-            setActiveParentId(null)
-            setPage(1)
-          }}>
-            <TabsList>
-              <TabsTrigger value="all">All Levels</TabsTrigger>
-              <TabsTrigger value="1">Countries</TabsTrigger>
-              <TabsTrigger value="2">Departments</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-1 text-sm bg-white px-3 py-1.5 rounded-xl border border-gray-100 shadow-sm">
-            <button onClick={resetFilters} className="text-gray-500 hover:text-primary p-1">
-              <Home className="w-4 h-4" />
-            </button>
-            <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-            <span className={!activeParent ? "font-medium text-gray-900" : "text-gray-500"}>Niger</span>
-            
-            {activeParent && (
-              <>
-                <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-                <span className="font-medium text-gray-900">{activeParent.name}</span>
-              </>
-            )}
-          </div>
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1 text-sm bg-white px-3 py-2 rounded-xl border border-gray-100 shadow-sm w-fit">
+          <button onClick={resetToCountries} className="text-gray-400 hover:text-primary p-0.5">
+            <Home className="w-4 h-4" />
+          </button>
+          <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+          <button
+            onClick={resetToCountries}
+            className={isCountriesView ? 'font-medium text-gray-900' : 'text-gray-500 hover:text-primary'}
+          >
+            Countries
+          </button>
+          {activeParentName && (
+            <>
+              <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+              <span className="font-medium text-gray-900">{activeParentName}</span>
+            </>
+          )}
         </div>
 
-        {/* Statistics Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <AdminStatsCard
-              title="Total Countries"
-              value={stats.total.toLocaleString()}
-              icon={MapPin}
-              href="/admin/countries"
-              isPrimary={true}
-            />
-            <AdminStatsCard
-              title="Countries with Ads"
-              value={stats.active.toLocaleString()}
-              icon={MapPin}
-            />
-            <AdminStatsCard
-              title="Total Ads"
-              value={stats.totalAds.toLocaleString()}
-              icon={MapPin}
-            />
-          </div>
-        )}
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <AdminStatsCard
+            title={isCountriesView ? 'Total Countries' : 'Total Departments'}
+            value={totalCount.toLocaleString()}
+            icon={MapPin}
+            href="/admin/countries"
+            isPrimary
+          />
+          <AdminStatsCard
+            title="With Ads"
+            value={regionsList.filter(r => r.adsCount > 0).length.toLocaleString()}
+            icon={MapPin}
+          />
+          <AdminStatsCard
+            title="Total Ads"
+            value={regionsList.reduce((s, r) => s + r.adsCount, 0).toLocaleString()}
+            icon={MapPin}
+          />
+        </div>
 
-        {/* Data Table */}
+        {/* Table */}
         <DataTable
           data={regionsList}
           columns={columns}
           loading={isLoading}
           serverSide
           total={totalCount}
-          pagination={{
-            page,
-            pageSize: 20,
-          }}
+          pagination={{ page, pageSize: 20 }}
           onParamsChange={(params) => {
             if (params.page !== page) setPage(params.page)
             if (params.search !== search) {
@@ -331,22 +279,26 @@ export default function AdminCountriesPage() {
               setPage(1)
             }
           }}
-          emptyMessage={activeParentId ? `No sub-locations found in ${activeParent?.name || 'this location'}` : "No regions found"}
+          emptyMessage={
+            isCountriesView
+              ? 'No countries found'
+              : `No departments found in ${activeParentName}`
+          }
           actions={(region) => (
-            <div className="flex items-center gap-2">
-              {region.level && region.level < 2 && (
+            <div className="flex items-center gap-1">
+              {activeLevel === 1 && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="sm" onClick={() => handleDrillDown(region)}>
                       <ChevronRight className="w-4 h-4 text-primary" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="top">View children</TooltipContent>
+                  <TooltipContent side="top">View departments</TooltipContent>
                 </Tooltip>
               )}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link href={`/admin/regions/${region.slug || region.id}`}>
+                  <Link href={`/admin/countries/${region.id}`}>
                     <Button variant="ghost" size="sm">
                       <Eye className="w-4 h-4" />
                     </Button>
@@ -356,27 +308,19 @@ export default function AdminCountriesPage() {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleOpenEditModal(region)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => handleOpenEditModal(region)}>
                     <Edit className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="top">Edit region</TooltipContent>
+                <TooltipContent side="top">Edit</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(region)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-600" />
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(region)}>
+                    <Trash2 className="w-4 h-4 text-red-500" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="top">Delete region</TooltipContent>
+                <TooltipContent side="top">Delete</TooltipContent>
               </Tooltip>
             </div>
           )}
@@ -386,7 +330,9 @@ export default function AdminCountriesPage() {
         <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Location</DialogTitle>
+              <DialogTitle>
+                {formData.level === 1 ? 'Add New Country' : 'Add New Department'}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -395,47 +341,30 @@ export default function AdminCountriesPage() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Niamey"
+                  placeholder={formData.level === 1 ? 'e.g., Niger' : 'e.g., Niamey'}
                 />
                 {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
               </div>
-              <div>
-                <Label htmlFor="level">Level *</Label>
-                <Select
-                  value={formData.level.toString()}
-                  onValueChange={(val) => setFormData({ ...formData, level: parseInt(val), parent: null })}
-                >
-                  <SelectTrigger id="level">
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">Level 1 (Country)</SelectItem>
-                    <SelectItem value="2">Level 2 (Department)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
-              {formData.level > 1 && (
+              {formData.level === 2 && (
                 <div>
-                  <Label htmlFor="parent">Parent {formData.level === 2 ? 'Location' : 'Department'} *</Label>
+                  <Label htmlFor="parent">Country *</Label>
                   <Select
-                    value={formData.parent?.toString() || ""}
+                    value={formData.parent?.toString() || ''}
                     onValueChange={(val) => setFormData({ ...formData, parent: parseInt(val) })}
                   >
                     <SelectTrigger id="parent">
-                      <SelectValue placeholder={`Select ${formData.level === 2 ? 'Location' : 'Department'}`} />
+                      <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent>
-                      {regionsList
-                        .filter(r => r.level === formData.level - 1)
-                        .map(parent => (
-                          <SelectItem key={parent.id} value={parent.id.toString()}>
-                            {parent.name}
-                          </SelectItem>
-                        ))
-                      }
+                      {allCountries.map((country) => (
+                        <SelectItem key={country.id} value={country.id.toString()}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  {errors.parent && <p className="text-sm text-red-600 mt-1">{errors.parent}</p>}
                 </div>
               )}
 
@@ -458,11 +387,9 @@ export default function AdminCountriesPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </Button>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)}>Cancel</Button>
               <Button onClick={handleCreate} disabled={isSubmitting}>
-                Create
+                {isSubmitting ? 'Creating...' : 'Create'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -472,7 +399,9 @@ export default function AdminCountriesPage() {
         <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Location</DialogTitle>
+              <DialogTitle>
+                Edit {formData.level === 1 ? 'Country' : 'Department'}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -484,43 +413,28 @@ export default function AdminCountriesPage() {
                 />
                 {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
               </div>
-              <div>
-                <Label htmlFor="edit_level">Level *</Label>
-                <Select
-                  value={formData.level.toString()}
-                  onValueChange={(val) => setFormData({ ...formData, level: parseInt(val), parent: null })}
-                >
-                  <SelectTrigger id="edit_level">
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">Level 1 (Country)</SelectItem>
-                    <SelectItem value="2">Level 2 (Department)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
-              {formData.level > 1 && (
+              {formData.level === 2 && (
                 <div>
-                  <Label htmlFor="edit_parent">Parent {formData.level === 2 ? 'Location' : 'Department'} *</Label>
+                  <Label htmlFor="edit_parent">Country *</Label>
                   <Select
-                    value={formData.parent?.toString() || ""}
+                    value={formData.parent?.toString() || ''}
                     onValueChange={(val) => setFormData({ ...formData, parent: parseInt(val) })}
                   >
                     <SelectTrigger id="edit_parent">
-                      <SelectValue placeholder={`Select ${formData.level === 2 ? 'Location' : 'Department'}`} />
+                      <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent>
-                      {regionsList
-                        .filter(r => r.level === formData.level - 1 && r.id !== editingRegion?.id)
-                        .map(parent => (
-                          <SelectItem key={parent.id} value={parent.id.toString()}>
-                            {parent.name}
+                      {allCountries
+                        .filter((c) => c.id !== editingRegion?.id)
+                        .map((country) => (
+                          <SelectItem key={country.id} value={country.id.toString()}>
+                            {country.name}
                           </SelectItem>
-                        ))
-                      }
+                        ))}
                     </SelectContent>
                   </Select>
+                  {errors.parent && <p className="text-sm text-red-600 mt-1">{errors.parent}</p>}
                 </div>
               )}
 
@@ -543,27 +457,28 @@ export default function AdminCountriesPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowEditModal(false)}>
-                Cancel
-              </Button>
+              <Button variant="outline" onClick={() => setShowEditModal(false)}>Cancel</Button>
               <Button onClick={handleUpdate} disabled={isSubmitting}>
-                Update
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
+        {/* Delete Confirmation */}
         <ConfirmDeleteDialog
           open={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
           onConfirm={confirmDelete}
-          title={`Delete Location: ${regionToDelete?.name}?`}
-          description="Are you sure you want to delete this country? This action will also delete all sub-regions (departments) associated with it. This action cannot be undone."
-          isLoading={isSubmitting} // Reusing isSubmitting for loading state if needed, but apiClient doesn't have a mutation state here
+          title={`Delete ${regionToDelete?.name}?`}
+          description={
+            regionToDelete?.level === 1
+              ? 'This will also delete all departments inside this country. This cannot be undone.'
+              : 'This department will be permanently deleted.'
+          }
+          isLoading={isSubmitting}
         />
       </div>
     </TooltipProvider>
   )
 }
-

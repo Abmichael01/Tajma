@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/authStore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAlert } from "@/hooks/useAlert";
 import CustomAlert from "@/components/ui/CustomAlert";
+import ReportUserModal from "@/components/chat/ReportUserModal";
 
 export default function ChatInfoScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,6 +25,7 @@ export default function ChatInfoScreen() {
     const muteChatMutation = useMuteChat();
 
     const [isMuted, setIsMuted] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     useEffect(() => {
         if (chat) {
@@ -255,6 +257,13 @@ export default function ChatInfoScreen() {
                         <AppText className="text-red-500 font-medium">Block {otherParticipant?.full_name || otherParticipant?.username}</AppText>
                     </TouchableOpacity>
                     <TouchableOpacity
+                        className="px-6 py-4 flex-row items-center gap-4 border-b border-gray-50"
+                        onPress={() => setShowReportModal(true)}
+                    >
+                        <Ionicons name="flag-outline" size={22} color="#ef4444" />
+                        <AppText className="text-red-500 font-medium">Report {otherParticipant?.full_name || otherParticipant?.username}</AppText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
                         className="px-6 py-4 flex-row items-center gap-4"
                         onPress={handleClearChat}
                     >
@@ -263,6 +272,18 @@ export default function ChatInfoScreen() {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+
+            {otherParticipant && (
+                <ReportUserModal
+                    visible={showReportModal}
+                    onClose={() => setShowReportModal(false)}
+                    user={{
+                        id: otherParticipant.id,
+                        username: otherParticipant.username ?? undefined,
+                        full_name: otherParticipant.full_name ?? undefined,
+                    }}
+                />
+            )}
 
             <CustomAlert
                 visible={alertConfig.visible}

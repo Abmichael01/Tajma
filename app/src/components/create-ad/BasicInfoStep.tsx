@@ -27,7 +27,7 @@ export default function BasicInfoStep({
   const { categoryTree, categories, getCategoryBySlug, loading } = useCategories();
 
   const [currentLevelNodes, setCurrentLevelNodes] = useState<CategoryTree[]>([]);
-  const [breadcrumbs, setBreadcrumbs] = useState<{ name: string, nodes: CategoryTree[] }[]>([]);
+  const [breadcrumbs, setBreadcrumbs] = useState<{ node: CategoryTree, nodes: CategoryTree[] }[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Initialize with root categories
@@ -63,12 +63,27 @@ export default function BasicInfoStep({
 
 
     if (!searchQuery && isTreeNode(node) && node.children && node.children.length > 0) {
-      setBreadcrumbs([...breadcrumbs, { name: node.name, nodes: currentLevelNodes }]);
+      setBreadcrumbs([...breadcrumbs, { node, nodes: currentLevelNodes }]);
       setCurrentLevelNodes(node.children);
     } else {
-      // It's a leaf node or we are searching -> select it
+      // Leaf node, or we're searching, or user explicitly chose "Select this category" → pick it
       onCategorySelect(categoryToSelect);
     }
+  };
+
+  // Selects the parent of the current level (the node we just drilled into).
+  // Used by the pinned "Select this category" row at the top of each non-root level.
+  const handleSelectCurrentParent = () => {
+    if (breadcrumbs.length === 0) return;
+    const parent = breadcrumbs[breadcrumbs.length - 1].node;
+    onCategorySelect({
+      id: parent.id,
+      name: parent.name,
+      slug: parent.slug,
+      icon: parent.icon,
+      description: parent.description,
+      parentId: 'parentId' in parent ? parent.parentId : null,
+    } as Category);
   };
 
   const handleBack = () => {
@@ -79,7 +94,7 @@ export default function BasicInfoStep({
     }
   };
 
-  const currentCategoryName = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].name : t('create_ad.fields.category');
+  const currentCategoryName = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].node.name : t('create_ad.fields.category');
   // Actually, t('search.allRegions') might be okay if it's the same idea. But let's check.
   // I'll add "allCategories" to en.json/ha.json if needed.
   // For now I'll use t('create_ad.fields.category')
@@ -205,29 +220,57 @@ export default function BasicInfoStep({
                           <AppText className="text-gray-500">{t('search.noResults')}</AppText>
                         </View>
                       ) : (
-                        currentLevelNodes.map((node, index) => (
-                          <TouchableOpacity
-                            key={node.id}
-                            onPress={() => handleSelect(node)}
-                            activeOpacity={0.7}
-                            className={`p-4 flex-row items-center justify-between bg-white ${index !== currentLevelNodes.length - 1 ? 'border-b border-gray-50' : ''}`}
-                          >
-                            <View className="flex-row items-center gap-4">
-                              <View className="w-12 h-12 bg-gray-50 rounded-2xl items-center justify-center border border-gray-100">
-                                <AppText weight="bold" className="text-xl text-primary">{node.name.charAt(0).toUpperCase()}</AppText>
+                        <>
+                          {/* Pinned: "Select this category" — selects the parent we just drilled into */}
+                          {breadcrumbs.length > 0 && (
+                            <TouchableOpacity
+                              onPress={handleSelectCurrentParent}
+                              activeOpacity={0.7}
+                              className="p-4 flex-row items-center justify-between bg-primary/5 border-b border-primary/10"
+                            >
+                              <View className="flex-row items-center gap-4 flex-1">
+                                <View className="w-12 h-12 bg-primary/10 rounded-2xl items-center justify-center">
+                                  <Ionicons name="checkmark-circle" size={24} color="#FF4F18" />
+                                </View>
+                                <View className="flex-1">
+                                  <AppText weight="bold" className="text-base text-primary">
+                                    {t('create_ad.fields.selectThisCategory')}
+                                  </AppText>
+                                  <AppText className="text-xs text-gray-500 mt-0.5" numberOfLines={1}>
+                                    {breadcrumbs[breadcrumbs.length - 1].node.name}
+                                  </AppText>
+                                </View>
                               </View>
-                              <AppText className="text-base text-gray-900 font-medium">{node.name}</AppText>
-                            </View>
+                              <View className="bg-primary px-3 py-1.5 rounded-full">
+                                <AppText className="text-xs text-white font-semibold">{t('common.select')}</AppText>
+                              </View>
+                            </TouchableOpacity>
+                          )}
 
-                            {node.children && node.children.length > 0 ? (
-                              <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
-                            ) : (
-                              <View className="bg-gray-50 px-3 py-1.5 rounded-full">
-                                <AppText className="text-xs text-gray-500 font-semibold">{t('common.select')}</AppText>
+                          {currentLevelNodes.map((node, index) => (
+                            <TouchableOpacity
+                              key={node.id}
+                              onPress={() => handleSelect(node)}
+                              activeOpacity={0.7}
+                              className={`p-4 flex-row items-center justify-between bg-white ${index !== currentLevelNodes.length - 1 ? 'border-b border-gray-50' : ''}`}
+                            >
+                              <View className="flex-row items-center gap-4 flex-1">
+                                <View className="w-12 h-12 bg-gray-50 rounded-2xl items-center justify-center border border-gray-100">
+                                  <AppText weight="bold" className="text-xl text-primary">{node.name.charAt(0).toUpperCase()}</AppText>
+                                </View>
+                                <AppText className="text-base text-gray-900 font-medium flex-1" numberOfLines={1}>{node.name}</AppText>
                               </View>
-                            )}
-                          </TouchableOpacity>
-                        ))
+
+                              {node.children && node.children.length > 0 ? (
+                                <Ionicons name="chevron-forward" size={20} color="#cbd5e1" />
+                              ) : (
+                                <View className="bg-gray-50 px-3 py-1.5 rounded-full">
+                                  <AppText className="text-xs text-gray-500 font-semibold">{t('common.select')}</AppText>
+                                </View>
+                              )}
+                            </TouchableOpacity>
+                          ))}
+                        </>
                       )
                     )}
                   </View>

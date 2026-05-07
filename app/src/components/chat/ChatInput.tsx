@@ -29,6 +29,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   TextInput,
@@ -191,6 +192,7 @@ LiveWaveform.displayName = "LiveWaveform";
 // ─── Slide-to-cancel hint (inline, long-press mode only) ─────────────────────
 const CancelHint = React.memo(
   ({ translateX }: { translateX: SharedValue<number> }) => {
+    const { t } = useTranslation();
     const st = useAnimatedStyle(() => ({
       opacity: withTiming(translateX.value < -8 ? 1 : 0.6, { duration: 100 }),
       transform: [{ translateX: translateX.value * 0.15 }], // Slight follow
@@ -198,7 +200,7 @@ const CancelHint = React.memo(
     return (
       <Animated.View style={[styles.cancelHint, st]} pointerEvents="none">
         <Ionicons name="chevron-back" size={13} color="#9CA3AF" />
-        <AppText style={styles.cancelText}>Slide to cancel</AppText>
+        <AppText style={styles.cancelText}>{t('chat.slideToCancelHint')}</AppText>
       </Animated.View>
     );
   },
@@ -283,6 +285,7 @@ export default function ChatInput({
   replyTo,
   onCancelReply,
 }: ChatInputProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   // JS-thread state
   const [text, setText] = useState("");
@@ -379,8 +382,8 @@ export default function ChatInput({
         const { status } = await requestRecordingPermissionsAsync();
         if (status !== "granted") {
           Alert.alert(
-            "Permission Required",
-            "Microphone access is needed to record voice messages.",
+            t('create_ad.images.permissionRequired'),
+            t('chat.micPermissionRequired'),
           );
           resetUI();
           return;
@@ -419,8 +422,8 @@ export default function ChatInput({
       } catch (err) {
         console.error("[ChatInput] startRecording failed:", err);
         Alert.alert(
-          "Recording Error",
-          "Could not start voice recording. Please try again.",
+          t('common.error'),
+          t('chat.recordingError'),
         );
         resetUI();
       } finally {
@@ -722,7 +725,7 @@ export default function ChatInput({
       const permission =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert("Permission Required", "Camera roll access needed.");
+        Alert.alert(t('create_ad.images.permissionRequired'), t('chat.cameraRollPermission'));
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -736,8 +739,8 @@ export default function ChatInput({
     } catch (error) {
       console.warn("[ChatInput] pick image failed:", error);
       Alert.alert(
-        "Upload Error",
-        "Could not open your gallery. Please try again.",
+        t('common.error'),
+        t('chat.galleryError'),
       );
     }
   }, [onImageSelect]);
@@ -747,7 +750,7 @@ export default function ChatInput({
     try {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert("Permission Required", "Camera access needed.");
+        Alert.alert(t('create_ad.images.permissionRequired'), t('chat.cameraPermission'));
         return;
       }
       const result = await ImagePicker.launchCameraAsync({
@@ -759,8 +762,8 @@ export default function ChatInput({
     } catch (error) {
       console.warn("[ChatInput] camera failed:", error);
       Alert.alert(
-        "Camera Error",
-        "Could not open the camera. Please try again.",
+        t('common.error'),
+        t('chat.cameraError'),
       );
     }
   }, [onImageSelect]);
@@ -783,16 +786,23 @@ export default function ChatInput({
   }, [onDocumentSelect]);
 
   const handleAttachPress = useCallback(() => {
-    Keyboard.dismiss();
-    setShowEmoji(false);
-    setShowAttachSheet(true);
+    setShowAttachSheet((prev) => {
+      const next = !prev;
+      if (next) {
+        Keyboard.dismiss();
+        setShowEmoji(false);
+      }
+      return next;
+    });
   }, []);
 
   // ── Render ───────────────────────────────────────────────────────────────────
   const hasText = text.trim().length > 0;
   const showRecordUI = isRecording || isLocked;
   const bottomPadding =
-    showEmoji || isKeyboardVisible ? 6 : Math.max(insets.bottom, 6);
+    showEmoji || showAttachSheet || isKeyboardVisible
+      ? 6
+      : Math.max(insets.bottom, 6);
 
   // Animated reply height
   const replyAnim = useRef(new RNAnimated.Value(0)).current;
@@ -812,60 +822,6 @@ export default function ChatInput({
 
   return (
     <View style={styles.wrapper}>
-      {/* Attachment Sheet */}
-      {showAttachSheet && (
-        <>
-          <Pressable
-            style={StyleSheet.absoluteFill as any}
-            onPress={() => setShowAttachSheet(false)}
-          />
-          <View style={styles.attachSheet}>
-            <Pressable
-              style={styles.attachOption}
-              onPress={() => {
-                setShowAttachSheet(false);
-                handlePickCamera();
-              }}
-            >
-              <View style={styles.attachIcon}>
-                <Ionicons name="camera" size={26} color="#FF4F18" />
-              </View>
-              <AppText style={styles.attachLabel} weight="semibold">
-                Camera
-              </AppText>
-            </Pressable>
-            <Pressable
-              style={styles.attachOption}
-              onPress={() => {
-                setShowAttachSheet(false);
-                handlePickImage();
-              }}
-            >
-              <View style={styles.attachIcon}>
-                <Ionicons name="image" size={26} color="#FF4F18" />
-              </View>
-              <AppText style={styles.attachLabel} weight="semibold">
-                Gallery
-              </AppText>
-            </Pressable>
-            <Pressable
-              style={styles.attachOption}
-              onPress={() => {
-                setShowAttachSheet(false);
-                handlePickDocument();
-              }}
-            >
-              <View style={styles.attachIcon}>
-                <Ionicons name="document-text" size={26} color="#FF4F18" />
-              </View>
-              <AppText style={styles.attachLabel} weight="semibold">
-                Document
-              </AppText>
-            </Pressable>
-          </View>
-        </>
-      )}
-
       {/* Reply bar */}
       <RNAnimated.View
         style={[
@@ -911,7 +867,11 @@ export default function ChatInput({
                 style={styles.iconBtn}
                 hitSlop={6}
               >
-                <Ionicons name="add-circle" size={28} color="#FF4F18" />
+                <Ionicons
+                  name={showAttachSheet ? "close-circle" : "add-circle"}
+                  size={28}
+                  color="#FF4F18"
+                />
               </Pressable>
 
               <Pressable
@@ -932,7 +892,7 @@ export default function ChatInput({
                 onChangeText={handleTextChange}
                 onSubmitEditing={handleSend}
                 blurOnSubmit={false}
-                placeholder="Type a message..."
+                placeholder={t('chat.placeholder')}
                 placeholderTextColor="#94A3B8"
                 multiline
                 style={styles.textInput}
@@ -1069,6 +1029,54 @@ export default function ChatInput({
           />
         </View>
       )}
+
+      {/* Attachment Sheet — sits BELOW the input bar (WhatsApp-style) */}
+      {showAttachSheet && (
+        <View style={[styles.attachSheet, { paddingBottom: insets.bottom + 16 }]}>
+          <Pressable
+            style={styles.attachOption}
+            onPress={() => {
+              setShowAttachSheet(false);
+              handlePickCamera();
+            }}
+          >
+            <View style={styles.attachIcon}>
+              <Ionicons name="camera" size={26} color="#FF4F18" />
+            </View>
+            <AppText style={styles.attachLabel} weight="semibold">
+              {t('chat.camera')}
+            </AppText>
+          </Pressable>
+          <Pressable
+            style={styles.attachOption}
+            onPress={() => {
+              setShowAttachSheet(false);
+              handlePickImage();
+            }}
+          >
+            <View style={styles.attachIcon}>
+              <Ionicons name="image" size={26} color="#FF4F18" />
+            </View>
+            <AppText style={styles.attachLabel} weight="semibold">
+              {t('chat.gallery')}
+            </AppText>
+          </Pressable>
+          <Pressable
+            style={styles.attachOption}
+            onPress={() => {
+              setShowAttachSheet(false);
+              handlePickDocument();
+            }}
+          >
+            <View style={styles.attachIcon}>
+              <Ionicons name="document-text" size={26} color="#FF4F18" />
+            </View>
+            <AppText style={styles.attachLabel} weight="semibold">
+              {t('chat.document')}
+            </AppText>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
@@ -1089,9 +1097,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F8FAFC",
     marginVertical: 4,
-    padding: 8,
-    borderRadius: 12,
-    borderLeftWidth: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 7,
+    borderRadius: 8,
+    borderLeftWidth: 3,
     borderLeftColor: "#FF4F18",
   },
   replyName: { fontSize: 13, color: "#FF4F18" },

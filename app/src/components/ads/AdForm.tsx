@@ -277,9 +277,14 @@ export default function AdForm({
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 className="flex-1"
-                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+                keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 56 : 0}
             >
-                <ScrollView className="flex-1 px-4 pt-6" showsVerticalScrollIndicator={false}>
+                <ScrollView
+                    className="flex-1 px-4 pt-6"
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+                >
                     <BasicInfoStep
                         formData={formData}
                         errors={errors}
@@ -288,35 +293,53 @@ export default function AdForm({
                         isEdit={mode === 'edit'}
                     />
 
-                    <View className="border-t border-gray-100 my-4" />
+                    {formData.category ? (
+                        <>
+                            <View className="border-t border-gray-100 my-4" />
 
-                    <DetailsStep
-                        formData={formData}
-                        errors={errors}
-                        images={images}
-                        dynamicFields={dynamicFields}
-                        onInputChange={handleInputChange}
-                        onImagesChange={setImages}
-                        onOpenMapPicker={() => {
-                            setIsLocationPickerVisible(true);
-                            locationPickerRef.current?.present();
-                        }}
-                    />
+                            <DetailsStep
+                                formData={formData}
+                                errors={errors}
+                                images={images}
+                                dynamicFields={dynamicFields}
+                                onInputChange={handleInputChange}
+                                onImagesChange={setImages}
+                                onOpenMapPicker={() => {
+                                    setIsLocationPickerVisible(true);
+                                    locationPickerRef.current?.present();
+                                }}
+                            />
+                        </>
+                    ) : (
+                        <View className="items-center py-10 px-6">
+                            <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mb-4">
+                                <AppText className="text-3xl">📋</AppText>
+                            </View>
+                            <AppText weight="bold" className="text-gray-900 text-base text-center mb-1">
+                                {t('create_ad.pickCategoryTitle')}
+                            </AppText>
+                            <AppText className="text-gray-500 text-sm text-center">
+                                {t('create_ad.pickCategoryDesc')}
+                            </AppText>
+                        </View>
+                    )}
 
-                    <View className="h-40" />
+                    {/* Publish button — flows at the end of the form, not pinned to viewport */}
+                    <View className="px-2 pt-2 pb-2">
+                        <Button
+                            onPress={handleSubmit}
+                            loading={isSubmitting}
+                            disabled={!formData.category}
+                            className="w-full"
+                            style={{ backgroundColor: formData.category ? '#FF4F18' : '#cbd5e1' }}
+                        >
+                            {submitLabel || (mode === 'create' ? t('create_ad.actions.publish') : t('create_ad.actions.update'))}
+                        </Button>
+                    </View>
+
+                    {/* Bottom spacer so the button clears the tab bar */}
+                    <View style={{ height: 100 + insets.bottom }} />
                 </ScrollView>
-
-                {/* Unified Button Container */}
-                <View className="absolute bottom-0 left-0 right-0 px-6 py-4 border-t border-gray-100 bg-white" style={{ marginBottom: 12 + insets.bottom / 2 + 76 }}>
-                    <Button
-                        onPress={handleSubmit}
-                        loading={isSubmitting}
-                        className="w-full"
-                        style={{ backgroundColor: '#FF4F18' }}
-                    >
-                        {submitLabel || (mode === 'create' ? t('create_ad.actions.publish') : t('create_ad.actions.update'))}
-                    </Button>
-                </View>
             </KeyboardAvoidingView>
 
             <CustomAlert

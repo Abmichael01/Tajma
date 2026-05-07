@@ -40,7 +40,7 @@ export default function AdminCategoriesPage() {
     searchParams.get('category_type') || undefined
   )
 
-  const { data, isLoading } = useAdminCategories({
+  const { data, isLoading, refetch } = useAdminCategories({
     page,
     search: search || undefined,
     is_active: isActiveFilter ? isActiveFilter === 'true' : undefined,
@@ -826,6 +826,7 @@ export default function AdminCategoriesPage() {
         open={showEditModal}
         onOpenChange={setShowEditModal}
         category={editingCategory}
+        onSuccess={() => refetch()}
       />
 
       {/* Delete Confirmation Dialog */}

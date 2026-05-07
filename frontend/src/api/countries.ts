@@ -17,6 +17,7 @@ export interface Location {
   subdivision_type?: string
   full_name?: string
   adsCount: number
+  sort_order?: number
 }
 
 export interface LocationDetail extends Location {

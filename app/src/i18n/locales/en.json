@@ -36,7 +36,10 @@
     "dayAgo": "{{count}}d ago",
     "weekAgo": "{{count}}w ago",
     "note": "Note",
-    "currency": "Fr"
+    "currency": "Fr",
+    "selectOption": "Select option",
+    "typeAndPressEnter": "Type and press enter",
+    "addItem": "Add Item"
   },
   "auth": {
     "login": "Login",
@@ -59,8 +62,39 @@
       "emailRequired": "Email is required",
       "emailInvalid": "Invalid email address",
       "passwordRequired": "Password is required",
-      "passwordMin": "Password must be at least 8 characters"
-    }
+      "passwordMin": "Password must be at least 8 characters",
+      "agreeToTerms": "You must agree to the terms",
+      "confirmPasswordRequired": "Please confirm your password",
+      "firstNameMin": "First name must be at least 2 characters",
+      "firstNameRequired": "First name is required",
+      "lastNameMin": "Last name must be at least 2 characters",
+      "lastNameRequired": "Last name is required",
+      "passwordRegex": "Password must include uppercase, lowercase and a number",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "usernameMin": "Username must be at least 3 characters",
+      "usernameRegex": "Only letters, numbers and underscores allowed",
+      "usernameRequired": "Username is required"
+    },
+    "agreeTo": "I agree to the",
+    "and": "and",
+    "confirmPassword": "Confirm Password",
+    "continueWithEmail": "Continue with Email",
+    "creatingAccount": "Creating account...",
+    "detailsSetupProfile": "We'll use these details to set up your profile.",
+    "emailAddress": "Email Address",
+    "failedToCreate": "Failed to submit. Please try again.",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "Enter your first name",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Enter your last name",
+    "passwordHelper": "Use at least 8 characters with uppercase, lowercase and a number",
+    "privacyPolicy": "Privacy Policy",
+    "setupAccount": "Set up your account",
+    "setupAccountDesc": "Create your login credentials to finish signing up.",
+    "tellUsAboutYou": "Tell us about you",
+    "termsConditions": "Terms & Conditions",
+    "username": "Username",
+    "usernameHelper": "Letters, numbers and underscores only"
   },
   "messages": {
     "title": "Messages",
@@ -78,6 +112,17 @@
     "allMessages": "All Messages"
   },
   "chat": {
+    "placeholder": "Type a message...",
+    "slideToCancelHint": "Slide to cancel",
+    "camera": "Camera",
+    "gallery": "Gallery",
+    "document": "Document",
+    "micPermissionRequired": "Microphone access is needed to record voice messages.",
+    "recordingError": "Could not start voice recording. Please try again.",
+    "cameraRollPermission": "Camera roll access needed.",
+    "galleryError": "Could not open your gallery. Please try again.",
+    "cameraPermission": "Camera access needed.",
+    "cameraError": "Could not open the camera. Please try again.",
     "startError": "Failed to start conversation. Please try again.",
     "filters": {
       "all": "All Chats",
@@ -99,6 +144,7 @@
     "analytics": "Analytics",
     "analyticsDesc": "Track your reach and trust score",
     "leads": "Leads",
+    "leads_subtitle": "People interested in your listings",
     "reviews": "Reviews",
     "wishlist": "Wishlist",
     "listings": "Listings",
@@ -113,11 +159,42 @@
     "shareApp": "Share App",
     "language": "Language",
     "signOut": "Sign Out",
+    "accountManagement": "Account Management",
     "wishlist_interact": {
       "itemsSaved": "{{count}} items saved",
       "noSavedAdsTitle": "No saved ads",
-      "noSavedAdsDesc": "Items you save will appear here."
-    }
+      "noSavedAdsDesc": "Items you save will appear here.",
+      "yourWishlist": "Your Wishlist",
+      "item": "item",
+      "items": "items",
+      "startBrowsing": "Start Browsing"
+    },
+    "leads_interact": {
+      "viewedNumber": "Viewed Phone Number",
+      "visitedProfile": "Visited Profile",
+      "savedAd": "Saved Listing",
+      "lastSeen": "Last active {{date}}",
+      "connected": "Connected",
+      "newLead": "New",
+      "interestedIn": "Interested In",
+      "sendMessage": "Send Message",
+      "ignoreLeadTitle": "Ignore Lead",
+      "ignoreLeadMessage": "Are you sure you want to ignore this lead? They will be removed from your list.",
+      "ignore": "Ignore",
+      "noLeadsTitle": "No leads yet",
+      "noLeadsDesc": "People who interact with your listings will appear here as potential buyers."
+    },
+    "reviews_interact": {
+      "reviewsReceived": "{{count}} reviews received",
+      "yourFeedback": "Your Feedback",
+      "review": "review",
+      "reviews": "reviews",
+      "noReviewsTitle": "No reviews yet",
+      "noReviewsDesc": "Feedback from people you've transacted with will appear here.",
+      "reviewedItem": "Reviewed Item",
+      "viewAd": "View Ad"
+    },
+    "trustLevel": "Trust Level"
   },
   "search": {
     "title": "Search",
@@ -198,6 +275,19 @@
     "locationNotSpecified": "Location not specified",
     "uncategorized": "Uncategorized",
     "sortBy": "Sort By",
+    "active": "Active",
+    "archived": "Archived",
+    "draft": "Draft",
+    "yourAds": "Your Ads",
+    "noActiveAdsTitle": "No active ads",
+    "noActiveAdsDesc": "You don't have any active ads right now. Create one to start selling!",
+    "createListing": "Create Listing",
+    "deleteAdTitle": "Delete Ad",
+    "deleteAdMessage": "Are you sure you want to delete this ad? This action cannot be undone.",
+    "archive": "Archive",
+    "makeLive": "Make Live",
+    "promote": "Promote",
+    "edit": "Edit",
     "sort": {
       "newest": "Newest First",
       "oldest": "Oldest First",
@@ -205,9 +295,24 @@
       "price-high": "Price: High to Low",
       "views": "Most Viewed",
       "title": "Title A-Z"
-    }
+    },
+    "createError": "Failed to create listing. Please try again."
   },
   "create_ad": {
+    "pickCategoryTitle": "Pick a category to continue",
+    "pickCategoryDesc": "Once you choose a category, we'll show you the right fields for your listing.",
+    "images": {
+      "addPhoto": "Add Photo",
+      "cover": "Cover",
+      "limitReached": "Limit Reached",
+      "limitReachedDesc": "You can only add up to {{max}} images.",
+      "permissionRequired": "Permission Required",
+      "permissionDesc": "We need your permission to access your photos.",
+      "fileTooLarge": "File too large",
+      "fileTooLargeDesc": "Image exceeds the 5MB limit.",
+      "onlyFirstAdded": "Only the first {{count}} images were added.",
+      "failedToPick": "Failed to pick images"
+    },
     "steps": {
       "basicInfo": "Basic Info",
       "details": "Details",
@@ -236,7 +341,8 @@
       "bedrooms": "Bedrooms",
       "bathrooms": "Bathrooms",
       "furnishing": "Furnishing",
-      "availability": "Availability"
+      "availability": "Availability",
+      "selectThisCategory": "Select this category"
     },
     "validation": {
       "titleMin": "Title must be at least 5 characters",
@@ -244,7 +350,8 @@
       "categoryRequired": "Please select a category",
       "photoRequired": "Please add at least one photo",
       "descriptionMin": "Description must be at least 20 characters",
-      "locationRequired": "Location is required"
+      "locationRequired": "Location is required",
+      "fieldRequired": "{{field}} is required"
     },
     "actions": {
       "publish": "Publish Now",
@@ -281,7 +388,14 @@
       "wrong_category": "Wrong Category",
       "prohibited": "Prohibited Items",
       "other": "Other"
-    }
+    },
+    "clearerDesc": "Please provide a clearer description (at least 10 characters)",
+    "moreDetails": "More Details Needed",
+    "selectReason": "Please select a reason for reporting",
+    "selectionRequired": "Selection Required",
+    "submittedDesc": "Thank you for your report. Our team will review it shortly.",
+    "submittedTitle": "Report Submitted",
+    "reportUser": "Report User"
   },
   "tabs": {
     "home": "Home",
@@ -291,13 +405,26 @@
     "profile": "Profile"
   },
   "analytics": {
-    "title": "Performance Analytics",
+    "title": "Performance",
+    "subtitle": "Track your sales and engagement",
+    "globalTitle": "Global Insights",
+    "globalDesc": "Your lifetime performance on Tajma",
     "totalAds": "Total Ads",
-    "views": "Views",
-    "active": "Active",
+    "views": "Total Views",
+    "active": "Active Ads",
+    "response": "Response Rate",
+    "daysActive": "Days Active",
     "favorites": "Favorites",
-    "sold": "Sold",
-    "rating": "Rating"
+    "sold": "Items Sold",
+    "rating": "Avg. Rating",
+    "realtime": "Real-time data",
+    "engagement": "Engagement",
+    "engagementDesc": "How users interact with your ads",
+    "avgViews": "Avg. Views",
+    "conversion": "Conversion",
+    "growth": "Growth",
+    "excellentReputation": "Excellent Reputation",
+    "sales": "Sales"
   },
   "kyc": {
     "title": "Verify Identity",
@@ -306,7 +433,19 @@
     "introDesc": "To provide a safe marketplace for everyone, we require sellers to verify their identity.",
     "idTypesList": "Nigerien Passport / ID / DL",
     "selfieCapture": "Live Selfie Capture",
-    "timeEstimate": "Takes less than 2 minutes"
+    "timeEstimate": "Takes less than 2 minutes",
+    "selectIdType": "Select ID Type",
+    "nationalId": "National ID Card",
+    "passport": "Passport",
+    "drivingLicense": "Driver's License",
+    "startScanning": "Start Scanning",
+    "privacyNotice": "Your data is encrypted and processed securely by Smile ID for identity verification.",
+    "successTitle": "Verification Submitted",
+    "successMessage": "Your identity verification has been submitted successfully and is being processed.",
+    "failedTitle": "Verification Failed",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "errorStart": "Failed to start verification flow.",
+    "errorInitiate": "Failed to initiate verification session."
   },
   "alerts": {
     "title": "Alerts",
@@ -325,6 +464,10 @@
     }
   },
   "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account and preferences",
+    "editProfile": "Edit Profile",
+    "security": "Security",
     "languageNote": "Changing the language will update the interface across the entire application. Some user-generated content may remain in its original language."
   }
 }

@@ -34,7 +34,11 @@
     "dayAgo": "Il y a {{count}}j",
     "weekAgo": "Il y a {{count}}s",
     "note": "Note",
-    "currency": "Fr"
+    "currency": "Fr",
+    "apply": "Appliquer",
+    "selectOption": "Sélectionner une option",
+    "typeAndPressEnter": "Saisir et appuyer sur Entrée",
+    "addItem": "Ajouter un élément"
   },
   "auth": {
     "login": "Connexion",
@@ -57,8 +61,39 @@
       "emailRequired": "L'email est requis",
       "emailInvalid": "Email invalide",
       "passwordRequired": "Le mot de passe est requis",
-      "passwordMin": "Le mot de passe doit contenir au moins 8 caractères"
-    }
+      "passwordMin": "Le mot de passe doit contenir au moins 8 caractères",
+      "agreeToTerms": "Vous devez accepter les conditions",
+      "confirmPasswordRequired": "Veuillez confirmer votre mot de passe",
+      "firstNameMin": "Le prénom doit contenir au moins 2 caractères",
+      "firstNameRequired": "Le prénom est requis",
+      "lastNameMin": "Le nom doit contenir au moins 2 caractères",
+      "lastNameRequired": "Le nom est requis",
+      "passwordRegex": "Le mot de passe doit contenir majuscule, minuscule et chiffre",
+      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+      "usernameMin": "Le nom d'utilisateur doit contenir au moins 3 caractères",
+      "usernameRegex": "Seuls les lettres, chiffres et tirets bas sont autorisés",
+      "usernameRequired": "Le nom d'utilisateur est requis"
+    },
+    "agreeTo": "J'accepte les",
+    "and": "et",
+    "confirmPassword": "Confirmer le mot de passe",
+    "continueWithEmail": "Continuer avec Email",
+    "creatingAccount": "Création du compte...",
+    "detailsSetupProfile": "Nous utiliserons ces informations pour configurer votre profil.",
+    "emailAddress": "Adresse email",
+    "failedToCreate": "Échec de l'envoi. Veuillez réessayer.",
+    "firstName": "Prénom",
+    "firstNamePlaceholder": "Entrez votre prénom",
+    "lastName": "Nom",
+    "lastNamePlaceholder": "Entrez votre nom",
+    "passwordHelper": "Utilisez au moins 8 caractères avec majuscule, minuscule et chiffre",
+    "privacyPolicy": "Politique de confidentialité",
+    "setupAccount": "Configurez votre compte",
+    "setupAccountDesc": "Créez vos identifiants pour terminer l'inscription.",
+    "tellUsAboutYou": "Parlez-nous de vous",
+    "termsConditions": "Conditions générales",
+    "username": "Nom d'utilisateur",
+    "usernameHelper": "Lettres, chiffres et tirets bas uniquement"
   },
   "messages": {
     "title": "Messages",
@@ -76,6 +111,17 @@
     "allMessages": "Tous les messages"
   },
   "chat": {
+    "placeholder": "Écrire un message...",
+    "slideToCancelHint": "Glisser pour annuler",
+    "camera": "Appareil photo",
+    "gallery": "Galerie",
+    "document": "Document",
+    "micPermissionRequired": "L'accès au microphone est nécessaire pour enregistrer des messages vocaux.",
+    "recordingError": "Impossible de démarrer l'enregistrement. Veuillez réessayer.",
+    "cameraRollPermission": "Accès à la galerie requis.",
+    "galleryError": "Impossible d'ouvrir votre galerie. Veuillez réessayer.",
+    "cameraPermission": "Accès à la caméra requis.",
+    "cameraError": "Impossible d'ouvrir la caméra. Veuillez réessayer.",
     "startError": "Échec du démarrage de la conversation. Veuillez réessayer.",
     "filters": {
       "all": "Tous les chats",
@@ -97,6 +143,7 @@
     "analytics": "Statistiques",
     "analyticsDesc": "Suivez votre portée et votre score de confiance",
     "leads": "Clients potentiels",
+    "leads_subtitle": "Personnes intéressées par vos annonces",
     "reviews": "Avis",
     "wishlist": "Liste de souhaits",
     "listings": "Annonces",
@@ -111,11 +158,42 @@
     "shareApp": "Partager l'application",
     "language": "Langue",
     "signOut": "Se déconnecter",
+    "accountManagement": "Gestion du compte",
     "wishlist_interact": {
       "itemsSaved": "{{count}} articles enregistrés",
       "noSavedAdsTitle": "Aucune annonce enregistrée",
-      "noSavedAdsDesc": "Les articles que vous enregistrez apparaîtront ici."
-    }
+      "noSavedAdsDesc": "Les articles que vous enregistrez apparaîtront ici.",
+      "yourWishlist": "Votre liste",
+      "item": "article",
+      "items": "articles",
+      "startBrowsing": "Commencer à parcourir"
+    },
+    "leads_interact": {
+      "viewedNumber": "Numéro de téléphone consulté",
+      "visitedProfile": "Profil visité",
+      "savedAd": "Annonce enregistrée",
+      "lastSeen": "Vu le {{date}}",
+      "connected": "Connecté",
+      "newLead": "Nouveau",
+      "interestedIn": "Intéressé par",
+      "sendMessage": "Envoyer un message",
+      "ignoreLeadTitle": "Ignorer le prospect",
+      "ignoreLeadMessage": "Êtes-vous sûr de vouloir ignorer ce prospect ? Il sera supprimé de votre liste.",
+      "ignore": "Ignorer",
+      "noLeadsTitle": "Pas encore de prospects",
+      "noLeadsDesc": "Les personnes qui interagissent avec vos annonces apparaîtront ici."
+    },
+    "reviews_interact": {
+      "reviewsReceived": "{{count}} avis reçus",
+      "yourFeedback": "Vos avis",
+      "review": "avis",
+      "reviews": "avis",
+      "noReviewsTitle": "Pas encore d'avis",
+      "noReviewsDesc": "Les commentaires des personnes avec qui vous avez traité apparaîtront ici.",
+      "reviewedItem": "Article évalué",
+      "viewAd": "Voir l'annonce"
+    },
+    "trustLevel": "Niveau de confiance"
   },
   "search": {
     "title": "Recherche",
@@ -196,6 +274,19 @@
     "locationNotSpecified": "Emplacement non spécifié",
     "uncategorized": "Non catégorisé",
     "sortBy": "Trier par",
+    "active": "Actives",
+    "archived": "Archivées",
+    "draft": "Brouillons",
+    "yourAds": "Vos annonces",
+    "noActiveAdsTitle": "Aucune annonce active",
+    "noActiveAdsDesc": "Vous n'avez pas d'annonces actives pour le moment. Créez-en une pour commencer à vendre !",
+    "createListing": "Créer une annonce",
+    "deleteAdTitle": "Supprimer l'annonce",
+    "deleteAdMessage": "Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.",
+    "archive": "Archiver",
+    "makeLive": "Publier",
+    "promote": "Promouvoir",
+    "edit": "Modifier",
     "sort": {
       "newest": "Plus récent",
       "oldest": "Plus ancien",
@@ -203,9 +294,24 @@
       "price-high": "Prix : Décroissant",
       "views": "Plus consulté",
       "title": "Titre A-Z"
-    }
+    },
+    "createError": "Échec de la création de l'annonce. Veuillez réessayer."
   },
   "create_ad": {
+    "pickCategoryTitle": "Choisissez une catégorie pour continuer",
+    "pickCategoryDesc": "Une fois la catégorie choisie, nous afficherons les champs adaptés à votre annonce.",
+    "images": {
+      "addPhoto": "Ajouter une photo",
+      "cover": "Couverture",
+      "limitReached": "Limite atteinte",
+      "limitReachedDesc": "Vous ne pouvez ajouter que {{max}} images maximum.",
+      "permissionRequired": "Permission requise",
+      "permissionDesc": "Nous avons besoin de votre autorisation pour accéder à vos photos.",
+      "fileTooLarge": "Fichier trop volumineux",
+      "fileTooLargeDesc": "L'image dépasse la limite de 5 Mo.",
+      "onlyFirstAdded": "Seules les {{count}} premières images ont été ajoutées.",
+      "failedToPick": "Impossible de sélectionner des images"
+    },
     "steps": {
       "basicInfo": "Infos de base",
       "details": "Détails",
@@ -234,7 +340,8 @@
       "bedrooms": "Chambres",
       "bathrooms": "Salles de bain",
       "furnishing": "Ameublement",
-      "availability": "Disponibilité"
+      "availability": "Disponibilité",
+      "selectThisCategory": "Sélectionner cette catégorie"
     },
     "validation": {
       "titleMin": "Le titre doit contenir au moins 5 caractères",
@@ -242,7 +349,8 @@
       "categoryRequired": "Veuillez sélectionner une catégorie",
       "photoRequired": "Veuillez ajouter au moins une photo",
       "descriptionMin": "La description doit contenir au moins 20 caractères",
-      "locationRequired": "L'emplacement est requis"
+      "locationRequired": "L'emplacement est requis",
+      "fieldRequired": "{{field}} est requis"
     },
     "actions": {
       "publish": "Publier maintenant",
@@ -279,7 +387,14 @@
       "wrong_category": "Mauvaise catégorie",
       "prohibited": "Articles interdits",
       "other": "Autre"
-    }
+    },
+    "clearerDesc": "Veuillez fournir une description plus claire (au moins 10 caractères)",
+    "moreDetails": "Plus de détails nécessaires",
+    "selectReason": "Veuillez sélectionner un motif de signalement",
+    "selectionRequired": "Sélection requise",
+    "submittedDesc": "Merci pour votre signalement. Notre équipe l'examinera bientôt.",
+    "submittedTitle": "Signalement envoyé",
+    "reportUser": "Signaler l'utilisateur"
   },
   "tabs": {
     "home": "Accueil",
@@ -289,13 +404,26 @@
     "profile": "Profil"
   },
   "analytics": {
-    "title": "Statistiques de Performance",
+    "title": "Performance",
+    "subtitle": "Suivez vos ventes et votre engagement",
+    "globalTitle": "Aperçu Global",
+    "globalDesc": "Votre performance globale sur Tajma",
     "totalAds": "Total des annonces",
-    "views": "Vues",
-    "active": "Actives",
+    "views": "Vues totales",
+    "active": "Annonces actives",
+    "response": "Taux de réponse",
+    "daysActive": "Jours actifs",
     "favorites": "Favoris",
-    "sold": "Vendus",
-    "rating": "Note"
+    "sold": "Articles vendus",
+    "rating": "Note moyenne",
+    "realtime": "Données en temps réel",
+    "engagement": "Engagement",
+    "engagementDesc": "Comment les utilisateurs interagissent",
+    "avgViews": "Vues moy.",
+    "conversion": "Conversion",
+    "growth": "Croissance",
+    "excellentReputation": "Excellente réputation",
+    "sales": "Ventes"
   },
   "kyc": {
     "title": "Vérifier l'identité",
@@ -304,7 +432,19 @@
     "introDesc": "Pour assurer la sécurité de tous, nous demandons aux vendeurs de vérifier leur identité.",
     "idTypesList": "Passeport / ID / Permis (Niger)",
     "selfieCapture": "Capture de selfie en direct",
-    "timeEstimate": "Prend moins de 2 minutes"
+    "timeEstimate": "Prend moins de 2 minutes",
+    "selectIdType": "Sélectionner le type de pièce d'identité",
+    "nationalId": "Carte nationale d'identité",
+    "passport": "Passeport",
+    "drivingLicense": "Permis de conduire",
+    "startScanning": "Commencer le scan",
+    "privacyNotice": "Vos données sont cryptées et traitées en toute sécurité par Smile ID pour la vérification d'identité.",
+    "successTitle": "Vérification soumise",
+    "successMessage": "Votre vérification d'identité a été soumise avec succès et est en cours de traitement.",
+    "failedTitle": "Échec de la vérification",
+    "errorGeneric": "Un problème est survenu. Veuillez réessayer.",
+    "errorStart": "Échec du démarrage du flux de vérification.",
+    "errorInitiate": "Échec de l'initialisation de la session de vérification."
   },
   "alerts": {
     "title": "Alertes",
@@ -323,6 +463,10 @@
     }
   },
   "settings": {
+    "title": "Paramètres",
+    "subtitle": "Gérez votre compte et vos préférences",
+    "editProfile": "Modifier le profil",
+    "security": "Sécurité",
     "languageNote": "Changer la langue mettra à jour l'interface dans toute l'application. Certains contenus générés par les utilisateurs peuvent rester dans leur langue d'origine."
   }
 }

@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Eye, Trash2, CheckCircle, FileText, User, MessageSquare, Send, AlertTriangle, XCircle, Archive, UserX, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
 import { ConfirmDeleteDialog } from '@/components/ui/ConfirmDeleteDialog'
+import { toast } from 'sonner'
 
 export default function AdminReportsPage() {
   const [page, setPage] = useState(1)
@@ -28,6 +29,19 @@ export default function AdminReportsPage() {
   // Delete confirmation state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [reportToDelete, setReportToDelete] = useState<AdminReport | null>(null)
+
+  // Archive ad confirmation state
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false)
+  const [reportToArchive, setReportToArchive] = useState<AdminReport | null>(null)
+
+  // Suspend user confirmation state
+  const [showSuspendDialog, setShowSuspendDialog] = useState(false)
+  const [reportToSuspend, setReportToSuspend] = useState<AdminReport | null>(null)
+
+  // Warn user dialog state
+  const [showWarnDialog, setShowWarnDialog] = useState(false)
+  const [reportToWarn, setReportToWarn] = useState<AdminReport | null>(null)
+  const [warnMessage, setWarnMessage] = useState('Please review Tajma marketplace rules. Future violations may lead to account restrictions.')
 
   const { data: response, isLoading, refetch } = useAdminReports({
     page,
@@ -55,83 +69,104 @@ export default function AdminReportsPage() {
 
   const handleResolve = async () => {
     if (!selectedReport) return
-    
     try {
-      await resolveMutation.mutateAsync({
-        id: selectedReport.id,
-        resolution_note: resolutionNote
-      })
+      await resolveMutation.mutateAsync({ id: selectedReport.id, resolution_note: resolutionNote })
       setShowResolveModal(false)
       setResolutionNote('')
       setSelectedReport(null)
       refetch()
-    } catch (error) {}
+    } catch {
+      toast.error('Failed to resolve report. Please try again.')
+    }
   }
 
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedReport || !adminReply.trim()) return
-    
     try {
-      await replyMutation.mutateAsync({
-        id: selectedReport.id,
-        message: adminReply
-      })
+      await replyMutation.mutateAsync({ id: selectedReport.id, message: adminReply })
       setAdminReply('')
       refetch()
-    } catch (error) {}
+    } catch {
+      toast.error('Failed to send reply. Please try again.')
+    }
   }
 
-  const handleDelete = async (report: AdminReport) => {
+  const handleDelete = (report: AdminReport) => {
     setReportToDelete(report)
     setShowDeleteDialog(true)
   }
 
   const handleDismiss = async (report: AdminReport) => {
     try {
-      await dismissMutation.mutateAsync({
-        id: report.id,
-        resolution_note: 'No policy issue found.'
-      })
+      await dismissMutation.mutateAsync({ id: report.id, resolution_note: 'No policy issue found.' })
       refetch()
-    } catch (error) {}
+    } catch {
+      toast.error('Failed to dismiss report. Please try again.')
+    }
   }
 
-  const handleArchiveAd = async (report: AdminReport) => {
+  // Archive: open confirmation dialog instead of window.confirm
+  const handleArchiveAd = (report: AdminReport) => {
     if (!report.related_ad) return
-    if (!window.confirm('Archive the reported ad?')) return
+    setReportToArchive(report)
+    setShowArchiveDialog(true)
+  }
+
+  const confirmArchiveAd = async () => {
+    if (!reportToArchive) return
     try {
       await archiveAdMutation.mutateAsync({
-        id: report.id,
-        note: `Reported ad "${report.related_ad_details?.title || report.related_ad}" was archived by moderation.`
+        id: reportToArchive.id,
+        note: `Reported ad "${reportToArchive.related_ad_details?.title || reportToArchive.related_ad}" was archived by moderation.`,
       })
+      setShowArchiveDialog(false)
+      setReportToArchive(null)
       refetch()
-    } catch (error) {}
+    } catch {
+      toast.error('Failed to archive ad. Please try again.')
+    }
   }
 
-  const handleWarnUser = async (report: AdminReport) => {
+  // Warn: open dialog with editable message instead of window.prompt
+  const handleWarnUser = (report: AdminReport) => {
     if (!report.reported_user) return
-    const message = window.prompt(
-      'Warning message',
-      'Please review Tajma marketplace rules. Future violations may lead to account restrictions.'
-    )
-    if (!message) return
+    setReportToWarn(report)
+    setShowWarnDialog(true)
+  }
+
+  const confirmWarnUser = async () => {
+    if (!reportToWarn || !warnMessage.trim()) return
     try {
-      await warnUserMutation.mutateAsync({ id: report.id, message })
+      await warnUserMutation.mutateAsync({ id: reportToWarn.id, message: warnMessage })
+      setShowWarnDialog(false)
+      setReportToWarn(null)
       refetch()
-    } catch (error) {}
+    } catch {
+      toast.error('Failed to send warning. Please try again.')
+    }
   }
 
-  const handleSuspendUser = async (report: AdminReport) => {
+  // Suspend: open confirmation dialog instead of window.confirm
+  const handleSuspendUser = (report: AdminReport) => {
     if (!report.reported_user) return
-    if (!window.confirm('Suspend the reported user account?')) return
+    setReportToSuspend(report)
+    setShowSuspendDialog(true)
+  }
+
+  const confirmSuspendUser = async () => {
+    if (!reportToSuspend) return
     try {
       await suspendUserMutation.mutateAsync({
-        id: report.id,
-        note: `Reported user ${report.reported_user_details?.email || report.reported_user} was suspended by moderation.`
+        id: reportToSuspend.id,
+        note: `Reported user ${reportToSuspend.reported_user_details?.email || reportToSuspend.reported_user} was suspended by moderation.`,
       })
+      setShowSuspendDialog(false)
+      setReportToSuspend(null)
       refetch()
-    } catch (error) {}
+    } catch {
+      toast.error('Failed to suspend user. Please try again.')
+    }
   }
 
   const confirmDelete = async () => {
@@ -142,8 +177,8 @@ export default function AdminReportsPage() {
       setReportToDelete(null)
       setSelectedReport(null)
       refetch()
-    } catch (error) {
-      // Error handled by mutation
+    } catch {
+      toast.error('Failed to delete report. Please try again.')
     }
   }
 
@@ -479,7 +514,7 @@ export default function AdminReportsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation */}
       <ConfirmDeleteDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
@@ -488,6 +523,53 @@ export default function AdminReportsPage() {
         description="Are you sure you want to delete this report? This will permanently remove the report record and all associated communication history. This action cannot be undone."
         isLoading={deleteMutation.isPending}
       />
+
+      {/* Archive Ad Confirmation */}
+      <ConfirmDeleteDialog
+        open={showArchiveDialog}
+        onOpenChange={(open) => { setShowArchiveDialog(open); if (!open) setReportToArchive(null) }}
+        onConfirm={confirmArchiveAd}
+        title={`Archive "${reportToArchive?.related_ad_details?.title || 'this ad'}"?`}
+        description="The ad will be archived and hidden from the marketplace. The reporter will be notified. This action can be reversed from the Ads management page."
+        isLoading={archiveAdMutation.isPending}
+      />
+
+      {/* Suspend User Confirmation */}
+      <ConfirmDeleteDialog
+        open={showSuspendDialog}
+        onOpenChange={(open) => { setShowSuspendDialog(open); if (!open) setReportToSuspend(null) }}
+        onConfirm={confirmSuspendUser}
+        title={`Suspend ${reportToSuspend?.reported_user_details?.email || 'this user'}?`}
+        description="The user's account will be suspended and they will lose access to the platform. This action can be reversed from the Users management page."
+        isLoading={suspendUserMutation.isPending}
+      />
+
+      {/* Warn User Dialog */}
+      <Dialog open={showWarnDialog} onOpenChange={(open) => { setShowWarnDialog(open); if (!open) setReportToWarn(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Warning to {reportToWarn?.reported_user_details?.email || 'User'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-gray-500">Edit the warning message below before sending.</p>
+            <Textarea
+              rows={4}
+              value={warnMessage}
+              onChange={(e) => setWarnMessage(e.target.value)}
+              className="resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowWarnDialog(false)}>Cancel</Button>
+            <Button
+              onClick={confirmWarnUser}
+              disabled={warnUserMutation.isPending || !warnMessage.trim()}
+            >
+              {warnUserMutation.isPending ? 'Sending...' : 'Send Warning'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

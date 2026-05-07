@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import AppText from '../ui/AppText';
 import ImageViewer from '../ui/ImageViewer';
 import { useState } from 'react';
@@ -18,16 +19,23 @@ export default function AdImagePicker({
   onImagesChange,
   maxImages = 10,
 }: AdImagePickerProps) {
+  const { t } = useTranslation();
   const [viewerVisible, setViewerVisible] = useState(false);
   const [initialViewerIndex, setInitialViewerIndex] = useState(0);
 
   const pickImage = async () => {
     if (images.length >= maxImages) {
-      Alert.alert('Limit Reached', `You can only add up to ${maxImages} images.`);
+      Alert.alert(t('create_ad.images.limitReached'), t('create_ad.images.limitReachedDesc', { max: maxImages }));
       return;
     }
 
     try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(t('create_ad.images.permissionRequired'), t('create_ad.images.permissionDesc'));
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: false,
@@ -46,7 +54,7 @@ export default function AdImagePicker({
           const info = await FileSystem.getInfoAsync(asset.uri);
           const size = info.exists ? info.size : 0;
           if (size > 5 * 1024 * 1024) {
-            Alert.alert('File too large', `Image "${asset.fileName || 'selected'}" exceeds the 5MB limit.`);
+            Alert.alert(t('create_ad.images.fileTooLarge'), t('create_ad.images.fileTooLargeDesc'));
             continue;
           }
           newUris.push(asset.uri);
@@ -57,11 +65,11 @@ export default function AdImagePicker({
         }
 
         if (result.assets.length > remainingSlots) {
-          Alert.alert('Limit Reached', `Only the first ${remainingSlots} images were added.`);
+          Alert.alert(t('create_ad.images.limitReached'), t('create_ad.images.onlyFirstAdded', { count: remainingSlots }));
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to pick images');
+      Alert.alert(t('common.error'), t('create_ad.images.failedToPick'));
     }
   };
 
@@ -85,7 +93,7 @@ export default function AdImagePicker({
               <View className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-sm mb-2">
                 <Ionicons name="camera" size={20} color="#0f172b" />
               </View>
-              <AppText className="text-gray-500 text-xs font-medium">Add Photo</AppText>
+              <AppText className="text-gray-500 text-xs font-medium">{t('create_ad.images.addPhoto')}</AppText>
             </TouchableOpacity>
           )}
 
@@ -113,7 +121,7 @@ export default function AdImagePicker({
               </TouchableOpacity>
               {index === 0 && (
                 <View className="absolute bottom-2 left-2 bg-black/60 px-2 py-0.5 rounded-md">
-                  <AppText className="text-white text-[10px] font-bold">Cover</AppText>
+                  <AppText className="text-white text-[10px] font-bold">{t('create_ad.images.cover')}</AppText>
                 </View>
               )}
             </View>
