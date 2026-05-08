@@ -433,7 +433,11 @@ export default function ChatRoomScreen() {
       </Animated.View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        // Android handles keyboard via windowSoftInputMode="adjustResize"
+        // (see AndroidManifest.xml MainActivity); using "height" or "padding"
+        // here double-handles and causes inconsistent layout. iOS still needs
+        // padding behavior with the header offset.
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 56 : 0}
         className="flex-1"
         style={{ backgroundColor: "#ECE5DD" }}

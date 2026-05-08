@@ -30,7 +30,10 @@ interface ChatWebSocketState {
   isConnected: boolean
   subscribedChats: Set<string>
   pendingSubscriptions: Set<string>
-  pendingMessages: Map<string, string[]>
+  // Messages typed before subscription confirms — flushed on 'subscribed'.
+  // Must carry clientId so the server's broadcast can be matched back to
+  // the optimistic message and replace it (otherwise it stays "sending").
+  pendingMessages: Map<string, { content: string; parentMessageId?: string; clientId?: string }[]>
 
   // Reconnection state
   reconnectAttempts: number
@@ -75,18 +78,19 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     const queuedMessages = state.pendingMessages.get(chatId)
     if (queuedMessages && queuedMessages.length > 0 && state.ws && state.ws.readyState === WebSocket.OPEN) {
       console.log(`Sending ${queuedMessages.length} queued messages for chat ${chatId}`)
-      queuedMessages.forEach((content) => {
+      queuedMessages.forEach(({ content, parentMessageId, clientId }) => {
         try {
           state.ws!.send(
             JSON.stringify({
               type: 'message',
               chat_id: chatId,
               content,
+              parent_message_id: parentMessageId,
+              client_id: clientId,
             })
           )
         } catch (error) {
-          const message = (error as any)?.response?.data?.message || 'Failed to save ad';
-          console.error('Failed to save ad:', message)
+          console.error('Failed to flush queued message:', error)
         }
       })
       const newPendingMessages = new Map(state.pendingMessages)
@@ -545,7 +549,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       if (!newPendingMessages.has(chatId)) {
         newPendingMessages.set(chatId, [])
       }
-      newPendingMessages.get(chatId)!.push(content)
+      newPendingMessages.get(chatId)!.push({ content, parentMessageId, clientId })
       set({ pendingMessages: newPendingMessages })
       return true
     }
@@ -556,7 +560,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       if (!newPendingMessages.has(chatId)) {
         newPendingMessages.set(chatId, [])
       }
-      newPendingMessages.get(chatId)!.push(content)
+      newPendingMessages.get(chatId)!.push({ content, parentMessageId, clientId })
       set({ pendingMessages: newPendingMessages })
       return true
     }
