@@ -8,23 +8,20 @@ import type { ChatMessage, ChatSummary } from '@/api/types'
 // Based on routing.py, WS is at root/ws/chat/ NOT /api/ws/chat/
 const DEFAULT_API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000'
 
-// Build WebSocket URL
-const buildWebSocketUrl = (): string => {
+// Build WebSocket URL with optional JWT token query param.
+// Backend's JWTAuthMiddleware (api/middleware/jwt_auth_middleware.py) reads
+// ?token=<JWT> from the WS query string; without it the chat consumer
+// rejects the connection with code 4001 (anonymous user).
+const buildWebSocketUrl = (token?: string | null): string => {
+  let baseUrl: string
   if (process.env.EXPO_PUBLIC_WS_BASE_URL) {
-    return `${process.env.EXPO_PUBLIC_WS_BASE_URL.replace(/\/$/, '')}/ws/chat/`
+    baseUrl = `${process.env.EXPO_PUBLIC_WS_BASE_URL.replace(/\/$/, '')}/ws/chat/`
+  } else {
+    let base = (DEFAULT_API_URL).replace(/^https?/, (match: string) => match === 'https' ? 'wss' : 'ws')
+    base = base.replace(/\/$/, '').replace(/\/api$/, '')
+    baseUrl = `${base}/ws/chat/`
   }
-  // Replace http/https with ws/wss
-  let base = (DEFAULT_API_URL).replace(/^https?/, (match: string) => match === 'https' ? 'wss' : 'ws')
-
-  // Strip trailing slash
-  base = base.replace(/\/$/, '')
-
-  // Backend routing.py implies WS is at /ws/chat/
-  // But EXPO_PUBLIC_API_URL might be http://.../api
-  // If so, we need to remove /api from the end if present to get root
-  base = base.replace(/\/api$/, '')
-
-  return `${base}/ws/chat/`
+  return token ? `${baseUrl}?token=${encodeURIComponent(token)}` : baseUrl
 }
 
 interface ChatWebSocketState {
@@ -118,8 +115,11 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       return
     }
 
-    const wsUrl = buildWebSocketUrl()
-    console.log('🔌 Connecting to WebSocket:', wsUrl)
+    // Late-require to avoid a circular import between the WS store and the auth store.
+    const { useAuthStore } = require('@/store/authStore')
+    const accessToken = useAuthStore.getState().accessToken
+    const wsUrl = buildWebSocketUrl(accessToken)
+    console.log('🔌 Connecting to WebSocket:', wsUrl.replace(/token=[^&]+/, 'token=***'))
 
     try {
       const socket = new WebSocket(wsUrl)

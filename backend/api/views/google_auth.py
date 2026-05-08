@@ -319,7 +319,10 @@ def google_callback(request):
                 'success': 'true',
                 'exchange_token': exchange_token,
             })
-            redirect_url = f'{app_scheme}://auth/google/callback?{redirect_params}'
+            # Three slashes (no host) — expo-linking parses this as path
+            # "auth/google/callback" rather than host "auth", so expo-router
+            # can match the file at app/src/app/auth/google/callback.tsx.
+            redirect_url = f'{app_scheme}:///auth/google/callback?{redirect_params}'
             # Custom-scheme redirect: HttpResponseRedirect rejects non-http(s)
             # schemes via allowed_schemes, so build the 302 manually.
             return _AppDeepLinkRedirect(redirect_url)

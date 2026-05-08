@@ -29,17 +29,23 @@ export const useNotificationWebSocket = () => {
       return
     }
 
-    const buildWebSocketUrl = (): string => {
+    // Backend's JWTAuthMiddleware reads ?token=<JWT> from the WS query string.
+    // Without it the channels consumer treats the connection as anonymous and rejects it.
+    const buildWebSocketUrl = (token?: string | null): string => {
+      let baseUrl: string
       if (process.env.EXPO_PUBLIC_WS_BASE_URL) {
-        return `${process.env.EXPO_PUBLIC_WS_BASE_URL.replace(/\/$/, '')}/ws/notifications/`
+        baseUrl = `${process.env.EXPO_PUBLIC_WS_BASE_URL.replace(/\/$/, '')}/ws/notifications/`
+      } else {
+        const base = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000'
+        const wsBase = base.replace(/^https?/, (match: string) => match === 'https' ? 'wss' : 'ws')
+        baseUrl = `${wsBase.replace(/\/$/, '')}/ws/notifications/`
       }
-      const base = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000'
-      const wsBase = base.replace(/^https?/, (match: string) => match === 'https' ? 'wss' : 'ws')
-      return `${wsBase.replace(/\/$/, '')}/ws/notifications/`
+      return token ? `${baseUrl}?token=${encodeURIComponent(token)}` : baseUrl
     }
 
-    const wsUrl = buildWebSocketUrl()
-    console.log('🔌 Connecting notification WebSocket to:', wsUrl)
+    const accessToken = useAuthStore.getState().accessToken
+    const wsUrl = buildWebSocketUrl(accessToken)
+    console.log('🔌 Connecting notification WebSocket to:', wsUrl.replace(/token=[^&]+/, 'token=***'))
 
     try {
       const ws = new WebSocket(wsUrl)

@@ -44,8 +44,10 @@ export const useGoogleAuth = () => {
 
       console.log("🔐 Google OAuth - Opening browser...");
 
-      // App deep link scheme for callback (backend will redirect here)
-      const appScheme = "tajma://auth/google/callback";
+      // App deep link scheme for callback (backend will redirect here).
+      // Three slashes (no host) so expo-linking parses the rest as path
+      // and expo-router matches app/src/app/auth/google/callback.tsx.
+      const appScheme = "tajma:///auth/google/callback";
 
       // Open in system browser (required by Google - WebViews are blocked)
       // Flow: Google → Backend → App deep link
