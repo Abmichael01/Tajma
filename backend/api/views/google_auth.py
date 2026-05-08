@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from django.contrib.auth import login
 from django.core import signing
 from django.core.signing import BadSignature, SignatureExpired
+from django.http import HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
@@ -19,6 +20,13 @@ from api.models.user import User
 SUPPORTED_LOCALES = {'en', 'fr', 'ha'}
 MOBILE_EXCHANGE_SALT = 'tajma.google-mobile-oauth'
 MOBILE_EXCHANGE_MAX_AGE_SECONDS = 300
+
+
+class _AppDeepLinkRedirect(HttpResponseRedirect):
+    # HttpResponseRedirect blocks non-http(s) schemes via allowed_schemes.
+    # The mobile OAuth flow needs to redirect to tajma:// so the system
+    # browser hands control back to the app and closes itself.
+    allowed_schemes = ['http', 'https', 'tajma']
 
 def _get_locale(request):
     """Read locale from Accept-Language header sent by the frontend API client."""
@@ -303,7 +311,6 @@ def google_callback(request):
         if mobile_app and request.method == 'GET':
             # Redirect to app deep link
             # The app will intercept this deep link and complete the login
-            from django.http import HttpResponseRedirect
             from urllib.parse import urlencode
 
             app_scheme = getattr(settings, 'MOBILE_APP_SCHEME', 'tajma')
@@ -313,7 +320,9 @@ def google_callback(request):
                 'exchange_token': exchange_token,
             })
             redirect_url = f'{app_scheme}://auth/google/callback?{redirect_params}'
-            return HttpResponseRedirect(redirect_url)
+            # Custom-scheme redirect: HttpResponseRedirect rejects non-http(s)
+            # schemes via allowed_schemes, so build the 302 manually.
+            return _AppDeepLinkRedirect(redirect_url)
         
         # For web/API requests, return JSON response
         return Response(_auth_payload(user))
