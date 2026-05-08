@@ -28,6 +28,7 @@
     },
     "android": {
       "package": "com.urkelcodes.tajma",
+      "softwareKeyboardLayoutMode": "resize",
       "intentFilters": [
         {
           "action": "VIEW",

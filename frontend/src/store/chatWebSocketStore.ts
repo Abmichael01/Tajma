@@ -21,6 +21,8 @@ interface ChatWebSocketState {
   subscribedChats: Set<string>
   pendingSubscriptions: Set<string>
   pendingMessages: Map<string, { content: string, parentMessageId?: string }[]>
+  pendingReadReceipts: Set<string>
+  pendingTyping: Map<string, boolean>
 
   // Reconnection state
   reconnectAttempts: number
@@ -55,6 +57,69 @@ interface ChatWebSocketState {
 }
 
 export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
+  const typingAutoClearTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+  const clearTypingAutoClearTimer = (chatId: string, userId: number) => {
+    const key = `${chatId}:${userId}`
+    const existingTimer = typingAutoClearTimers.get(key)
+    if (existingTimer) {
+      clearTimeout(existingTimer)
+      typingAutoClearTimers.delete(key)
+    }
+  }
+
+  const notifyTyping = (payload: { userId: number; typing: boolean; chatId: string }) => {
+    get().onTyping?.(payload)
+
+    clearTypingAutoClearTimer(payload.chatId, payload.userId)
+    if (!payload.typing) {
+      return
+    }
+
+    const key = `${payload.chatId}:${payload.userId}`
+    const timer = setTimeout(() => {
+      typingAutoClearTimers.delete(key)
+      get().onTyping?.({
+        userId: payload.userId,
+        typing: false,
+        chatId: payload.chatId,
+      })
+    }, 3000)
+
+    typingAutoClearTimers.set(key, timer)
+  }
+
+  const sendMarkReadFrame = (chatId: string) => {
+    const state = get()
+    if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+      return false
+    }
+
+    state.ws.send(
+      JSON.stringify({
+        type: 'mark_read',
+        chat_id: chatId,
+      })
+    )
+    return true
+  }
+
+  const sendTypingFrame = (chatId: string, typing: boolean) => {
+    const state = get()
+    if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+      return false
+    }
+
+    state.ws.send(
+      JSON.stringify({
+        type: 'typing',
+        chat_id: chatId,
+        typing,
+      })
+    )
+    return true
+  }
+
   const sendQueuedMessages = (chatId: string) => {
     const state = get()
     const queuedMessages = state.pendingMessages.get(chatId)
@@ -77,6 +142,71 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       const newPendingMessages = new Map(state.pendingMessages)
       newPendingMessages.delete(chatId)
       set({ pendingMessages: newPendingMessages })
+    }
+  }
+
+  const flushQueuedChatActions = (chatId: string) => {
+    const state = get()
+
+    if (state.pendingReadReceipts.has(chatId)) {
+      try {
+        if (sendMarkReadFrame(chatId)) {
+          const pendingReadReceipts = new Set(get().pendingReadReceipts)
+          pendingReadReceipts.delete(chatId)
+          set({ pendingReadReceipts })
+        }
+      } catch (error) {
+        console.error('Failed to flush queued read receipt:', error)
+      }
+    }
+
+    if (state.pendingTyping.has(chatId)) {
+      const typing = state.pendingTyping.get(chatId)!
+      try {
+        if (sendTypingFrame(chatId, typing)) {
+          const pendingTyping = new Map(get().pendingTyping)
+          pendingTyping.delete(chatId)
+          set({ pendingTyping })
+        }
+      } catch (error) {
+        console.error('Failed to flush queued typing indicator:', error)
+      }
+    }
+
+    sendQueuedMessages(chatId)
+  }
+
+  const queueChatSubscription = (chatId: string) => {
+    const state = get()
+
+    if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+      console.warn('WebSocket not connected, cannot subscribe to chat:', chatId)
+      return false
+    }
+
+    if (state.subscribedChats.has(chatId) || state.pendingSubscriptions.has(chatId)) {
+      return true
+    }
+
+    try {
+      const newPendingSubs = new Set(state.pendingSubscriptions)
+      newPendingSubs.add(chatId)
+      set({ pendingSubscriptions: newPendingSubs })
+
+      state.ws.send(
+        JSON.stringify({
+          type: 'subscribe',
+          chat_id: chatId,
+        })
+      )
+      console.log('Subscribing to chat:', chatId)
+      return true
+    } catch (error) {
+      console.error('Failed to subscribe to chat:', error)
+      const updatedPendingSubs = new Set(get().pendingSubscriptions)
+      updatedPendingSubs.delete(chatId)
+      set({ pendingSubscriptions: updatedPendingSubs })
+      return false
     }
   }
 
@@ -230,7 +360,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
               })
 
               console.log('Successfully subscribed to chat:', subscribedChatId)
-              sendQueuedMessages(subscribedChatId)
+              flushQueuedChatActions(subscribedChatId)
               break
 
             case 'unsubscribed':
@@ -262,7 +392,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
 
             case 'typing':
               if (payload.user_id !== undefined && payload.chat_id) {
-                state.onTyping?.({
+                notifyTyping({
                   userId: payload.user_id,
                   typing: payload.typing,
                   chatId: payload.chat_id,
@@ -317,7 +447,11 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
           subscribedChats: new Set(),
           pendingSubscriptions: new Set(),
           pendingMessages: new Map(),
+          pendingReadReceipts: new Set(),
+          pendingTyping: new Map(),
         })
+        typingAutoClearTimers.forEach((timer) => clearTimeout(timer))
+        typingAutoClearTimers.clear()
 
         // Clear intervals
         const state = get()
@@ -465,47 +599,20 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       subscribedChats: new Set(),
       pendingSubscriptions: new Set(),
       pendingMessages: new Map(),
+      pendingReadReceipts: new Set(),
+      pendingTyping: new Map(),
       pingInterval: null,
       connectionHealthCheck: null,
       reconnectTimeout: null,
       reconnectAttempts: 0
     })
+
+    typingAutoClearTimers.forEach((timer) => clearTimeout(timer))
+    typingAutoClearTimers.clear()
   }
 
   const subscribeToChat = (chatId: string) => {
-    const state = get()
-
-    if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
-      console.warn('WebSocket not connected, cannot subscribe to chat:', chatId)
-      return
-    }
-
-    if (state.subscribedChats.has(chatId)) {
-      return // Already subscribed
-    }
-
-    if (state.pendingSubscriptions.has(chatId)) {
-      return // Already pending
-    }
-
-    try {
-      const newPendingSubs = new Set(state.pendingSubscriptions)
-      newPendingSubs.add(chatId)
-      set({ pendingSubscriptions: newPendingSubs })
-
-      state.ws.send(
-        JSON.stringify({
-          type: 'subscribe',
-          chat_id: chatId,
-        })
-      )
-      console.log('Subscribing to chat:', chatId)
-    } catch (error) {
-      console.error('Failed to subscribe to chat:', error)
-      const updatedPendingSubs = new Set(state.pendingSubscriptions)
-      updatedPendingSubs.delete(chatId)
-      set({ pendingSubscriptions: updatedPendingSubs })
-    }
+    queueChatSubscription(chatId)
   }
 
   const unsubscribeFromChat = (chatId: string) => {
@@ -528,7 +635,11 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       )
       const updatedSubscribed = new Set(state.subscribedChats)
       updatedSubscribed.delete(chatId)
-      set({ subscribedChats: updatedSubscribed })
+      const pendingReadReceipts = new Set(state.pendingReadReceipts)
+      pendingReadReceipts.delete(chatId)
+      const pendingTyping = new Map(state.pendingTyping)
+      pendingTyping.delete(chatId)
+      set({ subscribedChats: updatedSubscribed, pendingReadReceipts, pendingTyping })
       console.log('Unsubscribed from chat:', chatId)
     } catch (error) {
       console.error('Failed to unsubscribe from chat:', error)
@@ -546,7 +657,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     // If not subscribed, subscribe first and queue the message
     if (!state.subscribedChats.has(chatId) && !state.pendingSubscriptions.has(chatId)) {
       console.log('Not subscribed to chat, subscribing first:', chatId)
-      subscribeToChat(chatId)
+      queueChatSubscription(chatId)
 
       const newPendingMessages = new Map(state.pendingMessages)
       if (!newPendingMessages.has(chatId)) {
@@ -594,17 +705,15 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     }
 
     if (!state.subscribedChats.has(chatId)) {
-      return // Must be subscribed first
+      queueChatSubscription(chatId)
+      const pendingTyping = new Map(state.pendingTyping)
+      pendingTyping.set(chatId, typing)
+      set({ pendingTyping })
+      return
     }
 
     try {
-      state.ws.send(
-        JSON.stringify({
-          type: 'typing',
-          chat_id: chatId,
-          typing,
-        })
-      )
+      sendTypingFrame(chatId, typing)
     } catch (error) {
       console.error('Failed to send typing indicator:', error)
     }
@@ -619,17 +728,16 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     }
 
     if (!state.subscribedChats.has(chatId)) {
-      console.warn('Not subscribed to chat, cannot mark as read:', chatId)
+      console.warn('Not subscribed to chat, queuing read receipt:', chatId)
+      queueChatSubscription(chatId)
+      const pendingReadReceipts = new Set(state.pendingReadReceipts)
+      pendingReadReceipts.add(chatId)
+      set({ pendingReadReceipts })
       return
     }
 
     try {
-      state.ws.send(
-        JSON.stringify({
-          type: 'mark_read',
-          chat_id: chatId,
-        })
-      )
+      sendMarkReadFrame(chatId)
     } catch (error) {
       console.error('Failed to mark as read:', error)
     }
@@ -660,6 +768,8 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     subscribedChats: new Set(),
     pendingSubscriptions: new Set(),
     pendingMessages: new Map(),
+    pendingReadReceipts: new Set(),
+    pendingTyping: new Map(),
     reconnectAttempts: 0,
     reconnectTimeout: null,
     pingInterval: null,
@@ -684,4 +794,3 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
     setHandlers,
   }
 })
-

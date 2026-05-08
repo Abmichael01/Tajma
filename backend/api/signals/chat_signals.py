@@ -162,6 +162,17 @@ def broadcast_message_on_create(sender, instance, created, **kwargs):
                         'chat_id': chat_id  # Ensure chat_id is included
                     }
                 )
+
+                participant_ids = [instance.chat.participant1_id, instance.chat.participant2_id]
+                for user_id in participant_ids:
+                    async_to_sync(channel_layer.group_send)(
+                        f'user_{user_id}',
+                        {
+                            'type': 'message_status_update',
+                            'message': message_data,
+                            'chat_id': chat_id
+                        }
+                    )
                 
                 logger.info(f"✅ Broadcasted read status update for message {instance.id} in chat {chat_id}")
         
@@ -302,9 +313,21 @@ def broadcast_message_read_status(chat_id, message_ids, user_id):
                     chat_group_name,
                     {
                         'type': 'message_status_update',
-                        'message': message_data
+                        'message': message_data,
+                        'chat_id': chat_id
                     }
                 )
+
+                participant_ids = [message.chat.participant1_id, message.chat.participant2_id]
+                for user_id in participant_ids:
+                    async_to_sync(channel_layer.group_send)(
+                        f'user_{user_id}',
+                        {
+                            'type': 'message_status_update',
+                            'message': message_data,
+                            'chat_id': chat_id
+                        }
+                    )
                 
                 logger.debug(f"✅ Broadcasted read status for message {message.id}")
             except Exception as e:
@@ -327,4 +350,3 @@ def delete_attachment_on_message_delete(sender, instance, **kwargs):
             logger.info(f"✅ Successfully deleted attachment for message {instance.id}")
         except Exception as e:
             logger.error(f"❌ Error deleting attachment for message {instance.id}: {e}")
-

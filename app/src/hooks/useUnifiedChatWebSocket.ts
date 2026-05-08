@@ -13,7 +13,7 @@ export const useUnifiedChatWebSocket = ({
   enabled = true,
   activeChatIds = [],
 }: UseUnifiedChatWebSocketOptions) => {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore()
   const store = useChatWebSocketStore()
   const queryClient = useQueryClient()
 
@@ -123,6 +123,13 @@ export const useUnifiedChatWebSocket = ({
     })
   }, [queryClient])
 
+  const markReceivedMessageRead = useCallback((message: any) => {
+    if (!user?.id || !message?.sender || String(message.sender?.id) === String(user.id)) {
+      return message
+    }
+    return { ...message, is_read: true }
+  }, [user?.id])
+
   const onMarkedRead = useCallback((chatId: string) => {
     console.log(`[useUnifiedChatWebSocket] 📥 Received onMarkedRead for chat ${chatId}`);
     queryClient.setQueryData(['chats'], (oldData: any) => {
@@ -132,7 +139,7 @@ export const useUnifiedChatWebSocket = ({
         if (String(c.id) === String(chatId)) {
           const updatedChat = { ...c, unread_count: 0 }
           if (updatedChat.last_message) {
-            updatedChat.last_message = { ...updatedChat.last_message, is_read: true }
+            updatedChat.last_message = markReceivedMessageRead(updatedChat.last_message)
           }
           return updatedChat
         }
@@ -145,21 +152,22 @@ export const useUnifiedChatWebSocket = ({
       if (!oldData) return oldData
       const updatedChat = { ...oldData, unread_count: 0 }
       if (updatedChat.last_message) {
-        updatedChat.last_message = { ...updatedChat.last_message, is_read: true }
+        updatedChat.last_message = markReceivedMessageRead(updatedChat.last_message)
       }
       return updatedChat
     })
 
-    // Also update all messages in this chat to be marked as read in the messages cache
+    // Also update only received messages in this chat. Sender-side blue ticks
+    // are driven by message_status_update from the backend.
     queryClient.setQueryData(['messages', chatId], (oldData: any) => {
       if (!oldData) return oldData
       const pages = oldData.pages.map((page: any) => ({
         ...page,
-        results: page.results.map((m: any) => ({ ...m, is_read: true }))
+        results: page.results.map(markReceivedMessageRead)
       }))
       return { ...oldData, pages }
     })
-  }, [queryClient])
+  }, [markReceivedMessageRead, queryClient])
 
   const onUserStatus = useCallback((payload: { user_id: number; is_online: boolean; last_seen?: string }) => {
     queryClient.setQueryData(['chats', 'online-status'], (oldData: any) => {

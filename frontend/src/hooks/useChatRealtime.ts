@@ -700,7 +700,7 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
       })
 
       const updateMsg = (msg: ChatMessage) => {
-        if (msg.sender?.id === user?.id && !msg.is_read) {
+        if (user?.id && String(msg.sender?.id) !== String(user.id) && !msg.is_read) {
           return { ...msg, is_read: true }
         }
         return msg

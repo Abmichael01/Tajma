@@ -425,6 +425,21 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
                 'chat_id': chat_id
             }
         )
+
+        # Also send typing to participant-level groups so chat lists can show
+        # typing even when the conversation is not currently open.
+        participant_ids = await self.get_chat_participant_ids(chat_id)
+        for user_id in participant_ids:
+            await self.channel_layer.group_send(
+                f'user_{user_id}',
+                {
+                    'type': 'typing_indicator',
+                    'user_id': self.user.id,
+                    'user_name': self.user.get_full_name() or self.user.email.split('@')[0],
+                    'typing': is_typing,
+                    'chat_id': chat_id
+                }
+            )
     
     async def handle_mark_read(self, data):
         """Handle mark as read request (like WhatsApp/Telegram - via WebSocket)"""
@@ -979,4 +994,3 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
                 logger.info(f"✅ Broadcasted read status update for message {message_id} to global groups")
             else:
                 logger.warning(f"Could not find message {message_id} to broadcast read status")
-

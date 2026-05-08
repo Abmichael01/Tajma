@@ -67,6 +67,7 @@ export default function ChatRoomScreen() {
   } = useChatRoomLogic(id!);
 
   const router = useRouter();
+  const [headerHeight, setHeaderHeight] = useState(0);
   const [viewerVisible, setViewerVisible] = useState(false);
   const [initialImageIndex, setInitialImageIndex] = useState(0);
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -280,6 +281,7 @@ export default function ChatRoomScreen() {
 
       {isSelectionMode ? (
         <View
+          onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
           style={{ paddingTop: insets.top }}
           className="bg-primary flex-row items-center px-4 h-[100px]"
         >
@@ -347,20 +349,22 @@ export default function ChatRoomScreen() {
           </View>
         </View>
       ) : (
-        <ChatHeader
-          avatarSrc={otherParticipant?.avatar}
-          userName={
-            otherParticipant?.full_name ||
-            otherParticipant?.username ||
-            (isChatLoading ? "Loading..." : "User")
-          }
-          isOnline={participantStatus?.is_online}
-          lastSeen={participantStatus?.last_seen}
-          isTyping={isParticipantTyping}
-          onBackPress={() => router.back()}
-          onAvatarPress={() => router.push(`/messages/${id}/info`)}
-          onMenuPress={() => setIsSearchVisible(!isSearchVisible)}
-        />
+        <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+          <ChatHeader
+            avatarSrc={otherParticipant?.avatar}
+            userName={
+              otherParticipant?.full_name ||
+              otherParticipant?.username ||
+              (isChatLoading ? "Loading..." : "User")
+            }
+            isOnline={participantStatus?.is_online}
+            lastSeen={participantStatus?.last_seen}
+            isTyping={isParticipantTyping}
+            onBackPress={() => router.back()}
+            onAvatarPress={() => router.push(`/messages/${id}/info`)}
+            onMenuPress={() => setIsSearchVisible(!isSearchVisible)}
+          />
+        </View>
       )}
 
       <Animated.View
@@ -433,12 +437,8 @@ export default function ChatRoomScreen() {
       </Animated.View>
 
       <KeyboardAvoidingView
-        // Android handles keyboard via windowSoftInputMode="adjustResize"
-        // (see AndroidManifest.xml MainActivity); using "height" or "padding"
-        // here double-handles and causes inconsistent layout. iOS still needs
-        // padding behavior with the header offset.
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 56 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
         className="flex-1"
         style={{ backgroundColor: "#ECE5DD" }}
       >

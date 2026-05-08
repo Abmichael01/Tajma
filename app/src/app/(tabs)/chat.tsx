@@ -10,6 +10,7 @@ import ChatListSkeleton from "@/components/chat/ChatListSkeleton";
 import { useChats, useOnlineStatuses } from "@/hooks/useChat";
 import { useUnifiedChatWebSocket } from "@/hooks/useUnifiedChatWebSocket";
 import { useAuthStore } from "@/store/authStore";
+import { useChatWebSocketStore } from "@/store/chatWebSocketStore";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import { useTranslation } from "react-i18next";
 
@@ -21,9 +22,10 @@ const FILTERS = [
 export default function ChatScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { data: chats, isLoading, refetch } = useChats();
   const { data: onlineStatuses } = useOnlineStatuses();
+  const typingStatus = useChatWebSocketStore((state) => state.typingStatus);
 
   // Create a memoized map of online user IDs for O(1) lookup in list items
   const onlineStatusMap = useMemo(() => {
@@ -145,6 +147,12 @@ export default function ChatScreen() {
               chat={item}
               index={index}
               onlineStatusMap={onlineStatusMap}
+              isTyping={(() => {
+                const otherParticipant = item.participant1?.id === user?.id
+                  ? item.participant2
+                  : item.participant1;
+                return !!otherParticipant?.id && !!typingStatus[String(item.id)]?.[otherParticipant.id];
+              })()}
             />
           )}
           refreshControl={

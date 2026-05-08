@@ -15,9 +15,10 @@ interface ChatListItemProps {
   chat: ChatSummary;
   index?: number;
   onlineStatusMap?: Map<string, boolean>;
+  isTyping?: boolean;
 }
 
-function ChatListItem({ chat, index = 0, onlineStatusMap }: ChatListItemProps) {
+function ChatListItem({ chat, index = 0, onlineStatusMap, isTyping = false }: ChatListItemProps) {
   const router = useRouter();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -162,20 +163,29 @@ function ChatListItem({ chat, index = 0, onlineStatusMap }: ChatListItemProps) {
                   color={chat.last_message.is_read ? "#FF4F18" : "#94A3B8"}
                 />
               )}
-              <AppText
-                className={`text-[14px] leading-5 flex-1 ${hasUnread ? 'text-slate-900 font-semibold' : 'text-slate-500 font-medium'}`}
-                numberOfLines={1}
-              >
-                {(() => {
-                  const msg = chat.last_message;
-                  if (!msg) return 'No messages yet';
-                  const prefix = isOwnMessage ? 'You: ' : '';
-                  if (msg.message_type === 'image') return `${prefix}📷 Photo`;
-                  if (msg.message_type === 'audio') return `${prefix}🎤 Voice message`;
-                  if (msg.message_type === 'document') return `${prefix}📄 Document`;
-                  return `${prefix}${msg.content || ''}`;
-                })()}
-              </AppText>
+              {isTyping ? (
+                <AppText
+                  className="text-[14px] leading-5 flex-1 text-slate-500 italic font-semibold"
+                  numberOfLines={1}
+                >
+                  typing...
+                </AppText>
+              ) : (
+                <AppText
+                  className={`text-[14px] leading-5 flex-1 ${hasUnread ? 'text-slate-900 font-semibold' : 'text-slate-500 font-medium'}`}
+                  numberOfLines={1}
+                >
+                  {(() => {
+                    const msg = chat.last_message;
+                    if (!msg) return 'No messages yet';
+                    const prefix = isOwnMessage ? 'You: ' : '';
+                    if (msg.message_type === 'image') return `${prefix}📷 Photo`;
+                    if (msg.message_type === 'audio') return `${prefix}🎤 Voice message`;
+                    if (msg.message_type === 'document') return `${prefix}📄 Document`;
+                    return `${prefix}${msg.content || ''}`;
+                  })()}
+                </AppText>
+              )}
             </View>
 
             {hasUnread && (
