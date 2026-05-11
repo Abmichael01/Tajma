@@ -636,8 +636,10 @@ function ChatClientContent() {
   }, [])
 
   // Calculate available height: viewport - navbar - bottom nav
-  // bottomNavHeight will be 0 on desktop (since bottom nav is hidden with md:hidden)
-  const availableHeight = `calc(100vh - ${navbarHeight}px - ${bottomNavHeight}px)`
+  // When in chat area (id in params), bottom nav is hidden, so we use 0
+  const isChatArea = searchParams.has('id')
+  const effectiveBottomNavHeight = isChatArea ? 0 : bottomNavHeight
+  const availableHeight = `calc(100vh - ${navbarHeight}px - ${effectiveBottomNavHeight}px)`
 
   const handleDeleteMessages = useCallback(async (messageIds: string[]) => {
     if (!activeConversationId) return
@@ -674,7 +676,7 @@ function ChatClientContent() {
       className="bg-white fixed inset-x-0 container px-0 md:px-0 overflow-hidden"
       style={{
         top: `${navbarHeight}px`,
-        bottom: `${bottomNavHeight}px`,
+        bottom: `${effectiveBottomNavHeight}px`,
         maxHeight: availableHeight,
       }}
     >
