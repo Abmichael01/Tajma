@@ -64,7 +64,9 @@ export default function MobileBottomNav() {
     return pathname === href || pathname?.startsWith(`${href}/`)
   }
 
-  if (!isAuthenticated) return null
+  const isChatArea = pathname === '/chat' && searchParams.has('id')
+
+  if (!isAuthenticated || isChatArea) return null
 
   return (
     <nav className="fixed inset-x-0 bottom-0 bg-white border-t border-gray-100 rounded-t-[32px] md:hidden z-50 shadow-[0_-4px_20px_0_rgba(0,0,0,0.05)]" id="mobile-bottom-nav">
