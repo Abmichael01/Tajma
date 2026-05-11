@@ -16,6 +16,7 @@ interface CountryModalProps {
   onClose: () => void;
   onSelect: (country: Country | null) => void;
   selectedCountryId?: number;
+  mode?: "filter" | "picker";
 }
 
 export default function CountryModal({
@@ -23,6 +24,7 @@ export default function CountryModal({
   onClose,
   onSelect,
   selectedCountryId,
+  mode = "filter",
 }: CountryModalProps) {
   const { t } = useTranslation();
   const [currentLevel, setCurrentLevel] = useState(0); // Start at country level
@@ -212,7 +214,7 @@ export default function CountryModal({
                 >
                   {currentLevel === 0
                     ? t('search.location.allLocations')
-                    : t('search.location.allOf', { name: selectionHistory[selectionHistory.length - 1]?.name })}
+                    : mode === "picker" ? "Select this location" : t('search.location.allOf', { name: selectionHistory[selectionHistory.length - 1]?.name })}
                 </AppText>
                 <AppText className="text-gray-500 text-[10px] mt-0.5">
                   {currentLevel === 0

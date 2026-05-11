@@ -130,6 +130,9 @@
     "reset": "Réinitialiser",
     "publish_ad": "Publier l'annonce",
     "publishing": "Publication",
+    "preview_mode": "Mode Aperçu",
+    "publish_now": "Publier Maintenant",
+    "edit_draft": "Modifier le Brouillon",
     "footer": {
       "terms_conditions": "Conditions Générales",
       "privacy_policy": "Politique de Confidentialité"
@@ -228,6 +231,8 @@
     "basic_info": "Informations de base",
     "details_pricing": "Détails et Prix",
     "provide_detailed_info": "Fournir des informations détaillées",
+    "location": "Lieu",
+    "location_hint": "Si laissé vide, nous utiliserons le lieu de votre profil.",
     "update_ad_details": "Mettre à jour les détails de votre annonce",
     "tell_us_about_posting": "Parlez-nous de ce que vous publiez",
     "professional_title": "Titre professionnel",

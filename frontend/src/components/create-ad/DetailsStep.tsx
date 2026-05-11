@@ -7,6 +7,7 @@ import { FileUp, Image as ImageIcon } from 'lucide-react'
 import DynamicFormFields from './DynamicFormFields'
 import type { CustomFieldConfig } from './DynamicFormFields'
 import { cn } from '@/lib/utils'
+import SmartLocationSearch from '@/components/ui/SmartLocationSearch'
 
 import { useTranslations } from 'next-intl'
 
@@ -57,6 +58,26 @@ export default function DetailsStep({
 
       {/* Custom Fields from Category Configuration - Shown First */}
       <DynamicFormFields formData={formData} customFields={customFields} onInputChange={onInputChange} />
+
+      {/* Location Selection */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-900">
+          {t('location')}
+        </label>
+        <SmartLocationSearch
+          onLocationSelect={(location, country) => {
+            onInputChange('location', location?.name || '')
+            onInputChange('location_id', location?.id)
+            onInputChange('country_id', country?.id)
+          }}
+          initialLocationId={formData.location_id}
+          initialCountryId={formData.country_id}
+          error={errors.location}
+        />
+        <p className="text-xs text-gray-500 italic">
+          {t('location_hint') || "If left empty, we'll use your profile location."}
+        </p>
+      </div>
 
       {/* Ad Model Fields - Shown Last */}
       <div>

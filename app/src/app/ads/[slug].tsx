@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState, useRef } from "react";
 import AppText from "@/components/ui/AppText";
 import BackButton from "@/components/ui/BackButton";
-import { useAdDetails } from "@/hooks/useAds";
+import { useAdDetails, useUpdateAd } from "@/hooks/useAds";
 import { useAuthStore } from "@/store/authStore";
 import { useGetOrCreateChat } from "@/hooks/useChat";
 import AdImageGallery from "@/components/ads/AdImageGallery";
@@ -36,11 +36,13 @@ import ScrollAwareHeader from "@/components/ui/ScrollAwareHeader";
 
 export default function AdsDetailScreen() {
   const { t } = useTranslation();
-  const { slug } = useLocalSearchParams<{ slug: string }>();
+  const { slug, preview } = useLocalSearchParams<{ slug: string, preview: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { alertConfig, showAlert, hideAlert } = useAlert();
-  const { data: ad, isLoading, error } = useAdDetails(slug || "");
+  const { data: ad, isLoading, error, refetch } = useAdDetails(slug || "");
+  const updateAdMutation = useUpdateAd(slug || "");
+  const isPreview = preview === "true";
   const { user, isAuthenticated } = useAuthStore();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { data: reviewStats } = useReviewStats({ ad: ad?.id }, !!ad?.id);
@@ -90,6 +92,34 @@ export default function AdsDetailScreen() {
       router.push("/(auth)/login");
     } else {
       setIsReportModalOpen(true);
+    }
+  };
+
+  const handlePublish = async () => {
+    try {
+      await updateAdMutation.mutateAsync({ status: "published" });
+      showAlert({
+        title: t('common.success'),
+        message: t('ads.publishedSuccess'),
+        icon: "checkmark-circle-outline",
+        iconColor: "#10b981",
+        buttons: [
+          { 
+            text: t('common.ok'), 
+            onPress: () => {
+                router.replace(`/ads/${slug}`);
+            }
+          }
+        ]
+      });
+    } catch (error) {
+      showAlert({
+        title: t('common.error'),
+        message: t('ads.publishError'),
+        icon: "alert-circle-outline",
+        iconColor: "#ef4444",
+        buttons: [{ text: t('common.ok') }]
+      });
     }
   };
 
@@ -299,6 +329,24 @@ export default function AdsDetailScreen() {
               </TouchableOpacity>
             )}
           </>
+        ) : isPreview ? (
+          <TouchableOpacity
+            className="flex-1 bg-primary h-14 rounded-full flex-row items-center justify-center shadow-lg"
+            style={{ backgroundColor: "#FF4F18" }}
+            disabled={updateAdMutation.isPending}
+            onPress={handlePublish}
+          >
+            {updateAdMutation.isPending ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle-outline" size={22} color="white" />
+                <AppText weight="bold" className="text-white ml-2 text-lg">
+                  {t('ads.publishNow')}
+                </AppText>
+              </>
+            )}
+          </TouchableOpacity>
         ) : (
           <TouchableOpacity
             className="flex-1 bg-gray-900 h-14 rounded-full flex-row items-center justify-center"

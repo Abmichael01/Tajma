@@ -347,10 +347,12 @@ const MessageBubble = React.memo(
         runOnJS(handleLongPress)();
       });
 
-    const tapGesture = Gesture.Tap().onEnd(() => {
-      "worklet";
-      runOnJS(handleTap)();
-    });
+    const tapGesture = Gesture.Tap()
+      .enabled(!!isSelectionMode)
+      .onEnd(() => {
+        "worklet";
+        runOnJS(handleTap)();
+      });
 
     const combinedGesture = Gesture.Exclusive(longPressGesture, tapGesture);
 

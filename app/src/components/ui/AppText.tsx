@@ -41,6 +41,7 @@ export default function AppText({
 
   return (
     <RNText
+      textBreakStrategy="simple"
       className={cn(
         variantStyles[variant],
         weightStyles[weight],
@@ -51,7 +52,6 @@ export default function AppText({
         {
           fontFamily: fontFamilyMap[weight],
           fontWeight: "normal" as const,
-          includeFontPadding: false,
         },
         style,
       ]}

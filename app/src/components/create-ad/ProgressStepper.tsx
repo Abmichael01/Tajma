@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import AppText from '../ui/AppText';
+import { cn } from '@/utils/cn';
 
 interface Step {
   num: number;
@@ -17,70 +17,71 @@ interface ProgressStepperProps {
 
 export default function ProgressStepper({ currentStep, steps, showMeta = false }: ProgressStepperProps) {
   return (
-    <View className="mb-6">
-      {/* Steps Container */}
-      <View className="relative">
-        {/* Background connecting line */}
-        <View
-          className="absolute top-5 left-0 right-0 h-0.5 bg-gray-300 z-0"
-          style={{ marginLeft: '10%', marginRight: '10%' }}
-        />
-
-        {/* Active progress line */}
-        <View
-          className="absolute top-5 h-0.5 bg-primary z-0"
-          style={{
-            left: '10%',
-            width: `${((currentStep - 1) / (steps.length - 1)) * 80}%`
-          }}
-        />
-
-        {/* Steps */}
-        <View className="relative flex-row items-start justify-between z-10">
-          {steps.map((stepItem) => (
-            <View key={stepItem.num} className="flex-1 items-center">
-              {/* Step Circle */}
-              <View className={`flex items-center justify-center w-10 h-10 border-2 bg-white rounded-lg ${currentStep >= stepItem.num
-                  ? 'border-primary shadow-md'
-                  : 'border-gray-300'
-                }`}>
-                {currentStep > stepItem.num ? (
-                  <Ionicons name="checkmark" size={20} color="#FF4F18" />
-                ) : currentStep === stepItem.num ? (
-                  <AppText weight="bold" className="text-primary text-base">
-                    {stepItem.num}
-                  </AppText>
-                ) : (
-                  <AppText weight="bold" className="text-gray-400 text-base">
-                    {stepItem.num}
-                  </AppText>
-                )}
-              </View>
-
-              {/* Step Label */}
-              <View className="mt-2 items-center max-w-[100px]">
-                <AppText
-                  className={`text-xs text-center ${currentStep >= stepItem.num ? 'text-primary font-semibold' : 'text-gray-600'
-                    }`}
+    <View className="mb-8">
+      {/* Pill Container */}
+      <View className="flex-row items-center bg-slate-50 p-1.5 rounded-full border border-slate-100">
+        {steps.map((stepItem, index) => {
+          const isActive = currentStep === stepItem.num;
+          const isCompleted = currentStep > stepItem.num;
+          
+          return (
+            <View 
+              key={stepItem.num} 
+              className={cn(
+                "flex-1 h-11 flex-row items-center justify-center rounded-full transition-all duration-300",
+                isActive ? "bg-white shadow-sm" : ""
+              )}
+            >
+              {/* Step Number / Icon */}
+              <View className={cn(
+                "w-6 h-6 rounded-full items-center justify-center mr-2",
+                isActive ? "bg-primary" : (isCompleted ? "bg-primary/20" : "bg-slate-200")
+              )}>
+                <AppText 
+                  weight="bold" 
+                  className={cn(
+                    "text-[10px]",
+                    isActive ? "text-white" : (isCompleted ? "text-primary" : "text-slate-500")
+                  )}
                 >
-                  {stepItem.label}
+                  {stepItem.num}
                 </AppText>
               </View>
+
+              <AppText 
+                weight={isActive ? "bold" : "medium"} 
+                className={cn(
+                  "text-[11px] uppercase tracking-wider",
+                  isActive ? "text-slate-900" : "text-slate-400"
+                )}
+                numberOfLines={1}
+              >
+                {stepItem.label}
+              </AppText>
             </View>
-          ))}
-        </View>
+          );
+        })}
       </View>
 
       {showMeta && (
-        <View className="mt-4 flex-row justify-between">
-          <AppText className="text-sm text-gray-600">
-            Step {currentStep} of {steps.length}
+        <View className="mt-4 flex-row justify-between items-center px-2">
+          <AppText className="text-[11px] text-slate-400 font-bold uppercase tracking-widest">
+            Progress
           </AppText>
-          <AppText className="text-sm text-primary font-medium">
-            {Math.round((currentStep / steps.length) * 100)}% Complete
-          </AppText>
+          <View className="flex-row items-center">
+            <View className="w-32 h-1.5 bg-slate-100 rounded-full mr-3 overflow-hidden">
+                <View 
+                    className="h-full bg-primary rounded-full" 
+                    style={{ width: `${(currentStep / steps.length) * 100}%` }}
+                />
+            </View>
+            <AppText className="text-[11px] text-primary font-black">
+                {Math.round((currentStep / steps.length) * 100)}%
+            </AppText>
+          </View>
         </View>
       )}
     </View>
   );
 }
+

@@ -130,6 +130,9 @@
     "next": "Next",
     "publish_ad": "Publish Ad",
     "publishing": "Publishing",
+    "preview_mode": "Preview Mode",
+    "publish_now": "Publish Now",
+    "edit_draft": "Edit Draft",
     "footer": {
       "terms_conditions": "Terms & Conditions",
       "privacy_policy": "Privacy Policy"
@@ -231,6 +234,8 @@
     "basic_info": "Basic Information",
     "details_pricing": "Details & Pricing",
     "provide_detailed_info": "Provide detailed information",
+    "location": "Location",
+    "location_hint": "If left empty, we'll use your profile location.",
     "update_ad_details": "Update your ad details",
     "tell_us_about_posting": "Tell us about what you are posting",
     "professional_title": "Professional Title",

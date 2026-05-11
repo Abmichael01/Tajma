@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import AppText from "@/components/ui/AppText";
@@ -9,6 +9,7 @@ import CustomAlert from "@/components/ui/CustomAlert";
 import { useAlert } from "@/hooks/useAlert";
 
 import { useTranslation } from "react-i18next";
+import { useAuthStore } from "@/store/authStore";
 
 export default function AddScreen() {
   const { t } = useTranslation();
@@ -18,8 +19,8 @@ export default function AddScreen() {
 
   const handleSubmit = async (payload: any) => {
     try {
-      await createAdMutation.mutateAsync(payload);
-      router.push("/profile/my-ads");
+      const ad = await createAdMutation.mutateAsync(payload);
+      router.push({ pathname: `/ads/${ad.slug}`, params: { preview: "true" } });
     } catch (error: any) {
       console.error(error);
       const msg = error?.response?.data?.message || t('ads.createError');

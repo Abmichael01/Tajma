@@ -71,9 +71,9 @@ import { EmojiKeyboard, type EmojiType } from "rn-emoji-keyboard";
 import AppText from "@/components/ui/AppText";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const CANCEL_X = -80; // px leftward → cancel
-const LOCK_Y = -60; // px upward   → lock
-const MIN_MS = 1000; // discard if shorter than 1 s (same as WhatsApp)
+const CANCEL_X = -110; // px leftward → cancel
+const LOCK_Y = -100; // px upward   → lock
+const MIN_MS = 600; // discard if shorter than 1 s (same as WhatsApp)
 const DEFAULT_EMOJI_PANEL_HEIGHT = 320;
 const MAX_EMOJI_PANEL_HEIGHT = 360;
 const MIN_EMOJI_PANEL_HEIGHT = 280;
@@ -299,14 +299,23 @@ export default function ChatInput({
     DEFAULT_EMOJI_PANEL_HEIGHT,
   );
 
+  // Smooth bottom padding animation
+  const animatedBottomPadding = useSharedValue(Math.max(insets.bottom, 6));
+
+  const rowAnimatedStyle = useAnimatedStyle(() => ({
+    paddingBottom: animatedBottomPadding.value,
+  }));
+
   // Shared values (UI thread)
   const micX = useSharedValue(0);
   const micY = useSharedValue(0);
   const micScale = useSharedValue(1);
   const dotScale = useSharedValue(1);
   const metering = useSharedValue(-60);
-  const isLockedSV = useSharedValue(false); // locked mode
-  const isCancelSV = useSharedValue(false); // cancelled — separate from locked!
+  const isLockedSV = useSharedValue(false);
+  const isCancelSV = useSharedValue(false);
+  const hasHapticNearLock = useSharedValue(false);
+  const hasHapticNearCancel = useSharedValue(false);
 
   // JS refs
   const recStartRef = useRef(0); // Date.now() when recorder.record() resolved
@@ -567,27 +576,46 @@ export default function ChatInput({
     .onUpdate((e) => {
       if (isCancelSV.value || isLockedSV.value) return;
 
-      micX.value = Math.min(0, e.translationX) * 0.55;
-      micY.value = Math.min(0, e.translationY) * 0.6;
+      // Rubber band effect: movement becomes harder as you pull further
+      micX.value = e.translationX * 0.65;
+      micY.value = Math.min(0, e.translationY) * 0.7;
 
-      // Cancel
+      // Haptic feedback when approaching "Cancel" threshold
+      if (e.translationX < CANCEL_X + 40 && !hasHapticNearCancel.value) {
+        hasHapticNearCancel.value = true;
+        runOnJS(Haptics.selectionAsync)();
+      } else if (e.translationX >= CANCEL_X + 40) {
+        hasHapticNearCancel.value = false;
+      }
+
+      // Haptic feedback when approaching "Lock" threshold
+      if (e.translationY < LOCK_Y + 40 && !hasHapticNearLock.value) {
+        hasHapticNearLock.value = true;
+        runOnJS(Haptics.selectionAsync)();
+      } else if (e.translationY >= LOCK_Y + 40) {
+        hasHapticNearLock.value = false;
+      }
+
+      // Trigger Cancel
       if (e.translationX < CANCEL_X) {
         isCancelSV.value = true;
         runOnJS(cancelRecording)();
       }
-      // Lock
+      // Trigger Lock
       else if (e.translationY < LOCK_Y && !isLockedSV.value) {
         isLockedSV.value = true;
-        micY.value = withSpring(LOCK_Y - 20, { damping: 10, stiffness: 200 }); // Snap up
+        // Visual snap-up
+        micY.value = withSpring(LOCK_Y - 40, { damping: 12, stiffness: 200 });
         runOnJS(lockRecording)();
       }
     })
     .onEnd(() => {
-      // Only stop recording if they let go WITHOUT locking or cancelling
       if (isCancelSV.value || isLockedSV.value) return;
       runOnJS(stopRecording)(true);
     })
     .onFinalize(() => {
+      hasHapticNearLock.value = false;
+      hasHapticNearCancel.value = false;
       if (!isLockedSV.value) {
         micX.value = withSpring(0, { damping: 15 });
         micY.value = withSpring(0, { damping: 15 });
@@ -663,11 +691,25 @@ export default function ChatInput({
 
   const handleEmojiSelect = useCallback(
     (emoji: EmojiType) => {
-      setText((p) => p + emoji.emoji);
-      onTypingChange?.(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      requestAnimationFrame(() => {
+        setText((p) => p + emoji.emoji);
+        onTypingChange?.(true);
+      });
     },
     [onTypingChange],
   );
+
+  const handleBackspace = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    requestAnimationFrame(() => {
+      setText((p) => {
+        const chars = Array.from(p);
+        chars.pop();
+        return chars.join("");
+      });
+    });
+  }, []);
 
   const toggleEmoji = useCallback(() => {
     setShowAttachSheet(false);
@@ -704,13 +746,25 @@ export default function ChatInput({
       );
       setIsKeyboardVisible(true);
       setShowEmoji(false);
+      
+      // Sync padding animation with keyboard
+      animatedBottomPadding.value = withTiming(6, {
+        duration: event.duration || 250,
+        easing: Easing.out(Easing.quad),
+      });
     });
-    const hideSubscription = Keyboard.addListener(hideEvent, () => {
+    const hideSubscription = Keyboard.addListener(hideEvent, (event) => {
       setIsKeyboardVisible(false);
       if (pendingEmojiOpenRef.current) {
         pendingEmojiOpenRef.current = false;
         setShowEmoji(true);
       }
+      
+      // Sync padding animation with keyboard
+      animatedBottomPadding.value = withTiming(Math.max(insets.bottom, 6), {
+        duration: event?.duration || 250,
+        easing: Easing.out(Easing.quad),
+      });
     });
 
     return () => {
@@ -718,6 +772,15 @@ export default function ChatInput({
       hideSubscription.remove();
     };
   }, [insets.bottom]);
+
+  // Handle emoji/attach sheet padding
+  useEffect(() => {
+    if (showEmoji || showAttachSheet) {
+      animatedBottomPadding.value = withTiming(6, { duration: 200 });
+    } else if (!isKeyboardVisible) {
+      animatedBottomPadding.value = withTiming(Math.max(insets.bottom, 6), { duration: 200 });
+    }
+  }, [showEmoji, showAttachSheet, isKeyboardVisible, insets.bottom]);
 
   const handlePickImage = useCallback(async () => {
     if (!onImageSelect) return;
@@ -799,10 +862,6 @@ export default function ChatInput({
   // ── Render ───────────────────────────────────────────────────────────────────
   const hasText = text.trim().length > 0;
   const showRecordUI = isRecording || isLocked;
-  const bottomPadding =
-    showEmoji || showAttachSheet || isKeyboardVisible
-      ? 6
-      : Math.max(insets.bottom, 6);
 
   // Animated reply height
   const replyAnim = useRef(new RNAnimated.Value(0)).current;
@@ -856,7 +915,7 @@ export default function ChatInput({
         </View>
       </RNAnimated.View>
 
-      <View style={[styles.row, { paddingBottom: bottomPadding }]}>
+      <Animated.View style={[styles.row, rowAnimatedStyle]}>
         {/* Input bubble */}
         <View style={styles.inputBubble}>
           {!showRecordUI ? (
@@ -1007,7 +1066,7 @@ export default function ChatInput({
             </GestureDetector>
           )}
         </View>
-      </View>
+      </Animated.View>
 
       {showEmoji && (
         <View style={[styles.emojiPanel, { height: keyboardHeight }]}>
@@ -1019,6 +1078,21 @@ export default function ChatInput({
             disableSafeArea
             enableSearchBar={false}
             categoryPosition="bottom"
+            customButtons={
+              <Pressable 
+                onPress={handleBackspace}
+                style={({ pressed }) => [
+                  {
+                    padding: 10,
+                    borderRadius: 20,
+                    backgroundColor: pressed ? '#E2E8F0' : 'transparent',
+                    marginRight: 10,
+                  }
+                ]}
+              >
+                <Ionicons name="backspace-outline" size={24} color="#64748B" />
+              </Pressable>
+            }
             styles={{
               container: {
                 borderRadius: 0,

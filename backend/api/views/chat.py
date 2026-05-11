@@ -272,14 +272,26 @@ class UserOnlineStatusViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        """Return online status for current user or a specific user"""
+        """Return online status for people the current user is chatting with"""
+        user = self.request.user
         user_id = self.request.query_params.get('user_id')
+        
         if user_id:
             # Only allow looking up specific users
             return UserOnlineStatus.objects.filter(user_id=user_id)
         
-        # Default: only return current user's status for privacy
-        return UserOnlineStatus.objects.filter(user=self.request.user)
+        # Default: return statuses of all users the current user is chatting with
+        # This is more efficient than the previous default which only returned current user
+        from django.db.models import Q
+        chats = Chat.objects.filter(Q(participant1=user) | Q(participant2=user))
+        
+        # Get IDs of all participants in these chats
+        participant_ids = set()
+        for chat in chats:
+            participant_ids.add(chat.participant1_id)
+            participant_ids.add(chat.participant2_id)
+        
+        return UserOnlineStatus.objects.filter(user_id__in=participant_ids)
     
     @action(detail=False, methods=['post'])
     def set_online(self, request):

@@ -42,7 +42,8 @@
     "apply": "Appliquer",
     "selectOption": "Sélectionner une option",
     "typeAndPressEnter": "Saisir et appuyer sur Entrée",
-    "addItem": "Ajouter un élément"
+    "addItem": "Ajouter un élément",
+    "finish": "Terminer"
   },
   "auth": {
     "login": "Connexion",
@@ -220,7 +221,22 @@
       "reviewedItem": "Article évalué",
       "viewAd": "Voir l'annonce"
     },
-    "trustLevel": "Niveau de confiance"
+    "trustLevel": "Niveau de confiance",
+    "sellerSetup": "Configuration vendeur",
+    "uploadPhoto": "Charger une photo",
+    "phone": "Numéro de téléphone",
+    "address": "Adresse",
+    "addressPlaceholder": "Entrez votre adresse complète",
+    "businessName": "Nom de l'entreprise",
+    "businessNamePlaceholder": "Entrez le nom de votre boutique",
+    "businessType": "Type d'entreprise",
+    "website": "Site web (Optionnel)",
+    "bio": "Biographie",
+    "bioPlaceholder": "Parlez de votre entreprise aux clients...",
+    "noBio": "Aucune biographie fournie",
+    "setupInfoNotice": "Fournir des informations exactes aide à instaurer la confiance avec les acheteurs.",
+    "completeSetupTitle": "Terminer la configuration vendeur",
+    "completeSetupDesc": "Finalisez votre profil pour commencer à vendre comme un pro."
   },
   "search": {
     "title": "Recherche",

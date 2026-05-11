@@ -219,6 +219,28 @@ export default function ProfileScreen() {
             ))}
           </View>
 
+          {/* Seller Setup Banner */}
+          {!displayUser.is_seller_account_setup && (
+            <TouchableOpacity
+              onPress={() => router.push("/seller/setup")}
+              activeOpacity={0.8}
+              className="mt-6 bg-primary rounded-3xl p-6 flex-row items-center shadow-lg shadow-primary/20"
+            >
+              <View className="w-12 h-12 bg-white/20 rounded-2xl items-center justify-center">
+                <Ionicons name="storefront-outline" size={24} color="white" />
+              </View>
+              <View className="ml-4 flex-1">
+                <AppText weight="bold" className="text-white text-base">
+                  {t('profile.completeSetupTitle')}
+                </AppText>
+                <AppText className="text-white/80 text-xs mt-0.5">
+                  {t('profile.completeSetupDesc')}
+                </AppText>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="white" />
+            </TouchableOpacity>
+          )}
+
           {/* Grouped Action Sections */}
           <View className="mt-6 pb-32">
             {sections.map((section, sectionIdx) => (

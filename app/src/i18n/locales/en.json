@@ -43,7 +43,9 @@
     "currency": "Fr",
     "selectOption": "Select option",
     "typeAndPressEnter": "Type and press enter",
-    "addItem": "Add Item"
+    "addItem": "Add Item",
+    "preview": "Preview",
+    "finish": "Finish"
   },
   "auth": {
     "login": "Login",
@@ -221,7 +223,22 @@
       "reviewedItem": "Reviewed Item",
       "viewAd": "View Ad"
     },
-    "trustLevel": "Trust Level"
+    "trustLevel": "Trust Level",
+    "sellerSetup": "Seller Setup",
+    "uploadPhoto": "Upload Photo",
+    "phone": "Phone Number",
+    "address": "Address",
+    "addressPlaceholder": "Enter your full address",
+    "businessName": "Business Name",
+    "businessNamePlaceholder": "Enter your store or business name",
+    "businessType": "Business Type",
+    "website": "Website (Optional)",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell customers about your business...",
+    "noBio": "No bio provided",
+    "setupInfoNotice": "Providing accurate business information helps build trust with potential buyers.",
+    "completeSetupTitle": "Complete Seller Setup",
+    "completeSetupDesc": "Finish setting up your profile to start selling like a pro."
   },
   "search": {
     "title": "Search",
@@ -323,7 +340,10 @@
       "views": "Most Viewed",
       "title": "Title A-Z"
     },
-    "createError": "Failed to create listing. Please try again."
+    "createError": "Failed to create listing. Please try again.",
+    "publishNow": "Publish Now",
+    "publishedSuccess": "Your ad has been published successfully!",
+    "publishError": "Failed to publish ad. Please try again."
   },
   "create_ad": {
     "pickCategoryTitle": "Pick a category to continue",

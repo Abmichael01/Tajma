@@ -6,6 +6,7 @@ import AppText from '../ui/AppText';
 import Input from '../ui/Input';
 import TextArea from '../ui/TextArea';
 import BottomSheet, { BottomSheetRef } from '../ui/BottomSheet';
+import FormGroup from '../ui/FormGroup';
 import {
     conditionOptions,
     transmissionOptions,
@@ -70,11 +71,7 @@ const Select = ({
     const selectedOption = options?.find(o => o.value === value);
 
     return (
-        <View>
-            <AppText className="mb-2 text-gray-700 font-medium">
-                {label} {required && <AppText className="text-red-500">*</AppText>}
-            </AppText>
-
+        <FormGroup label={label} required={required}>
             <TouchableOpacity
                 onPress={() => sheetRef.current?.present()}
                 activeOpacity={0.7}
@@ -121,7 +118,7 @@ const Select = ({
                     <View className="h-4" />
                 </View>
             </BottomSheet>
-        </View>
+        </FormGroup>
     );
 };
 
@@ -135,7 +132,7 @@ const Checkbox = ({ label, checked, onChange, required }: { label: string, check
             {checked && <Ionicons name="checkmark" size={18} color="white" />}
         </View>
         <AppText className="text-gray-700 font-medium">
-            {label} {required && <AppText className="text-red-500">*</AppText>}
+            {label} {required && <AppText className="text-red-500"> *</AppText>}
         </AppText>
     </TouchableOpacity>
 );
@@ -159,10 +156,7 @@ const TagsInput = ({ label, value, onChange, placeholder, required }: { label: s
     };
 
     return (
-        <View className="mb-6">
-            <AppText className="mb-2 text-gray-700 font-medium">
-                {label} {required && <AppText className="text-red-500">*</AppText>}
-            </AppText>
+        <FormGroup label={label} required={required}>
             <View className="bg-gray-50 border border-gray-200 rounded-3xl p-3 min-h-[100px]">
                 <View className="flex-row flex-wrap gap-2 mb-2">
                     {tags.map((tag, idx) => (
@@ -186,7 +180,7 @@ const TagsInput = ({ label, value, onChange, placeholder, required }: { label: s
                 />
             </View>
             <AppText className="text-xs text-gray-400 mt-1 ml-2">Press enter to add a tag</AppText>
-        </View>
+        </FormGroup>
     );
 };
 
@@ -237,25 +231,19 @@ export default function DynamicFormFields({
 
             case 'textarea':
                 return (
-                    <View key={field.name} className="mb-6">
-                        <AppText className="mb-2 text-gray-700 font-medium">
-                            {field.label} {field.required && <AppText className="text-red-500">*</AppText>}
-                        </AppText>
+                    <FormGroup key={field.name} label={field.label} required={field.required}>
                         <TextArea
                             value={value}
                             onChangeText={(val) => onInputChange(field.name, val)}
                             className="rounded-3xl"
                             placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
                         />
-                    </View>
+                    </FormGroup>
                 );
 
             case 'number':
                 return (
-                    <View key={field.name} className="mb-6">
-                        <AppText className="mb-2 text-gray-700 font-medium">
-                            {field.label} {field.required && <AppText className="text-red-500">*</AppText>}
-                        </AppText>
+                    <FormGroup key={field.name} label={field.label} required={field.required}>
                         <Input
                             value={value ? String(value) : ""}
                             onChangeText={(val) => onInputChange(field.name, val)}
@@ -263,7 +251,7 @@ export default function DynamicFormFields({
                             keyboardType="numeric"
                             error={field.required && !value}
                         />
-                    </View>
+                    </FormGroup>
                 );
 
             case 'checkbox':
@@ -361,16 +349,13 @@ export default function DynamicFormFields({
 
             default:
                 return (
-                    <View key={field.name} className="mb-6">
-                        <AppText className="mb-2 text-gray-700 font-medium">
-                            {field.label} {field.required && <AppText className="text-red-500">*</AppText>}
-                        </AppText>
+                    <FormGroup key={field.name} label={field.label} required={field.required}>
                         <Input
                             value={value}
                             onChangeText={(val) => onInputChange(field.name, val)}
                             placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
                         />
-                    </View>
+                    </FormGroup>
                 );
         }
     };

@@ -184,6 +184,8 @@ export interface CreateAdRequest {
   status?: 'draft' | 'published'
   location?: string
   location_name?: string
+  location_id?: number | null
+  country?: number | null
   latitude?: number
   longitude?: number
 }
@@ -197,6 +199,9 @@ export interface UpdateAdRequest {
   attributes?: Record<string, any>
   images?: string[]
   status?: 'draft' | 'published' | 'archived'
+  location?: string
+  location_id?: number | null
+  country?: number | null
 }
 
 // Review types

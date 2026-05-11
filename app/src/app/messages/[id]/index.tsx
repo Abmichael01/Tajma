@@ -25,6 +25,7 @@ import MessageList from "./components/MessageList";
 import MessageSkeleton from "@/components/chat/MessageSkeleton";
 import ImageViewer from "@/components/ui/ImageViewer";
 import MediaPreviewModal from "@/components/chat/MediaPreviewModal";
+import { resolveImageUrl } from "@/utils/imageUtils";
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -133,7 +134,7 @@ export default function ChatRoomScreen() {
 
   const handleOpenImage = useCallback(
     (imageUrl: string) => {
-      const index = chatImages.indexOf(imageUrl);
+      const index = chatImages.findIndex((img) => resolveImageUrl(img) === imageUrl);
       if (index !== -1) {
         setInitialImageIndex(index);
         setViewerVisible(true);
@@ -437,10 +438,9 @@ export default function ChatRoomScreen() {
       </Animated.View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight : 0}
-        className="flex-1"
-        style={{ backgroundColor: "#ECE5DD" }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight + (isSearchVisible ? 60 : 0) : 0}
+        style={{ flex: 1, backgroundColor: "#ECE5DD" }}
       >
         <View className="flex-1 relative">
           <ImageBackground

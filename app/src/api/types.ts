@@ -9,6 +9,8 @@ export interface User {
   avatar?: string | null
   phone?: string | null
   location?: string | null
+  location_id?: number | null
+  country_id?: number | null
   address?: string | null
   is_seller: boolean
   is_seller_account_setup: boolean
@@ -138,6 +140,8 @@ export interface Ad {
   published_at?: string | null
   created_at: string
   updated_at: string
+  location_id?: number | null
+  country_id?: number | null
   seller: User & { response_stats?: ResponseStats }
 }
 
@@ -151,6 +155,8 @@ export interface CreateAdRequest {
   attributes?: Record<string, any>
   images?: string[]
   status?: 'draft' | 'published'
+  location_id?: number | null
+  country?: number | null
 }
 
 export interface UpdateAdRequest {

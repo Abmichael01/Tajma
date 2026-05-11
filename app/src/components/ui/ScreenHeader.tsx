@@ -33,6 +33,7 @@ export default function ScreenHeader({
     const subtitleColor = variant === 'primary' ? 'text-white/70' : 'text-slate-400';
     const iconColor = variant === 'primary' ? '#FFFFFF' : '#1e293b';
     const backBtnBg = variant === 'primary' ? 'bg-white/10' : 'bg-slate-100';
+    const backBtnBorder = variant === 'primary' ? 'border-white/20' : 'border-slate-200';
 
     const handleBack = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -49,14 +50,14 @@ export default function ScreenHeader({
                 {showBackButton && (
                     <TouchableOpacity
                         onPress={handleBack}
-                        className={`w-10 h-10 ${backBtnBg} rounded-full items-center justify-center mr-4`}
+                        className={`w-10 h-10 ${backBtnBg} border ${backBtnBorder} rounded-full items-center justify-center mr-4`}
                     >
                         <Ionicons name="chevron-back" size={24} color={iconColor} />
                     </TouchableOpacity>
                 )}
 
                 <View className="flex-1">
-                    <AppText weight="bold" className={`${textColor} text-3xl tracking-tight`} numberOfLines={1}>
+                    <AppText weight="semibold" className={`${textColor} text-2xl tracking-tight`} numberOfLines={1}>
                         {title}
                     </AppText>
                     {subtitle && (

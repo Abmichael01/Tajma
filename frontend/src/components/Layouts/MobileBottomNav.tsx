@@ -64,6 +64,8 @@ export default function MobileBottomNav() {
     return pathname === href || pathname?.startsWith(`${href}/`)
   }
 
+  if (!isAuthenticated) return null
+
   return (
     <nav className="fixed inset-x-0 bottom-0 bg-white border-t border-gray-100 rounded-t-[32px] md:hidden z-50 shadow-[0_-4px_20px_0_rgba(0,0,0,0.05)]" id="mobile-bottom-nav">
       <div className="max-w-md mx-auto px-4">
@@ -74,17 +76,24 @@ export default function MobileBottomNav() {
           {/* Alerts */}
           <MobileNavLink item={navItems[1]} active={isActive(navItems[1].href, navItems[1].key)} />
 
-          {/* Post - Central Button */}
-          <div className="flex flex-col items-center justify-center -mt-6">
-            <Link
-              href="/create-ad"
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:shadow-xl transition-all active:scale-95"
-              aria-label="Post Ad"
-            >
-              <Plus className="h-6 w-6 stroke-[3px]" />
-            </Link>
-            <span className="text-[10px] font-bold text-gray-400 mt-1">{t('post')}</span>
-          </div>
+          {/* Post - Integrated Button */}
+          <Link
+            href="/create-ad"
+            className={cn(
+              "flex flex-col items-center justify-center transition-all duration-200",
+              pathname === '/create-ad' ? 'text-primary' : 'text-gray-400'
+            )}
+          >
+            <div className={cn(
+              "w-9 h-9 rounded-full flex items-center justify-center mb-0.5 transition-all shadow-sm",
+              pathname === '/create-ad' ? 'bg-primary text-white' : 'bg-primary text-white'
+            )}>
+              <Plus className="h-5 w-5 stroke-[3px]" />
+            </div>
+            <span className={cn("text-[10px]", pathname === '/create-ad' ? "font-bold" : "font-medium")}>
+              {t('post')}
+            </span>
+          </Link>
 
           {/* Chats */}
           <div className="relative">

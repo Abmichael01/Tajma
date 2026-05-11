@@ -7,6 +7,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { Category, CategoryTree } from '@/types/category';
 
 import Input from '../ui/Input';
+import FormGroup from '../ui/FormGroup';
 
 interface BasicInfoStepProps {
   formData: any;
@@ -106,8 +107,7 @@ export default function BasicInfoStep({
   return (
     <View className="flex-1">
       {/* Title Input */}
-      <View className="mb-6">
-        <AppText className="mb-2 text-gray-700 font-medium">{t('create_ad.fields.title')}</AppText>
+      <FormGroup label={t('create_ad.fields.title')} error={errors.title}>
         <Input
           placeholder={t('create_ad.fields.titlePlaceholder')}
           value={formData.title}
@@ -115,8 +115,7 @@ export default function BasicInfoStep({
           maxLength={100}
           error={!!errors.title}
         />
-        {errors.title && <AppText className="text-red-500 text-xs mt-1 ml-2">{errors.title}</AppText>}
-      </View>
+      </FormGroup>
 
       {!isEdit && (
         <>

@@ -41,7 +41,12 @@ export const resolveImageUrl = (path: string | null | undefined): string | null 
     if (!path) return null;
 
     // Already a full URL - return as-is (covers the normal backend case)
-    if (path.startsWith('http://') || path.startsWith('https://')) {
+    if (
+        path.startsWith('http://') ||
+        path.startsWith('https://') ||
+        path.startsWith('file://') ||
+        path.startsWith('data:')
+    ) {
         return path;
     }
 

@@ -5,10 +5,11 @@ import { Link } from '@/i18n/routing'
 import { useRouter } from '@/i18n/routing'
 import { Button } from '@/components/ui/button'
 import BackButton from '@/components/ui/BackButton'
-import { useAdDetails } from '@/hooks/useAds'
+import { useAdDetails, useUpdateAd } from '@/hooks/useAds'
 import { useAuthStore } from '@/store/authStore'
 import { useToggleSaveAd } from '@/hooks/useSavedAds'
 import { useUpdateAdminAd, useDeleteAdminAd } from '@/hooks/useAdmin'
+import { useSearchParams } from 'next/navigation'
 import ReviewsSection from '@/components/ads/ReviewsSection'
 import { useReviewStats } from '@/hooks/useReviews'
 import { useCategories } from '@/hooks/useCategories'
@@ -57,6 +58,9 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
   const [contactMessage, setContactMessage] = useState('')
   const { mutate: toggleSaveAd, isPending: isTogglingSave } = useToggleSaveAd()
   const { mutate: getOrCreateChat, isPending: isCreatingChat } = useGetOrCreateChat()
+  const updateAdMutation = useUpdateAd(adId)
+  const searchParams = useSearchParams()
+  const isPreview = searchParams.get('preview') === 'true'
   
   // Admin / Management hooks
   const updateAd = useUpdateAdminAd()
@@ -264,6 +268,17 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
 
     setIsCallModalOpen(true)
   }
+  
+  const handlePublish = async () => {
+    try {
+      await updateAdMutation.mutateAsync({ status: "published" })
+      toast.success('Listing published successfully!')
+      router.replace(`/ads/${adId}`)
+    } catch (error) {
+      console.error('Failed to publish:', error)
+      toast.error('Failed to publish listing. Please try again.')
+    }
+  }
 
   const handleAdminStatusChange = async (newStatus: string) => {
     if (!ad) return
@@ -313,6 +328,40 @@ export default function AdsDetailClient({ adId }: AdsDetailClientProps) {
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-4 sm:py-8">
+      {/* Preview Action Bar */}
+      {isPreview && ad && ad.status === 'draft' && (
+        <div className="bg-primary/10 border-b border-primary/20 mb-6 py-4 sticky top-0 z-50 backdrop-blur-sm">
+          <div className="container flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                <ShieldCheck className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900 leading-tight">Preview Mode</h4>
+                <p className="text-xs text-gray-600">This ad is currently a draft. Review it before publishing.</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                className="bg-white border-gray-200"
+                onClick={() => router.push(`/create-ad?edit=${ad.id}`)}
+              >
+                Edit Draft
+              </Button>
+              <Button
+                className="bg-primary hover:bg-primary/90 text-white px-8 font-bold"
+                onClick={handlePublish}
+                disabled={updateAdMutation.isPending}
+              >
+                {updateAdMutation.isPending ? 'Publishing...' : 'Publish Now'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Admin Action Bar */}
       {canManage && ad && (
         <div className="bg-amber-50 border-b border-amber-100 mb-6 py-3">

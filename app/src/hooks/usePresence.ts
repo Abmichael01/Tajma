@@ -9,18 +9,36 @@ export function usePresence() {
     useEffect(() => {
         if (!isAuthenticated) return;
 
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        const updateStatus = async (online: boolean) => {
+            try {
+                if (online) {
+                    await chatApi.setOnline();
+                    console.log('[Presence] Successfully set status to ONLINE');
+                } else {
+                    await chatApi.setOffline();
+                    console.log('[Presence] Successfully set status to OFFLINE');
+                }
+                retryCount = 0; // Reset on success
+            } catch (err) {
+                console.error(`[Presence] Failed to set status to ${online ? 'ONLINE' : 'OFFLINE'}:`, err);
+                if (retryCount < maxRetries) {
+                    retryCount++;
+                    setTimeout(() => updateStatus(online), 2000 * retryCount);
+                }
+            }
+        };
+
         // Initial set online
-        chatApi.setOnline().catch(err => console.error('Failed to set initial online status:', err));
+        updateStatus(true);
 
         const handleAppStateChange = (nextAppState: AppStateStatus) => {
             if (nextAppState === 'active') {
-                chatApi.setOnline().catch(err => console.error('Failed to set online status:', err));
+                updateStatus(true);
             } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-                // We can set offline, or let the server handle it via heartbeat timeout
-                // Setting it explicitly is safer for "instant" offline feel (like closing app)
-                // but maybe we want to keep it "active" for a few minutes.
-                // For now, let's keep it simple.
-                chatApi.setOffline().catch(err => console.error('Failed to set offline status:', err));
+                updateStatus(false);
             }
         };
 

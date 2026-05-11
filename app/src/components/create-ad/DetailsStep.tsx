@@ -7,6 +7,8 @@ import Input from '../ui/Input';
 import TextArea from '../ui/TextArea';
 import AdImagePicker from './AdImagePicker';
 import DynamicFormFields from './DynamicFormFields';
+import LocationSelector from '../ads/LocationSelector';
+import FormGroup from '../ui/FormGroup';
 
 interface DetailsStepProps {
   formData: any;
@@ -117,39 +119,15 @@ export default function DetailsStep({
       </View>
 
       {/* Location */}
-      <View className="mb-6">
-        <View className="flex-row items-center justify-between mb-2">
-          <AppText className="text-gray-700 font-medium">{t('create_ad.fields.location')}</AppText>
-          <TouchableOpacity
-            onPress={onOpenMapPicker}
-            className="flex-row items-center bg-primary/10 px-3 py-1.5 rounded-full"
-          >
-            <Ionicons name="map-outline" size={14} color="#FF4F18" />
-            <AppText weight="bold" className="text-primary text-[10px] ml-1 uppercase">{t('search.allCountries')}</AppText>
-          </TouchableOpacity>
-        </View>
-        <Input
-          placeholder={t('create_ad.fields.locationPlaceholder')}
-          value={formData.location}
-          onChangeText={(value) => onInputChange('location', value)}
-          error={!!errors.location}
-          rightIcon={
-            formData.latitude && formData.longitude ? (
-              <Ionicons name="location" size={20} color="#FF4F18" />
-            ) : undefined
-          }
-        />
-        {formData.latitude && formData.longitude && (
-          <AppText className="text-[10px] text-gray-400 mt-1 ml-2 font-medium italic">
-            {t('create_ad.fields.location')}: {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
-          </AppText>
-        )}
-        {errors.location && <AppText className="text-red-500 text-xs mt-1 ml-2">{errors.location}</AppText>}
-      </View>
+      <LocationSelector
+        locationName={formData.location}
+        countryName={formData.country_name}
+        onPress={onOpenMapPicker}
+        error={errors.location}
+      />
 
       {/* Description */}
-      <View className="mb-8">
-        <AppText className="mb-2 text-gray-700 font-medium">{t('create_ad.fields.description')}</AppText>
+      <FormGroup label={t('create_ad.fields.description')} error={errors.description}>
         <TextArea
           placeholder={t('create_ad.fields.descriptionPlaceholder')}
           value={formData.description}
@@ -157,8 +135,7 @@ export default function DetailsStep({
           error={!!errors.description}
           className="h-40 rounded-3xl leading-6"
         />
-        {errors.description && <AppText className="text-red-500 text-xs mt-1 ml-2">{errors.description}</AppText>}
-      </View>
+      </FormGroup>
     </View>
   );
 }

@@ -16,9 +16,10 @@ export interface BottomSheetProps {
   headerLeft?: React.ReactNode;
   headerRight?: React.ReactNode;
   title?: string;
-  snapPoints?: string[];
+  snapPoints?: (string | number)[];
   onClose?: () => void;
   scrollable?: boolean;
+  enableDynamicSizing?: boolean;
 }
 
 export interface BottomSheetRef {
@@ -27,7 +28,7 @@ export interface BottomSheetRef {
 }
 
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
-  ({ children, footer, headerLeft, headerRight, title, snapPoints: customSnapPoints, onClose, scrollable = true }, ref) => {
+  ({ children, footer, headerLeft, headerRight, title, snapPoints: customSnapPoints, onClose, scrollable = true, enableDynamicSizing = true }, ref) => {
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
     // Initial snap points
@@ -122,3 +123,4 @@ const styles = StyleSheet.create({
 });
 
 export default BottomSheet;
+

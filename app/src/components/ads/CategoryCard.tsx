@@ -27,7 +27,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   const [imageError, setImageError] = useState(false);
 
   const fullImageUrl = resolveImageUrl(category.imageUrl);
-  const hasImage = fullImageUrl && !imageError;
+  const hasImage = !!(fullImageUrl && !imageError);
 
   const colorIndex = category.name.charCodeAt(0) % BG_COLORS.length;
   const bgColor = BG_COLORS[colorIndex];
@@ -36,16 +36,19 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   return (
     <TouchableOpacity
       onPress={() => router.push(`/category/${category.slug}`)}
-      activeOpacity={0.8}
-      style={styles.card}
+      activeOpacity={0.9}
+      className="w-full mb-3"
     >
-      <View style={styles.container}>
-        {/* Background Layer: Image or Fallback Icon */}
-        <View style={[styles.background, { backgroundColor: bgColor }]}>
+      <View className="rounded-[24px] overflow-hidden bg-white border-[1.5px] border-slate-200">
+        {/* Top Section: Image or Letter Fallback */}
+        <View 
+            className="h-[120px] items-center justify-center overflow-hidden" 
+            style={{ backgroundColor: bgColor }}
+        >
           {hasImage ? (
             <Image
               source={{ uri: fullImageUrl }}
-              style={styles.fullImage}
+              className="w-full h-full"
               contentFit="cover"
               onError={() => setImageError(true)}
             />
@@ -53,10 +56,10 @@ export default function CategoryCard({ category }: CategoryCardProps) {
             <AppText
               weight="bold"
               style={{
-                fontSize: 72,
+                fontSize: 32,
                 color: accentColor,
-                opacity: 0.25,
-                lineHeight: 80,
+                includeFontPadding: true,
+                textAlignVertical: 'center',
               }}
             >
               {category.name.charAt(0).toUpperCase()}
@@ -64,21 +67,19 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           )}
         </View>
 
-        {/* Dark Gradient Overlay at the base — fades up to transparent */}
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.65)', 'rgba(0,0,0,0.95)']}
-          locations={[0, 0.55, 1]}
-          style={styles.gradient}
-        />
-
-        {/* Text Content at the base */}
-        <View style={styles.textContainer}>
-          <AppText weight="bold" numberOfLines={1} style={styles.name}>
+        {/* Bottom Section: Info with White Background */}
+        <View className="px-4 py-3 bg-white justify-center">
+          <AppText 
+            weight="bold" 
+            numberOfLines={1}
+            className="text-slate-800 text-[15px] mb-1"
+          >
             {category.name}
           </AppText>
-          <View style={styles.metaRow}>
-            <Ionicons name="apps-outline" size={10} color="#E2E8F0" style={{ opacity: 0.8 }} />
-            <AppText style={styles.count}>
+          
+          <View className="flex-row items-center space-x-1 opacity-80">
+            <Ionicons name="apps-outline" size={12} color="#64748B" />
+            <AppText weight="semibold" className="text-slate-500 text-[11px]">
               {category.adsCount || 0} ads
             </AppText>
           </View>
@@ -88,67 +89,8 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    width: '100%',
-    aspectRatio: 0.70, // Taller 'long' cards
-  },
-  container: {
-    flex: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#F8FAFC',
-    position: 'relative',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-  background: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fullImage: {
-    width: '100%',
-    height: '100%',
-  },
-  gradient: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '75%',
-  },
-  textContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    paddingBottom: 20,
-    justifyContent: 'flex-end',
-  },
-  name: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    letterSpacing: -0.5,
-    marginBottom: 2,
-    ...Platform.select({
-      ios: {
-        textShadowColor: 'rgba(0, 0, 0, 0.4)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 3,
-      }
-    })
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  count: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 11,
-    fontWeight: '600',
-    fontFamily: 'WorkSans-Medium',
-  },
-});
+
+
+
+
+

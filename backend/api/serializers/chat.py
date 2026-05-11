@@ -241,8 +241,9 @@ class ChatDetailSerializer(ChatSerializer):
 class UserOnlineStatusSerializer(serializers.ModelSerializer):
     """Serializer for UserOnlineStatus"""
     user = UserSummarySerializer(read_only=True)
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     
     class Meta:
         model = UserOnlineStatus
-        fields = ['user', 'is_online', 'last_seen']
-        read_only_fields = ['user', 'is_online', 'last_seen']
+        fields = ['user', 'user_id', 'is_online', 'last_seen']
+        read_only_fields = ['user', 'user_id', 'is_online', 'last_seen']

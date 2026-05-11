@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import AppText from "@/components/ui/AppText";
 import Button from "@/components/ui/Button";
 import BasicInfoStep from "@/components/create-ad/BasicInfoStep";
@@ -11,8 +13,11 @@ import { Category } from "@/types/category";
 import { uriToBase64 } from "@/utils/imageUtils";
 import CustomAlert from "@/components/ui/CustomAlert";
 import { useAlert } from "@/hooks/useAlert";
-import AdLocationPicker from "./AdLocationPicker";
+import CountryModal from "./CountryModal";
+import { useAuthStore } from "@/store/authStore";
+import { useCountries } from "@/hooks/useLocations";
 import { useRef } from "react";
+import BottomSheet, { BottomSheetRef } from "@/components/ui/BottomSheet";
 import {
     conditionOptions,
     transmissionOptions,
@@ -27,6 +32,9 @@ interface FormData {
     description: string;
     price: string;
     location: string;
+    location_id?: number;
+    country_id?: number;
+    country_name?: string;
     latitude?: number;
     longitude?: number;
     isNegotiable: boolean;
@@ -43,18 +51,21 @@ interface AdFormProps {
 }
 
 export default function AdForm({
-    initialData,
     onSubmit,
     isSubmitting,
+    initialData,
     submitLabel,
     mode = 'create'
 }: AdFormProps) {
     const { t } = useTranslation();
-    const { getCategoryBySlug } = useCategories();
     const insets = useSafeAreaInsets();
+    const { user } = useAuthStore();
+    const { data: countries } = useCountries();
+    const { getCategoryBySlug } = useCategories();
     const { alertConfig, showAlert, hideAlert } = useAlert();
-    const locationPickerRef = useRef<any>(null);
     const [isLocationPickerVisible, setIsLocationPickerVisible] = useState(false);
+    const sellerSetupSheetRef = useRef<BottomSheetRef>(null);
+    const router = useRouter();
 
     const [images, setImages] = useState<string[]>(initialData?.images || []);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -66,7 +77,10 @@ export default function AdForm({
         title: initialData?.title || "",
         description: initialData?.description || "",
         price: initialData?.price ? String(initialData.price) : "",
-        location: initialData?.location || "",
+        location: initialData?.location || user?.location || "",
+        location_id: initialData?.location_id || user?.location_id || undefined,
+        country_id: initialData?.country_id || user?.country_id || undefined,
+        country_name: initialData?.country_name || (countries?.find(c => c.id === user?.country_id)?.name) || "",
         latitude: initialData?.latitude,
         longitude: initialData?.longitude,
         isNegotiable: initialData?.is_negotiable ?? true,
@@ -87,6 +101,16 @@ export default function AdForm({
         }
     }, [formData.category, getCategoryBySlug]);
 
+    // Show setup reminder on mount if not setup
+    useEffect(() => {
+        if (!user?.is_seller_account_setup && mode === 'create') {
+            const timer = setTimeout(() => {
+                sellerSetupSheetRef.current?.present();
+            }, 500); // Small delay for smooth entry
+            return () => clearTimeout(timer);
+        }
+    }, [user?.is_seller_account_setup, mode]);
+
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
@@ -101,15 +125,34 @@ export default function AdForm({
     const handleCategorySelect = (category: Category) => {
         if (mode === 'edit') return; // Cannot change category during edit
         handleInputChange('category', category.slug);
+        
+        // Check if seller setup is required (not for jobs)
+        if (category.slug !== 'jobs' && category.type !== 'job' && !user?.is_seller_account_setup) {
+            sellerSetupSheetRef.current?.present();
+        }
     };
 
-    const handleLocationSelected = (location: { latitude: number, longitude: number, location_name: string }) => {
-        setFormData(prev => ({
-            ...prev,
-            location: location.location_name,
-            latitude: location.latitude,
-            longitude: location.longitude
-        }));
+    const handleLocationSelected = (item: any) => {
+        if (!item) {
+            setFormData(prev => ({
+                ...prev,
+                location: "",
+                location_id: undefined,
+                country_id: undefined,
+                country_name: ""
+            }));
+        } else {
+            // Find country name if possible
+            const country = countries?.find(c => c.id === (item.country_id || item.id));
+            
+            setFormData(prev => ({
+                ...prev,
+                location: item.name,
+                location_id: item.level === 2 ? item.id : undefined,
+                country_id: item.country_id || (item.level === 0 ? item.id : undefined),
+                country_name: country?.name || ""
+            }));
+        }
         setIsLocationPickerVisible(false);
     };
 
@@ -174,9 +217,7 @@ export default function AdForm({
         if (!formData.description.trim() || formData.description.trim().length < 20) {
             nextErrors.description = t('create_ad.validation.descriptionMin');
         }
-        if (!formData.location.trim()) {
-            nextErrors.location = t('create_ad.validation.locationRequired');
-        }
+        // Location is optional now as it fallbacks to profile
 
         // Robust custom fields validation
         const normalizedFields = normalizeFields(dynamicFields);
@@ -257,11 +298,13 @@ export default function AdForm({
                 price: formData.contactForPrice ? null : formData.price,
                 currency: "XOF",
                 category: formData.category,
-                location: formData.location,
+                location: formData.location || user?.location || "",
+                location_id: formData.location_id || user?.location_id,
+                country: formData.country_id || user?.country_id,
                 is_negotiable: formData.isNegotiable,
                 images: processedImages,
                 attributes: buildAttributes(),
-                status: "published" as const,
+                status: "draft" as const, // Always create as draft for preview
                 latitude: formData.latitude,
                 longitude: formData.longitude,
             };
@@ -304,10 +347,7 @@ export default function AdForm({
                                 dynamicFields={dynamicFields}
                                 onInputChange={handleInputChange}
                                 onImagesChange={setImages}
-                                onOpenMapPicker={() => {
-                                    setIsLocationPickerVisible(true);
-                                    locationPickerRef.current?.present();
-                                }}
+                                onOpenMapPicker={() => setIsLocationPickerVisible(true)}
                             />
                         </>
                     ) : (
@@ -333,7 +373,7 @@ export default function AdForm({
                             className="w-full"
                             style={{ backgroundColor: formData.category ? '#FF4F18' : '#cbd5e1' }}
                         >
-                            {submitLabel || (mode === 'create' ? t('create_ad.actions.publish') : t('create_ad.actions.update'))}
+                            {submitLabel || (mode === 'create' ? t('common.preview') : t('create_ad.actions.update'))}
                         </Button>
                     </View>
 
@@ -352,16 +392,51 @@ export default function AdForm({
                 onDismiss={hideAlert}
             />
 
-            <AdLocationPicker
-                ref={locationPickerRef}
+            <CountryModal
+                visible={isLocationPickerVisible}
                 onClose={() => setIsLocationPickerVisible(false)}
-                onLocationSelected={handleLocationSelected}
-                initialLocation={formData.latitude ? {
-                    latitude: formData.latitude,
-                    longitude: formData.longitude!,
-                    location_name: formData.location
-                } : undefined}
+                onSelect={handleLocationSelected}
+                selectedCountryId={formData.country_id}
+                mode="picker"
             />
+
+            <BottomSheet
+                ref={sellerSetupSheetRef}
+                title={t('profile.completeSetupTitle')}
+                snapPoints={["55%"]}
+                scrollable={false}
+            >
+                <View className="px-10 py-6 items-center">
+                    <View className="w-24 h-24 bg-primary/10 rounded-[32px] items-center justify-center mb-6 rotate-[-10deg]">
+                        <Ionicons name="storefront" size={48} color="#FF4F18" />
+                    </View>
+                    
+                    <AppText weight="bold" className="text-gray-900 text-2xl text-center mb-3">
+                        {t('profile.completeSetupTitle')}
+                    </AppText>
+                    
+                    <AppText className="text-gray-500 text-center leading-6 text-base mb-8">
+                        {t('profile.completeSetupDesc')}
+                    </AppText>
+                    
+                    <Button 
+                        onPress={() => {
+                            sellerSetupSheetRef.current?.dismiss();
+                            router.push("/seller/setup");
+                        }}
+                        className="w-full h-14 rounded-full"
+                    >
+                        {t('profile.sellerSetup')}
+                    </Button>
+                    
+                    <TouchableOpacity 
+                        onPress={() => sellerSetupSheetRef.current?.dismiss()}
+                        className="mt-4 p-2"
+                    >
+                        <AppText className="text-gray-400 font-bold">{t('profile.maybeLater')}</AppText>
+                    </TouchableOpacity>
+                </View>
+            </BottomSheet>
         </View>
     );
 }

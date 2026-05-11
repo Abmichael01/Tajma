@@ -33,6 +33,9 @@ interface FormData {
   isNegotiable: boolean
   contactForPrice: boolean
   images: Array<File | string>
+  location?: string
+  location_id?: number
+  country_id?: number
   cv_file?: File
   existingCvFileName?: string
   [key: string]: any
@@ -466,14 +469,16 @@ export default function CreateAdClient() {
         is_negotiable: formData.isNegotiable || false,
         attributes: buildAttributes(),
         images: await serializeImages(),
-        status: 'published' as const,
+        location: formData.location || user?.location || "",
+        location_id: formData.location_id || user?.location_id,
+        country: formData.country_id || user?.country_id,
+        status: 'draft' as const, // Always create as draft for preview
       }
 
       console.log('Submitting payload:', payload)
-      console.log('Submitting payload:', payload)
-      await createAd.mutateAsync(payload)
+      const ad = await createAd.mutateAsync(payload)
       toast.success(t('success.ad_created'))
-      router.push('/profile?tab=ads')
+      router.push(`/ads/${ad.slug}?preview=true`)
     } catch (error: any) {
       console.error('Create ad error:', error)
       const errorData = error?.response?.data

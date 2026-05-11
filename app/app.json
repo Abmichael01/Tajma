@@ -84,7 +84,13 @@
       ],
       "expo-font",
       "expo-video",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Tajma to access your photos to upload listing images and profile avatars."
+        }
+      ]
     ],
     "extra": {
       "router": {},

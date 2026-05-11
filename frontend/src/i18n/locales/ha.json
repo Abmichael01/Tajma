@@ -130,6 +130,9 @@
     "reset": "Sake Saita",
     "publish_ad": "Buga Talla",
     "publishing": "Ana Bugawa",
+    "preview_mode": "Yanayin Dubawa",
+    "publish_now": "Wallafa Yanzu",
+    "edit_draft": "Gyara Draft",
     "footer": {
       "terms_conditions": "Sharuɗɗa & Sharuɗɗa",
       "privacy_policy": "Manufar Sirri"
@@ -228,6 +231,8 @@
     "basic_info": "Bayanai na Asali",
     "details_pricing": "Cikakken Bayani & Farashi",
     "provide_detailed_info": "Ba da cikakken bayani",
+    "location": "Wuri",
+    "location_hint": "Idan ka bar shi a sarari, za mu yi amfani da wurin bayanan ka.",
     "update_ad_details": "Sabunta bayanan tallan ku",
     "tell_us_about_posting": "Faɗa mana game da abin da kuke aikawa",
     "professional_title": "Sunan Kwararre",
