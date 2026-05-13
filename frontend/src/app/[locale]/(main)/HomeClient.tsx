@@ -9,8 +9,11 @@ import PromoStrip from "@/components/Home/PromoStrip";
 import SuggestedAdsSection from "@/components/Home/SuggestedAdsSection";
 import AdsListSkeleton from "@/components/ui/AdsListSkeleton";
 import { useAdsInfiniteList } from "@/hooks/useAds";
+import { useTranslations } from "next-intl";
 
 export default function HomeClient() {
+  const t = useTranslations("home");
+  const commonT = useTranslations("common");
   const loadMoreRef = React.useRef<HTMLDivElement | null>(null);
   const {
     data: adsData,
@@ -73,7 +76,7 @@ export default function HomeClient() {
         {/* Trending Ads Header */}
         <div className="flex items-center justify-between mt-2 mb-6">
           <h2 className="text-2xl font-medium text-gray-900 line-clamp-1">
-            Trending Ads
+            {t("trending")}
           </h2>
         </div>
 
@@ -92,7 +95,7 @@ export default function HomeClient() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <title>No connection</title>
+                  <title>{t("no_connection")}</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -102,10 +105,10 @@ export default function HomeClient() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No Connection
+                {t("no_connection")}
               </h3>
               <p className="text-gray-600 mb-4">
-                Unable to connect to server. Displaying cached results.
+                {t("no_connection_desc")}
               </p>
               <AdsList ads={ads} columns={4} className="py-4" />
             </div>
@@ -118,7 +121,7 @@ export default function HomeClient() {
                 <div ref={loadMoreRef} className="py-6 text-center">
                   {isFetchingNextPage ? (
                     <span className="text-sm text-gray-500">
-                      Loading more ads...
+                      {commonT("loading_more")}
                     </span>
                   ) : null}
                 </div>

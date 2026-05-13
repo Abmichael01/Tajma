@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 const banners = [
   { 
@@ -39,6 +40,7 @@ const banners = [
 ];
 
 export default function Hero() {
+  const t = useTranslations("common");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
 
@@ -126,7 +128,7 @@ export default function Hero() {
                 <div className={banners[currentSlide].mobileImage ? "hidden sm:block" : "block"}>
                   <Image
                     src={banners[currentSlide].image}
-                    alt={`Banner ${currentSlide + 1}`}
+                    alt={t("banner_alt", { number: currentSlide + 1 })}
                     width={1600}
                     height={600}
                     className="w-full h-auto block"
@@ -139,7 +141,7 @@ export default function Hero() {
                   <div className="sm:hidden">
                     <Image
                       src={banners[currentSlide].mobileImage}
-                      alt={`Banner ${currentSlide + 1} Mobile`}
+                      alt={t("banner_mobile_alt", { number: currentSlide + 1 })}
                       width={800}
                       height={1000}
                       className="w-full h-auto block"
@@ -183,7 +185,7 @@ export default function Hero() {
                 ? "bg-white w-10 shadow-lg"
                 : "bg-white/30 w-1.5 hover:bg-white/60"
             }`}
-            aria-label={`Go to slide ${index + 1}`}
+            aria-label={t("go_to_slide", { number: index + 1 })}
           />
         ))}
       </div>

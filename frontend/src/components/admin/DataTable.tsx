@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import MarketplaceLoader from '@/components/ui/MarketplaceLoader'
+import { useTranslations } from 'next-intl'
 
 export interface Column<T> {
   key: string
@@ -48,7 +49,7 @@ export default function DataTable<T extends { id: string | number }>({
   columns,
   loading = false,
   searchable = true,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder,
   onSearch,
   onEdit,
   onDelete,
@@ -58,11 +59,15 @@ export default function DataTable<T extends { id: string | number }>({
   total,
   onParamsChange,
   pagination,
-  emptyMessage = 'No data available',
+  emptyMessage,
 }: DataTableProps<T>) {
+  const t = useTranslations('admin.table')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+
+  const effectiveSearchPlaceholder = searchPlaceholder || t('search_placeholder')
+  const effectiveEmptyMessage = emptyMessage || t('empty_message')
 
   // Handle search
   const handleSearch = (query: string) => {
@@ -131,7 +136,7 @@ export default function DataTable<T extends { id: string | number }>({
   if (loading) {
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-12">
-        <MarketplaceLoader size="md" message="Loading data..." />
+        <MarketplaceLoader size="md" message={t('loading_data')} />
       </div>
     )
   }
@@ -145,7 +150,7 @@ export default function DataTable<T extends { id: string | number }>({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               type="text"
-              placeholder={searchPlaceholder}
+              placeholder={effectiveSearchPlaceholder}
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10 h-9 text-sm"
@@ -188,7 +193,7 @@ export default function DataTable<T extends { id: string | number }>({
               ))}
               {(onEdit || onDelete || actions) && (
                 <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  {t('actions')}
                 </th>
               )}
             </tr>
@@ -200,7 +205,7 @@ export default function DataTable<T extends { id: string | number }>({
                   colSpan={columns.length + (onEdit || onDelete || actions ? 1 : 0)}
                   className="px-6 py-12 text-center text-sm text-gray-500"
                 >
-                  {emptyMessage}
+                  {effectiveEmptyMessage}
                 </td>
               </tr>
             ) : (
@@ -230,7 +235,7 @@ export default function DataTable<T extends { id: string | number }>({
                             {onEdit && (
                               <DropdownMenuItem onClick={() => onEdit(item)}>
                                 <Edit className="w-4 h-4 mr-2" />
-                                Edit
+                                {t('edit')}
                               </DropdownMenuItem>
                             )}
                             {onDelete && (
@@ -239,7 +244,7 @@ export default function DataTable<T extends { id: string | number }>({
                                 className="text-red-600"
                               >
                                 <Trash2 className="w-4 h-4 mr-2" />
-                                Delete
+                                {t('delete')}
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -258,9 +263,9 @@ export default function DataTable<T extends { id: string | number }>({
       {pagination && totalPages > 1 && (
         <div className="px-5 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50/30">
           <div className="text-sm text-gray-600">
-            Showing <span className="font-medium text-gray-900">{startItem}</span> to{' '}
-            <span className="font-medium text-gray-900">{endItem}</span> of{' '}
-            <span className="font-medium text-gray-900">{actualTotal}</span> results
+            {t('showing')} <span className="font-medium text-gray-900">{startItem}</span> {t('to')}{' '}
+            <span className="font-medium text-gray-900">{endItem}</span> {t('of')}{' '}
+            <span className="font-medium text-gray-900">{actualTotal}</span> {t('results')}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -277,10 +282,10 @@ export default function DataTable<T extends { id: string | number }>({
               className="h-8 text-xs"
             >
               <ChevronLeft className="w-3.5 h-3.5 mr-1" />
-              Previous
+              {t('previous')}
             </Button>
             <div className="text-sm text-gray-600 font-medium">
-              Page {pagination.page} of {totalPages}
+              {t('page')} {pagination.page} {t('of')} {totalPages}
             </div>
             <Button
               variant="outline"
@@ -295,7 +300,7 @@ export default function DataTable<T extends { id: string | number }>({
               disabled={pagination.page >= totalPages}
               className="h-8 text-xs"
             >
-              Next
+              {t('next')}
               <ChevronRight className="w-3.5 h-3.5 ml-1" />
             </Button>
           </div>

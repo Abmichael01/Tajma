@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { LogOut, ChevronDown } from 'lucide-react'
 import { getUserFullName, getUserInitials } from '@/utils/user'
+import { useTranslations } from 'next-intl'
 
 interface AdminHeaderProps {
   isCollapsed: boolean
@@ -24,10 +25,12 @@ interface AdminHeaderProps {
 }
 
 export default function AdminHeader({ isCollapsed, onToggle }: AdminHeaderProps) {
+  const t_header = useTranslations('admin.header')
+  const t_sidebar = useTranslations('admin.sidebar')
   const { user, logout } = useAuthStore()
   const router = useRouter()
   
-  const displayName = user ? getUserFullName(user) : 'Admin'
+  const displayName = user ? getUserFullName(user) : t_header('admin')
   const userInitials = user ? getUserInitials(user) : 'A'
 
   const handleLogout = () => {
@@ -43,7 +46,7 @@ export default function AdminHeader({ isCollapsed, onToggle }: AdminHeaderProps)
         <button
           onClick={onToggle}
           className="p-2 rounded-lg hover:bg-gray-200 transition-colors"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={isCollapsed ? t_header('expand_sidebar') : t_header('collapse_sidebar')}
         >
           {isCollapsed ? (
             <ChevronRight
@@ -109,7 +112,7 @@ export default function AdminHeader({ isCollapsed, onToggle }: AdminHeaderProps)
               className="flex items-center gap-3 p-3 cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <LogOut className="w-4 h-4" />
-              <span>Logout</span>
+              <span>{t_sidebar('logout')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

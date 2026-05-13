@@ -196,7 +196,7 @@ export default function SearchScreen() {
               <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
               <AppText weight="bold" className="text-gray-900 mt-4 text-center">{t('common.error')}</AppText>
               <TouchableOpacity className="mt-6 bg-slate-900 px-6 py-3 rounded-full" onPress={() => refetch()}>
-                <AppText className="text-white" weight="bold">Retry</AppText>
+                <AppText className="text-white" weight="bold">{t('common.retry')}</AppText>
               </TouchableOpacity>
             </View>
           ) : ads.length > 0 ? (

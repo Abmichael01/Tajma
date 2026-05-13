@@ -43,7 +43,10 @@
     "selectOption": "Sélectionner une option",
     "typeAndPressEnter": "Saisir et appuyer sur Entrée",
     "addItem": "Ajouter un élément",
-    "finish": "Terminer"
+    "finish": "Terminer",
+    "retry": "Réessayer",
+    "categories_not_available": "Catégories non disponibles",
+    "whatsapp": "WhatsApp"
   },
   "auth": {
     "login": "Connexion",
@@ -236,7 +239,22 @@
     "noBio": "Aucune biographie fournie",
     "setupInfoNotice": "Fournir des informations exactes aide à instaurer la confiance avec les acheteurs.",
     "completeSetupTitle": "Terminer la configuration vendeur",
-    "completeSetupDesc": "Finalisez votre profil pour commencer à vendre comme un pro."
+    "completeSetupDesc": "Finalisez votre profil pour commencer à vendre comme un pro.",
+    "no_reviews_yet": "Pas encore d'avis",
+    "responds_usually_in": "Répond généralement en {{time}}",
+    "member_since": "Membre depuis {{date}}",
+    "about_us": "À propos de nous",
+    "contact_us": "Contactez-nous",
+    "profileNotFound": "Profil non trouvé",
+    "profileNotFoundDesc": "Le profil utilisateur que vous recherchez n'existe pas ou a été supprimé.",
+    "myProfile": "Mon Profil",
+    "reviewsCount": "({{count}} avis)",
+    "daysCount": "• {{count}} jours",
+    "contact": "Contacter",
+    "call": "Appeler",
+    "showNumber": "Afficher le numéro",
+    "noAdsYet": "Pas encore d'annonces",
+    "noReviewsYet": "Pas encore d'avis"
   },
   "search": {
     "title": "Recherche",
@@ -248,6 +266,14 @@
     "adsFound": "{{count}} annonces trouvées",
     "noResults": "Aucun résultat trouvé",
     "noResultsDesc": "Nous n'avons trouvé aucune annonce correspondant à \"{{query}}\" dans {{country}}.",
+    "allFilters": "Tous les Filtres",
+    "subCategory": "Sous-catégorie",
+    "all": "Tout",
+    "categoryPlaceholder": "Catégorie",
+    "loadingAds": "Chargement des annonces...",
+    "noAdsFoundDesc": "Nous n'avons trouvé aucune annonce dans cette catégorie correspondant à vos filtres.",
+    "no_recent_searches": "Aucune recherche récente",
+    "no_ads_found": "Aucune annonce trouvée",
     "clearFilters": "Effacer tous les filtres",
     "allCountries": "Tous les pays",
     "filters": {
@@ -286,6 +312,8 @@
     "category": {
       "subcategories": "Sous-catégories",
       "categories": "Catégories",
+      "browseByCategory": "Parcourir par Catégorie",
+      "exploreListings": "Explorez les annonces dans différents départements.",
       "searchPlaceholder": "Rechercher des catégories...",
       "allCategories": "Toutes les catégories",
       "exploreEverything": "Tout explorer sur Tajma",
@@ -304,6 +332,11 @@
     "myListings": "Mes annonces",
     "editListing": "Modifier l'annonce",
     "newListing": "Nouvelle annonce",
+    "editListingTitle": "Modifier l'Annonce",
+    "editListingSubtitle": "Les mises à jour seront effectives immédiatement",
+    "saveChanges": "Enregistrer les Modifications",
+    "loadErrorDetails": "Échec du chargement des détails de l'annonce",
+    "updateError": "Échec de la mise à jour de l'annonce. Veuillez réessayer.",
     "whatAreYouListing": "Que mettez-vous en vente ?",
     "fillDetails": "Remplissez les détails de votre nouvelle annonce",
     "failedToCreate": "Échec de la création de l'annonce. Veuillez réessayer.",
@@ -338,7 +371,28 @@
       "views": "Plus consulté",
       "title": "Titre A-Z"
     },
-    "createError": "Échec de la création de l'annonce. Veuillez réessayer."
+    "createError": "Échec de la création de l'annonce. Veuillez réessayer.",
+    "negotiable": "Négociable"
+  },
+  "chat_info": {
+    "contact_info": "Infos de contact",
+    "call": "Appeler",
+    "whatsapp": "WhatsApp",
+    "profile": "Profil",
+    "search": "Rechercher",
+    "linked_listing": "Annonce liée",
+    "media_links_docs": "Médias, liens et docs",
+    "no_media_shared": "Aucun média partagé pour le moment",
+    "mute_notifications": "Muer les notifications",
+    "notification_sound": "Son de notification",
+    "starred_messages": "Messages étoilés",
+    "block_user": "Bloquer {{name}}",
+    "report_user": "Signaler {{name}}",
+    "clear_chat_history": "Effacer l'historique du chat",
+    "unavailable": "Indisponible",
+    "phone_not_provided": "Cet utilisateur n'a pas fourni de numéro de téléphone.",
+    "clear_chat_q": "Effacer le chat ?",
+    "clear_chat_desc": "Cela supprimera tous les messages de cette conversation pour vous. Cette action est irréversible."
   },
   "create_ad": {
     "pickCategoryTitle": "Choisissez une catégorie pour continuer",

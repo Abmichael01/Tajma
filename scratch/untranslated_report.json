@@ -1,0 +1,4932 @@
+{
+  "frontend/src": [
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 111,
+      "text": "Ad Not Found",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 112,
+      "text": "The ad you're looking for doesn't exist or has been removed.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 152,
+      "text": "Published",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 153,
+      "text": "Draft",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 154,
+      "text": "Archived",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 172,
+      "text": "Views",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 177,
+      "text": "Messages",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 182,
+      "text": "Reviews",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 193,
+      "text": "Images",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 229,
+      "text": "Basic Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 232,
+      "text": "Title",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 236,
+      "text": "Price",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 245,
+      "text": "Status",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 259,
+      "text": "Type",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 265,
+      "text": "Category",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 271,
+      "text": "Slug",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 280,
+      "text": "Description",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 290,
+      "text": "Attributes",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 308,
+      "text": "Seller Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 329,
+      "text": "Timestamps",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 332,
+      "text": "Created At",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 339,
+      "text": "Updated At",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 347,
+      "text": "Published At",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/[id]/page.tsx",
+      "line": 362,
+      "text": "Are you sure you want to delete this ad? This action cannot be undone and will remove the advertisement permanently from the marketplace.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 252,
+      "text": "Ads",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 253,
+      "text": "Manage all advertisements",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 261,
+      "text": "Total Ads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 268,
+      "text": "Published",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 274,
+      "text": "Draft",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 280,
+      "text": "Archived",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 296,
+      "text": "Status",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 299,
+      "text": "All Status",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 300,
+      "text": "Published",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 301,
+      "text": "Draft",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 302,
+      "text": "Archived",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 311,
+      "text": "Ad Type",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 314,
+      "text": "All Types",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 315,
+      "text": "Product",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 316,
+      "text": "Service",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 317,
+      "text": "Job",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 363,
+      "text": "Published",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 364,
+      "text": "Draft",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 365,
+      "text": "Archived",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/ads/page.tsx",
+      "line": 378,
+      "text": "Are you sure you want to delete this ad? This action cannot be undone and will remove the advertisement permanently from the marketplace.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 74,
+      "text": "0 && adsData.results.length",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 142,
+      "text": "Category Not Found",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 216,
+      "text": "Total Ads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 221,
+      "text": "Published",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 226,
+      "text": "Draft",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 235,
+      "text": "Category Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 238,
+      "text": "Name",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 242,
+      "text": "Slug",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 248,
+      "text": "Type",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 254,
+      "text": "Status",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 261,
+      "text": "Parent Category",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 266,
+      "text": "Sort Order",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 274,
+      "text": "Ads in this Category",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/[id]/page.tsx",
+      "line": 311,
+      "text": "Are you sure you want to delete this category? This action cannot be undone and will remove the category permanently.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 282,
+      "text": "Categories",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 283,
+      "text": "Manage all categories",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 295,
+      "text": "Total Categories",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 302,
+      "text": "Active",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 308,
+      "text": "Inactive",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 324,
+      "text": "Status",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 327,
+      "text": "All Status",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 328,
+      "text": "Active",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 329,
+      "text": "Inactive",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 338,
+      "text": "Category Type",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 341,
+      "text": "All Types",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 342,
+      "text": "Product",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 343,
+      "text": "Service",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 344,
+      "text": "Job",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 391,
+      "text": "View details",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 408,
+      "text": "Edit category",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 441,
+      "text": "Create New Category",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 457,
+      "text": "Category name",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 465,
+      "text": "Description",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 470,
+      "text": "Category description",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 477,
+      "text": "Parent Category",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 485,
+      "text": "Select parent category (optional)",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 488,
+      "text": "None (Root Category)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 513,
+      "text": "Product",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 514,
+      "text": "Service",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 515,
+      "text": "Job",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 529,
+      "text": "Category Image",
+      "type": "Prop: label"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 540,
+      "text": "Sort Order",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 555,
+      "text": "Custom Fields",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 590,
+      "text": "No custom fields added yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 623,
+      "text": "Field Name *",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 635,
+      "text": "e.g., brand, color, size",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 642,
+      "text": "Field Type *",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 658,
+      "text": "Text",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 659,
+      "text": "Number",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 660,
+      "text": "Select (Dropdown)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 661,
+      "text": "Checkbox",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 662,
+      "text": "Text Area",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 671,
+      "text": "Display Label",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 679,
+      "text": "e.g., Brand Name",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 686,
+      "text": "Placeholder Text",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 694,
+      "text": "e.g., Enter brand name",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 722,
+      "text": "Options *",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/categories/page.tsx",
+      "line": 838,
+      "text": "Are you sure you want to delete this category? This will also remove all associations, but it will fail if there are ads currently in this category.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/chats/page.tsx",
+      "line": 123,
+      "text": "Chats",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/chats/page.tsx",
+      "line": 124,
+      "text": "Manage all chat conversations",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/chats/page.tsx",
+      "line": 132,
+      "text": "Total Chats",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/chats/page.tsx",
+      "line": 168,
+      "text": "Delete Chat Conversation?",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/chats/page.tsx",
+      "line": 169,
+      "text": "Are you sure you want to delete this chat? All messages in this conversation will be permanently removed for both participants. This action cannot be undone.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 109,
+      "text": "Failed to load country details",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 128,
+      "text": "Country Details",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 150,
+      "text": "Total Ads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 156,
+      "text": "Published",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 161,
+      "text": "Draft",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 166,
+      "text": "Archived",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 175,
+      "text": "Country Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 178,
+      "text": "Name",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 182,
+      "text": "Slug",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 186,
+      "text": "Sort Order",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 190,
+      "text": "Status",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/[id]/page.tsx",
+      "line": 199,
+      "text": "Ads in this Country",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 213,
+      "text": "Countries",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 256,
+      "text": "With Ads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 261,
+      "text": "Total Ads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 296,
+      "text": "View departments",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 307,
+      "text": "View details",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 315,
+      "text": "Edit",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 323,
+      "text": "Delete",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 339,
+      "text": "Name *",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 351,
+      "text": "Country *",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 357,
+      "text": "Select country",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 372,
+      "text": "Sort Order",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 386,
+      "text": "Active",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 408,
+      "text": "Name *",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 419,
+      "text": "Country *",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 425,
+      "text": "Select country",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 442,
+      "text": "Sort Order",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/countries/page.tsx",
+      "line": 456,
+      "text": "Active",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 128,
+      "text": "KYC Verifications",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 129,
+      "text": "Review and manually manage user identity verifications",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 139,
+      "text": "Total Verifications",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 145,
+      "text": "Verified",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 150,
+      "text": "Rejected",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 155,
+      "text": "Pending Review",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 217,
+      "text": "User Email",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 221,
+      "text": "Document Type",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 228,
+      "text": "Country",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 235,
+      "text": "Submission Date",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 242,
+      "text": "Rejection Reason",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/kyc/page.tsx",
+      "line": 244,
+      "text": "e.g. Document photo is too blurry",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/leads/page.tsx",
+      "line": 104,
+      "text": "Interaction Analytics",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/leads/page.tsx",
+      "line": 105,
+      "text": "Track prospective buyer leads and platform engagement",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/leads/page.tsx",
+      "line": 110,
+      "text": "Total Leads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/leads/page.tsx",
+      "line": 116,
+      "text": "Messaged",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/leads/page.tsx",
+      "line": 121,
+      "text": "Interactions",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 122,
+      "text": "Messages",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 123,
+      "text": "Manage all messages",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 131,
+      "text": "Total Messages",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 138,
+      "text": "Read",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 144,
+      "text": "Unread",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 159,
+      "text": "Read Status",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 162,
+      "text": "All",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 163,
+      "text": "Read",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 164,
+      "text": "Unread",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 196,
+      "text": "Delete Message?",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/messages/page.tsx",
+      "line": 197,
+      "text": "Are you sure you want to delete this specific message? This action will permanently remove it from the chat history. This action cannot be undone.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 150,
+      "text": "Notifications",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 151,
+      "text": "Manage all notifications",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 159,
+      "text": "Total Notifications",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 166,
+      "text": "Read",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 172,
+      "text": "Unread",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 188,
+      "text": "Read Status",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 191,
+      "text": "All",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 192,
+      "text": "Read",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 193,
+      "text": "Unread",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 202,
+      "text": "Type",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 205,
+      "text": "All Types",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 206,
+      "text": "Phone View",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 207,
+      "text": "Message",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 208,
+      "text": "Ad View",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 209,
+      "text": "Favorite",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 210,
+      "text": "Review",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 211,
+      "text": "Report",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 212,
+      "text": "Ad Status",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 213,
+      "text": "Other",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 257,
+      "text": "Delete Notification?",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/notifications/page.tsx",
+      "line": 258,
+      "text": "Are you sure you want to delete this notification? This action cannot be undone and will remove the record permanently.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 23,
+      "text": "Failed to load dashboard statistics",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 31,
+      "text": "Dashboard",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 32,
+      "text": "Overview of your marketplace",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 38,
+      "text": "Total Users",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 47,
+      "text": "Total Ads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 55,
+      "text": "Active Ads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 63,
+      "text": "Total Messages",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 76,
+      "text": "Recent Activity (Last 24 Hours)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 80,
+      "text": "New Users",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 86,
+      "text": "New Ads",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/page.tsx",
+      "line": 92,
+      "text": "New Messages",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 215,
+      "text": "Promotion Packages",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 216,
+      "text": "Manage seller promotion pricing",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 225,
+      "text": "Total Packages",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 226,
+      "text": "Active",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 227,
+      "text": "Boost",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 228,
+      "text": "Featured",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 237,
+      "text": "Type",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 240,
+      "text": "All types",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 241,
+      "text": "Boost",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 242,
+      "text": "Featured",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 250,
+      "text": "Status",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 253,
+      "text": "All statuses",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 254,
+      "text": "Active",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 255,
+      "text": "Inactive",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 295,
+      "text": "Name",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 303,
+      "text": "Type",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 312,
+      "text": "Boost",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 313,
+      "text": "Featured",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 318,
+      "text": "Duration days",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 328,
+      "text": "Price",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 339,
+      "text": "Discount price",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 350,
+      "text": "Description",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 388,
+      "text": "Delete Promotion Package?",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/promotions/page.tsx",
+      "line": 389,
+      "text": "This removes the package from purchase. Existing paid promotions are not deleted.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 234,
+      "text": "Reports & Support",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 235,
+      "text": "Manage user reports and support tickets",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 240,
+      "text": "Total Reports",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 246,
+      "text": "Pending",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 251,
+      "text": "Under Review",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 256,
+      "text": "Resolved",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 315,
+      "text": "Report Details",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 324,
+      "text": "Type",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 328,
+      "text": "Status",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 332,
+      "text": "Reason",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 336,
+      "text": "Date",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 342,
+      "text": "Description",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 349,
+      "text": "Moderation",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 449,
+      "text": "Type a response to the user...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 490,
+      "text": "Resolve Report",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 494,
+      "text": "Resolution Note",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 497,
+      "text": "Describe how this report was handled...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 522,
+      "text": "Delete Support Report?",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 523,
+      "text": "Are you sure you want to delete this report? This will permanently remove the report record and all associated communication history. This action cannot be undone.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 533,
+      "text": "The ad will be archived and hidden from the marketplace. The reporter will be notified. This action can be reversed from the Ads management page.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 543,
+      "text": "The user's account will be suspended and they will lose access to the platform. This action can be reversed from the Users management page.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reports/page.tsx",
+      "line": 554,
+      "text": "Edit the warning message below before sending.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 104,
+      "text": "User Reviews",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 105,
+      "text": "Moderate and manage platform reviews to ensure quality interactions",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 110,
+      "text": "Total Reviews",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 116,
+      "text": "5 Star Reviews",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 121,
+      "text": "Low Ratings (≤2)",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 122,
+      "text": "r.rating",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 152,
+      "text": "View Ad",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 188,
+      "text": "Comment Content",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 198,
+      "text": "Related Listing",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 232,
+      "text": "Delete Review?",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/reviews/page.tsx",
+      "line": 233,
+      "text": "Are you sure you want to delete this user review? This action cannot be undone and the review will be removed from the listing permanently.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 87,
+      "text": "User Not Found",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 88,
+      "text": "The user you're looking for doesn't exist or has been removed.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 208,
+      "text": "Total Ads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 213,
+      "text": "Active Ads",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 218,
+      "text": "Total Views",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 229,
+      "text": "Basic Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 232,
+      "text": "Avatar",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 241,
+      "text": "Email",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 245,
+      "text": "Username",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 249,
+      "text": "Full Name",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 257,
+      "text": "Is Seller",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 263,
+      "text": "Is Staff",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 269,
+      "text": "Is Active",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 275,
+      "text": "Is Superuser",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 285,
+      "text": "Timestamps",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 288,
+      "text": "Date Joined",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 295,
+      "text": "Last Login",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 307,
+      "text": "User Ads",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 313,
+      "text": "Filter by status",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 316,
+      "text": "All Status",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 317,
+      "text": "Published",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 318,
+      "text": "Draft",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/[id]/page.tsx",
+      "line": 319,
+      "text": "Archived",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 215,
+      "text": "Users",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 216,
+      "text": "Manage all users",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 224,
+      "text": "Total Users",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 231,
+      "text": "Active Users",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 238,
+      "text": "Sellers",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 245,
+      "text": "Staff",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 262,
+      "text": "Status",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 265,
+      "text": "All Status",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 266,
+      "text": "Active",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 267,
+      "text": "Inactive",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 276,
+      "text": "Seller Status",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 279,
+      "text": "All Sellers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 280,
+      "text": "Sellers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 281,
+      "text": "Non-Sellers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 290,
+      "text": "Staff Status",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 293,
+      "text": "All Staff",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 294,
+      "text": "Staff",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 295,
+      "text": "Non-Staff",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 363,
+      "text": "Confirm Deactivation",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(admin)/admin/users/page.tsx",
+      "line": 399,
+      "text": "Are you sure you want to delete this user? This will permanently remove their account, profile, and all associated data. This action cannot be undone.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/auth/google/callback/page.tsx",
+      "line": 81,
+      "text": "Redirecting to login...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/forgot-password/ForgotPasswordClient.tsx",
+      "line": 145,
+      "text": "you@example.com",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/login/LoginClient.tsx",
+      "line": 223,
+      "text": "you@example.com",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/login/LoginClient.tsx",
+      "line": 246,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/register/RegisterClient.tsx",
+      "line": 302,
+      "text": "1 ?",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/register/RegisterClient.tsx",
+      "line": 355,
+      "text": "John",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/register/RegisterClient.tsx",
+      "line": 377,
+      "text": "Doe",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/register/RegisterClient.tsx",
+      "line": 399,
+      "text": "johndoe",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/register/RegisterClient.tsx",
+      "line": 427,
+      "text": "you@example.com",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/register/RegisterClient.tsx",
+      "line": 449,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/register/RegisterClient.tsx",
+      "line": 495,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/reset-password/ResetPasswordClient.tsx",
+      "line": 228,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/reset-password/ResetPasswordClient.tsx",
+      "line": 275,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/reset-password/ResetPasswordClient.tsx",
+      "line": 311,
+      "text": "Resetting...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(auth)/reset-password/ResetPasswordClient.tsx",
+      "line": 314,
+      "text": "Reset password",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/HomeClient.tsx",
+      "line": 95,
+      "text": "No connection",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 57,
+      "text": "Trust & Safety",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 68,
+      "text": "Community First",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 79,
+      "text": "Innovation",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 90,
+      "text": "Excellence",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 101,
+      "text": "Accessibility",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 112,
+      "text": "Integrity",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 129,
+      "text": "50K+",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 130,
+      "text": "Active Users",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 133,
+      "text": "100K+",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 134,
+      "text": "Ads Posted",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 137,
+      "text": "25K+",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 138,
+      "text": "Successful Deals",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/about/AboutClient.tsx",
+      "line": 142,
+      "text": "States Covered",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 317,
+      "text": "Ad Not Found",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 318,
+      "text": "The ad you're looking for doesn't exist or has been removed.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 340,
+      "text": "Preview Mode",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 341,
+      "text": "This ad is currently a draft. Review it before publishing.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 377,
+      "text": "Status:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 386,
+      "text": "Published",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 387,
+      "text": "Draft",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 388,
+      "text": "Archived",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 419,
+      "text": "0 &&",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 430,
+      "text": "&gt;",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 463,
+      "text": "Location",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 538,
+      "text": "Location",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/AdsDetailClient.tsx",
+      "line": 648,
+      "text": "Are you sure you want to delete this ad? This action cannot be undone and will remove the advertisement permanently from the marketplace.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/edit/EditAdClient.tsx",
+      "line": 340,
+      "text": "Edit Your Ad",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/ads/[id]/edit/EditAdClient.tsx",
+      "line": 341,
+      "text": "Update your listing information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/alerts/AlertsClient.tsx",
+      "line": 31,
+      "text": "Alerts",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/contact/ContactClient.tsx",
+      "line": 117,
+      "text": "Ticket Created Successfully!",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/contact/ContactClient.tsx",
+      "line": 126,
+      "text": "Send us a Message",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/contact/ContactClient.tsx",
+      "line": 145,
+      "text": "John Doe",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/contact/ContactClient.tsx",
+      "line": 163,
+      "text": "you@example.com",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/contact/ContactClient.tsx",
+      "line": 183,
+      "text": "How can we help you?",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/contact/ContactClient.tsx",
+      "line": 203,
+      "text": "Tell us more about your inquiry...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/contact/ContactClient.tsx",
+      "line": 222,
+      "text": "Sending...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/help/HelpClient.tsx",
+      "line": 146,
+      "text": "Search for answers...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 50,
+      "text": "Visibility.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 63,
+      "text": "Loading plans...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 96,
+      "text": "XOF",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 113,
+      "text": "No premium plans available.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 122,
+      "text": "Instant",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 122,
+      "text": "Applied immediately after payment.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 123,
+      "text": "10x Reach",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 123,
+      "text": "Top of search and category pages.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 124,
+      "text": "Secure",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/premium/page.tsx",
+      "line": 124,
+      "text": "Bank-grade Paystack encryption.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 20,
+      "text": "Last updated: March 27, 2026",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 30,
+      "text": "1. Introduction",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 41,
+      "text": "2. Information We Collect",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 43,
+      "text": "Personal Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 48,
+      "text": "Name and contact information (email, phone number)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 49,
+      "text": "Location information (city, state)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 50,
+      "text": "Profile information (avatar, bio)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 51,
+      "text": "Payment information (processed securely by third-party providers)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 52,
+      "text": "Communication preferences",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 55,
+      "text": "Usage Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 60,
+      "text": "IP address and browser type",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 61,
+      "text": "Device information and operating system",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 62,
+      "text": "Pages visited and features used",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 63,
+      "text": "Search queries and ad views",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 64,
+      "text": "Cookies and similar tracking technologies",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 67,
+      "text": "Content You Post",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 72,
+      "text": "Ad descriptions, titles, and pricing information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 73,
+      "text": "Photos and images you upload",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 74,
+      "text": "Messages and communications with other users",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 75,
+      "text": "Reviews and ratings",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 81,
+      "text": "3. How We Use Your Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 86,
+      "text": "Provide, operate, and maintain our marketplace platform",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 87,
+      "text": "Create and manage your account",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 88,
+      "text": "Process transactions and send transactional communications",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 89,
+      "text": "Connect buyers and sellers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 90,
+      "text": "Improve and personalize your experience",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 91,
+      "text": "Send you updates, newsletters, and promotional materials (with your consent)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 92,
+      "text": "Respond to your inquiries and provide customer support",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 93,
+      "text": "Detect, prevent, and address fraud and security issues",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 94,
+      "text": "Comply with legal obligations and enforce our terms",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 95,
+      "text": "Analyze usage patterns and optimize our services",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 101,
+      "text": "4. How We Share Your Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 106,
+      "text": "With Other Users",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 111,
+      "text": "With Service Providers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 116,
+      "text": "Cloud hosting providers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 117,
+      "text": "Payment processors",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 118,
+      "text": "Email service providers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 119,
+      "text": "Analytics services",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 120,
+      "text": "Customer support tools",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 123,
+      "text": "For Legal Purposes",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 128,
+      "text": "Legal processes or government requests",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 129,
+      "text": "Protection of our rights and property",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 130,
+      "text": "Investigation of fraud or security issues",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 131,
+      "text": "Protection of user safety",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 134,
+      "text": "Business Transfers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 142,
+      "text": "5. Data Security",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 147,
+      "text": "Encryption of data in transit and at rest",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 148,
+      "text": "Secure servers and databases",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 149,
+      "text": "Regular security assessments and updates",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 150,
+      "text": "Access controls and authentication",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 151,
+      "text": "Employee training on data protection",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 160,
+      "text": "6. Your Privacy Rights",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 165,
+      "text": "Access:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 166,
+      "text": "Correction:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 167,
+      "text": "Deletion:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 168,
+      "text": "Portability:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 169,
+      "text": "Opt-out:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 170,
+      "text": "Object:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 179,
+      "text": "7. Cookies and Tracking",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 184,
+      "text": "Remember your preferences and settings",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 185,
+      "text": "Understand how you use our platform",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 186,
+      "text": "Improve our services",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 187,
+      "text": "Deliver relevant advertisements",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 196,
+      "text": "8. Data Retention",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 204,
+      "text": "9. Children's Privacy",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 212,
+      "text": "10. International Data Transfers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 220,
+      "text": "11. Changes to This Privacy Policy",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 228,
+      "text": "12. Contact Us",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 234,
+      "text": "Email:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 237,
+      "text": "Phone:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/privacy/PrivacyClient.tsx",
+      "line": 240,
+      "text": "Address:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/profile/[uid]/ProfileClient.tsx",
+      "line": 147,
+      "text": "Profile Not Found",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/profile/leads/LeadsClient.tsx",
+      "line": 87,
+      "text": "Loading your leads...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/profile/leads/LeadsClient.tsx",
+      "line": 93,
+      "text": "Potential Clients",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/profile/leads/LeadsClient.tsx",
+      "line": 104,
+      "text": "Monthly Overview",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/profile/leads/LeadsClient.tsx",
+      "line": 129,
+      "text": "You don't have any potential clients yet.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/profile/leads/LeadsClient.tsx",
+      "line": 130,
+      "text": "Leads appear when users interact with your ads or profile.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/profile/leads/LeadsClient.tsx",
+      "line": 213,
+      "text": "Ignore",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 27,
+      "text": "Review & Confirm",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 28,
+      "text": "Double-check your details before finishing setup.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 34,
+      "text": "Contact Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 38,
+      "text": "Phone",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 42,
+      "text": "Location",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 48,
+      "text": "Street Address",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 56,
+      "text": "Business Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 60,
+      "text": "Business Name",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 64,
+      "text": "Business Type",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 68,
+      "text": "Website",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 72,
+      "text": "About Your Business",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/ReviewStep.tsx",
+      "line": 81,
+      "text": "You can always update these details later from your profile.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/SetupNavigation.tsx",
+      "line": 60,
+      "text": "Finishing setup...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/seller/setup/components/SetupNavigation.tsx",
+      "line": 64,
+      "text": "Complete Setup",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 20,
+      "text": "Last updated: March 27, 2026",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 30,
+      "text": "1. Introduction",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 41,
+      "text": "2. User Accounts",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 46,
+      "text": "Provide accurate, current, and complete information during registration",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 47,
+      "text": "Maintain and promptly update your account information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 48,
+      "text": "Keep your password secure and confidential",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 49,
+      "text": "Be responsible for all activities that occur under your account",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 50,
+      "text": "Notify us immediately of any unauthorized use of your account",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 59,
+      "text": "3. Posting Ads",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 64,
+      "text": "Provide accurate and truthful descriptions of items or services",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 65,
+      "text": "Only post items you have the legal right to sell",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 66,
+      "text": "Set fair and reasonable prices",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 67,
+      "text": "Respond promptly to inquiries from potential buyers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 68,
+      "text": "Complete transactions in good faith",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 77,
+      "text": "4. Prohibited Items and Activities",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 82,
+      "text": "Illegal items, services, or activities",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 83,
+      "text": "Counterfeit, stolen, or fraudulent goods",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 84,
+      "text": "Weapons, drugs, or controlled substances",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 85,
+      "text": "Adult content or services",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 86,
+      "text": "Pyramid schemes or multi-level marketing",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 87,
+      "text": "Items that infringe on intellectual property rights",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 88,
+      "text": "Misleading or deceptive content",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 89,
+      "text": "Spam or unsolicited advertising",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 95,
+      "text": "5. Transactions Between Users",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 100,
+      "text": "Conducted solely between buyers and sellers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 101,
+      "text": "Subject to the terms agreed upon by both parties",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 102,
+      "text": "The responsibility of the parties involved",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 111,
+      "text": "6. Fees and Payments",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 116,
+      "text": "Introduce premium features with associated fees",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 117,
+      "text": "Charge fees for certain categories or enhanced listings",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 118,
+      "text": "Modify our fee structure with reasonable notice",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 124,
+      "text": "7. Intellectual Property",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 135,
+      "text": "8. Limitation of Liability",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 140,
+      "text": "Any indirect, incidental, or consequential damages",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 141,
+      "text": "Loss of profits, data, or goodwill",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 142,
+      "text": "Disputes between users",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 143,
+      "text": "Quality, safety, or legality of items advertised",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 144,
+      "text": "Truth or accuracy of listings",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 145,
+      "text": "Ability of sellers to sell items or buyers to pay for items",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 151,
+      "text": "9. Account Termination",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 156,
+      "text": "You violate these Terms and Conditions",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 157,
+      "text": "You engage in fraudulent or illegal activities",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 158,
+      "text": "Your account has been inactive for an extended period",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 159,
+      "text": "We are required to do so by law",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 168,
+      "text": "10. Changes to Terms",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 176,
+      "text": "11. Governing Law",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 184,
+      "text": "12. Contact Us",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 190,
+      "text": "Email:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 193,
+      "text": "Phone:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/terms/TermsClient.tsx",
+      "line": 196,
+      "text": "Address:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 11,
+      "text": "Marketplace Loader Test",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 16,
+      "text": "Standalone Loaders (with messages)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 19,
+      "text": "Small",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 23,
+      "text": "Medium",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 27,
+      "text": "Large",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 35,
+      "text": "Standalone Loaders (no messages)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 38,
+      "text": "Small",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 42,
+      "text": "Medium",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 46,
+      "text": "Large",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 54,
+      "text": "Color Variations",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 57,
+      "text": "Primary (Default)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 61,
+      "text": "Blue",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 65,
+      "text": "Green",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 69,
+      "text": "Red",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 77,
+      "text": "White Variant (for colored backgrounds)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 80,
+      "text": "Small White",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 84,
+      "text": "Medium White",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 88,
+      "text": "Large White",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 96,
+      "text": "Inline Loaders (for buttons)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 99,
+      "text": "Default (Primary Color)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 103,
+      "text": "Loading...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 107,
+      "text": "Processing...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 112,
+      "text": "White (for colored buttons)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 116,
+      "text": "Loading...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 120,
+      "text": "Processing...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 124,
+      "text": "Saving...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 129,
+      "text": "Custom Colors",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 133,
+      "text": "Loading...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 137,
+      "text": "Processing...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 146,
+      "text": "Real-world Examples",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 149,
+      "text": "Google Auth Callback",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 155,
+      "text": "Page Loading",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 161,
+      "text": "Button Loading States",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 165,
+      "text": "Signing in...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 169,
+      "text": "Creating account...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/(main)/test-loader/page.tsx",
+      "line": 173,
+      "text": "Sending...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/app/[locale]/error.tsx",
+      "line": 78,
+      "text": "Developer Details",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/Layouts/Footer.tsx",
+      "line": 62,
+      "text": "support@tajma.net",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/Layouts/Footer.tsx",
+      "line": 70,
+      "text": "Niamey, Niger",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/Layouts/Navbar.tsx",
+      "line": 179,
+      "text": "Tajma",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/Layouts/Navbar.tsx",
+      "line": 347,
+      "text": "Scroll categories left",
+      "type": "Prop: label"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/Layouts/Navbar.tsx",
+      "line": 358,
+      "text": "Scroll categories right",
+      "type": "Prop: label"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/AdminHeader.tsx",
+      "line": 112,
+      "text": "Logout",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/AdminSidebar.tsx",
+      "line": 153,
+      "text": "Admin Panel",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/AdminSidebar.tsx",
+      "line": 154,
+      "text": "Dashboard",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 199,
+      "text": "Category name",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 207,
+      "text": "Description",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 212,
+      "text": "Category description",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 219,
+      "text": "Parent Category",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 227,
+      "text": "Select parent category (optional)",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 230,
+      "text": "None (Root Category)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 255,
+      "text": "Product",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 256,
+      "text": "Service",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 257,
+      "text": "Job",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 268,
+      "text": "Category Image",
+      "type": "Prop: label"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 276,
+      "text": "Sort Order",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 303,
+      "text": "Custom Fields",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 356,
+      "text": "Field Name (ID) *",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 365,
+      "text": "e.g. brand",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 369,
+      "text": "Field Type *",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 382,
+      "text": "Text",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 383,
+      "text": "Number",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 384,
+      "text": "Select",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 385,
+      "text": "Checkbox",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 386,
+      "text": "Text Area",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 402,
+      "text": "Required",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/admin/CategoryEditDialog.tsx",
+      "line": 407,
+      "text": "Options",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdDescription.tsx",
+      "line": 13,
+      "text": "Description",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdInfo.tsx",
+      "line": 18,
+      "text": "N/A",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdInfo.tsx",
+      "line": 24,
+      "text": "None",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdInfo.tsx",
+      "line": 108,
+      "text": "Ad Information",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdMapInner.tsx",
+      "line": 40,
+      "text": "OpenStreetMap",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdSafetyTips.tsx",
+      "line": 12,
+      "text": "Safety Tips",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdSafetyTips.tsx",
+      "line": 14,
+      "text": "• Meet in a public place",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdSafetyTips.tsx",
+      "line": 15,
+      "text": "• Inspect the item before paying",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdSafetyTips.tsx",
+      "line": 16,
+      "text": "• Never pay in advance",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdSafetyTips.tsx",
+      "line": 17,
+      "text": "• Report suspicious activity",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/AdsListingLayout.tsx",
+      "line": 406,
+      "text": "0 &&",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/PromotionModal.tsx",
+      "line": 94,
+      "text": "BEST VALUE",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/PromotionModal.tsx",
+      "line": 118,
+      "text": "Fetching Elite Tiers...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/PromotionModal.tsx",
+      "line": 219,
+      "text": "SECURE PAYMENT VIA PAYSTACK",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/ReviewForm.tsx",
+      "line": 106,
+      "text": "Share your experience with this seller...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/ReviewsSection.tsx",
+      "line": 117,
+      "text": "Customer Reviews",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/ReviewsSection.tsx",
+      "line": 155,
+      "text": "Rating Breakdown",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/ReviewsSection.tsx",
+      "line": 236,
+      "text": "Helpful",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ads/ReviewsSection.tsx",
+      "line": 264,
+      "text": "No reviews yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/auth/AuthLeftSection.tsx",
+      "line": 59,
+      "text": "Tajma",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 125,
+      "text": "Request New Category",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 126,
+      "text": "Can't find the right category? Request a new one and our team will review it.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 153,
+      "text": "e.g., Vintage Collectibles",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 173,
+      "text": "Briefly describe what items/services belong in this category",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 194,
+      "text": "Select a parent category (optional)",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 197,
+      "text": "None (Main Category)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 232,
+      "text": "Product",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 233,
+      "text": "Service",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 234,
+      "text": "CV / Job",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/categories/CategoryRequestModal.tsx",
+      "line": 250,
+      "text": "Explain why this category is needed and how it would help you and other users",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/Area/ChatHeader.tsx",
+      "line": 69,
+      "text": "typing...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/Area/ChatHeader.tsx",
+      "line": 106,
+      "text": "Select Messages",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/Area/ChatInput.tsx",
+      "line": 85,
+      "text": "Attach file",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/Area/ChatInput.tsx",
+      "line": 135,
+      "text": "Message...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/Area/ChatInput.tsx",
+      "line": 154,
+      "text": "Attach image",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/Area/MessageList.tsx",
+      "line": 116,
+      "text": "typing...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/Area/SelectionBar.tsx",
+      "line": 28,
+      "text": "Cancel selection",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/Area/SelectionBar.tsx",
+      "line": 46,
+      "text": "Copy",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/Area/SelectionBar.tsx",
+      "line": 57,
+      "text": "Delete",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ChatArea.tsx",
+      "line": 57,
+      "text": "Promise",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ChatArea.tsx",
+      "line": 58,
+      "text": "Promise",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ChatArea.tsx",
+      "line": 874,
+      "text": "Start a conversation",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ConversationList.tsx",
+      "line": 109,
+      "text": "Messages",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ConversationList.tsx",
+      "line": 110,
+      "text": "Chat with sellers and buyers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ConversationList.tsx",
+      "line": 117,
+      "text": "Search conversations...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ConversationList.tsx",
+      "line": 132,
+      "text": "Loading conversations...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ConversationList.tsx",
+      "line": 137,
+      "text": "No conversations yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ConversationList.tsx",
+      "line": 138,
+      "text": "Start chatting with sellers or buyers",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/ConversationList.tsx",
+      "line": 247,
+      "text": "You:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/EmojiPicker.tsx",
+      "line": 139,
+      "text": "Add emoji",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/MediaPreview.tsx",
+      "line": 33,
+      "text": "Close preview",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/MediaPreview.tsx",
+      "line": 37,
+      "text": "Send image",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/MediaPreview.tsx",
+      "line": 70,
+      "text": "Add a caption...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/MediaPreview.tsx",
+      "line": 88,
+      "text": "Send image",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/MessageBubble.tsx",
+      "line": 169,
+      "text": "Reply",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/MessageBubble.tsx",
+      "line": 174,
+      "text": "Copy",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/MessageBubble.tsx",
+      "line": 179,
+      "text": "Select",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/MessageBubble.tsx",
+      "line": 188,
+      "text": "Delete",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/chat/MessageBubble.tsx",
+      "line": 265,
+      "text": "Failed to load image",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/create-ad/DynamicFormFields.tsx",
+      "line": 113,
+      "text": "Press Enter or comma to add a tag",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/CallSellerModal.tsx",
+      "line": 52,
+      "text": "Contact Number",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/CallSellerModal.tsx",
+      "line": 58,
+      "text": "Phone Number",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ContactSellerModal.tsx",
+      "line": 68,
+      "text": "Message Sent!",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ContactSellerModal.tsx",
+      "line": 88,
+      "text": "Contact Seller",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ContactSellerModal.tsx",
+      "line": 93,
+      "text": "About:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ContactSellerModal.tsx",
+      "line": 99,
+      "text": "Quick messages:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ContactSellerModal.tsx",
+      "line": 125,
+      "text": "Type your message here...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/KYCModal.tsx",
+      "line": 80,
+      "text": "Identity Verification",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/KYCModal.tsx",
+      "line": 81,
+      "text": "Securely verify your identity to build trust on Tajma.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/KYCModal.tsx",
+      "line": 90,
+      "text": "Verify your account",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/KYCModal.tsx",
+      "line": 105,
+      "text": "Select ID Type",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/KYCModal.tsx",
+      "line": 124,
+      "text": "Continue",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/KYCModal.tsx",
+      "line": 151,
+      "text": "Submission Received!",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/KYCModal.tsx",
+      "line": 169,
+      "text": "Verification Failed",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/LocationSelectorModal.tsx",
+      "line": 111,
+      "text": "All Countries",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/LocationSelectorModal.tsx",
+      "line": 185,
+      "text": "All Countries",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/LocationSelectorModal.tsx",
+      "line": 186,
+      "text": "Global",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ReportAdModal.tsx",
+      "line": 112,
+      "text": "Report Submitted",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ReportAdModal.tsx",
+      "line": 132,
+      "text": "Report This Ad",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ReportAdModal.tsx",
+      "line": 133,
+      "text": "Help us understand what's wrong with this ad. Your report is anonymous.",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ReportAdModal.tsx",
+      "line": 138,
+      "text": "Reporting ad:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ReportAdModal.tsx",
+      "line": 150,
+      "text": "Select a reason",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ReportAdModal.tsx",
+      "line": 172,
+      "text": "Please provide specific details about the issue...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ReportAdModal.tsx",
+      "line": 190,
+      "text": "Please note:",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/SellerSetupDialog.tsx",
+      "line": 25,
+      "text": "Become a Seller Today!",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/SellerSetupDialog.tsx",
+      "line": 26,
+      "text": "Set up your seller account to start posting ads and reaching thousands of buyers. It only takes a few minutes!",
+      "type": "Prop: description"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ShareAdModal.tsx",
+      "line": 119,
+      "text": "Share This Ad",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ShareAdModal.tsx",
+      "line": 130,
+      "text": "Share on social media",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/modals/ShareAdModal.tsx",
+      "line": 189,
+      "text": "Or copy link",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/AdDetailsModal.tsx",
+      "line": 49,
+      "text": "Ad Details",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/AdDetailsModal.tsx",
+      "line": 89,
+      "text": "Views",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/AdDetailsModal.tsx",
+      "line": 97,
+      "text": "Saved",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/AdDetailsModal.tsx",
+      "line": 105,
+      "text": "Messages",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/AdDetailsModal.tsx",
+      "line": 113,
+      "text": "Posted",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/AdDetailsModal.tsx",
+      "line": 127,
+      "text": "Description",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileAds.tsx",
+      "line": 176,
+      "text": "Views",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileAds.tsx",
+      "line": 184,
+      "text": "Saved",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileAds.tsx",
+      "line": 192,
+      "text": "Msgs",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileHeader.tsx",
+      "line": 148,
+      "text": "Verified",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileHeader.tsx",
+      "line": 224,
+      "text": "About Seller",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileLayout/ProfileSellerBanner.tsx",
+      "line": 16,
+      "text": "Become a seller",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileLeads.tsx",
+      "line": 88,
+      "text": "Loading potential clients...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileLeads.tsx",
+      "line": 104,
+      "text": "No leads yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileLeads.tsx",
+      "line": 120,
+      "text": "Potential Clients",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileLeads.tsx",
+      "line": 121,
+      "text": "Identify and connect with users interested in your items",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileLeads.tsx",
+      "line": 140,
+      "text": "Monthly Overview",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileLeads.tsx",
+      "line": 277,
+      "text": "Ignore this lead",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileNotifications.tsx",
+      "line": 168,
+      "text": "Notifications",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 147,
+      "text": "Global Performance",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 148,
+      "text": "Calculated based on your last 30 days",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 161,
+      "text": "Avg. Views / Ad",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 170,
+      "text": "Engage Rate",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 179,
+      "text": "Conversion",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 184,
+      "text": "New",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 204,
+      "text": "Grow your sales",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 237,
+      "text": "Boost Trust",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 238,
+      "text": "Verify your identity today to win more buyers.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileOverview.tsx",
+      "line": 266,
+      "text": "Trust Score",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileReviews.tsx",
+      "line": 156,
+      "text": "Reviews",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileReviews.tsx",
+      "line": 214,
+      "text": "Helpful",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSaved.tsx",
+      "line": 47,
+      "text": "Failed to load saved ads. Please try again.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSaved.tsx",
+      "line": 113,
+      "text": "Saved Ads",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSaved.tsx",
+      "line": 183,
+      "text": "Remove from saved",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSettings.tsx",
+      "line": 484,
+      "text": "+227 92 64 99 99",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSettings.tsx",
+      "line": 639,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSettings.tsx",
+      "line": 668,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSettings.tsx",
+      "line": 696,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSettings.tsx",
+      "line": 832,
+      "text": "Deactivate Account",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSupport.tsx",
+      "line": 105,
+      "text": "Ticket Details",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSupport.tsx",
+      "line": 121,
+      "text": "Initial Request",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSupport.tsx",
+      "line": 148,
+      "text": "Type your message...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSupport.tsx",
+      "line": 168,
+      "text": "Select a ticket",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/profile/ProfileSupport.tsx",
+      "line": 169,
+      "text": "Choose a support ticket from the list to view the conversation and track progress.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/AuthButton.tsx",
+      "line": 22,
+      "text": "Authenticating...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/FiltersSection.tsx",
+      "line": 180,
+      "text": "Filters",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/FiltersSection.tsx",
+      "line": 373,
+      "text": "XOF",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/FiltersSection.tsx",
+      "line": 376,
+      "text": "Min",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/FiltersSection.tsx",
+      "line": 384,
+      "text": "XOF",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/FiltersSection.tsx",
+      "line": 387,
+      "text": "Max",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/FiltersSection.tsx",
+      "line": 459,
+      "text": "0",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/FiltersSection.tsx",
+      "line": 477,
+      "text": "Any",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/HierarchicalLocationPicker.tsx",
+      "line": 42,
+      "text": "Location",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/HierarchicalLocationPicker.tsx",
+      "line": 44,
+      "text": "Select Location",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/HierarchicalLocationPicker.tsx",
+      "line": 59,
+      "text": "Department",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/ImageUploader.tsx",
+      "line": 159,
+      "text": "Remove image",
+      "type": "Prop: label"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/NotificationDropdown.tsx",
+      "line": 134,
+      "text": "Notifications",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/NotificationDropdown.tsx",
+      "line": 159,
+      "text": "No notifications yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/NotificationDropdown.tsx",
+      "line": 218,
+      "text": "Delete notification",
+      "type": "Prop: label"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/SmartLocationSearch.tsx",
+      "line": 51,
+      "text": "(r.level || 0)",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/SmartLocationSearch.tsx",
+      "line": 102,
+      "text": "Country",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/SmartLocationSearch.tsx",
+      "line": 113,
+      "text": "Country",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/SmartLocationSearch.tsx",
+      "line": 121,
+      "text": "City / Area",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/dialog.tsx",
+      "line": 75,
+      "text": "Close",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/form.tsx",
+      "line": 23,
+      "text": "= FieldPath",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/form.tsx",
+      "line": 34,
+      "text": "= FieldPath",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/frontend/src/components/ui/sheet.tsx",
+      "line": 80,
+      "text": "Close",
+      "type": "Tag Content"
+    }
+  ],
+  "app/src": [
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/(tabs)/search.tsx",
+      "line": 199,
+      "text": "Retry",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/ads/edit/[id].tsx",
+      "line": 49,
+      "text": "Error",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/ads/edit/[id].tsx",
+      "line": 52,
+      "text": "Failed to load ad details",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/ads/edit/[id].tsx",
+      "line": 57,
+      "text": "Go Back",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/ads/edit/[id].tsx",
+      "line": 67,
+      "text": "Edit Listing",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/ads/edit/[id].tsx",
+      "line": 68,
+      "text": "Updates will be live immediately",
+      "type": "Prop: subtitle"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/categories/index.tsx",
+      "line": 18,
+      "text": "All Categories",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/categories/index.tsx",
+      "line": 36,
+      "text": "Loading categories...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/category/[slug].tsx",
+      "line": 221,
+      "text": "Loading ads...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/index.tsx",
+      "line": 380,
+      "text": "Search messages...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/index.tsx",
+      "line": 481,
+      "text": "Message Options",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/index.tsx",
+      "line": 579,
+      "text": "Media",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 126,
+      "text": "Contact Info",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 149,
+      "text": "Call",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 156,
+      "text": "Profile",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 163,
+      "text": "Search",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 171,
+      "text": "Linked Listing",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 192,
+      "text": "Media, Links and Docs",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 214,
+      "text": "No media shared yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 224,
+      "text": "Mute Notifications",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 239,
+      "text": "Notification Sound",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 246,
+      "text": "Starred Messages",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/info.tsx",
+      "line": 271,
+      "text": "Clear Chat History",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/media.tsx",
+      "line": 69,
+      "text": "No media shared yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/media.tsx",
+      "line": 103,
+      "text": "No documents shared yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/media.tsx",
+      "line": 143,
+      "text": "No links shared yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/messages/[id]/media.tsx",
+      "line": 154,
+      "text": "Shared Content",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/profile/analytics.tsx",
+      "line": 148,
+      "text": "/ 5.0",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/profile/support/create.tsx",
+      "line": 62,
+      "text": "New Ticket",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/profile/support/create.tsx",
+      "line": 62,
+      "text": "How can we help you?",
+      "type": "Prop: subtitle"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/profile/support/create.tsx",
+      "line": 134,
+      "text": "Please describe your issue in detail...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/profile/support/index.tsx",
+      "line": 78,
+      "text": "Support Tickets",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/profile/support/index.tsx",
+      "line": 79,
+      "text": "Manage your reports and requests",
+      "type": "Prop: subtitle"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/profile/support/index.tsx",
+      "line": 104,
+      "text": "No active tickets",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/profile/support/index.tsx",
+      "line": 112,
+      "text": "Create Ticket",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/seller/setup.tsx",
+      "line": 208,
+      "text": "+227 -- -- -- --",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/seller/setup.tsx",
+      "line": 253,
+      "text": "e.g. Retail, Service, Individual",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/seller/setup.tsx",
+      "line": 263,
+      "text": "https://example.com",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/settings/notifications/sounds.tsx",
+      "line": 73,
+      "text": "Alert Sounds",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/settings/notifications/sounds.tsx",
+      "line": 74,
+      "text": "Choose your preferred notification tone",
+      "type": "Prop: subtitle"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/users/[slug].tsx",
+      "line": 84,
+      "text": "Profile",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/users/[slug].tsx",
+      "line": 107,
+      "text": "Profile",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/users/[slug].tsx",
+      "line": 121,
+      "text": "Go Back",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/users/[slug].tsx",
+      "line": 245,
+      "text": "Contact",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/users/[slug].tsx",
+      "line": 316,
+      "text": "No ads yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/app/users/[slug].tsx",
+      "line": 340,
+      "text": "No reviews yet",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdForm.tsx",
+      "line": 47,
+      "text": "Promise",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdImageGallery.tsx",
+      "line": 66,
+      "text": "No images available",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdInfo.tsx",
+      "line": 16,
+      "text": "N/A",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdInfo.tsx",
+      "line": 22,
+      "text": "None",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdLocationPicker.tsx",
+      "line": 261,
+      "text": "Pin Your Location",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdLocationPicker.web.tsx",
+      "line": 49,
+      "text": "Pin Your Location",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdMap.tsx",
+      "line": 35,
+      "text": "Location",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdMap.tsx",
+      "line": 57,
+      "text": "View on Map",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdMap.tsx",
+      "line": 58,
+      "text": "Open in your favorite map app",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdMap.web.tsx",
+      "line": 18,
+      "text": "Location",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdMap.web.tsx",
+      "line": 31,
+      "text": "Map view is not available on web.",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdProductInfo.tsx",
+      "line": 114,
+      "text": "Negotiable",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdProductInfo.tsx",
+      "line": 147,
+      "text": "Posted",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdProductInfo.tsx",
+      "line": 155,
+      "text": "Saved",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdSafetyTips.tsx",
+      "line": 15,
+      "text": "• Meet in a public place",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdSafetyTips.tsx",
+      "line": 16,
+      "text": "• Inspect the item before paying",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdSafetyTips.tsx",
+      "line": 17,
+      "text": "• Never pay in advance",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/AdSafetyTips.tsx",
+      "line": 18,
+      "text": "• Report suspicious activity",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/FilterModal.tsx",
+      "line": 190,
+      "text": "0",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/ReviewForm.tsx",
+      "line": 107,
+      "text": "Share your experience with this seller...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/ReviewsSection.tsx",
+      "line": 94,
+      "text": "Loading reviews...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ads/ReviewsSection.tsx",
+      "line": 219,
+      "text": "Helpful",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/chat/ChatHeader.tsx",
+      "line": 122,
+      "text": "typing...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/chat/ChatHeader.tsx",
+      "line": 163,
+      "text": "Search Messages",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/chat/ChatHeader.tsx",
+      "line": 175,
+      "text": "View Profile",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/chat/MediaPreviewModal.tsx",
+      "line": 30,
+      "text": "(promise: Promise",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/chat/MediaPreviewModal.tsx",
+      "line": 335,
+      "text": "Add a caption...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/AdImagePicker.tsx",
+      "line": 137,
+      "text": "Preview Photos",
+      "type": "Prop: title"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/CategorySelector.tsx",
+      "line": 81,
+      "text": "Category",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/CategorySelector.tsx",
+      "line": 125,
+      "text": "Search categories...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/CategorySelector.tsx",
+      "line": 141,
+      "text": "Loading categories...",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/CategorySelector.tsx",
+      "line": 172,
+      "text": "No categories available",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/DynamicFormFields.tsx",
+      "line": 182,
+      "text": "Press enter to add a tag",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/ReviewStep.tsx",
+      "line": 49,
+      "text": "Category",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/ReviewStep.tsx",
+      "line": 57,
+      "text": "Title",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/ReviewStep.tsx",
+      "line": 66,
+      "text": "Price",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/ReviewStep.tsx",
+      "line": 75,
+      "text": "Location",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/create-ad/ReviewStep.tsx",
+      "line": 97,
+      "text": "Description",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/home/CategoriesSection.tsx",
+      "line": 44,
+      "text": "Catégories",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/home/CategoriesSection.tsx",
+      "line": 57,
+      "text": "Show all",
+      "type": "Tag Content"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/ChangePasswordForm.tsx",
+      "line": 95,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/ChangePasswordForm.tsx",
+      "line": 108,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/ChangePasswordForm.tsx",
+      "line": 121,
+      "text": "••••••••",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/EditProfileForm.tsx",
+      "line": 130,
+      "text": "First Name",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/EditProfileForm.tsx",
+      "line": 142,
+      "text": "Last Name",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/EditProfileForm.tsx",
+      "line": 154,
+      "text": "Username",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/EditProfileForm.tsx",
+      "line": 176,
+      "text": "+123 456 7890",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/EditProfileForm.tsx",
+      "line": 189,
+      "text": "Tell people about yourself...",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/EditProfileForm.tsx",
+      "line": 201,
+      "text": "City, Country",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/settings/EditProfileForm.tsx",
+      "line": 213,
+      "text": "https://example.com",
+      "type": "Prop: placeholder"
+    },
+    {
+      "file": "/home/urkelcodes/Desktop/MyProjects/Clients/tajma/app/src/components/ui/ImageViewer.tsx",
+      "line": 49,
+      "text": "= 0 && index",
+      "type": "Tag Content"
+    }
+  ]
+}

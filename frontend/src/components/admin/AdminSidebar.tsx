@@ -25,88 +25,89 @@ import { Users } from "@/components/icons/icons/Users";
 import { PackageOpen } from "@/components/icons/icons/PackageOpen";
 import { Folders } from "@/components/icons/icons/Folders";
 import { BellRing } from "@/components/icons/icons/BellRing";
+import { useTranslations } from "next-intl";
 
-const menuItems = [
+const getMenuItems = (t: any) => [
   {
-    label: "Dashboard",
+    label: t("dashboard"),
     href: "/admin",
     icon: LayoutGrid,
     isAnimated: true,
   },
   {
-    label: "Users",
+    label: t("users"),
     href: "/admin/users",
     icon: Users,
     isAnimated: true,
   },
   {
-    label: "Ads",
+    label: t("ads"),
     href: "/admin/ads",
     icon: PackageOpen,
     isAnimated: true,
   },
   {
-    label: "Leads",
+    label: t("leads"),
     href: "/admin/leads",
     icon: MousePointer2,
     isAnimated: false,
   },
   {
-    label: "Promotions",
+    label: t("promotions"),
     href: "/admin/promotions",
     icon: Megaphone,
     isAnimated: false,
   },
   {
-    label: "Categories",
+    label: t("categories"),
     href: "/admin/categories",
     icon: Folders,
     isAnimated: true,
   },
   {
-    label: "Countries",
+    label: t("countries"),
     href: "/admin/countries",
     icon: MapPin,
     isAnimated: true,
   },
   {
-    label: "Notifications",
+    label: t("notifications"),
     href: "/admin/notifications",
     icon: BellRing,
     isAnimated: true,
   },
   {
-    label: "Chats",
+    label: t("chats"),
     href: "/admin/chats",
     icon: MessageSquare,
     isAnimated: false,
   },
   {
-    label: "Messages",
+    label: t("messages"),
     href: "/admin/messages",
     icon: Mail,
     isAnimated: false,
   },
   {
-    label: "Reports",
+    label: t("reports"),
     href: "/admin/reports",
     icon: AlertCircle,
     isAnimated: false,
   },
   {
-    label: "KYC Requests",
+    label: t("kyc_requests"),
     href: "/admin/kyc",
     icon: ShieldCheck,
     isAnimated: false,
   },
   {
-    label: "Reviews",
+    label: t("reviews"),
     href: "/admin/reviews",
     icon: Star,
     isAnimated: false,
   },
   {
-    label: "View Site",
+    label: t("view_site"),
     href: "/",
     icon: Globe2,
     isAnimated: false,
@@ -122,6 +123,7 @@ export default function AdminSidebar({
   isCollapsed,
   onToggle,
 }: AdminSidebarProps) {
+  const t = useTranslations("admin.sidebar");
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuthStore();
@@ -130,6 +132,8 @@ export default function AdminSidebar({
     logout();
     router.push("/login");
   };
+
+  const menuItems = getMenuItems(t);
 
   return (
     <aside className="bg-gray-50 h-full flex flex-col rounded-2xl border border-gray-100 w-full py-4">
@@ -150,8 +154,8 @@ export default function AdminSidebar({
                   <span className="text-white text-lg font-bold">A</span>
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-semibold text-gray-900 truncate">Admin Panel</span>
-                  <span className="text-xs text-gray-500 truncate">Dashboard</span>
+                  <span className="text-sm font-semibold text-gray-900 truncate">{t("admin_panel")}</span>
+                  <span className="text-xs text-gray-500 truncate">{t("dashboard")}</span>
                 </div>
               </div>
             </motion.div>
@@ -255,7 +259,7 @@ export default function AdminSidebar({
                 transition={{ duration: 0.2 }}
                 className="text-sm font-medium whitespace-nowrap overflow-hidden"
               >
-                Logout
+                {t("logout")}
               </motion.span>
             </AnimatePresence>
           )}
