@@ -1,5 +1,5 @@
 from celery import shared_task
-from django.db.models import Count, Exists, OuterRef
+from django.db.models import Count
 from api.models.ad import Ad, AdTranslation
 from api.models.category import Category, CategoryTranslation
 from api.services.translation_service import TranslationService
@@ -15,17 +15,27 @@ SUPPORTED_LANGUAGES = ['en', 'fr', 'ha']
 def translate_ad_task(ad_id):
     """
     Translates an ad into all supported languages.
+
+    Source preference: is_original=True first. If absent (legacy ads created
+    before the original flag was enforced), fall back to whichever translation
+    exists. Without this fallback, the periodic cleanup silently skips legacy
+    ads forever.
     """
     try:
         ad = Ad.objects.get(id=ad_id)
         original_translation = ad.translations.filter(is_original=True).first()
-        
         if not original_translation:
-            logger.error(f"No original translation found for ad {ad_id}")
-            return
+            original_translation = ad.translations.first()
+            if not original_translation:
+                logger.error(f"Ad {ad_id} has no translation at all — nothing to seed from")
+                return
+            logger.info(
+                f"Ad {ad_id} has no is_original=True translation; "
+                f"using '{original_translation.language}' as fallback source"
+            )
 
         service = TranslationService()
-        target_languages = ['en', 'fr', 'ha']
+        target_languages = SUPPORTED_LANGUAGES
         
         for lang in target_languages:
             if lang == original_translation.language:
@@ -60,15 +70,15 @@ def translate_category_task(category_id):
     """
     try:
         category = Category.objects.get(id=category_id)
-        # Assume the first translation created is the original/source
+        # Categories don't track is_original — first translation is the seed.
         original_translation = category.translations.first()
-        
+
         if not original_translation:
             logger.error(f"No translation found for category {category_id}")
             return
 
         service = TranslationService()
-        target_languages = ['en', 'fr', 'ha']
+        target_languages = SUPPORTED_LANGUAGES
         
         for lang in target_languages:
             if lang == original_translation.language:
@@ -114,18 +124,14 @@ def cleanup_missing_translations():
     """
     expected_count = len(SUPPORTED_LANGUAGES)
 
-    # Ads: must have an is_original=True row to seed translation from.
-    # Use Exists() subquery so the count below isn't narrowed by the JOIN.
-    has_original_translation = AdTranslation.objects.filter(
-        ad=OuterRef('pk'),
-        is_original=True,
-    )
+    # Ads: include any ad with at least one translation (per-ad task handles
+    # seed selection — prefers is_original=True, falls back to first existing).
+    # This makes the sweep robust to legacy ads created before is_original was
+    # enforced.
     incomplete_ad_ids = list(
         Ad.objects
         .annotate(n_translations=Count('translations'))
-        .filter(n_translations__lt=expected_count)
-        .annotate(has_original=Exists(has_original_translation))
-        .filter(has_original=True)
+        .filter(n_translations__gte=1, n_translations__lt=expected_count)
         .values_list('id', flat=True)
     )
 
