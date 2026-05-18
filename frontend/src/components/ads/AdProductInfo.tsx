@@ -158,39 +158,29 @@ export default function AdProductInfo({
       </div>
 
       {isOwner ? (
-        <>
-          {/* Owner Stats */}
-          <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl mb-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              {t('ad_statistics')}
-            </h3>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-gray-600">{t('views')}</p>
-                <p className="text-lg font-bold text-gray-900">{ad.views || 0}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">{t('favorites')}</p>
-                <p className="text-lg font-bold text-gray-900">{ad.saved_count || 0}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">{t('messages_stat')}</p>
-                <p className="text-lg font-bold text-gray-900">0</p>
-              </div>
-              <div>
-                <p className="text-gray-600">{t('status_label')}</p>
-                <p className="text-lg font-bold capitalize text-gray-900">{ad.status}</p>
-              </div>
+        <div className="space-y-6 pt-6 border-t border-gray-100">
+          {/* Compact Owner Stats */}
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">{t('views')}</span>
+              <span className="text-lg font-black text-gray-900 leading-none">{ad.views || 0}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">{t('favorites')}</span>
+              <span className="text-lg font-black text-gray-900 leading-none">{ad.saved_count || 0}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">{t('status_label')}</span>
+              <span className="text-sm font-bold text-primary capitalize leading-none">{ad.status}</span>
             </div>
           </div>
 
           {/* Owner Actions */}
-          <div className="space-y-2">
-            <Link href={`/ads/${ad.slug}/edit`} className="block">
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/ads/${ad.slug}/edit`}>
               <Button 
                 variant="outline" 
-                className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground" 
+                className="w-fit border-2 border-primary/20 text-primary hover:border-primary hover:bg-primary/5 font-bold px-6 rounded-full" 
                 size="sm"
               >
                 <Edit className="w-4 h-4 mr-2" />
@@ -198,45 +188,42 @@ export default function AdProductInfo({
               </Button>
             </Link>
             <Button 
-              variant="outline" 
-              className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground" 
+              variant="ghost" 
+              className="w-fit bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold px-6 rounded-full" 
               size="sm"
               onClick={handleArchive}
               disabled={updateAd.isPending}
             >
               <Archive className="w-4 h-4 mr-2" />
-              {updateAd.isPending ? t('updating') : ad.status === 'archived' ? t('unarchive') : t('archive')}
+              {ad.status === 'archived' ? 'Restore' : 'Archive'}
             </Button>
             <Button 
-              variant="outline" 
-              className="w-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground" 
+              variant="ghost" 
+              className="w-fit bg-red-50 hover:bg-red-100 text-red-600 font-bold px-6 rounded-full" 
               size="sm"
               onClick={handleDelete}
               disabled={deleteAd.isPending}
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              {deleteAd.isPending ? t('deleting') : t('delete_ad')}
+              Delete
             </Button>
-          </div>
-
-          <div className="flex gap-2 mt-4">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="flex-1"
+              className="w-fit bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold px-6 rounded-full"
               onClick={onShare}
             >
               <Share2 className="w-4 h-4 mr-2" />
               {t('share')}
             </Button>
           </div>
-        </>
+        </div>
       ) : (
-        <>
+        <div className="space-y-4 pt-4 border-t border-gray-100">
           <div className="space-y-3">
             {!showContactForm ? (
               <Button 
-                className="w-full" 
+                className="w-full h-12 rounded-full font-bold" 
                 size="lg"
                 onClick={onContactSeller}
               >
@@ -268,7 +255,7 @@ export default function AdProductInfo({
                     value={contactMessage}
                     onChange={(e) => onContactMessageChange(e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
                     placeholder={t('type_message_placeholder')}
                     required
                   />
@@ -278,7 +265,7 @@ export default function AdProductInfo({
                       variant="ghost"
                       size="sm"
                       onClick={onCancelContact}
-                      className="flex-1"
+                      className="flex-1 rounded-full"
                     >
                       {t('cancel')}
                     </Button>
@@ -286,7 +273,7 @@ export default function AdProductInfo({
                       type="submit"
                       disabled={isCreatingChat || !contactMessage.trim()}
                       size="sm"
-                      className="flex-1"
+                      className="flex-1 rounded-full"
                     >
                       {isCreatingChat ? t('sending') : t('send')}
                     </Button>
@@ -297,7 +284,7 @@ export default function AdProductInfo({
             {ad.seller?.phone && (
               <Button 
                 variant="secondary" 
-                className="w-full" 
+                className="w-full h-12 rounded-full font-bold" 
                 size="lg" 
                 onClick={onCallSeller}
               >
@@ -307,11 +294,11 @@ export default function AdProductInfo({
             )}
           </div>
 
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 pt-2">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="flex-1"
+              className="flex-1 h-10 rounded-full bg-gray-50/50 hover:bg-gray-100 text-gray-600 font-medium"
               onClick={onShare}
             >
               <Share2 className="w-4 h-4 mr-2" />
@@ -320,14 +307,14 @@ export default function AdProductInfo({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="flex-1"
+              className="flex-1 h-10 rounded-full bg-gray-50/50 hover:bg-gray-100 text-gray-600 font-medium"
               onClick={onReport}
             >
               <Flag className="w-4 h-4 mr-2" />
               {t('report')}
             </Button>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

@@ -333,9 +333,9 @@ export default function EditAdClient({ adId }: EditAdClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
-      <div className="max-w-3xl mx-auto px-4">
-        <div className="bg-white border border-gray-200 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 py-0 sm:py-8">
+      <div className="max-w-3xl mx-auto px-0 sm:px-4">
+        <div className="bg-white border-y sm:border border-gray-200 rounded-none p-4 sm:p-6 lg:p-8">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Edit Your Ad</h1>
             <p className="text-gray-600 text-sm sm:text-base">Update your listing information</p>

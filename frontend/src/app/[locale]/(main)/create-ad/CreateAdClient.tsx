@@ -510,9 +510,9 @@ export default function CreateAdClient() {
           : t('titles.post_ad')
 
   return (
-    <div className="min-h-screen bg-white py-4 sm:py-8 transition-all duration-500">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white border border-gray-200 rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-10 lg:p-12 overflow-hidden shadow-none">
+    <div className="min-h-screen bg-white py-0 sm:py-8 transition-all duration-500">
+      <div className="max-w-4xl mx-auto px-0 sm:px-4">
+        <div className="bg-white border-y sm:border border-gray-200 rounded-none sm:rounded-[2rem] lg:rounded-[3rem] p-4 sm:p-10 lg:p-12 overflow-hidden shadow-none">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{currentStepTitle}</h1>
             <p className="text-gray-600 text-sm sm:text-base">
