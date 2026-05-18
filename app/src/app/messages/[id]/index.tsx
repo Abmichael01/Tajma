@@ -1,6 +1,5 @@
 import {
   View,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   ImageBackground,
@@ -9,10 +8,18 @@ import {
   Keyboard,
   Clipboard,
   Alert,
+  Dimensions,
 } from "react-native";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AppText from "@/components/ui/AppText";
@@ -32,7 +39,12 @@ import * as DocumentPicker from "expo-document-picker";
 import { ChatMessage } from "@/api/types";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
+// Approximates the iOS keyboard's native bezier; works on Android too.
+const KB_EASING = Easing.bezier(0.17, 0.59, 0.4, 0.77);
+const KB_FALLBACK_DURATION = 220;
+
 export default function ChatRoomScreen() {
+  const { t } = useTranslation();
   const { id, search: searchParam } = useLocalSearchParams<{
     id: string;
     search?: string;
@@ -94,6 +106,226 @@ export default function ChatRoomScreen() {
       setIsReady(true);
     }, 50); // Minimal delay to allow transition to start
     return () => clearTimeout(timer);
+  }, []);
+
+  // ── Unified bottom panel (sticker | attachment | null) — reveal pattern ───
+  // ALL panels are rendered absolutely at the screen bottom. Keyboard slides
+  // OVER them; dismissing the keyboard REVEALS whichever panel is currently
+  // active. Only one panel can be active at a time (mutual exclusion).
+  //
+  // The chat content has a marginBottom = bottomInset which stays at
+  // keyboardHeight whenever any panel is active OR keyboard is up. That keeps
+  // the input row at a constant Y across all transitions.
+  type ActivePanel = "sticker" | "attachment" | null;
+  const [activePanel, setActivePanel] = useState<ActivePanel>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(320);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const bottomInset = useSharedValue(0);
+  const isOpeningPanelRef = useRef(false);
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      const h = e.endCoordinates?.height ?? 320;
+      setKeyboardHeight(h);
+      setIsKeyboardVisible(true);
+      // Keyboard takes over from any open panel.
+      setActivePanel(null);
+      const dur =
+        (e as { duration?: number }).duration &&
+        (e as { duration?: number }).duration! > 0
+          ? (e as { duration: number }).duration
+          : KB_FALLBACK_DURATION;
+      bottomInset.value = withTiming(h, {
+        duration: dur,
+        easing: KB_EASING,
+      });
+    });
+
+    const hideSub = Keyboard.addListener(hideEvent, (e) => {
+      setIsKeyboardVisible(false);
+      if (isOpeningPanelRef.current) {
+        // Keyboard dismissing TO reveal a panel — keep inset, no animation.
+        isOpeningPanelRef.current = false;
+        return;
+      }
+      const dur =
+        (e as { duration?: number } | undefined)?.duration &&
+        (e as { duration?: number }).duration! > 0
+          ? (e as { duration: number }).duration
+          : KB_FALLBACK_DURATION;
+      bottomInset.value = withTiming(0, {
+        duration: dur,
+        easing: KB_EASING,
+      });
+    });
+
+    // iOS only: catch mid-session keyboard frame changes (text ↔ emoji mode,
+    // language switch, hardware keyboard attach). Filtered to skip the
+    // dismiss case — keyboardWillChangeFrame ALSO fires when the keyboard
+    // moves off-screen, with endCoordinates.screenY === screen.height. We
+    // only want to react when the keyboard will remain visible.
+    const changeFrameSub =
+      Platform.OS === "ios"
+        ? Keyboard.addListener("keyboardWillChangeFrame", (e) => {
+            const newHeight = e.endCoordinates?.height;
+            const screenY = e.endCoordinates?.screenY;
+            const screenHeight = Dimensions.get("screen").height;
+            // Skip dismiss-flavored frame changes (keyboard going off-screen).
+            if (
+              screenY !== undefined &&
+              screenY >= screenHeight - 1
+            ) {
+              return;
+            }
+            if (!newHeight || newHeight <= 0) return;
+            setKeyboardHeight(newHeight);
+            const dur =
+              (e as { duration?: number }).duration &&
+              (e as { duration?: number }).duration! > 0
+                ? (e as { duration: number }).duration
+                : KB_FALLBACK_DURATION;
+            bottomInset.value = withTiming(newHeight, {
+              duration: dur,
+              easing: KB_EASING,
+            });
+          })
+        : null;
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+      changeFrameSub?.remove();
+    };
+  }, [bottomInset]);
+
+  // Invariant: bottomInset must be 0 whenever neither keyboard nor any panel
+  // is active. Catches paths where setActivePanel(null) is called outside the
+  // keyboard listener (e.g., after picking a camera/gallery/document).
+  useEffect(() => {
+    if (activePanel === null && !isKeyboardVisible && bottomInset.value > 0) {
+      bottomInset.value = withTiming(0, {
+        duration: KB_FALLBACK_DURATION,
+        easing: KB_EASING,
+      });
+    }
+  }, [activePanel, isKeyboardVisible, bottomInset]);
+
+  const animatedContentStyle = useAnimatedStyle(() => ({
+    marginBottom: bottomInset.value,
+  }));
+
+  const openPanel = useCallback(
+    (target: "sticker" | "attachment") => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      if (activePanel === target) {
+        // Tapping same icon again: close panel → focus input → keyboard rises.
+        setShouldRefocusInput((n) => n + 1);
+        return;
+      }
+      // Switching panels or opening from nothing.
+      setActivePanel(target);
+      if (isKeyboardVisible) {
+        // Coming from keyboard: dismiss, keep bottomInset at kbHeight.
+        isOpeningPanelRef.current = true;
+        Keyboard.dismiss();
+      } else if (bottomInset.value === 0) {
+        // No keyboard, no other panel: animate bottomInset up.
+        bottomInset.value = withTiming(keyboardHeight, {
+          duration: KB_FALLBACK_DURATION,
+          easing: KB_EASING,
+        });
+      }
+      // else: switching from one panel to another — bottomInset already at kbHeight.
+    },
+    [activePanel, isKeyboardVisible, keyboardHeight, bottomInset],
+  );
+
+  const handleToggleSticker = useCallback(
+    () => openPanel("sticker"),
+    [openPanel],
+  );
+  const handleToggleAttachment = useCallback(
+    () => openPanel("attachment"),
+    [openPanel],
+  );
+
+  // Bumping this triggers ChatInput to focus its TextInput.
+  const [shouldRefocusInput, setShouldRefocusInput] = useState(0);
+
+  // ── Attachment pickers (lifted from ChatInput so they live alongside the panel) ─
+  const handlePickCamera = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert(
+          t("create_ad.images.permissionRequired"),
+          t("chat.cameraPermission"),
+        );
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        quality: 0.9,
+      });
+      if (!result.canceled && result.assets?.length) {
+        setActivePanel(null);
+        onImageSelectRequest(result.assets[0]);
+      }
+    } catch (err) {
+      console.warn("[ChatRoom] camera failed:", err);
+      Alert.alert(t("common.error"), t("chat.cameraError"));
+    }
+  }, [t]);
+
+  const handlePickGallery = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert(
+          t("create_ad.images.permissionRequired"),
+          t("chat.cameraRollPermission"),
+        );
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.9,
+        allowsMultipleSelection: false,
+        selectionLimit: 1,
+      });
+      if (!result.canceled && result.assets?.length) {
+        setActivePanel(null);
+        onImageSelectRequest(result.assets[0]);
+      }
+    } catch (err) {
+      console.warn("[ChatRoom] gallery failed:", err);
+      Alert.alert(t("common.error"), t("chat.galleryError"));
+    }
+  }, [t]);
+
+  const handlePickDocument = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "*/*",
+        copyToCacheDirectory: true,
+      });
+      if (!result.canceled) {
+        setActivePanel(null);
+        onDocumentSelectRequest(result);
+      }
+    } catch (err) {
+      console.warn("[ChatRoom] document failed:", err);
+      Alert.alert("Upload Error", "Could not open your files. Please try again.");
+    }
   }, []);
 
   useEffect(() => {
@@ -437,10 +669,11 @@ export default function ChatRoomScreen() {
         </View>
       </Animated.View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? headerHeight + (isSearchVisible ? 60 : 0) : 0}
-        style={{ flex: 1, backgroundColor: "#ECE5DD" }}
+      <Reanimated.View
+        style={[
+          { flex: 1, backgroundColor: "#ECE5DD" },
+          animatedContentStyle,
+        ]}
       >
         <View className="flex-1 relative">
           <ImageBackground
@@ -624,16 +857,142 @@ export default function ChatRoomScreen() {
             <ChatInput
               onSend={handleSendWithSound}
               onTypingChange={sendTyping}
-              onImageSelect={onImageSelectRequest}
               onAudioSelect={handleAudioSelect}
-              onDocumentSelect={onDocumentSelectRequest}
               replyTo={replyTo}
               onCancelReply={() => setReplyTo(null)}
               disabled={isChatLoading}
+              isBottomAreaActive={isKeyboardVisible || activePanel !== null}
+              activePanel={activePanel}
+              onToggleSticker={handleToggleSticker}
+              onToggleAttachment={handleToggleAttachment}
+              onPickCamera={handlePickCamera}
+              shouldFocusInputSignal={shouldRefocusInput}
             />
           </View>
         )}
-      </KeyboardAvoidingView>
+      </Reanimated.View>
+
+      {/* Unified bottom panel — absolutely positioned at screen bottom, behind
+          the keyboard. On iOS this gives the perfect reveal; on Android the
+          RN window resize means it sits just above the keyboard area while
+          keyboard is up, but stays put when keyboard dismisses. */}
+      {activePanel !== null && (
+        <View
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: keyboardHeight,
+            backgroundColor: "#F5F5F5",
+            borderTopWidth: 1,
+            borderTopColor: "#E5E7EB",
+          }}
+        >
+          {activePanel === "sticker" ? (
+            <View
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {/* TODO: drop a sticker grid component here. */}
+              <Ionicons name="happy-outline" size={32} color="#CBD5E1" />
+              <AppText style={{ color: "#94A3B8", marginTop: 8, fontSize: 13 }}>
+                Stickers coming soon
+              </AppText>
+            </View>
+          ) : (
+            // Attachment panel: 3 options centered in the same drawer height
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                justifyContent: "space-around",
+                alignItems: "center",
+                paddingHorizontal: 24,
+              }}
+            >
+              <Pressable
+                onPress={handlePickCamera}
+                style={{ alignItems: "center", gap: 8 }}
+              >
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+                    backgroundColor: "#FFF7ED",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: 1,
+                    borderColor: "#FFEDD5",
+                  }}
+                >
+                  <Ionicons name="camera" size={26} color="#FF4F18" />
+                </View>
+                <AppText
+                  style={{ fontSize: 13, color: "#475569" }}
+                  weight="semibold"
+                >
+                  {t("chat.camera")}
+                </AppText>
+              </Pressable>
+              <Pressable
+                onPress={handlePickGallery}
+                style={{ alignItems: "center", gap: 8 }}
+              >
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+                    backgroundColor: "#FFF7ED",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: 1,
+                    borderColor: "#FFEDD5",
+                  }}
+                >
+                  <Ionicons name="image" size={26} color="#FF4F18" />
+                </View>
+                <AppText
+                  style={{ fontSize: 13, color: "#475569" }}
+                  weight="semibold"
+                >
+                  {t("chat.gallery")}
+                </AppText>
+              </Pressable>
+              <Pressable
+                onPress={handlePickDocument}
+                style={{ alignItems: "center", gap: 8 }}
+              >
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+                    backgroundColor: "#FFF7ED",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: 1,
+                    borderColor: "#FFEDD5",
+                  }}
+                >
+                  <Ionicons name="document-text" size={26} color="#FF4F18" />
+                </View>
+                <AppText
+                  style={{ fontSize: 13, color: "#475569" }}
+                  weight="semibold"
+                >
+                  {t("chat.document")}
+                </AppText>
+              </Pressable>
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }

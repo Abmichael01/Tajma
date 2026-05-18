@@ -40,9 +40,7 @@ import {
   StyleSheet,
   Animated as RNAnimated,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import * as DocumentPicker from "expo-document-picker";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   useAudioRecorder,
   IOSOutputFormat,
@@ -67,16 +65,12 @@ import Animated, {
   cancelAnimation,
   type SharedValue,
 } from "react-native-reanimated";
-import { EmojiKeyboard, type EmojiType } from "rn-emoji-keyboard";
 import AppText from "@/components/ui/AppText";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const CANCEL_X = -110; // px leftward → cancel
 const LOCK_Y = -100; // px upward   → lock
 const MIN_MS = 600; // discard if shorter than 1 s (same as WhatsApp)
-const DEFAULT_EMOJI_PANEL_HEIGHT = 320;
-const MAX_EMOJI_PANEL_HEIGHT = 360;
-const MIN_EMOJI_PANEL_HEIGHT = 280;
 
 // ─── Sound assets ─────────────────────────────────────────────────────────────
 // Replace nulls with: require("../assets/sounds/record_start.wav") etc.
@@ -266,24 +260,37 @@ LockIndicator.displayName = "LockIndicator";
 interface ChatInputProps {
   onSend: (text: string) => void;
   onTypingChange?: (isTyping: boolean) => void;
-  onImageSelect?: (asset: ImagePicker.ImagePickerAsset) => void;
   onAudioSelect?: (uri: string, duration: number) => void;
-  onDocumentSelect?: (result: DocumentPicker.DocumentPickerResult) => void;
   disabled?: boolean;
   replyTo?: any;
   onCancelReply?: () => void;
+  /** True when keyboard is up OR a bottom panel is open (parent owns this). */
+  isBottomAreaActive?: boolean;
+  /** Which bottom panel is active, if any. Drives icon-swap behavior. */
+  activePanel?: "sticker" | "attachment" | null;
+  /** Tap handlers for the two icons. Parent decides what to do. */
+  onToggleSticker?: () => void;
+  onToggleAttachment?: () => void;
+  /** Quick-camera shortcut (the camera icon on the right of the input). */
+  onPickCamera?: () => void;
+  /** Parent bumps this counter to request input focus (e.g., closing panel). */
+  shouldFocusInputSignal?: number;
 }
 
 // ─── ChatInput ────────────────────────────────────────────────────────────────
 export default function ChatInput({
   onSend,
   onTypingChange,
-  onImageSelect,
   onAudioSelect,
-  onDocumentSelect,
   disabled,
   replyTo,
   onCancelReply,
+  isBottomAreaActive = false,
+  activePanel = null,
+  onToggleSticker,
+  onToggleAttachment,
+  onPickCamera,
+  shouldFocusInputSignal,
 }: ChatInputProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -292,19 +299,6 @@ export default function ChatInput({
   const [isRecording, setIsRecording] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [showEmoji, setShowEmoji] = useState(false);
-  const [showAttachSheet, setShowAttachSheet] = useState(false);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(
-    DEFAULT_EMOJI_PANEL_HEIGHT,
-  );
-
-  // Smooth bottom padding animation
-  const animatedBottomPadding = useSharedValue(Math.max(insets.bottom, 6));
-
-  const rowAnimatedStyle = useAnimatedStyle(() => ({
-    paddingBottom: animatedBottomPadding.value,
-  }));
 
   // Shared values (UI thread)
   const micX = useSharedValue(0);
@@ -324,7 +318,14 @@ export default function ChatInput({
   const isPausedRef = useRef(false); // ref so stopRecording closure doesn't go stale
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<TextInput>(null);
-  const pendingEmojiOpenRef = useRef(false);
+
+  // Parent bumps shouldFocusInputSignal to ask us to focus the TextInput
+  // (e.g., when the sticker drawer is being closed).
+  useEffect(() => {
+    if (shouldFocusInputSignal && shouldFocusInputSignal > 0) {
+      inputRef.current?.focus();
+    }
+  }, [shouldFocusInputSignal]);
 
   useEffect(() => {
     isPausedRef.current = isPaused;
@@ -689,175 +690,6 @@ export default function ChatInput({
     if (typingTimeout.current) clearTimeout(typingTimeout.current);
   }, [text, onSend, onTypingChange]);
 
-  const handleEmojiSelect = useCallback(
-    (emoji: EmojiType) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      requestAnimationFrame(() => {
-        setText((p) => p + emoji.emoji);
-        onTypingChange?.(true);
-      });
-    },
-    [onTypingChange],
-  );
-
-  const handleBackspace = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    requestAnimationFrame(() => {
-      setText((p) => {
-        const chars = Array.from(p);
-        chars.pop();
-        return chars.join("");
-      });
-    });
-  }, []);
-
-  const toggleEmoji = useCallback(() => {
-    setShowAttachSheet(false);
-    if (showEmoji) {
-      pendingEmojiOpenRef.current = false;
-      setShowEmoji(false);
-      requestAnimationFrame(() => inputRef.current?.focus());
-    } else {
-      pendingEmojiOpenRef.current = true;
-      inputRef.current?.blur();
-      Keyboard.dismiss();
-      if (!isKeyboardVisible) {
-        pendingEmojiOpenRef.current = false;
-        setShowEmoji(true);
-      }
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, [isKeyboardVisible, showEmoji]);
-
-  useEffect(() => {
-    const showEvent =
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent =
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-
-    const showSubscription = Keyboard.addListener(showEvent, (event) => {
-      const nativeHeight =
-        event.endCoordinates?.height ?? DEFAULT_EMOJI_PANEL_HEIGHT;
-      setKeyboardHeight(
-        Math.max(
-          MIN_EMOJI_PANEL_HEIGHT,
-          Math.min(MAX_EMOJI_PANEL_HEIGHT, nativeHeight),
-        ),
-      );
-      setIsKeyboardVisible(true);
-      setShowEmoji(false);
-      
-      // Sync padding animation with keyboard
-      animatedBottomPadding.value = withTiming(6, {
-        duration: event.duration || 250,
-        easing: Easing.out(Easing.quad),
-      });
-    });
-    const hideSubscription = Keyboard.addListener(hideEvent, (event) => {
-      setIsKeyboardVisible(false);
-      if (pendingEmojiOpenRef.current) {
-        pendingEmojiOpenRef.current = false;
-        setShowEmoji(true);
-      }
-      
-      // Sync padding animation with keyboard
-      animatedBottomPadding.value = withTiming(Math.max(insets.bottom, 6), {
-        duration: event?.duration || 250,
-        easing: Easing.out(Easing.quad),
-      });
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, [insets.bottom]);
-
-  // Handle emoji/attach sheet padding
-  useEffect(() => {
-    if (showEmoji || showAttachSheet) {
-      animatedBottomPadding.value = withTiming(6, { duration: 200 });
-    } else if (!isKeyboardVisible) {
-      animatedBottomPadding.value = withTiming(Math.max(insets.bottom, 6), { duration: 200 });
-    }
-  }, [showEmoji, showAttachSheet, isKeyboardVisible, insets.bottom]);
-
-  const handlePickImage = useCallback(async () => {
-    if (!onImageSelect) return;
-    try {
-      const permission =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert(t('create_ad.images.permissionRequired'), t('chat.cameraRollPermission'));
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        quality: 0.9,
-        allowsMultipleSelection: false,
-        selectionLimit: 1,
-      });
-      if (!result.canceled && result.assets?.length)
-        onImageSelect(result.assets[0]);
-    } catch (error) {
-      console.warn("[ChatInput] pick image failed:", error);
-      Alert.alert(
-        t('common.error'),
-        t('chat.galleryError'),
-      );
-    }
-  }, [onImageSelect]);
-
-  const handlePickCamera = useCallback(async () => {
-    if (!onImageSelect) return;
-    try {
-      const permission = await ImagePicker.requestCameraPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert(t('create_ad.images.permissionRequired'), t('chat.cameraPermission'));
-        return;
-      }
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ["images"],
-        quality: 0.9,
-      });
-      if (!result.canceled && result.assets?.length)
-        onImageSelect(result.assets[0]);
-    } catch (error) {
-      console.warn("[ChatInput] camera failed:", error);
-      Alert.alert(
-        t('common.error'),
-        t('chat.cameraError'),
-      );
-    }
-  }, [onImageSelect]);
-
-  const handlePickDocument = useCallback(async () => {
-    if (!onDocumentSelect) return;
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "*/*",
-        copyToCacheDirectory: true,
-      });
-      if (!result.canceled) onDocumentSelect(result);
-    } catch (error) {
-      console.warn("[ChatInput] document picker failed:", error);
-      Alert.alert(
-        "Upload Error",
-        "Could not open your files. Please try again.",
-      );
-    }
-  }, [onDocumentSelect]);
-
-  const handleAttachPress = useCallback(() => {
-    setShowAttachSheet((prev) => {
-      const next = !prev;
-      if (next) {
-        Keyboard.dismiss();
-        setShowEmoji(false);
-      }
-      return next;
-    });
-  }, []);
 
   // ── Render ───────────────────────────────────────────────────────────────────
   const hasText = text.trim().length > 0;
@@ -915,34 +747,48 @@ export default function ChatInput({
         </View>
       </RNAnimated.View>
 
-      <Animated.View style={[styles.row, rowAnimatedStyle]}>
+      <View
+        style={[
+          styles.row,
+          {
+            paddingBottom:
+              isBottomAreaActive
+                ? 6
+                : Math.max(insets.bottom, 6),
+          },
+        ]}
+      >
         {/* Input bubble */}
         <View style={styles.inputBubble}>
           {!showRecordUI ? (
             <>
               <Pressable
-                onPress={handleAttachPress}
+                onPress={onToggleAttachment}
                 disabled={disabled}
                 style={styles.iconBtn}
                 hitSlop={6}
               >
-                <Ionicons
-                  name={showAttachSheet ? "close-circle" : "add-circle"}
-                  size={28}
-                  color="#FF4F18"
-                />
+                {activePanel === "attachment" ? (
+                  <Ionicons name="keypad-outline" size={28} color="#FF4F18" />
+                ) : (
+                  <Ionicons name="add-circle" size={28} color="#FF4F18" />
+                )}
               </Pressable>
 
               <Pressable
-                onPress={toggleEmoji}
+                onPress={onToggleSticker}
                 style={styles.iconBtn}
                 hitSlop={6}
               >
-                <Ionicons
-                  name={showEmoji ? "keypad-outline" : "happy-outline"}
-                  size={24}
-                  color="#64748B"
-                />
+                {activePanel === "sticker" ? (
+                  <Ionicons name="keypad-outline" size={24} color="#64748B" />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="sticker-emoji"
+                    size={24}
+                    color="#64748B"
+                  />
+                )}
               </Pressable>
 
               <TextInput
@@ -957,14 +803,12 @@ export default function ChatInput({
                 style={styles.textInput}
                 editable={!disabled}
                 onFocus={() => {
-                  pendingEmojiOpenRef.current = false;
-                  setShowEmoji(false);
-                  setShowAttachSheet(false);
+                  // Parent's keyboard listener will close any open panel.
                 }}
               />
 
               <Pressable
-                onPress={handlePickCamera}
+                onPress={onPickCamera}
                 disabled={disabled}
                 style={styles.iconBtn}
                 hitSlop={6}
@@ -1066,91 +910,8 @@ export default function ChatInput({
             </GestureDetector>
           )}
         </View>
-      </Animated.View>
+      </View>
 
-      {showEmoji && (
-        <View style={[styles.emojiPanel, { height: keyboardHeight }]}>
-          <EmojiKeyboard
-            onEmojiSelected={handleEmojiSelect}
-            theme={{ container: "#F5F5F5" }}
-            expandable={false}
-            hideHeader={true}
-            disableSafeArea
-            enableSearchBar={false}
-            categoryPosition="bottom"
-            customButtons={
-              <Pressable 
-                onPress={handleBackspace}
-                style={({ pressed }) => [
-                  {
-                    padding: 10,
-                    borderRadius: 20,
-                    backgroundColor: pressed ? '#E2E8F0' : 'transparent',
-                    marginRight: 10,
-                  }
-                ]}
-              >
-                <Ionicons name="backspace-outline" size={24} color="#64748B" />
-              </Pressable>
-            }
-            styles={{
-              container: {
-                borderRadius: 0,
-                elevation: 0,
-                shadowOpacity: 0,
-              },
-            }}
-          />
-        </View>
-      )}
-
-      {/* Attachment Sheet — sits BELOW the input bar (WhatsApp-style) */}
-      {showAttachSheet && (
-        <View style={[styles.attachSheet, { paddingBottom: insets.bottom + 16 }]}>
-          <Pressable
-            style={styles.attachOption}
-            onPress={() => {
-              setShowAttachSheet(false);
-              handlePickCamera();
-            }}
-          >
-            <View style={styles.attachIcon}>
-              <Ionicons name="camera" size={26} color="#FF4F18" />
-            </View>
-            <AppText style={styles.attachLabel} weight="semibold">
-              {t('chat.camera')}
-            </AppText>
-          </Pressable>
-          <Pressable
-            style={styles.attachOption}
-            onPress={() => {
-              setShowAttachSheet(false);
-              handlePickImage();
-            }}
-          >
-            <View style={styles.attachIcon}>
-              <Ionicons name="image" size={26} color="#FF4F18" />
-            </View>
-            <AppText style={styles.attachLabel} weight="semibold">
-              {t('chat.gallery')}
-            </AppText>
-          </Pressable>
-          <Pressable
-            style={styles.attachOption}
-            onPress={() => {
-              setShowAttachSheet(false);
-              handlePickDocument();
-            }}
-          >
-            <View style={styles.attachIcon}>
-              <Ionicons name="document-text" size={26} color="#FF4F18" />
-            </View>
-            <AppText style={styles.attachLabel} weight="semibold">
-              {t('chat.document')}
-            </AppText>
-          </Pressable>
-        </View>
-      )}
     </View>
   );
 }
@@ -1288,44 +1049,4 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   actionBtnDisabled: { backgroundColor: "#CBD5E1" },
-
-  attachSheet: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    backgroundColor: "white",
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
-    zIndex: 20,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-  },
-  attachOption: {
-    alignItems: "center",
-    gap: 8,
-    flex: 1,
-  },
-  attachIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#FFF7ED",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#FFEDD5",
-  },
-  attachLabel: {
-    fontSize: 13,
-    color: "#475569",
-  },
-  emojiPanel: {
-    width: "100%",
-    backgroundColor: "#F8FAFC",
-    overflow: "hidden",
-  },
 });
