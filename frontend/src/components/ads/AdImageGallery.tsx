@@ -30,9 +30,9 @@ export default function AdImageGallery({
 
   return (
     <>
-      <div className={`bg-white border border-gray-200 overflow-hidden rounded-xl ${className}`}>
+      <div className={`relative bg-white border border-gray-200 overflow-hidden rounded-xl ${className}`}>
         {/* Main Image */}
-        <div 
+        <div
           className="relative aspect-video bg-gray-100 overflow-hidden cursor-zoom-in group/gallery"
           onClick={() => setIsViewerOpen(true)}
         >
@@ -54,14 +54,14 @@ export default function AdImageGallery({
               </div>
             ))}
           </motion.div>
-          
-          {/* Zoom Overlay */}
+
+          {/* Zoom Overlay (hover hint) */}
           <div className="absolute inset-0 bg-black/0 group-hover/gallery:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover/gallery:opacity-100 pointer-events-none">
             <div className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white">
               <Maximize2 className="w-6 h-6" />
             </div>
           </div>
-          
+
           {/* Navigation Arrows */}
           {images.length > 1 && (
             <>
@@ -71,7 +71,7 @@ export default function AdImageGallery({
                   onPrev()
                 }}
                 disabled={currentIndex === 0}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 hover:bg-black/70 disabled:opacity-50 disabled:cursor-not-allowed rounded-full"
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 hover:bg-black/70 disabled:opacity-50 disabled:cursor-not-allowed rounded-full z-10"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -81,7 +81,7 @@ export default function AdImageGallery({
                   onNext()
                 }}
                 disabled={currentIndex === images.length - 1}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 hover:bg-black/70 disabled:opacity-50 disabled:cursor-not-allowed rounded-full"
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 hover:bg-black/70 disabled:opacity-50 disabled:cursor-not-allowed rounded-full z-10"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -90,24 +90,31 @@ export default function AdImageGallery({
 
           {/* Image Counter */}
           {images.length > 1 && (
-            <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 text-sm rounded-full">
+            <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 text-sm rounded-full z-10">
               {currentIndex + 1} / {images.length}
             </div>
           )}
+
+          {/* Title overlay — gradient mask at the bottom for readability */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent px-4 pt-12 pb-4 pointer-events-none">
+            <h2 className="text-white text-base sm:text-lg md:text-xl font-semibold leading-tight line-clamp-2 drop-shadow">
+              {title}
+            </h2>
+          </div>
         </div>
 
-        {/* Thumbnail Navigation */}
+        {/* Thumbnail Navigation — tight to the image, no divider */}
         {images.length > 1 && (
-          <div className="p-4 border-t border-gray-200">
-            <div className="flex gap-2 overflow-x-auto">
+          <div className="px-3 py-3 bg-white">
+            <div className="flex gap-2 overflow-x-auto scrollbar-thin">
               {images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => onThumbnailClick(index)}
-                  className={`flex-shrink-0 w-20 h-20 overflow-hidden border-2 transition-colors rounded-xl ${
-                    index === currentIndex 
-                      ? 'border-secondary' 
-                      : 'border-gray-200 hover:border-gray-300'
+                  className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 overflow-hidden border-2 transition-all rounded-lg ${
+                    index === currentIndex
+                      ? 'border-primary ring-2 ring-primary/20 scale-[1.02]'
+                      : 'border-gray-200 hover:border-gray-400 opacity-70 hover:opacity-100'
                   }`}
                 >
                   <Image
