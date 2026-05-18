@@ -327,6 +327,13 @@
     }
   },
   "ads": {
+    "safetyTips": {
+      "title": "Conseils de sécurité",
+      "publicPlace": "Rencontrez-vous dans un lieu public",
+      "inspect": "Inspectez l'article avant de payer",
+      "neverPayInAdvance": "Ne payez jamais à l'avance",
+      "report": "Signalez toute activité suspecte"
+    },
     "all": "Toutes les annonces",
     "allAds": "Toutes les annonces",
     "myListings": "Mes annonces",

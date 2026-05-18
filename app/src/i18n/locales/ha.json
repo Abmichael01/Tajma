@@ -307,6 +307,13 @@
     }
   },
   "ads": {
+    "safetyTips": {
+      "title": "Shawarwarin Tsaro",
+      "publicPlace": "Ku haɗu a wuri na jama'a",
+      "inspect": "Bincika kayan kafin biya",
+      "neverPayInAdvance": "Kada ka biya gaba",
+      "report": "Ba da rahoton ayyuka masu shakku"
+    },
     "myListings": "Tallace-tallena",
     "editListing": "Gyara Talla",
     "newListing": "Sabuwar Talla",

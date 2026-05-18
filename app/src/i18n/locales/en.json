@@ -329,6 +329,13 @@
     }
   },
   "ads": {
+    "safetyTips": {
+      "title": "Safety Tips",
+      "publicPlace": "Meet in a public place",
+      "inspect": "Inspect the item before paying",
+      "neverPayInAdvance": "Never pay in advance",
+      "report": "Report suspicious activity"
+    },
     "all": "All Ads",
     "allAds": "All Ads",
     "myListings": "My Listings",
