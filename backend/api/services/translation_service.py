@@ -49,10 +49,14 @@ Text: {text}"""
             logger.error(f"Bulk translation error: {str(e)}")
             return {lang: text for lang in target_languages}
 
-    def translate_text(self, text, target_language, source_language='auto'):
+    def translate_text(self, text, target_language, source_language=None):
         """
         Translates text to target_language using OpenAI.
-        target_language should be 'en', 'fr', or 'ha'.
+        target_language and source_language should be 'en', 'fr', or 'ha'.
+
+        Passing source_language explicitly avoids a common gpt-4o-mini failure
+        mode: with short or jargon-heavy text it misidentifies the source as
+        already being the target language and returns the input unchanged.
         """
         if not self.client:
             return text
@@ -67,19 +71,43 @@ Text: {text}"""
         }
 
         target_name = language_map.get(target_language, target_language)
-        
-        prompt = f"Translate the following text into {target_name}. Maintain the tone and any specific marketplace terms. If the text is already in {target_name}, return it as is.\n\nText: {text}"
+        source_name = language_map.get(source_language) if source_language else None
+
+        if source_name and source_name != target_name:
+            user_prompt = (
+                f"Translate the following text from {source_name} to {target_name}. "
+                f"Maintain the tone and any specific marketplace terms. "
+                f"Always produce a {target_name} translation — do NOT return the source text unchanged.\n\n"
+                f"Text: {text}"
+            )
+        else:
+            # No source known — fall back to detect-and-translate (legacy behaviour).
+            user_prompt = (
+                f"Translate the following text into {target_name}. "
+                f"Maintain the tone and any specific marketplace terms.\n\n"
+                f"Text: {text}"
+            )
 
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a professional translator for a multi-vendor marketplace in Africa (Niger, Mali, Burkina Faso). IMPORTANT: Do NOT translate brand names or proper nouns (e.g., 'Apple', 'Samsung', 'Toyota', 'Nike'). Use context to distinguish if a word is a brand or a common term. Keep brand names exactly as they are in the original text."},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": user_prompt}
                 ],
                 temperature=0.3
             )
-            return response.choices[0].message.content.strip()
+            translated = response.choices[0].message.content.strip()
+
+            # Sanity check: if source language is known AND output equals input,
+            # the model probably bailed. Log so we can spot the pattern in prod.
+            if source_language and source_language != target_language and translated.strip() == text.strip():
+                logger.warning(
+                    f"Translation suspiciously identical to source "
+                    f"(source={source_language}, target={target_language}, len={len(text)}): {text[:80]!r}"
+                )
+
+            return translated
         except Exception as e:
             logger.error(f"Translation error: {str(e)}")
             return text
