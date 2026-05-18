@@ -135,5 +135,16 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 
+# Celery Beat — periodic tasks (run by Dockerfile.beat container, replicas=1)
+from celery.schedules import crontab  # noqa: E402
+
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-missing-translations-nightly': {
+        'task': 'api.tasks.translation_tasks.cleanup_missing_translations',
+        # 03:00 UTC daily — off-peak, after most user activity has settled.
+        'schedule': crontab(hour=3, minute=0),
+    },
+}
+
 # OpenAI Configuration
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')

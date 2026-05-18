@@ -1,0 +1,66 @@
+# ------------------------------------------------------------------------------
+#  Tajma Backend – Celery Beat Dockerfile (Dokploy)
+#
+#  IMPORTANT: Only run ONE replica of this service. Multiple beat instances
+#  will schedule duplicate tasks. Use Dokploy's "replicas: 1" setting.
+#
+#  No periodic tasks are wired up yet (translation is on-demand), but this
+#  container is ready for future scheduled work — e.g., nightly translation
+#  cleanup, retry-stuck-jobs sweeps, cache warming. Add schedules via
+#  CELERY_BEAT_SCHEDULE in settings/third_party.py.
+# ------------------------------------------------------------------------------
+
+# -- Stage 1: Build Dependencies --
+FROM python:3.11-slim-bullseye AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_IN_PROJECT=1 \
+    POETRY_VIRTUALENVS_CREATE=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install poetry>=1.8.0
+
+COPY pyproject.toml poetry.lock* ./
+
+RUN poetry lock && poetry install --no-root --no-interaction --no-ansi && rm -rf $POETRY_CACHE_DIR
+
+# -- Stage 2: Final Runtime --
+FROM python:3.11-slim-bullseye AS runtime
+
+ENV VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app" \
+    PYTHONUNBUFFERED=1 \
+    DJANGO_SETTINGS_MODULE=serverConfig.settings
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/.venv /app/.venv
+
+COPY . .
+
+# Beat writes its schedule state to a file (celerybeat-schedule.db) by default.
+# That file lives inside the container, which is fine for a single instance.
+# If you ever switch to django-celery-beat (DB-backed scheduler), remove the
+# pidfile flag and add `--scheduler django_celery_beat.schedulers:DatabaseScheduler`.
+#
+# --pidfile=/tmp/beat.pid lets multiple build/run cycles cleanly restart beat.
+CMD ["celery", "-A", "serverConfig", "beat", \
+     "--loglevel=info", \
+     "--pidfile=/tmp/celerybeat.pid", \
+     "--schedule=/tmp/celerybeat-schedule"]
