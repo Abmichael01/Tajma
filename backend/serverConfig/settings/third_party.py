@@ -139,10 +139,12 @@ CELERY_TIMEZONE = 'UTC'
 from celery.schedules import crontab  # noqa: E402
 
 CELERY_BEAT_SCHEDULE = {
-    'cleanup-missing-translations-nightly': {
+    'cleanup-missing-translations': {
         'task': 'api.tasks.translation_tasks.cleanup_missing_translations',
-        # 03:00 UTC daily — off-peak, after most user activity has settled.
-        'schedule': crontab(hour=3, minute=0),
+        # Every 5 minutes. The sweep is cheap when everything is translated
+        # (just two SELECT queries). Cost spikes only when translations are
+        # actually missing — keep an eye on OpenAI rate limits / spend.
+        'schedule': crontab(minute='*/5'),
     },
 }
 
