@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.urkelcodes.tajma",
+      "bundleIdentifier": "net.tajma.app",
       "associatedDomains": [
         "applinks:tajma.net",
         "applinks:www.tajma.net"
@@ -27,7 +27,7 @@
       }
     },
     "android": {
-      "package": "com.urkelcodes.tajma",
+      "package": "net.tajma.app",
       "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "resize",
       "intentFilters": [

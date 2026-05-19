@@ -1,4 +1,4 @@
-package com.urkelcodes.tajma
+package net.tajma.app
 
 import android.app.Application
 import android.content.res.Configuration

@@ -1,4 +1,4 @@
-package com.urkelcodes.tajma
+package net.tajma.app
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

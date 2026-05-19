@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:783054972507:android:ecbfbdde06871140a0417e",
+        "mobilesdk_app_id": "1:783054972507:android:83c7ab30d9a46e0ea0417e",
         "android_client_info": {
-          "package_name": "com.urkelcodes.tajma"
+          "package_name": "net.tajma.app"
         }
       },
       "oauth_client": [],
