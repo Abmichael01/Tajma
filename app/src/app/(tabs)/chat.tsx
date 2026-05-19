@@ -1,9 +1,13 @@
-import { View, ScrollView, TouchableOpacity, RefreshControl, Platform, FlatList } from "react-native";
+import { View, ScrollView, TouchableOpacity, RefreshControl, Platform, FlatList, Pressable, Animated, Easing } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { useState, useMemo } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
+import { useQueryClient } from "@tanstack/react-query";
 import AppText from "@/components/ui/AppText";
 import ChatListItem from "@/components/chat/ChatListItem";
 import ChatListSkeleton from "@/components/chat/ChatListSkeleton";
@@ -13,6 +17,9 @@ import { useAuthStore } from "@/store/authStore";
 import { useChatWebSocketStore } from "@/store/chatWebSocketStore";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import { useTranslation } from "react-i18next";
+import { chatApi } from "@/api/chat";
+import type { ChatSummary } from "@/api/types";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 
 const FILTERS = [
   { label: 'chat.filters.all', value: 'all', icon: 'chatbubbles-outline' },
@@ -22,8 +29,31 @@ const FILTERS = [
 export default function ChatScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const { alert, AlertHost } = useCustomAlert();
   const { isAuthenticated, user } = useAuthStore();
-  const { data: chats, isLoading, refetch } = useChats();
+
+  // URL param decides which list to show. view='archived' uses the archived
+  // endpoint and switches the header. No new route — same tab, different data.
+  const params = useLocalSearchParams<{ view?: string }>();
+  const isArchivedView = params.view === "archived";
+
+  const { data: inboxChats, isLoading: inboxLoading, refetch: refetchInbox } = useChats();
+  const {
+    data: archivedChats = [],
+    isLoading: archivedLoading,
+    refetch: refetchArchived,
+  } = useQuery<ChatSummary[]>({
+    queryKey: ["chats", "archived"],
+    queryFn: () => chatApi.listArchivedChats(),
+    staleTime: 60 * 1000,
+    enabled: isArchivedView,
+  });
+
+  const chats = isArchivedView ? archivedChats : inboxChats;
+  const isLoading = isArchivedView ? archivedLoading : inboxLoading;
+  const refetch = isArchivedView ? refetchArchived : refetchInbox;
   const { data: onlineStatuses } = useOnlineStatuses();
   const typingStatus = useChatWebSocketStore((state) => state.typingStatus);
 
@@ -46,13 +76,156 @@ export default function ChatScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
 
+  // Selection mode — long-press a chat to enter; tap rows to multi-select.
+  // Selection mode overlays a contextual action bar over the screen header.
+  const [selectedChatIds, setSelectedChatIds] = useState<Set<string>>(new Set());
+  const isSelectionMode = selectedChatIds.size > 0;
+
+  // Animated transition for the selection header: it slides down + fades in
+  // over the normal screen header when entering selection mode.
+  const selectionAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(selectionAnim, {
+      toValue: isSelectionMode ? 1 : 0,
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [isSelectionMode, selectionAnim]);
+
   const filteredChats = useMemo(() => {
     if (!chats) return [];
-    const chatsArray = chats as any[];
-    if (selectedFilter === 'all') return chatsArray;
-    if (selectedFilter === 'unread') return chatsArray.filter(chat => chat.unread_count > 0);
-    return chatsArray;
-  }, [chats, selectedFilter]);
+    // In INBOX view, strip archived + hidden (belt-and-braces against WS-merge
+    // cache lag). In ARCHIVED view, the list IS the archived chats — don't
+    // filter them out.
+    const base = isArchivedView
+      ? (chats as ChatSummary[]).filter((c) => !c.is_hidden)
+      : (chats as ChatSummary[]).filter((c) => !c.is_archived && !c.is_hidden);
+    if (selectedFilter === 'all') return base;
+    if (selectedFilter === 'unread')
+      return base.filter((chat) => (chat.unread_count ?? 0) > 0);
+    return base;
+  }, [chats, selectedFilter, isArchivedView]);
+
+  // Compute majority state of selected chats so toggle labels make sense.
+  const selectedChats = useMemo(
+    () => (chats as ChatSummary[] | undefined)?.filter((c) => selectedChatIds.has(String(c.id))) ?? [],
+    [chats, selectedChatIds],
+  );
+  const allPinned = selectedChats.length > 0 && selectedChats.every((c) => c.is_pinned);
+  const allMuted = selectedChats.length > 0 && selectedChats.every((c) => c.is_muted);
+  const allArchived = selectedChats.length > 0 && selectedChats.every((c) => c.is_archived);
+  const singleSelection = selectedChatIds.size === 1;
+  const singleChat = singleSelection ? selectedChats[0] : null;
+  const singleHasUnread = (singleChat?.unread_count ?? 0) > 0;
+
+  const exitSelection = useCallback(() => setSelectedChatIds(new Set()), []);
+
+  const handleChatLongPress = useCallback((chat: ChatSummary) => {
+    setSelectedChatIds((prev) => {
+      const next = new Set(prev);
+      next.add(String(chat.id));
+      return next;
+    });
+  }, []);
+
+  const handleSelectToggle = useCallback((chatId: string) => {
+    setSelectedChatIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(chatId)) next.delete(chatId);
+      else next.add(chatId);
+      return next;
+    });
+  }, []);
+
+  const invalidateChats = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["chats"] });
+  }, [queryClient]);
+
+  // Run an action across all selected chats in parallel. On any failure, we
+  // still invalidate (some calls may have succeeded) and toast a generic error.
+  const runBulk = useCallback(
+    async (fn: (chatId: string) => Promise<void>, opts?: { dontExit?: boolean }) => {
+      const ids = Array.from(selectedChatIds);
+      try {
+        await Promise.all(ids.map(fn));
+        invalidateChats();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch (err) {
+        console.warn("[chat-list] bulk action failed:", err);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        invalidateChats();
+        alert({
+          title: "Something went wrong",
+          message: "Some actions did not complete. Please try again.",
+          icon: "alert-circle-outline",
+          iconColor: "#DC2626",
+          buttons: [{ text: "OK", style: "default" }],
+        });
+      } finally {
+        if (!opts?.dontExit) exitSelection();
+      }
+    },
+    [selectedChatIds, invalidateChats, exitSelection],
+  );
+
+  const onTogglePin = () =>
+    runBulk((id) => (allPinned ? chatApi.unpinChat(id) : chatApi.pinChat(id)));
+  const onToggleMute = () =>
+    runBulk((id) => chatApi.muteChat(id, !allMuted));
+  const onToggleArchive = () =>
+    runBulk((id) => (allArchived ? chatApi.unarchiveChat(id) : chatApi.archiveChat(id)));
+
+  const onMarkUnread = () => {
+    if (!singleChat) return;
+    runBulk(() => chatApi.markChatUnread(String(singleChat.id)));
+  };
+
+  const onClear = () => {
+    if (!singleChat) return;
+    const chatId = String(singleChat.id);
+    alert({
+      title: "Clear chat",
+      message:
+        "Hide all messages in this chat from your view. The other person will still see them.",
+      icon: "trash-bin-outline",
+      iconColor: "#DC2626",
+      buttons: [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: () =>
+            runBulk(async () => {
+              await chatApi.clearChat(chatId);
+              queryClient.removeQueries({ queryKey: ["messages", chatId] });
+              queryClient.removeQueries({ queryKey: ["chats", chatId] });
+            }),
+        },
+      ],
+    });
+  };
+
+  const onDelete = () => {
+    const count = selectedChatIds.size;
+    alert({
+      title: count > 1 ? "Delete chats" : "Delete chat",
+      message:
+        count > 1
+          ? `Hide ${count} chats from your list? The other people can still message you — chats will reappear if they do.`
+          : "Hide this chat from your list? The other person can still message you — the chat will reappear if they do.",
+      icon: "trash-outline",
+      iconColor: "#DC2626",
+      buttons: [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => runBulk((id) => chatApi.hideChat(id)),
+        },
+      ],
+    });
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -66,18 +239,125 @@ export default function ChatScreen() {
 
   const unreadCount = chats?.reduce((acc, chat) => acc + (chat.unread_count || 0), 0) || 0;
 
+  // Selection header — overlays the normal screen header. Uses the SAME
+  // LinearGradient as ScreenHeader so the swap is invisible color-wise, and
+  // SafeAreaView + py-5 to match the exact height profile.
+  const SelectionHeader = (
+    <LinearGradient colors={["#FF4F18", "#E63E0B"]} style={{ width: "100%" }}>
+      <SafeAreaView edges={["top"]}>
+        <View className="flex-row items-center px-6 py-5">
+          <Pressable onPress={exitSelection} hitSlop={12} className="mr-4">
+            <Ionicons name="close" size={26} color="white" />
+          </Pressable>
+          <AppText weight="bold" className="text-white text-lg flex-1">
+            {selectedChatIds.size}
+          </AppText>
+      <View className="flex-row items-center gap-4">
+        <Pressable onPress={onTogglePin} hitSlop={8}>
+          <MaterialCommunityIcons
+            name={allPinned ? "pin-off" : "pin"}
+            size={22}
+            color="white"
+          />
+        </Pressable>
+        <Pressable onPress={onToggleMute} hitSlop={8}>
+          <Ionicons
+            name={allMuted ? "notifications" : "notifications-off-outline"}
+            size={22}
+            color="white"
+          />
+        </Pressable>
+        {singleSelection && !singleHasUnread && (
+          <Pressable onPress={onMarkUnread} hitSlop={8}>
+            <Ionicons name="mail-unread-outline" size={22} color="white" />
+          </Pressable>
+        )}
+        <Pressable onPress={onToggleArchive} hitSlop={8}>
+          <Ionicons
+            name={allArchived ? "file-tray-full-outline" : "archive-outline"}
+            size={22}
+            color="white"
+          />
+        </Pressable>
+        {singleSelection && (
+          <Pressable onPress={onClear} hitSlop={8}>
+            <Ionicons name="remove-circle-outline" size={22} color="white" />
+          </Pressable>
+        )}
+          <Pressable onPress={onDelete} hitSlop={8}>
+            <Ionicons name="trash-outline" size={22} color="white" />
+          </Pressable>
+          </View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
+  );
+
   return (
     <View className="flex-1 bg-white">
-      <StatusBar style="light" />
+      <StatusBar style={isSelectionMode ? "light" : "light"} />
 
-      {/* Header */}
-      <ScreenHeader
-        title={t('messages.title')}
-        subtitle={unreadCount > 0 ? t('messages.unreadCount', { count: unreadCount }) : undefined}
-        showBackButton={false}
-      />
+      {/* Both headers are always rendered. The selection header is an
+          absolute overlay on top of the screen header; opacity + translateY
+          drive a smooth crossfade in either direction. pointerEvents is
+          toggled so taps on the inactive header pass through. */}
+      <View style={{ position: "relative" }}>
+        <ScreenHeader
+          title={isArchivedView ? "Archived" : t('messages.title')}
+          subtitle={
+            isArchivedView
+              ? `${filteredChats.length} archived chat${filteredChats.length === 1 ? '' : 's'}`
+              : unreadCount > 0
+                ? t('messages.unreadCount', { count: unreadCount })
+                : undefined
+          }
+          // In archived view, show the back-arrow that clears the view param
+          // and returns to the inbox. In inbox view, no back button.
+          showBackButton={isArchivedView}
+          onBackPress={isArchivedView ? () => router.setParams({ view: undefined as any }) : undefined}
+          rightElement={
+            !isArchivedView ? (
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.setParams({ view: "archived" });
+                }}
+                hitSlop={10}
+                className="w-10 h-10 rounded-full border border-white/20 bg-white/10 items-center justify-center"
+              >
+                <Ionicons name="archive-outline" size={20} color="white" />
+              </Pressable>
+            ) : undefined
+          }
+        />
+        <Animated.View
+          pointerEvents={isSelectionMode ? "auto" : "none"}
+          // zIndex/elevation must exceed ScreenHeader's (zIndex 50, elevation 6)
+          // otherwise the overlay renders BENEATH on Android and stacks weird
+          // on iOS.
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            elevation: 20,
+            opacity: selectionAnim,
+            transform: [
+              {
+                translateY: selectionAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-12, 0],
+                }),
+              },
+            ],
+          }}
+        >
+          {SelectionHeader}
+        </Animated.View>
+      </View>
 
-      {/* Filter Bar */}
+      {/* Filter Bar — stays visible in selection mode too (matches WhatsApp). */}
       <View className="bg-white border-b border-gray-50 py-4">
         <ScrollView
           horizontal
@@ -153,6 +433,10 @@ export default function ChatScreen() {
                   : item.participant1;
                 return !!otherParticipant?.id && !!typingStatus[String(item.id)]?.[otherParticipant.id];
               })()}
+              isSelectionMode={isSelectionMode}
+              isSelected={selectedChatIds.has(String(item.id))}
+              onLongPress={handleChatLongPress}
+              onSelectToggle={handleSelectToggle}
             />
           )}
           refreshControl={
@@ -167,6 +451,8 @@ export default function ChatScreen() {
           ListFooterComponent={<View className="h-32" />}
         />
       )}
+
+      {AlertHost}
     </View>
   );
 }

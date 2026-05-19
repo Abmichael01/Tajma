@@ -347,13 +347,15 @@ export function useChatRoomLogic(chatId: string) {
   }, []);
 
   const deleteMessagesByIds = useCallback(
-    async (idsToDelete: string[]) => {
+    async (idsToDelete: string[], scope: "me" | "everyone" = "everyone") => {
       if (idsToDelete.length === 0) return;
 
       try {
-        await chatApi.deleteMessages(idsToDelete);
+        await chatApi.deleteMessages(idsToDelete, scope);
 
-        // Optimistically update the message list
+        // Optimistically remove from view (both 'me' and 'everyone' should
+        // disappear locally — scope=me hides for the caller, scope=everyone
+        // hard-deletes for both. Either way, this client no longer sees them).
         queryClient.setQueryData(["messages", chatId], (oldData: any) => {
           if (!oldData) return oldData;
           return {
@@ -367,23 +369,24 @@ export function useChatRoomLogic(chatId: string) {
           };
         });
 
-        // Invalidate chats to update last message if needed
         queryClient.invalidateQueries({ queryKey: ["chats"] });
       } catch (error) {
         console.error("Failed to delete messages:", error);
-        // Invalidate to restore state
         queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
+        throw error;
       }
     },
     [chatId, queryClient],
   );
 
-  const handleDeleteSelected = useCallback(async () => {
-    if (selectedMessageIds.size === 0) return;
-
-    await deleteMessagesByIds(Array.from(selectedMessageIds));
-    clearSelection();
-  }, [deleteMessagesByIds, selectedMessageIds, clearSelection]);
+  const handleDeleteSelected = useCallback(
+    async (scope: "me" | "everyone" = "everyone") => {
+      if (selectedMessageIds.size === 0) return;
+      await deleteMessagesByIds(Array.from(selectedMessageIds), scope);
+      clearSelection();
+    },
+    [deleteMessagesByIds, selectedMessageIds, clearSelection],
+  );
 
   return {
     chat,

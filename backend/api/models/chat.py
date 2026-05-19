@@ -34,10 +34,35 @@ class Chat(models.Model):
     
     # Track last activity for sorting
     last_message_at = models.DateTimeField(null=True, blank=True)
-    is_muted = models.BooleanField(default=False)
-    
+
+    # Per-user soft-hide. A user in this set sees the chat disappear from their
+    # chat list. On new message, the recipient is removed from this set so the
+    # chat reappears for them (see chat_signals.broadcast_message_on_create).
+    # The other party is unaffected — they keep seeing the chat normally.
+    hidden_for_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='hidden_chats',
+        blank=True,
+    )
+    # Per-user mute. A user in this set won't receive push notifications for
+    # new messages in this chat. Replaces the old global is_muted bool.
+    muted_by = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='muted_chats',
+        blank=True,
+    )
+    # Archive is shared (both participants see archive state) — matches WhatsApp.
+    # Archived chats are excluded from the main list by default; the client can
+    # request them with ?archived=true.
+    is_archived = models.BooleanField(default=False, db_index=True)
+    # Pinned chats sort to the top of the list. Null = not pinned. Stored as a
+    # timestamp so the most-recently-pinned chat sorts first when multiple are
+    # pinned. Like is_archived, this is shared between participants for now —
+    # per-user pin can come in a later wave if needed.
+    pinned_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
     class Meta:
-        ordering = ['-last_message_at', '-updated_at']
+        ordering = ['-pinned_at', '-last_message_at', '-updated_at']
         indexes = [
             models.Index(fields=['participant1', '-last_message_at']),
             models.Index(fields=['participant2', '-last_message_at']),
@@ -124,7 +149,16 @@ class Message(models.Model):
     link_title = models.CharField(max_length=500, null=True, blank=True)
     link_description = models.TextField(null=True, blank=True)
     link_image = models.URLField(max_length=1000, null=True, blank=True)
-    
+
+    # Per-user soft-delete ("delete for me"). Users in this set don't see the
+    # message in their view of the chat. "Delete for everyone" continues to
+    # hard-delete the row via the existing destroy path.
+    hidden_for_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='hidden_messages',
+        blank=True,
+    )
+
     class Meta:
         ordering = ['created_at']
         indexes = [

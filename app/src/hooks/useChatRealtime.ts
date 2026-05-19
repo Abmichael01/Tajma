@@ -63,6 +63,20 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             ad_image: finalAdImage,
             ad_price: finalAdPrice,
             ad_currency: finalAdCurrency,
+            // Per-user state from the server payload. These must be preserved
+            // on every WS merge — losing them flickers pin/mute/archive off
+            // every time a new message arrives.
+            //
+            // For pinned_at (nullable timestamp): use `in` so an explicit
+            // `null` from the server (unpin) overrides the existing value.
+            // `?? existing` would incorrectly preserve the old timestamp on
+            // unpin because `null ?? x === x`.
+            is_pinned: updatedChat.is_pinned ?? existingChat.is_pinned,
+            pinned_at:
+              'pinned_at' in updatedChat ? updatedChat.pinned_at : existingChat.pinned_at,
+            is_muted: updatedChat.is_muted ?? existingChat.is_muted,
+            is_hidden: updatedChat.is_hidden ?? existingChat.is_hidden,
+            is_archived: updatedChat.is_archived ?? existingChat.is_archived,
           }
 
           chats[index] = mergedChat
@@ -70,7 +84,12 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           chats.unshift(updatedChat)
         }
 
+        // Sort matches backend Chat.Meta.ordering: pinned first (most-recently-
+        // pinned at the top), then by last_message_at desc.
         const sorted = chats.sort((a, b) => {
+          const aPinned = a.pinned_at ? new Date(a.pinned_at).getTime() : 0
+          const bPinned = b.pinned_at ? new Date(b.pinned_at).getTime() : 0
+          if (aPinned !== bPinned) return bPinned - aPinned
           const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
           const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
           return timeB - timeA
@@ -103,6 +122,14 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           ad_image: finalAdImage,
           ad_price: finalAdPrice,
           ad_currency: finalAdCurrency,
+          // Preserve per-user state on the detail cache too. Same `in` check
+          // for pinned_at as above.
+          is_pinned: updatedChat.is_pinned ?? oldData.is_pinned,
+          pinned_at:
+            'pinned_at' in updatedChat ? updatedChat.pinned_at : oldData.pinned_at,
+          is_muted: updatedChat.is_muted ?? oldData.is_muted,
+          is_hidden: updatedChat.is_hidden ?? oldData.is_hidden,
+          is_archived: updatedChat.is_archived ?? oldData.is_archived,
         }
 
         return merged

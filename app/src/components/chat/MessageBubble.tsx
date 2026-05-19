@@ -339,10 +339,13 @@ const MessageBubble = React.memo(
 
     const handleLongPress = useCallback(() => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      if (!isSelectionMode) {
-        onLongPress?.(message);
-      } else {
+      // In selection mode, toggle this message in the selection. Otherwise,
+      // the parent (chat screen) enters selection mode for this message —
+      // matches WhatsApp's long-press behavior. No popover, no bottom sheet.
+      if (isSelectionMode) {
         onSelect?.(String(message.id));
+      } else {
+        onLongPress?.(message);
       }
     }, [isSelectionMode, onLongPress, onSelect, message]);
 

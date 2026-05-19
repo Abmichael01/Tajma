@@ -1,10 +1,19 @@
+from datetime import timedelta
+
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils import timezone
 
 from api.models import Chat, Message, UserOnlineStatus, UserOnlineStatus
+
+# Window within which a user can "delete for everyone" their own message.
+# After this, only "delete for me" (per-user hide) is allowed. Mirrors the
+# WhatsApp UX — that one is ~2 hours; we pick 60 min as a tighter default that
+# still covers typo-and-resend cases without enabling stealth-edit-then-deny.
+DELETE_FOR_EVERYONE_WINDOW = timedelta(minutes=60)
 from api.utils.link_preview import extract_url, get_link_preview
 from api.serializers import (
     ChatSerializer, 
@@ -35,15 +44,37 @@ class ChatViewSet(viewsets.ModelViewSet):
         return ChatSerializer
     
     def get_queryset(self):
-        """Return chats where current user is a participant"""
+        """Return chats where current user is a participant.
+
+        For the list endpoint: excludes chats the user has hidden (per-user
+        soft-delete) and archived chats. Clients request archived chats with
+        ?archived=true. Pinned chats sort to the top (Chat.Meta.ordering does
+        this globally).
+
+        For detail actions (retrieve + the @action endpoints like unarchive,
+        unhide, archive, hide, pin, mute, etc.): DO NOT apply the hide/archive
+        filter. Those actions explicitly target a chat that may be archived or
+        hidden — filtering would 404 them every time. The participant check
+        still applies so you can only act on your own chats.
+        """
         user = self.request.user
-        # Optimize queryset - select related for foreign keys, but don't prefetch all messages
-        # The serializer will efficiently get last message using .last() which uses LIMIT 1
-        return Chat.objects.filter(
+
+        qs = Chat.objects.filter(
             Q(participant1=user) | Q(participant2=user)
         ).select_related(
             'participant1', 'participant2', 'ad'
         ).distinct()
+
+        if self.action == 'list':
+            qs = qs.exclude(hidden_for_users=user)
+            archived_param = self.request.query_params.get('archived', '').lower()
+            want_archived = archived_param in ('1', 'true', 'yes')
+            if want_archived:
+                qs = qs.filter(is_archived=True)
+            else:
+                qs = qs.filter(is_archived=False)
+
+        return qs
     
     def get_serializer_context(self):
         """Ensure request context is always passed to serializer"""
@@ -142,22 +173,129 @@ class ChatViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def clear(self, request, pk=None):
-        """Delete all messages in the chat"""
+        """Per-user clear: hide every message in the chat from the caller's view.
+
+        Adds the caller to Message.hidden_for_users for all messages currently
+        in the chat. The other participant continues to see everything. New
+        messages sent after this call are visible to the caller (they're not
+        in hidden_for_users).
+        """
         chat = self.get_object()
-        count = chat.messages.all().delete()[0]
-        return Response({'message': 'Chat cleared', 'count': count})
+        user = request.user
+        message_ids = list(chat.messages.values_list('id', flat=True))
+        if not message_ids:
+            return Response({'message': 'Chat already empty', 'count': 0})
+        # Bulk insert into the M2M through-table — one query per the ORM's
+        # M2M add semantics. For chats with thousands of messages this is
+        # still O(1) round-trips; the through table inserts are batched.
+        through = Message.hidden_for_users.through
+        through.objects.bulk_create(
+            [through(message_id=mid, user_id=user.id) for mid in message_ids],
+            ignore_conflicts=True,  # idempotent if user clears twice
+        )
+        return Response({'message': 'Chat cleared for you', 'count': len(message_ids)})
 
     @action(detail=True, methods=['post'])
     def mute(self, request, pk=None):
-        """Toggle mute for a chat"""
+        """Toggle mute for the requesting user (per-user, not global).
+
+        Body: {"is_muted": true|false}. Defaults to true (mute).
+        Adds/removes the caller from chat.muted_by — does not affect the other
+        participant's mute state.
+        """
         chat = self.get_object()
-        is_muted = request.data.get('is_muted', True)
-        chat.is_muted = is_muted
-        chat.save(update_fields=['is_muted', 'updated_at'])
+        user = request.user
+        is_muted = bool(request.data.get('is_muted', True))
+        if is_muted:
+            chat.muted_by.add(user)
+        else:
+            chat.muted_by.remove(user)
         return Response({
             'message': 'Chat muted' if is_muted else 'Chat unmuted',
-            'is_muted': is_muted
+            'is_muted': is_muted,
         })
+
+    @action(detail=True, methods=['post'])
+    def hide(self, request, pk=None):
+        """Soft-delete the chat for the requesting user only.
+
+        The other participant continues to see the chat normally. If they send
+        a new message, the chat reappears in our list (auto-unhide signal).
+        """
+        chat = self.get_object()
+        chat.hidden_for_users.add(request.user)
+        return Response({'message': 'Chat hidden', 'is_hidden': True})
+
+    @action(detail=True, methods=['post'])
+    def unhide(self, request, pk=None):
+        """Restore a previously hidden chat for the requesting user."""
+        chat = self.get_object()
+        chat.hidden_for_users.remove(request.user)
+        return Response({'message': 'Chat restored', 'is_hidden': False})
+
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        """Archive the chat. Shared between participants (WhatsApp semantics)."""
+        chat = self.get_object()
+        if not chat.is_archived:
+            chat.is_archived = True
+            chat.save(update_fields=['is_archived', 'updated_at'])
+        return Response({'message': 'Chat archived', 'is_archived': True})
+
+    @action(detail=True, methods=['post'])
+    def unarchive(self, request, pk=None):
+        """Unarchive the chat."""
+        chat = self.get_object()
+        if chat.is_archived:
+            chat.is_archived = False
+            chat.save(update_fields=['is_archived', 'updated_at'])
+        return Response({'message': 'Chat unarchived', 'is_archived': False})
+
+    @action(detail=True, methods=['post'])
+    def pin(self, request, pk=None):
+        """Pin the chat to the top of the list (shared between participants)."""
+        chat = self.get_object()
+        chat.pinned_at = timezone.now()
+        chat.save(update_fields=['pinned_at', 'updated_at'])
+        return Response({
+            'message': 'Chat pinned',
+            'pinned_at': chat.pinned_at.isoformat(),
+        })
+
+    @action(detail=True, methods=['post'])
+    def unpin(self, request, pk=None):
+        """Unpin the chat."""
+        chat = self.get_object()
+        if chat.pinned_at is not None:
+            chat.pinned_at = None
+            chat.save(update_fields=['pinned_at', 'updated_at'])
+        return Response({'message': 'Chat unpinned', 'pinned_at': None})
+
+    @action(detail=True, methods=['post'])
+    def mark_unread(self, request, pk=None):
+        """Mark the latest message in the chat as unread for the current user.
+
+        The unread badge on the client is driven by Message.is_read filtered to
+        messages NOT sent by the current user. Flipping the most-recent
+        non-self message to is_read=False makes the chat reappear as unread.
+        """
+        chat = self.get_object()
+        user = request.user
+        latest = (
+            chat.messages.exclude(sender=user)
+            .order_by('-created_at')
+            .first()
+        )
+        if not latest:
+            return Response(
+                {'detail': 'No incoming messages to mark unread.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if latest.is_read:
+            latest.is_read = False
+            latest.read_at = None
+            latest.save(update_fields=['is_read', 'read_at', 'updated_at'])
+        return Response({'message': 'Chat marked unread', 'message_id': str(latest.id)})
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -175,34 +313,77 @@ class MessageViewSet(viewsets.ModelViewSet):
     csrf_exempt = True
     pagination_class = MessagePagination
     
+    def _scope_from_request(self):
+        """Read 'scope' from query params or body. Defaults to 'everyone' for
+        backward compatibility with existing mobile clients that don't pass it.
+        Valid values: 'me' (per-user soft hide), 'everyone' (hard delete)."""
+        scope = (
+            self.request.query_params.get('scope')
+            or self.request.data.get('scope')
+            or 'everyone'
+        )
+        scope = str(scope).lower()
+        if scope not in ('me', 'everyone'):
+            raise ValidationError({'scope': "Must be 'me' or 'everyone'."})
+        return scope
+
     def perform_destroy(self, instance):
-        """Only allow users to delete their own messages"""
-        if instance.sender != self.request.user:
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("You can only delete your own messages.")
+        """Soft delete-for-me OR hard delete-for-everyone (own + within window).
+
+        - scope=me: add caller to instance.hidden_for_users (always allowed,
+          even for messages from the other party).
+        - scope=everyone: caller must be sender AND within
+          DELETE_FOR_EVERYONE_WINDOW of created_at. Hard deletes the row.
+        """
+        user = self.request.user
+        scope = self._scope_from_request()
+
+        if scope == 'me':
+            instance.hidden_for_users.add(user)
+            return
+
+        # scope == 'everyone'
+        if instance.sender_id != user.id:
+            raise PermissionDenied(
+                "Only the sender can delete a message for everyone."
+            )
+        age = timezone.now() - instance.created_at
+        if age > DELETE_FOR_EVERYONE_WINDOW:
+            raise PermissionDenied(
+                f"This message is older than {int(DELETE_FOR_EVERYONE_WINDOW.total_seconds() // 60)} "
+                "minutes — you can only delete it for yourself."
+            )
         instance.delete()
 
     def get_queryset(self):
-        """Return messages for chats where current user is a participant"""
+        """Return messages for chats where current user is a participant.
+
+        Excludes messages the user has hidden (per-user delete-for-me).
+        """
         chat_id = self.request.query_params.get('chat')
         user = self.request.user
-        
+
         if chat_id:
             # Verify user is participant in this chat
             chat = Chat.objects.filter(
                 Q(id=chat_id) & (Q(participant1=user) | Q(participant2=user))
             ).first()
             if chat:
-                # Return messages ordered by newest first (for pagination)
-                # Frontend will reverse to show oldest at top, newest at bottom
-                return Message.objects.filter(chat=chat).order_by('-created_at')
+                return (
+                    Message.objects.filter(chat=chat)
+                    .exclude(hidden_for_users=user)
+                    .order_by('-created_at')
+                )
             return Message.objects.none()
-        
-        # Return all messages from user's chats
+
         user_chats = Chat.objects.filter(
             Q(participant1=user) | Q(participant2=user)
         )
-        return Message.objects.filter(chat__in=user_chats).order_by('-created_at')
+        return (
+            Message.objects.filter(chat__in=user_chats)
+            .exclude(hidden_for_users=user)
+            .order_by('-created_at')
+        )
     
     def perform_create(self, serializer):
         """Create message - set sender and update chat's last_message_at"""
@@ -232,21 +413,65 @@ class MessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def bulk_delete(self, request):
-        """Delete multiple messages"""
+        """Delete multiple messages.
+
+        Body: {"message_ids": [...], "scope": "me" | "everyone"}.
+        - scope=me (default if omitted is 'everyone' for backward-compat): add
+          caller to hidden_for_users on each message they're allowed to see.
+        - scope=everyone: each must be caller's own message AND within
+          DELETE_FOR_EVERYONE_WINDOW. Mixed batches partially fail loudly.
+        """
         message_ids = request.data.get('message_ids', [])
         if not message_ids:
-            return Response({'detail': 'message_ids is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Verify user is the sender of these messages AND participant in the chats
+            return Response(
+                {'detail': 'message_ids is required'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        scope = str(request.data.get('scope', 'everyone')).lower()
+        if scope not in ('me', 'everyone'):
+            return Response(
+                {'detail': "scope must be 'me' or 'everyone'"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = request.user
+        user_chats = Chat.objects.filter(
+            Q(participant1=user) | Q(participant2=user)
+        )
+
+        if scope == 'me':
+            # User can hide any visible message — own or other party's.
+            messages = Message.objects.filter(
+                id__in=message_ids,
+                chat__in=user_chats,
+            )
+            count = 0
+            for msg in messages:
+                msg.hidden_for_users.add(user)
+                count += 1
+            return Response({
+                'message': f'{count} messages hidden',
+                'count': count,
+                'scope': 'me',
+            })
+
+        # scope == 'everyone' — own messages within the window only.
+        cutoff = timezone.now() - DELETE_FOR_EVERYONE_WINDOW
         messages = Message.objects.filter(
             id__in=message_ids,
-            sender=request.user,
-            chat__in=Chat.objects.filter(Q(participant1=request.user) | Q(participant2=request.user))
+            sender=user,
+            chat__in=user_chats,
+            created_at__gte=cutoff,
         )
         count = messages.count()
         messages.delete()
-        
-        return Response({'message': f'{count} messages deleted', 'count': count})
+        rejected = len(message_ids) - count
+        return Response({
+            'message': f'{count} messages deleted',
+            'count': count,
+            'rejected': rejected,
+            'scope': 'everyone',
+        })
 
     @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):

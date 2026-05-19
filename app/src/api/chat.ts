@@ -228,8 +228,61 @@ export const chatApi = {
     await apiClient.post(`${basePath}${chatId}/mute/`, { is_muted: isMuted })
   },
 
-  deleteMessages: async (messageIds: string[]): Promise<void> => {
-    await apiClient.post(`${messagesPath}bulk_delete/`, { message_ids: messageIds })
+  hideChat: async (chatId: string): Promise<void> => {
+    await apiClient.post(`${basePath}${chatId}/hide/`)
+  },
+
+  unhideChat: async (chatId: string): Promise<void> => {
+    await apiClient.post(`${basePath}${chatId}/unhide/`)
+  },
+
+  archiveChat: async (chatId: string): Promise<void> => {
+    await apiClient.post(`${basePath}${chatId}/archive/`)
+  },
+
+  unarchiveChat: async (chatId: string): Promise<void> => {
+    await apiClient.post(`${basePath}${chatId}/unarchive/`)
+  },
+
+  pinChat: async (chatId: string): Promise<void> => {
+    await apiClient.post(`${basePath}${chatId}/pin/`)
+  },
+
+  unpinChat: async (chatId: string): Promise<void> => {
+    await apiClient.post(`${basePath}${chatId}/unpin/`)
+  },
+
+  markChatUnread: async (chatId: string): Promise<void> => {
+    await apiClient.post(`${basePath}${chatId}/mark_unread/`)
+  },
+
+  listArchivedChats: async (): Promise<ChatSummary[]> => {
+    try {
+      const response = await apiClient.get<ChatSummary[] | { results: ChatSummary[] }>(basePath, {
+        params: { archived: 'true' },
+      })
+      if (!response.data) return []
+      if (typeof response.data === 'object' && 'results' in response.data && Array.isArray((response.data as any).results)) {
+        return (response.data as { results: ChatSummary[] }).results
+      }
+      if (Array.isArray(response.data)) return response.data
+      return []
+    } catch (error) {
+      console.error('listArchivedChats: Error:', error)
+      return []
+    }
+  },
+
+  // scope='me'  → per-user soft hide (always allowed, even on others' messages)
+  // scope='everyone' (default) → hard delete; backend enforces sender + 60-min window
+  deleteMessages: async (
+    messageIds: string[],
+    scope: 'me' | 'everyone' = 'everyone',
+  ): Promise<void> => {
+    await apiClient.post(`${messagesPath}bulk_delete/`, {
+      message_ids: messageIds,
+      scope,
+    })
   },
 }
 

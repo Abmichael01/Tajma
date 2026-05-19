@@ -323,6 +323,12 @@ export interface ChatSummary {
   last_message_at?: string | null
   last_message?: ChatMessage | null
   unread_count: number
+  // Per-user flags (computed by serializer against requesting user).
+  is_muted?: boolean
+  is_hidden?: boolean
+  is_archived?: boolean
+  is_pinned?: boolean
+  pinned_at?: string | null
 }
 
 export interface ChatDetail extends ChatSummary {

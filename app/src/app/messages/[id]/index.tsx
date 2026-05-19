@@ -5,6 +5,7 @@ import {
   ImageBackground,
   TextInput,
   Animated,
+  Easing as RNEasing,
   Keyboard,
   Clipboard,
   Alert,
@@ -19,13 +20,15 @@ import Reanimated, {
 import * as Haptics from "expo-haptics";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView as SafeAreaViewCtx } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AppText from "@/components/ui/AppText";
 import ChatHeader from "@/components/chat/ChatHeader";
 import ChatInput from "@/components/chat/ChatInput";
-import BottomSheet, { BottomSheetRef } from "@/components/ui/BottomSheet";
+import { useCustomAlert } from "@/hooks/useCustomAlert";
 import { useChatRoomLogic } from "@/hooks/chat/useChatRoomLogic";
 import { useChatSounds } from "@/hooks/useChatSounds";
 import MessageList from "./components/MessageList";
@@ -37,7 +40,6 @@ import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { ChatMessage } from "@/api/types";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { useInAppNotificationStore } from "@/store/inAppNotificationStore";
 
 // Approximates the iOS keyboard's native bezier; works on Android too.
@@ -91,6 +93,7 @@ export default function ChatRoomScreen() {
     user: currentUser,
   } = useChatRoomLogic(id!);
 
+  const { alert, AlertHost } = useCustomAlert();
   const router = useRouter();
   const [headerHeight, setHeaderHeight] = useState(0);
   const [viewerVisible, setViewerVisible] = useState(false);
@@ -119,6 +122,18 @@ export default function ChatRoomScreen() {
     }, 50); // Minimal delay to allow transition to start
     return () => clearTimeout(timer);
   }, []);
+
+  // Smooth fade + slide of the selection-mode header (overlays the chat header
+  // rather than swapping it). 0 = normal mode visible, 1 = selection bar.
+  const selectionAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(selectionAnim, {
+      toValue: isSelectionMode ? 1 : 0,
+      duration: 200,
+      easing: RNEasing.out(RNEasing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [isSelectionMode, selectionAnim]);
 
   // ── Unified bottom panel (sticker | attachment | null) — reveal pattern ───
   // ALL panels are rendered absolutely at the screen bottom. Keyboard slides
@@ -470,68 +485,151 @@ export default function ChatRoomScreen() {
     }
   };
 
-  const menuBottomSheetRef = useRef<BottomSheetRef>(null);
-  const [menuMessage, setMenuMessage] = useState<ChatMessage | null>(null);
+  // Long-press a message → enter selection mode with it selected. Matches
+  // WhatsApp behavior: the chat header is replaced with a contextual action
+  // bar (the selection-mode header below). No popover, no bottom sheet.
+  const handleMessageLongPress = useCallback(
+    (message: ChatMessage) => {
+      toggleMessageSelection(String(message.id));
+    },
+    [toggleMessageSelection],
+  );
 
-  const handleMessageLongPress = useCallback((message: ChatMessage) => {
-    setMenuMessage(message);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    menuBottomSheetRef.current?.present();
-  }, []);
-
-  const handleMenuReply = () => {
-    if (menuMessage) setReplyTo(menuMessage);
-    menuBottomSheetRef.current?.dismiss();
+  // "Delete for everyone" is offered whenever every selected message is
+  // YOUR OWN (regardless of age — client doesn't gate on age anymore).
+  // The 60-min window is enforced server-side; if the user taps it and the
+  // server says no, we surface a clear error. This avoids the false-negative
+  // case where a fresh own message wouldn't show the option because of a
+  // currentUser-id comparison hiccup or clock skew.
+  const isOwnMessage = (msg: ChatMessage | undefined | null) => {
+    if (!msg || !currentUser?.id) return false;
+    const senderId = typeof msg.sender === "object" ? msg.sender?.id : msg.sender;
+    return String(senderId ?? "") === String(currentUser.id ?? "");
   };
 
-  const handleMenuCopy = () => {
-    if (menuMessage?.content) {
-      Clipboard.setString(menuMessage.content);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-    menuBottomSheetRef.current?.dismiss();
-  };
+  const selectedMessages = useMemo(
+    () =>
+      Array.from(selectedMessageIds)
+        .map((id) => allMessages.find((m) => String(m.id) === id))
+        .filter(Boolean) as ChatMessage[],
+    [selectedMessageIds, allMessages],
+  );
+  const canBulkDeleteForEveryone =
+    selectedMessages.length > 0 && selectedMessages.every(isOwnMessage);
 
-  const handleMenuSelect = () => {
-    if (menuMessage) {
-      toggleMessageSelection(String(menuMessage.id));
-    }
-    menuBottomSheetRef.current?.dismiss();
-  };
+  // Single delete button → dialog that offers both scopes (when eligible).
+  // Matches WhatsApp's UX: one trash icon, dialog asks which delete scope.
+  // Rules (matches backend):
+  //   - "Delete for me" is always available on any visible message.
+  //   - "Delete for everyone" only when EVERY selected message is your own
+  //     AND was sent within the last 60 min.
+  const onBulkDelete = () => {
+    const count = selectedMessageIds.size;
+    const title = count > 1 ? "Delete messages" : "Delete message";
+    // Different body copy so the user understands WHY "for everyone" might
+    // be missing — e.g. someone else's message can only be hidden from your
+    // view, never removed for them.
+    const message = canBulkDeleteForEveryone
+      ? "Delete for everyone removes the message for both of you. Delete for me only hides it from your view."
+      : "This will only hide the message from your view. You can't delete other people's messages for them.";
 
-  const handleMenuDelete = () => {
-    if (menuMessage) {
-      Alert.alert(
-        "Delete Message",
-        "Are you sure you want to delete this message?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: async () => {
-              await deleteMessagesByIds([String(menuMessage.id)]);
-              menuBottomSheetRef.current?.dismiss();
-            },
-          },
-        ],
-      );
+    const buttons: { text: string; style?: "default" | "cancel" | "destructive"; onPress?: () => void }[] = [
+      { text: "Cancel", style: "cancel" },
+    ];
+
+    if (canBulkDeleteForEveryone) {
+      buttons.push({
+        text: "Delete for everyone",
+        style: "destructive",
+        onPress: async () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          try {
+            await handleDeleteSelected("everyone");
+          } catch (err: any) {
+            const statusCode = err?.response?.status;
+            if (statusCode === 403) {
+              alert({
+                title: "Cannot delete for everyone",
+                message: "Some messages are too old or not yours. Use 'Delete for me' instead.",
+                icon: "alert-circle-outline",
+                iconColor: "#DC2626",
+                buttons: [{ text: "OK", style: "default" }],
+              });
+            } else {
+              alert({
+                title: "Something went wrong",
+                message: "Could not delete messages. Please try again.",
+                icon: "alert-circle-outline",
+                iconColor: "#DC2626",
+                buttons: [{ text: "OK", style: "default" }],
+              });
+            }
+          }
+        },
+      });
     }
-    menuBottomSheetRef.current?.dismiss();
+
+    buttons.push({
+      text: "Delete for me",
+      style: "destructive",
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        handleDeleteSelected("me");
+      },
+    });
+
+    alert({ title, message, icon: "trash-outline", iconColor: "#DC2626", buttons });
   };
 
   return (
     <View className="flex-1 bg-white">
       <Stack.Screen options={{ headerShown: false }} />
 
-      {isSelectionMode ? (
-        <View
-          onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
-          style={{ paddingTop: insets.top }}
-          className="bg-primary flex-row items-center px-4 h-[100px]"
+      <View style={{ position: "relative" }}>
+        {/* Normal chat header — always rendered; selection overlay covers it
+            with an opacity + translateY fade for a smooth transition. */}
+        <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+          <ChatHeader
+            avatarSrc={otherParticipant?.avatar}
+            userName={
+              otherParticipant?.full_name ||
+              otherParticipant?.username ||
+              (isChatLoading ? "Loading..." : "User")
+            }
+            isOnline={participantStatus?.is_online}
+            lastSeen={participantStatus?.last_seen}
+            isTyping={isParticipantTyping}
+            onBackPress={() => router.back()}
+            onAvatarPress={() => router.push(`/messages/${id}/info`)}
+            onMenuPress={() => setIsSearchVisible(!isSearchVisible)}
+          />
+        </View>
+        <Animated.View
+          pointerEvents={isSelectionMode ? "auto" : "none"}
+          // ChatHeader uses zIndex 1000 / elevation 12 — we need to beat that.
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1500,
+            elevation: 24,
+            opacity: selectionAnim,
+            transform: [
+              {
+                translateY: selectionAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-12, 0],
+                }),
+              },
+            ],
+          }}
         >
-          <Pressable onPress={clearSelection} className="mr-4">
-            <Ionicons name="close" size={28} color="white" />
+          <LinearGradient colors={["#FF4F18", "#E63E0B"]} style={{ width: "100%" }}>
+            <SafeAreaViewCtx edges={["top"]}>
+              <View className="flex-row items-center px-4 py-5">
+            <Pressable onPress={clearSelection} className="mr-4">
+              <Ionicons name="close" size={28} color="white" />
           </Pressable>
           <AppText weight="bold" className="text-white text-lg flex-1">
             {selectedMessageIds.size}
@@ -569,48 +667,16 @@ export default function ChatRoomScreen() {
             >
               <Ionicons name="copy-outline" size={24} color="white" />
             </Pressable>
-            <Pressable
-              onPress={() => {
-                const count = selectedMessageIds.size;
-                Alert.alert(
-                  "Delete Messages",
-                  `Delete ${count} message${count > 1 ? "s" : ""}? This cannot be undone.`,
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Delete",
-                      style: "destructive",
-                      onPress: () => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                        handleDeleteSelected();
-                      },
-                    },
-                  ],
-                );
-              }}
-            >
+            {/* Single delete icon — dialog asks "for me" vs "for everyone". */}
+            <Pressable onPress={onBulkDelete} hitSlop={8}>
               <Ionicons name="trash-outline" size={24} color="white" />
             </Pressable>
-          </View>
-        </View>
-      ) : (
-        <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
-          <ChatHeader
-            avatarSrc={otherParticipant?.avatar}
-            userName={
-              otherParticipant?.full_name ||
-              otherParticipant?.username ||
-              (isChatLoading ? "Loading..." : "User")
-            }
-            isOnline={participantStatus?.is_online}
-            lastSeen={participantStatus?.last_seen}
-            isTyping={isParticipantTyping}
-            onBackPress={() => router.back()}
-            onAvatarPress={() => router.push(`/messages/${id}/info`)}
-            onMenuPress={() => setIsSearchVisible(!isSearchVisible)}
-          />
-        </View>
-      )}
+              </View>
+            </View>
+            </SafeAreaViewCtx>
+          </LinearGradient>
+        </Animated.View>
+      </View>
 
       <Animated.View
         style={{ height: searchBarHeight, overflow: "hidden" }}
@@ -720,101 +786,6 @@ export default function ChatRoomScreen() {
                 />
               </View>
             )}
-
-            <BottomSheet
-              ref={menuBottomSheetRef}
-              title="Message Options"
-              snapPoints={["38%"]}
-              onClose={() => setMenuMessage(null)}
-            >
-              <View className="px-6 py-2">
-                <View className="flex-row items-center gap-3 mb-6">
-                  <TouchableOpacity
-                    onPress={handleMenuReply}
-                    className="flex-1 items-center justify-center p-4 bg-white rounded-full border border-gray-100 shadow-sm"
-                  >
-                    <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mb-2">
-                      <Ionicons
-                        name="arrow-undo-outline"
-                        size={20}
-                        color="#FF4F18"
-                      />
-                    </View>
-                    <AppText
-                      weight="bold"
-                      className="text-gray-900 text-[11px] uppercase tracking-wider"
-                    >
-                      Reply
-                    </AppText>
-                  </TouchableOpacity>
-
-                  {menuMessage?.content &&
-                    !["📷 Photo", "🎤 Voice Message", "📄 Document"].includes(
-                      menuMessage.content,
-                    ) && (
-                      <TouchableOpacity
-                        onPress={handleMenuCopy}
-                        className="flex-1 items-center justify-center p-4 bg-white rounded-full border border-gray-100 shadow-sm"
-                      >
-                        <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mb-2">
-                          <Ionicons
-                            name="copy-outline"
-                            size={20}
-                            color="#4b5563"
-                          />
-                        </View>
-                        <AppText
-                          weight="bold"
-                          className="text-gray-900 text-[11px] uppercase tracking-wider"
-                        >
-                          Copy
-                        </AppText>
-                      </TouchableOpacity>
-                    )}
-
-                  <TouchableOpacity
-                    onPress={handleMenuSelect}
-                    className="flex-1 items-center justify-center p-4 bg-white rounded-full border border-gray-100 shadow-sm"
-                  >
-                    <View className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center mb-2">
-                      <Ionicons
-                        name="checkbox-outline"
-                        size={20}
-                        color="#4b5563"
-                      />
-                    </View>
-                    <AppText
-                      weight="bold"
-                      className="text-gray-900 text-[11px] uppercase tracking-wider"
-                    >
-                      Select
-                    </AppText>
-                  </TouchableOpacity>
-                </View>
-
-                {/* List Actions */}
-                <View className="space-y-3">
-                  {String(menuMessage?.sender?.id || menuMessage?.sender) ===
-                    String(currentUser?.id) && (
-                    <TouchableOpacity
-                      onPress={handleMenuDelete}
-                      className="flex-row items-center p-4 bg-red-50 rounded-full border border-red-100"
-                    >
-                      <View className="w-10 h-10 rounded-full bg-red-100 items-center justify-center mr-4">
-                        <Ionicons
-                          name="trash-outline"
-                          size={20}
-                          color="#dc2626"
-                        />
-                      </View>
-                      <AppText weight="bold" className="text-red-600 text-base">
-                        Delete for everyone
-                      </AppText>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            </BottomSheet>
 
             <ImageViewer
               images={chatImages}
@@ -1005,6 +976,8 @@ export default function ChatRoomScreen() {
           )}
         </View>
       )}
+
+      {AlertHost}
     </View>
   );
 }

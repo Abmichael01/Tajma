@@ -63,7 +63,7 @@ interface ChatAreaProps {
   onMarkAsRead?: () => void
   onScrollStateChange?: (isAtBottom: boolean) => void // Callback to notify parent of scroll position
   onGetScrollState?: (getState: () => boolean) => void // Callback to expose scroll check function to parent
-  onDeleteMessages?: (messageIds: string[]) => void // New prop
+  onDeleteMessages?: (messageIds: string[], scope?: 'me' | 'everyone') => void
   chatId?: string | null // Chat ID to detect when chat changes
 }
 
@@ -611,28 +611,39 @@ export default function ChatArea({
     setDeleteConfirmOpen(true)
   }
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = async (scope: 'me' | 'everyone') => {
     if (idsToDelete.length === 0) return
     try {
-      // Only delete messages where the current user is the sender
-      const ownMessageIds = idsToDelete.filter(id => {
-        const msg = messages.find(m => !('type' in m) && String(m.id) === String(id)) as ChatMessage | undefined
-        return msg && String(msg.sender?.id) === String(user?.id)
-      })
+      if (scope === 'everyone') {
+        // "Delete for everyone" — restrict to own messages (the server also
+        // enforces own + within-window). Skip messages that aren't ours.
+        const ownMessageIds = idsToDelete.filter((id) => {
+          const msg = messages.find((m) => !('type' in m) && String(m.id) === String(id)) as
+            | ChatMessage
+            | undefined
+          return msg && String(msg.sender?.id) === String(user?.id)
+        })
 
-      if (ownMessageIds.length === 0) {
-        toast.error("You can only delete your own messages")
-        setIsSelectionMode(false)
-        setSelectedMessageIds(new Set())
-        return
+        if (ownMessageIds.length === 0) {
+          toast.error("You can only delete your own messages for everyone")
+          setIsSelectionMode(false)
+          setSelectedMessageIds(new Set())
+          return
+        }
+
+        await onDeleteMessages?.(ownMessageIds, 'everyone')
+
+        if (ownMessageIds.length < idsToDelete.length) {
+          toast.info(
+            `Deleted ${ownMessageIds.length} of your messages for everyone. Others can be hidden with "Delete for me".`,
+          )
+        }
+      } else {
+        // "Delete for me" — always allowed on any visible message, including
+        // other users'. Server soft-hides them from this user's view only.
+        await onDeleteMessages?.(idsToDelete, 'me')
       }
 
-      await onDeleteMessages?.(ownMessageIds)
-      
-      if (ownMessageIds.length < idsToDelete.length) {
-        toast.info(`Deleted ${ownMessageIds.length} of your messages. Others were skipped.`)
-      }
-      
       setIsSelectionMode(false)
       setSelectedMessageIds(new Set())
     } catch (error) {
@@ -643,6 +654,16 @@ export default function ChatArea({
       setIdsToDelete([])
     }
   }
+
+  // "Delete for everyone" is only offered when EVERY selected message is the
+  // caller's own. Server still gates on the 60-min window — we surface a
+  // toast if the server rejects.
+  const canDeleteForEveryone = idsToDelete.length > 0 && idsToDelete.every((id) => {
+    const msg = messages.find((m) => !('type' in m) && String(m.id) === String(id)) as
+      | ChatMessage
+      | undefined
+    return msg && String(msg.sender?.id) === String(user?.id)
+  })
 
   const handleDeleteSelected = () => {
     if (selectedMessageIds.size === 0) return
@@ -977,27 +998,39 @@ export default function ChatArea({
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog — offers BOTH scopes when eligible.
+          "Delete for everyone" only appears when every selected message is
+          the caller's own; the 60-min window is enforced server-side. */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <AlertDialogContent className="rounded-3xl border-gray-100 max-w-[400px]">
+        <AlertDialogContent className="rounded-3xl border-gray-100 max-w-[420px]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl">
               Delete {idsToDelete.length === 1 ? 'message' : `${idsToDelete.length} messages`}?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[15px] text-gray-500">
-              This action cannot be undone. This will permanently delete your messages from this chat. Only messages sent by you will be removed.
+              {canDeleteForEveryone
+                ? 'Delete for everyone removes the message for both of you. Delete for me only hides it from your view.'
+                : "This will only hide the message from your view. You can't delete other people's messages for them."}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-2 mt-2">
-            <AlertDialogCancel className="rounded-full border-gray-200 text-gray-600 hover:bg-gray-50 h-9 px-4 text-xs font-semibold">
+          <AlertDialogFooter className="gap-2 sm:gap-2 mt-2 flex-col sm:flex-col sm:items-stretch">
+            {canDeleteForEveryone && (
+              <AlertDialogAction
+                onClick={() => handleConfirmDelete('everyone')}
+                className="rounded-full bg-red-500 hover:bg-red-600 text-white h-9 px-4 text-xs font-semibold"
+              >
+                Delete for everyone
+              </AlertDialogAction>
+            )}
+            <AlertDialogAction
+              onClick={() => handleConfirmDelete('me')}
+              className="rounded-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 h-9 px-4 text-xs font-semibold"
+            >
+              Delete for me
+            </AlertDialogAction>
+            <AlertDialogCancel className="rounded-full border-gray-200 text-gray-600 hover:bg-gray-50 h-9 px-4 text-xs font-semibold mt-0">
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleConfirmDelete}
-              className="rounded-full bg-red-500 hover:bg-red-600 text-white h-9 px-4 text-xs font-semibold"
-            >
-              Delete
-            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

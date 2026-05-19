@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useChats, useChatDetail, useChatMessages, useMarkChatAsRead, useOnlineStatuses } from '@/hooks/useChat'
 import { useChatRealtime } from '@/hooks/useChatRealtime'
 import { chatApi } from '@/api/chat'
+import { useQuery } from '@tanstack/react-query'
 import type { ChatMessage, ChatSummary, User, UserOnlineStatus } from '@/api/types'
 import { useQueryClient } from '@tanstack/react-query'
 import { useChatSounds } from '@/hooks/useChatSounds'
@@ -37,8 +38,26 @@ function ChatClientContent() {
   const checkScrollPositionRef = useRef<(() => boolean) | null>(null) // Ref to store scroll check function from ChatArea
   const { playSentSound, playReceivedSound } = useChatSounds()
 
-  // Fetch chats list
-  const { data: chats = [], isLoading: chatsLoading } = useChats()
+  // ?view=archived swaps the chat list source without leaving /chat. Same
+  // component tree, same actions — just a different data feed and header label.
+  const isArchivedView = searchParams.get('view') === 'archived'
+
+  const { data: inboxRaw = [], isLoading: inboxLoading } = useChats()
+  const { data: archivedRaw = [], isLoading: archivedLoading } = useQuery<ChatSummary[]>({
+    queryKey: ['chats', 'archived'],
+    queryFn: () => chatApi.listArchivedChats(),
+    staleTime: 60 * 1000,
+    enabled: isArchivedView,
+  })
+
+  // In inbox view: strip is_archived + is_hidden (belt-and-braces vs WS-merge
+  // cache lag). In archived view: just strip is_hidden (it's a per-user
+  // soft-delete — even archived chats can be hidden).
+  const chats = useMemo(() => {
+    if (isArchivedView) return archivedRaw.filter((c) => !c.is_hidden)
+    return inboxRaw.filter((c) => !c.is_archived && !c.is_hidden)
+  }, [isArchivedView, archivedRaw, inboxRaw])
+  const chatsLoading = isArchivedView ? archivedLoading : inboxLoading
 
   // Fetch active chat details
   const { data: activeChatDetail } = useChatDetail(activeConversationId)
@@ -641,35 +660,43 @@ function ChatClientContent() {
   const effectiveBottomNavHeight = isChatArea ? 0 : bottomNavHeight
   const availableHeight = `calc(100vh - ${navbarHeight}px - ${effectiveBottomNavHeight}px)`
 
-  const handleDeleteMessages = useCallback(async (messageIds: string[]) => {
-    if (!activeConversationId) return
+  const handleDeleteMessages = useCallback(
+    async (messageIds: string[], scope: 'me' | 'everyone' = 'everyone') => {
+      if (!activeConversationId) return
 
-    try {
-      console.log(`[Delete] Deleting ${messageIds.length} messages:`, messageIds)
-      await chatApi.deleteMessages(messageIds)
-      
-      // Optimistically update the message list
-      queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
-        if (!oldData) return oldData
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page: any) => ({
-            ...page,
-            results: page.results.filter((msg: ChatMessage) => !messageIds.includes(String(msg.id)))
-          }))
+      try {
+        console.log(`[Delete] Deleting ${messageIds.length} messages (${scope}):`, messageIds)
+        await chatApi.deleteMessages(messageIds, scope)
+
+        // Optimistically remove from this client's view (both scope=me and
+        // scope=everyone should disappear locally — me hides for caller,
+        // everyone hard-deletes for both).
+        queryClient.setQueryData(['messages', activeConversationId], (oldData: any) => {
+          if (!oldData) return oldData
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => ({
+              ...page,
+              results: page.results.filter((msg: ChatMessage) => !messageIds.includes(String(msg.id))),
+            })),
+          }
+        })
+
+        await queryClient.invalidateQueries({ queryKey: ['messages', activeConversationId] })
+        await queryClient.invalidateQueries({ queryKey: ['chats'] })
+      } catch (error: any) {
+        console.error('Failed to delete messages:', error)
+        const statusCode = error?.response?.status
+        if (statusCode === 403) {
+          toast.error("Some messages are too old or not yours. Use 'Delete for me' instead.")
+        } else {
+          toast.error('Failed to delete messages')
         }
-      })
-      
-      // Force refresh for both to ensure consistency
-      await queryClient.invalidateQueries({ queryKey: ['messages', activeConversationId] })
-      await queryClient.invalidateQueries({ queryKey: ['chats'] })
-      
-    } catch (error) {
-      console.error('Failed to delete messages:', error)
-      toast.error('Failed to delete messages')
-      queryClient.invalidateQueries({ queryKey: ['messages', activeConversationId] })
-    }
-  }, [activeConversationId, queryClient])
+        queryClient.invalidateQueries({ queryKey: ['messages', activeConversationId] })
+      }
+    },
+    [activeConversationId, queryClient],
+  )
 
   return (
     <div
@@ -693,6 +720,36 @@ function ChatClientContent() {
             onlineStatuses={onlineStatuses}
             isLoading={chatsLoading}
             typingByChatId={typingByChatId}
+            headerTitle={isArchivedView ? 'Archived' : undefined}
+            headerSubtitle={
+              isArchivedView
+                ? `${chats.length} archived chat${chats.length === 1 ? '' : 's'}`
+                : undefined
+            }
+            headerRight={
+              <button
+                type="button"
+                onClick={() => router.push(isArchivedView ? '/chat' : '/chat?view=archived')}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-primary px-2 py-1.5 rounded-md hover:bg-gray-100"
+                title={isArchivedView ? 'Back to inbox' : 'View archived chats'}
+              >
+                {isArchivedView ? (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Inbox
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                    Archived
+                  </>
+                )}
+              </button>
+            }
           />
         </div>
 

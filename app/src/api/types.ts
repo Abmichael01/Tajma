@@ -289,6 +289,10 @@ export interface ChatSummary {
   last_message?: ChatMessage | null
   unread_count: number
   is_muted?: boolean
+  is_hidden?: boolean
+  is_archived?: boolean
+  is_pinned?: boolean
+  pinned_at?: string | null
 }
 
 export interface ChatDetail extends ChatSummary {

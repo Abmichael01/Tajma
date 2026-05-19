@@ -102,16 +102,47 @@ class ChatSerializer(serializers.ModelSerializer):
     ad_currency = serializers.CharField(source='ad.currency', read_only=True, allow_null=True)
     last_message = serializers.SerializerMethodField()
     unread_count = serializers.SerializerMethodField()
-    
+    # Per-user flags — computed against the requesting user via M2M membership.
+    # Frontend uses these to render mute icon, archived chip, pin indicator.
+    is_muted = serializers.SerializerMethodField()
+    is_hidden = serializers.SerializerMethodField()
+    is_pinned = serializers.SerializerMethodField()
+
     class Meta:
         model = Chat
         fields = [
             'id', 'participant1', 'participant1_id', 'participant2', 'participant2_id',
             'ad', 'ad_id', 'ad_title', 'ad_slug', 'ad_image', 'ad_price', 'ad_currency',
             'created_at', 'updated_at', 'last_message_at', 'last_message', 'unread_count',
-            'is_muted'
+            'is_muted', 'is_hidden', 'is_archived', 'is_pinned', 'pinned_at',
         ]
-        read_only_fields = ['id', 'participant1', 'participant2', 'created_at', 'updated_at', 'last_message_at']
+        read_only_fields = [
+            'id', 'participant1', 'participant2', 'created_at', 'updated_at',
+            'last_message_at', 'is_muted', 'is_hidden', 'is_archived',
+            'is_pinned', 'pinned_at',
+        ]
+
+    def _request_user(self):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            return user
+        return None
+
+    def get_is_muted(self, obj):
+        user = self._request_user()
+        if not user:
+            return False
+        return obj.muted_by.filter(id=user.id).exists()
+
+    def get_is_hidden(self, obj):
+        user = self._request_user()
+        if not user:
+            return False
+        return obj.hidden_for_users.filter(id=user.id).exists()
+
+    def get_is_pinned(self, obj):
+        return obj.pinned_at is not None
     
     def get_ad_image(self, obj):
         """Get the first image from the ad as absolute URL"""

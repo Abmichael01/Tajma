@@ -41,8 +41,20 @@ class PushService:
         body: str,
         data: dict[str, Any] | None = None,
         deep_link: str | None = None,
+        channel_id: str = "default",
+        category_id: str | None = None,
     ) -> dict[str, int]:
-        """Dispatch to every active token. Returns a counts summary."""
+        """Dispatch to every active token. Returns a counts summary.
+
+        channel_id (Android): use per-type channels ("messages", "offers", etc.)
+        so users can configure / mute by category in system settings.
+
+        category_id (iOS): notification category — used for action buttons and
+        as a grouping hint. Note: Expo Push API does NOT forward iOS
+        thread-identifier, so true per-chat collapse requires a Notification
+        Service Extension in a custom dev client. Best we can do here is
+        consistent categoryId so the OS groups by app + category.
+        """
         tokens = list(
             DeviceToken.objects.filter(user_id=user_id, is_active=True)
         )
@@ -57,7 +69,9 @@ class PushService:
         expo_tokens = [t for t in tokens if t.platform == DeviceToken.PLATFORM_EXPO]
         web_tokens = [t for t in tokens if t.platform == DeviceToken.PLATFORM_WEB]
 
-        expo_summary = self._send_expo(expo_tokens, title, body, payload)
+        expo_summary = self._send_expo(
+            expo_tokens, title, body, payload, channel_id, category_id
+        )
         web_summary = self._send_web(web_tokens, title, body, payload)
 
         return {
@@ -73,6 +87,8 @@ class PushService:
         title: str,
         body: str,
         data: dict[str, Any],
+        channel_id: str = "default",
+        category_id: str | None = None,
     ) -> dict[str, int]:
         sent = failed = pruned = 0
         if not tokens:
@@ -87,15 +103,18 @@ class PushService:
                 pruned += 1
                 continue
 
-            message = PushMessage(
+            message_kwargs = dict(
                 to=dt.token,
                 title=title,
                 body=body,
                 data=data,
                 sound="default",
                 priority="high",
-                channel_id="default",
+                channel_id=channel_id,
             )
+            if category_id:
+                message_kwargs["category"] = category_id
+            message = PushMessage(**message_kwargs)
             try:
                 response = client.publish(message)
                 response.validate_response()

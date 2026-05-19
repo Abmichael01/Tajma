@@ -60,6 +60,12 @@ def broadcast_message_on_create(sender, instance, created, **kwargs):
             # Check if recipient is online and mark as delivered immediately (WhatsApp/Telegram pattern)
             chat = instance.chat
             recipient = chat.participant2 if chat.participant1_id == instance.sender_id else chat.participant1
+
+            # Auto-unhide: a new message restores the chat for whichever party
+            # had hidden it (per-user "delete chat" semantics). The other party
+            # is unaffected. Use .remove() — it's a no-op if the user isn't in
+            # the set, so this is safe to always call.
+            chat.hidden_for_users.remove(recipient.id, instance.sender_id)
             
             is_recipient_online = False
             try:
@@ -167,18 +173,34 @@ def broadcast_message_on_create(sender, instance, created, **kwargs):
 
                     # Direct OS push fan-out (Expo + Web). Mobile/web clients
                     # suppress foreground display via their own handlers.
-                    push_service.send_to_user(
-                        user_id=recipient.id,
-                        title=title,
-                        body=preview,
-                        data={
-                            'type': 'message',
-                            'chat_id': chat_id,
-                            'ad_id': str(chat.ad_id) if chat.ad_id else '',
-                            'deep_link': deep_link,
-                            'transient': True,
-                        },
-                    )
+                    # Skip if the recipient muted this chat (per-user mute).
+                    if chat.muted_by.filter(id=recipient.id).exists():
+                        logger.info(
+                            f"⏭️  Skipping push for message {instance.id} → user {recipient.id} (chat muted)"
+                        )
+                    else:
+                        # `channel_id="messages"` (Android) + `category_id` (iOS)
+                        # are hints for OS-level grouping. NOTE: Expo Push API
+                        # does NOT forward iOS thread-identifier — full per-chat
+                        # collapse needs a Notification Service Extension in a
+                        # custom dev client. The data payload carries `thread_id`
+                        # so a future client-side handler can re-present with
+                        # proper grouping if/when that's added.
+                        push_service.send_to_user(
+                            user_id=recipient.id,
+                            title=title,
+                            body=preview,
+                            channel_id="messages",
+                            category_id="chat-message",
+                            data={
+                                'type': 'message',
+                                'chat_id': chat_id,
+                                'thread_id': chat_id,
+                                'ad_id': str(chat.ad_id) if chat.ad_id else '',
+                                'deep_link': deep_link,
+                                'transient': True,
+                            },
+                        )
                     logger.info(
                         f"✅ Banner+push dispatched (no DB row) for message {instance.id} → user {recipient.id}"
                     )

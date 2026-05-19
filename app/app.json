@@ -80,8 +80,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#FF4F18",
-          "sounds": ["./assets/sounds/notification.wav"]
+          "color": "#FF4F18"
         }
       ],
       [

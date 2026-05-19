@@ -118,6 +118,15 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
             ad_image: finalAdImage,
             ad_price: finalAdPrice,
             ad_currency: finalAdCurrency,
+            // Per-user state from server payload. Same care as mobile:
+            // `??` for booleans is fine; `pinned_at` (nullable timestamp) MUST
+            // use `in` so an explicit null from unpin overrides correctly.
+            is_pinned: updatedChat.is_pinned ?? existingChat.is_pinned,
+            pinned_at:
+              'pinned_at' in updatedChat ? updatedChat.pinned_at : existingChat.pinned_at,
+            is_muted: updatedChat.is_muted ?? existingChat.is_muted,
+            is_hidden: updatedChat.is_hidden ?? existingChat.is_hidden,
+            is_archived: updatedChat.is_archived ?? existingChat.is_archived,
           }
 
           // Debug logging after merge
@@ -144,8 +153,12 @@ export const useChatRealtime = ({ activeConversationId, onMessageReceived, onTyp
           chats.unshift(updatedChat)
         }
 
-        // Sort by most recent activity (WhatsApp/Telegram pattern - most recent on top)
+        // Sort matches backend Chat.Meta.ordering: pinned first (most-recently
+        // -pinned at the top), then by last_message_at desc.
         const sorted = chats.sort((a, b) => {
+          const aPinned = a.pinned_at ? new Date(a.pinned_at).getTime() : 0
+          const bPinned = b.pinned_at ? new Date(b.pinned_at).getTime() : 0
+          if (aPinned !== bPinned) return bPinned - aPinned
           const timeA = new Date(a.last_message_at || a.updated_at || a.created_at).getTime()
           const timeB = new Date(b.last_message_at || b.updated_at || b.created_at).getTime()
           return timeB - timeA
