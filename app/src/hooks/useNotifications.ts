@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Platform } from "react-native";
+import { AppState } from "react-native";
 import type * as ExpoNotifications from "expo-notifications";
 import * as Device from "expo-device";
 import Constants from "expo-constants";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notificationsApi } from "@/api/notifications";
-import { authApi } from "@/api/auth";
+import { deviceTokensApi } from "@/api/deviceTokens";
 import { useAuthStore } from "@/store/authStore";
+import { useInAppNotificationStore } from "@/store/inAppNotificationStore";
 
 // --- Push Notification Registration Logic ---
 
@@ -19,14 +20,21 @@ const configureNotificationHandler = (Notifications: NotificationsModule) => {
     return;
   }
 
+  // Foreground suppression: when the app is in the foreground, the in-app
+  // banner shown by InAppNotificationBanner handles the UX. Returning
+  // shouldShowBanner/shouldPlaySound false here prevents a duplicate OS-level
+  // toast on top of our own banner.
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
+    handleNotification: async () => {
+      const isActive = AppState.currentState === "active";
+      return {
+        shouldShowAlert: !isActive,
+        shouldPlaySound: !isActive,
+        shouldSetBadge: true,
+        shouldShowBanner: !isActive,
+        shouldShowList: true,
+      };
+    },
   });
 
   hasConfiguredNotificationHandler = true;
@@ -51,20 +59,40 @@ export const usePushNotifications = () => {
     let isMounted = true;
 
     const setupNotifications = async () => {
+      console.log("[push] setupNotifications start, isAuthenticated=", isAuthenticated);
       if (shouldSkipPushNotifications()) {
+        console.log("[push] BAIL: running in Expo Go (appOwnership=expo)");
         return;
       }
 
       const Notifications = await import("expo-notifications");
       if (!isMounted) {
+        console.log("[push] BAIL: unmounted before Notifications loaded");
         return;
       }
 
       configureNotificationHandler(Notifications);
+      console.log("[push] notification handler configured");
 
       notificationListener.current =
         Notifications.addNotificationReceivedListener((notification) => {
           setNotification(notification);
+          // Belt-and-suspenders: if a push lands while foregrounded and the
+          // WS event hasn't arrived yet, we still surface the banner. The
+          // store dedupes on notification_id so we never show twice.
+          if (AppState.currentState === "active") {
+            const content = notification.request.content;
+            const data = (content.data ?? {}) as Record<string, any>;
+            const chatId = typeof data.chat_id === "string" && data.chat_id ? data.chat_id : undefined;
+            useInAppNotificationStore.getState().show({
+              id: String(data.notification_id ?? notification.request.identifier),
+              title: content.title ?? "Tajma",
+              body: content.body ?? "",
+              type: String(data.type ?? "other"),
+              chatId,
+              deepLink: typeof data.deep_link === "string" ? data.deep_link : undefined,
+            });
+          }
         });
 
       responseListener.current =
@@ -76,17 +104,26 @@ export const usePushNotifications = () => {
         });
 
       if (!isAuthenticated) {
+        console.log("[push] BAIL: isAuthenticated=false, skipping token register");
         setExpoPushToken(undefined);
         return;
       }
 
+      console.log("[push] requesting Expo push token...");
       const token = await registerForPushNotificationsAsync(Notifications);
+      console.log("[push] token result:", token ? token.slice(0, 40) + "..." : "<undefined>");
       if (isMounted) {
         setExpoPushToken(token);
         if (token && isAuthenticated) {
-          authApi
-            .updateFCMToken(token)
-            .catch((error) => console.warn("Failed to sync FCM token:", error));
+          console.log("[push] POST /device-tokens/ ...");
+          deviceTokensApi
+            .register(token, "expo")
+            .then((r) => console.log("[push] register OK:", r))
+            .catch((error) => {
+              console.warn("[push] register FAILED:", error?.response?.status, error?.response?.data, error?.message);
+            });
+        } else {
+          console.log("[push] NOT posting (token empty or auth dropped)");
         }
       }
     };
@@ -110,45 +147,53 @@ export const usePushNotifications = () => {
 async function registerForPushNotificationsAsync(
   Notifications: NotificationsModule,
 ) {
+  console.log("[push] Device.isDevice=", Device.isDevice);
   if (!Device.isDevice) {
+    console.log("[push] BAIL: not a physical device (emulator?)");
     return undefined;
   }
 
-  if (Platform.OS !== "android") {
-    return undefined;
-  }
-
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#FF231F7C",
-    });
-  }
+  await Notifications.setNotificationChannelAsync("default", {
+    name: "default",
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: "#FF231F7C",
+    // Custom notification sound bundled via expo-notifications plugin in app.json.
+    // The file is at assets/sounds/notification.wav — Expo prebuild copies it
+    // into android/app/src/main/res/raw/ so Android can find it by filename.
+    sound: "notification.wav",
+  });
 
   try {
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
+    console.log("[push] existing permission status:", existingStatus);
     let finalStatus = existingStatus;
     if (existingStatus !== "granted") {
+      console.log("[push] requesting permission...");
       const { status } = await Notifications.requestPermissionsAsync();
+      console.log("[push] permission result:", status);
       finalStatus = status;
     }
     if (finalStatus !== "granted") {
+      console.log("[push] BAIL: permission not granted, status=", finalStatus);
       return undefined;
     }
 
-    const devicePushToken = await Notifications.getDevicePushTokenAsync();
-    if (devicePushToken.type !== "android") {
+    const projectId =
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      Constants.easConfig?.projectId;
+    console.log("[push] projectId=", projectId);
+    if (!projectId) {
+      console.warn("[push] BAIL: Expo project ID missing");
       return undefined;
     }
 
-    return typeof devicePushToken.data === "string"
-      ? devicePushToken.data
-      : JSON.stringify(devicePushToken.data);
-  } catch (error) {
-    console.warn("Error getting FCM token:", error);
+    const expoToken = await Notifications.getExpoPushTokenAsync({ projectId });
+    console.log("[push] Expo token obtained:", expoToken.data?.slice(0, 40) + "...");
+    return expoToken.data;
+  } catch (error: any) {
+    console.warn("[push] EXCEPTION getting Expo push token:", error?.message ?? error);
     return undefined;
   }
 }

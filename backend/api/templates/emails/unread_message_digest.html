@@ -1,0 +1,51 @@
+{% extends "emails/base.html" %}
+
+{% block content %}
+    <h2>You have unread messages</h2>
+    <p>Hi {{ recipient_name }},</p>
+    <p>
+        You have <strong>{{ total_unread }}</strong> unread
+        message{{ total_unread|pluralize }} across
+        <strong>{{ total_chats }}</strong> conversation{{ total_chats|pluralize }}
+        on Tajma. Tap a chat below to reply.
+    </p>
+
+    <div class="details-table">
+        <table>
+            {% for row in chat_rows %}
+            <tr>
+                <td style="width: auto;">
+                    <a href="{{ site_url }}/messages/{{ row.chat_id }}" style="color: #111827; text-decoration: none; font-weight: 600;">
+                        {{ row.sender_name }}
+                    </a>
+                    {% if row.ad_title %}
+                        <div style="color: #6b7280; font-size: 13px; margin-top: 2px;">
+                            About: {{ row.ad_title }}
+                        </div>
+                    {% endif %}
+                    <div style="color: #374151; font-size: 14px; margin-top: 6px;">
+                        {{ row.preview }}
+                    </div>
+                </td>
+                <td style="width: 80px; text-align: right; vertical-align: top;">
+                    <span style="display: inline-block; background-color: #FF4F18; color: #ffffff; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600;">
+                        {{ row.unread_count }} new
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    {% if truncated %}
+        <p style="color: #6b7280; font-size: 13px;">
+            Showing your most recent conversations. Open the app to see the full list.
+        </p>
+    {% endif %}
+{% endblock %}
+
+{% block cta %}
+    <div class="button-wrapper">
+        <a href="{{ site_url }}/messages" class="button">Open Messages</a>
+    </div>
+{% endblock %}

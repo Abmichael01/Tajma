@@ -15,6 +15,16 @@ import AppSplashScreenComponent from "@/components/ui/SplashScreen";
 import LanguageSelectionGate from "@/components/onboarding/LanguageSelectionGate";
 import { usePresence } from "@/hooks/usePresence";
 import { usePushNotifications } from "@/hooks/useNotifications";
+import { useNotificationWebSocket } from "@/hooks/useWebSocket";
+import InAppNotificationBanner from "@/components/InAppNotificationBanner";
+
+// Hooks that depend on React-Query's QueryClient must live UNDER QueryProvider.
+// This tiny component renders nothing — its only job is to call those hooks
+// from a position in the tree where the provider is in scope.
+function ProviderScopedHooks() {
+  useNotificationWebSocket();
+  return null;
+}
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -50,6 +60,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
       <QueryProvider>
+        <ProviderScopedHooks />
         <BottomSheetModalProvider>
           <SafeAreaProvider>
             <StatusBar style="dark" />
@@ -69,6 +80,7 @@ export default function RootLayout() {
               </View>
             )}
             {isSplashComplete && <LanguageSelectionGate />}
+            <InAppNotificationBanner />
           </SafeAreaProvider>
         </BottomSheetModalProvider>
       </QueryProvider>

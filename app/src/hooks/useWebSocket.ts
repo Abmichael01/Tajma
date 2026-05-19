@@ -66,37 +66,65 @@ export const useNotificationWebSocket = () => {
       ws.onmessage = async (event) => {
         try {
           const data: WebSocketMessage = JSON.parse(event.data)
+          console.log('[ws-notif] received:', data.type, data.notification?.title ?? '')
 
           if (data.type === 'notification' && data.notification) {
-            // Dynamic import to avoid circular dependencies if any
-            const { useNotificationsStore } = require('@/store/notificationsStore')
-            const store = useNotificationsStore.getState()
-
             const notification = data.notification
+            // Transient notifications (currently: chat messages) only surface a
+            // banner — they don't persist to the bell feed or bump the unread
+            // count. Their record lives in the chat inbox instead.
+            const isTransient = notification.transient === true
+
+            // Chat-type notifications deep-link to the conversation, not the
+            // ad. Fall back to the ad page for everything else.
+            const chatId: string | undefined = notification.related_chat
+              ? String(notification.related_chat)
+              : undefined
+            const deepLink: string | undefined = chatId
+              ? `/messages/${chatId}`
+              : notification.related_ad_slug
+                ? `/ads/${notification.related_ad_slug}`
+                : undefined
+
             const mappedNotification = {
               id: String(notification.id || ''),
               type: notification.type || 'other',
               title: notification.title || '',
               message: notification.message || '',
               isRead: Boolean(notification.is_read),
-              link: notification.related_ad_slug ? `/ads/${notification.related_ad_slug}` : undefined,
+              link: deepLink,
               adId: notification.related_ad ? String(notification.related_ad) : undefined,
               timestamp: notification.created_at || new Date().toISOString(),
             }
 
-            const wasAdded = store.getNotifications().some((n: any) => n.id === mappedNotification.id)
-            if (!wasAdded) {
-              store.addNotification(mappedNotification)
+            if (!isTransient) {
+              // Persistent notification — add to bell feed, refresh unread count.
+              const { useNotificationsStore } = require('@/store/notificationsStore')
+              const store = useNotificationsStore.getState()
+              const wasAdded = store.getNotifications().some((n: any) => n.id === mappedNotification.id)
+              if (!wasAdded) {
+                store.addNotification(mappedNotification)
+              }
+              const updatedNotifications = store.getNotifications()
+              const newUnreadCount = updatedNotifications.filter((n: any) => !n.isRead).length
+              queryClient.invalidateQueries({ queryKey: ['notifications'] })
+              queryClient.setQueryData(['notifications', 'unread_count'], { count: newUnreadCount })
             }
 
-            const updatedNotifications = store.getNotifications()
-            const newUnreadCount = updatedNotifications.filter((n: any) => !n.isRead).length
-
-            // Console log instead of toast for now
-            console.log('New Notification:', notification.message)
-
-            queryClient.invalidateQueries({ queryKey: ['notifications'] })
-            queryClient.setQueryData(['notifications', 'unread_count'], { count: newUnreadCount })
+            // Surface a top banner. Dedup happens inside the in-app store on
+            // notification id, so the parallel OS-push path won't double-show.
+            // Banner fires for both transient and persistent paths.
+            const { useInAppNotificationStore } = require('@/store/inAppNotificationStore')
+            useInAppNotificationStore.getState().show({
+              id: mappedNotification.id,
+              title: mappedNotification.title || 'Tajma',
+              body: mappedNotification.message || '',
+              type: mappedNotification.type,
+              chatId,
+              deepLink: mappedNotification.link,
+            })
+            const after = useInAppNotificationStore.getState().current
+            console.log('[ws-notif] store.current after show:', after?.id ?? '<null>', isTransient ? '(transient)' : '')
 
           } else if (data.type === 'notification_count' && typeof data.count === 'number') {
             queryClient.setQueryData(['notifications', 'unread_count'], { count: data.count })

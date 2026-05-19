@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import AppText from "@/components/ui/AppText";
 import { resolveImageUrl } from "@/utils/imageUtils";
+import { useImageDimensions } from "@/hooks/useImageDimensions";
 import { useTranslation } from "react-i18next";
 
 interface Ad {
@@ -34,12 +35,18 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const [imageError, setImageError] = useState(false);
-  const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
 
   // Get first image or placeholder
   const imageUrl = ad.images && ad.images.length > 0
     ? ad.images[0]
     : null;
+  const fullImageUrl = imageUrl ? resolveImageUrl(imageUrl) : null;
+
+  // Pre-resolve image dimensions so the Pinterest grid card lays out at the
+  // correct height from the first render. Without this, onLoad sets aspect
+  // after-the-fact and the whole list reflows — that's the "shaking".
+  const imageDims = useImageDimensions(fullImageUrl);
+  const imageAspectRatio = imageDims ? imageDims.width / imageDims.height : null;
 
   // Format price
   const formattedPrice = ad.price
@@ -63,8 +70,6 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
     }
   };
 
-  const fullImageUrl = resolveImageUrl(imageUrl);
-
   return (
     <Pressable
       className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm"
@@ -77,27 +82,21 @@ export default function AdCard({ ad, onToggleFavorite }: AdCardProps) {
     >
       {/* Image Container - Maintains natural aspect ratio for Pinterest style */}
       <View className="relative w-full bg-gray-100 overflow-hidden">
-        {fullImageUrl && !imageError ? (
+        {fullImageUrl && !imageError && imageAspectRatio ? (
           <Image
             source={{ uri: fullImageUrl }}
             style={{
               width: '100%',
-              aspectRatio: imageAspectRatio || 1,
+              aspectRatio: imageAspectRatio,
             }}
             contentFit="cover"
-            transition={200}
+            transition={120}
             onError={() => setImageError(true)}
-            onLoad={(e) => {
-              // Calculate and set aspect ratio to maintain natural image proportions for Pinterest style
-              const { width, height } = e.source;
-              if (width && height && height > 0) {
-                setImageAspectRatio(width / height);
-              } else {
-                // Default to square if dimensions not available
-                setImageAspectRatio(1);
-              }
-            }}
           />
+        ) : fullImageUrl && !imageError ? (
+          // Dimensions still loading — show a stable placeholder so the card
+          // doesn't reflow when the real image lands.
+          <View className="w-full bg-gray-100" style={{ aspectRatio: 1 }} />
         ) : (
           <View className="w-full bg-gray-100 items-center justify-center" style={{ aspectRatio: 1 }}>
             <AppText weight="bold" style={{ fontSize: 52, color: "#9ca3af", opacity: 0.3 }}>?</AppText>

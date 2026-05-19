@@ -6,7 +6,7 @@ from asgiref.sync import async_to_sync
 
 from api.models import Notification
 from api.serializers import NotificationSerializer
-from api.services.fcm_service import fcm_service
+from api.services.push_service import push_service
 
 logger = logging.getLogger(__name__)
 
@@ -92,19 +92,33 @@ def send_notification_via_websocket(sender, instance, created, **kwargs):
         except Exception as e:
             logger.error(f"❌ Failed to send unread count via WebSocket: {e}", exc_info=True)
 
-        # 🚀 Send via FCM Push Notification
+        # Fan-out push to every active device token (Expo + Web).
         try:
-            logger.info(f"🚀 Sending FCM push notification to user {instance.recipient.id}...")
-            fcm_service.send_to_user(
-                user=instance.recipient,
+            # Build a deep link the client can route to without extra lookups.
+            # Chat-type notifications go to the conversation; everything else
+            # falls back to the related ad page.
+            deep_link = ''
+            if instance.related_chat_id:
+                deep_link = f'/messages/{instance.related_chat_id}'
+            elif instance.related_ad_id and getattr(instance.related_ad, 'slug', None):
+                deep_link = f'/ads/{instance.related_ad.slug}'
+
+            summary = push_service.send_to_user(
+                user_id=instance.recipient_id,
                 title=instance.title,
                 body=instance.message,
                 data={
                     'notification_id': str(instance.id),
                     'type': instance.type,
-                    'ad_id': str(instance.related_ad.id) if instance.related_ad else '',
-                }
+                    'ad_id': str(instance.related_ad_id) if instance.related_ad_id else '',
+                    'chat_id': str(instance.related_chat_id) if instance.related_chat_id else '',
+                    'deep_link': deep_link,
+                },
+            )
+            logger.info(
+                "push fan-out for notification %s: %s",
+                instance.id, summary,
             )
         except Exception as e:
-            logger.error(f"❌ Failed to send FCM notification: {e}")
+            logger.error(f"❌ Push fan-out failed: {e}", exc_info=True)
 

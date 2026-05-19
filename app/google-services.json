@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "783054972507",
+    "project_id": "tajma-176fd",
+    "storage_bucket": "tajma-176fd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:783054972507:android:ecbfbdde06871140a0417e",
+        "android_client_info": {
+          "package_name": "com.urkelcodes.tajma"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlFm6EQ9HTh-1Ob_IvKfiqAkXdDj7_GI4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

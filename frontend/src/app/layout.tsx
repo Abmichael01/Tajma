@@ -4,6 +4,7 @@ import "./globals.css";
 import QueryProvider from "@/providers/QueryProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/sonner";
+import NotificationLayer from "@/components/NotificationLayer";
 import { GoogleAnalytics } from '@next/third-parties/google'
 
 const geistSans = Geist({
@@ -58,6 +59,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <QueryProvider>
             {children}
+            <NotificationLayer />
             <Toaster position="top-right" />
           </QueryProvider>
         </ErrorBoundary>

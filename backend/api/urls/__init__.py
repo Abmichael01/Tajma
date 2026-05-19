@@ -15,6 +15,7 @@ from api.views.payments import PaymentViewSet, PromotionPackageViewSet
 from api.views.media import serve_media
 from api.views.search import track_search
 from api.views.report import ReportViewSet, SupportMessageViewSet
+from api.views.device_token import DeviceTokenView, VapidPublicKeyView
 
 router = DefaultRouter()
 router.register(r'categories', CategoryViewSet, basename='category')
@@ -39,6 +40,8 @@ urlpatterns = [
     path('admin/', include('api.urls.admin')),
     path('media/<path:path>', serve_media, name='serve_media'),
     path('track-search/', track_search, name='track_search'),
+    path('device-tokens/', DeviceTokenView.as_view(), name='device-tokens'),
+    path('push/vapid-key/', VapidPublicKeyView.as_view(), name='push-vapid-key'),
     path('', include(router.urls)),
 ]
 

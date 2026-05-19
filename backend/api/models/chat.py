@@ -98,6 +98,11 @@ class Message(models.Model):
     delivered_at = models.DateTimeField(null=True, blank=True, help_text='When message was delivered to recipient device')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # Stamped when the unread-message digest email includes this message. Used
+    # by the periodic Celery sweep to avoid emailing twice about the same
+    # unread thread. Null means "never digested yet."
+    digest_emailed_at = models.DateTimeField(null=True, blank=True, db_index=True)
     
     # Optional: For future features like file attachments
     attachment = models.FileField(upload_to='chat_attachments/', null=True, blank=True)

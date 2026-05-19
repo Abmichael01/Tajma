@@ -73,23 +73,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         logger.info(f"📦 Notification data received: {notification_data.get('title', 'N/A')}")
         logger.debug(f"📋 Full notification data: {notification_data}")
         
-        # Convert UUIDs and other non-serializable types to strings
-        if isinstance(notification_data, dict):
-            serializable_data = {}
-            for key, value in notification_data.items():
-                if hasattr(value, '__str__'):
-                    # Convert UUIDs, dates, etc. to strings
-                    if hasattr(value, 'isoformat'):  # datetime objects
-                        serializable_data[key] = value.isoformat()
-                    else:
-                        serializable_data[key] = str(value)
-                elif isinstance(value, (dict, list)):
-                    # Recursively handle nested structures
-                    serializable_data[key] = self._make_serializable(value)
-                else:
-                    serializable_data[key] = value
-        else:
-            serializable_data = notification_data
+        # Convert UUIDs, datetimes, etc. to JSON-safe values. Use the recursive
+        # helper which correctly preserves bool/int/float/None — the previous
+        # implementation stringified booleans because hasattr(x, '__str__') is
+        # True for everything in Python.
+        serializable_data = self._make_serializable(notification_data)
         
         # Send message to WebSocket
         try:

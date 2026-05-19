@@ -20,6 +20,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Svg, Path } from "react-native-svg";
 import AppText from "@/components/ui/AppText";
+import { useImageDimensions } from "@/hooks/useImageDimensions";
 import { ChatMessage } from "@/api/types";
 import { useAuthStore } from "@/store/authStore";
 import LinkPreview from "./LinkPreview";
@@ -86,33 +87,46 @@ const MessageTail = ({ isMe, color }: { isMe: boolean; color: string }) => (
 );
 
 const MAX_IMAGE_WIDTH = 260;
+const MAX_IMAGE_HEIGHT = 350;
+const PLACEHOLDER_HEIGHT = 180;
 
 const ImageWithAspect = React.memo(({ uri }: { uri: string }) => {
-  const [dims, setDims] = useState<{ width: number; height: number } | null>(
-    null,
-  );
+  const dims = useImageDimensions(uri);
 
-  const imgWidth = MAX_IMAGE_WIDTH;
-  const imgHeight = dims
-    ? Math.round((dims.height / dims.width) * MAX_IMAGE_WIDTH)
-    : 180;
+  // Render a fixed-size skeleton until we know the natural dimensions, then
+  // render the real image at the correct aspect. Avoids the layout jump that
+  // looks like "shaking" when onLoad-driven sizing pops the bubble in place.
+  if (!dims) {
+    return (
+      <View
+        style={{
+          width: MAX_IMAGE_WIDTH,
+          height: PLACEHOLDER_HEIGHT,
+          borderRadius: 14,
+          marginBottom: 2,
+          backgroundColor: "#F3F4F6",
+        }}
+      />
+    );
+  }
+
+  const imgHeight = Math.min(
+    MAX_IMAGE_HEIGHT,
+    Math.round((dims.height / dims.width) * MAX_IMAGE_WIDTH),
+  );
 
   return (
     <Image
       source={{ uri }}
       style={{
-        width: imgWidth,
-        height: Math.min(imgHeight, 350),
+        width: MAX_IMAGE_WIDTH,
+        height: imgHeight,
         borderRadius: 14,
         marginBottom: 2,
         backgroundColor: "#F3F4F6",
       }}
       contentFit="cover"
-      transition={200}
-      onLoad={(e) => {
-        const { width, height } = (e as any).source ?? {};
-        if (width && height) setDims({ width, height });
-      }}
+      transition={120}
     />
   );
 });

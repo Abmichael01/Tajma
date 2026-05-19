@@ -14,16 +14,18 @@ from .report import Report, SupportMessage
 from .promotion import Promotion
 from .promotion_package import PromotionPackage
 from .transaction import Transaction
+from .device_token import DeviceToken
 
 __all__ = [
-    'User', 
+    'User',
     'Country',
     'Category', 'CategoryTranslation',
     'Ad', 'AdView', 'AdTranslation',
-    'Review', 'Notification', 
-    'Chat', 'Message', 'UserOnlineStatus', 
-    'SavedAd', 'Region', 'Lead', 
-    'KYCVerification', 'SearchQuery', 
-    'Report', 'SupportMessage', 
-    'Promotion', 'PromotionPackage', 'Transaction'
+    'Review', 'Notification',
+    'Chat', 'Message', 'UserOnlineStatus',
+    'SavedAd', 'Region', 'Lead',
+    'KYCVerification', 'SearchQuery',
+    'Report', 'SupportMessage',
+    'Promotion', 'PromotionPackage', 'Transaction',
+    'DeviceToken',
 ]

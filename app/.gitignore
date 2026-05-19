@@ -36,3 +36,7 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# FCM service account JSON — contains a private key, never commit
+*firebase-adminsdk*.json
+tajma-*-firebase-adminsdk-*.json

@@ -48,6 +48,8 @@ import {
   useAudioRecorderState,
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
+  createAudioPlayer,
+  type AudioPlayer,
 } from "expo-audio";
 import * as Haptics from "expo-haptics";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -68,22 +70,40 @@ import Animated, {
 import AppText from "@/components/ui/AppText";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const CANCEL_X = -110; // px leftward → cancel
+// Thresholds tuned to match WhatsApp's recorder feel. CANCEL_X tighter than
+// stock so small-thumbed users can reach it; LOCK_Y matches WA's ~100px.
+const CANCEL_X = -80; // px leftward → cancel
 const LOCK_Y = -100; // px upward   → lock
-const MIN_MS = 600; // discard if shorter than 1 s (same as WhatsApp)
+const LOCK_ATTRACT_RANGE = 30; // px before LOCK_Y where magnetic snap kicks in
+const RUBBER_X = 0.75; // horizontal rubber-band coefficient
+const RUBBER_Y = 0.75; // vertical rubber-band coefficient
+const MIN_MS = 600; // discard if shorter than this (matches WhatsApp)
 
 // ─── Sound assets ─────────────────────────────────────────────────────────────
-// Replace nulls with: require("../assets/sounds/record_start.wav") etc.
-// The component works fine without sounds — they're purely cosmetic.
-const SND_START: any = null; // soft camera-shutter click
-const SND_SEND: any = null; // upward whoosh
-const SND_CANCEL: any = null; // short descending pop
-const SND_LOCK: any = null; // satisfying snap/click
+// Placeholder sounds generated via ffmpeg — swap with curated SFX later.
+// Keep filenames stable so swapping requires zero code changes.
+const SND_START = require("../../../assets/sounds/record_start.m4a");
+const SND_SEND = require("../../../assets/sounds/record_send.m4a");
+const SND_CANCEL = require("../../../assets/sounds/record_cancel.m4a");
+const SND_LOCK = require("../../../assets/sounds/lock.m4a");
 
-async function playFX(_asset: any, _vol = 0.8) {
-  // Sound assets are optional — currently all null.
-  // When real assets are added, use expo-audio's AudioPlayer.
-  if (!_asset) return;
+// One player per SFX, lazy-initialised on first use. Reused across triggers
+// via seekTo(0) so back-to-back plays don't allocate.
+const sfxPlayers = new Map<number, AudioPlayer>();
+function playFX(asset: number | null, vol = 0.8) {
+  if (!asset) return;
+  try {
+    let p = sfxPlayers.get(asset);
+    if (!p) {
+      p = createAudioPlayer(asset);
+      sfxPlayers.set(asset, p);
+    }
+    p.volume = vol;
+    p.seekTo(0);
+    p.play();
+  } catch {
+    // SFX are purely cosmetic — never let a playback error break recording.
+  }
 }
 
 // Haptic + sound combos (called from JS thread)
@@ -202,40 +222,48 @@ const CancelHint = React.memo(
 CancelHint.displayName = "CancelHint";
 
 // ─── Lock indicator (floats above mic, long-press mode only) ─────────────────
+// Visible from the moment recording starts (at 0.55 opacity) so users see the
+// lock target before they need it. Fills to full opacity + brand colour as
+// the finger enters the magnetic attract range.
 const LockIndicator = React.memo(
   ({ translateY }: { translateY: SharedValue<number> }) => {
-    const st = useAnimatedStyle(() => {
-      const p = Math.min(1, Math.abs(Math.min(0, translateY.value)) / 60);
-      const mag = translateY.value < -45;
-      const isLocked = translateY.value < LOCK_Y;
+    const containerStyle = useAnimatedStyle(() => {
+      const dy = translateY.value;
+      const dragProgress = Math.min(1, Math.abs(Math.min(0, dy)) / 60);
+      const isLocked = dy < LOCK_Y;
+      const inAttract = dy < LOCK_Y + LOCK_ATTRACT_RANGE;
 
       return {
-        opacity: withTiming(p > 0.05 ? 1 : 0, { duration: 100 }),
+        opacity: withTiming(0.55 + dragProgress * 0.45, { duration: 120 }),
         transform: [
           {
-            translateY: withSpring(p > 0.05 ? 0 : 20, {
-              damping: 13,
-              stiffness: 120,
-            }),
-          },
-          {
-            scale: withSpring(isLocked ? 1.05 : mag ? 1.02 : 1, {
-              damping: 8,
-              stiffness: 150,
+            scale: withSpring(isLocked ? 1.1 : inAttract ? 1.06 : 1, {
+              damping: 9,
+              stiffness: 160,
             }),
           },
         ],
       };
     });
+
+    const lockIconStyle = useAnimatedStyle(() => {
+      const inAttract = translateY.value < LOCK_Y + LOCK_ATTRACT_RANGE;
+      return {
+        transform: [{ scale: withSpring(inAttract ? 1.15 : 1, { damping: 10 }) }],
+      };
+    });
+
     return (
-      <Animated.View style={[styles.lockContainer, st]}>
+      <Animated.View style={[styles.lockContainer, containerStyle]}>
         <View style={styles.lockTrack}>
-          <Ionicons
-            name="lock-closed"
-            size={18}
-            color="#9CA3AF"
-            style={{ marginBottom: 4 }}
-          />
+          <Animated.View style={lockIconStyle}>
+            <Ionicons
+              name="lock-closed"
+              size={18}
+              color="#FF4F18"
+              style={{ marginBottom: 4 }}
+            />
+          </Animated.View>
           <Ionicons name="chevron-up" size={16} color="#9CA3AF" />
           <Ionicons
             name="chevron-up"
@@ -558,42 +586,56 @@ export default function ChatInput({
   // 2. Long Press = Start recording, hold to record.
   // 3. Pan (during Long Press) = Slide Left to Cancel, Slide Up to Lock.
 
+  // Tap & LongPress thresholds tuned tight: 150ms tap is unambiguous, and
+  // 180ms longPress fires fast enough that "hold to record" feels immediate.
+  // The 30ms gap between them prevents tap/longPress races.
   const tap = Gesture.Tap()
-    .maxDuration(250)
+    .maxDuration(150)
     .onEnd(() => {
       runOnJS(startRecording)(true);
     });
 
   const longPress = Gesture.LongPress()
-    .minDuration(250)
+    .minDuration(180)
     .shouldCancelWhenOutside(false)
     .onStart(() => {
       runOnJS(startRecording)(false);
     });
 
+  // minDistance(8) kills jitter from micro-touches that aren't real drags.
   const pan = Gesture.Pan()
-    .minDistance(0)
+    .minDistance(8)
     .shouldCancelWhenOutside(false)
     .onUpdate((e) => {
       if (isCancelSV.value || isLockedSV.value) return;
 
-      // Rubber band effect: movement becomes harder as you pull further
-      micX.value = e.translationX * 0.65;
-      micY.value = Math.min(0, e.translationY) * 0.7;
+      // Rubber-band: visual movement is dampened so user feels resistance.
+      micX.value = e.translationX * RUBBER_X;
+      let visualY = Math.min(0, e.translationY) * RUBBER_Y;
 
-      // Haptic feedback when approaching "Cancel" threshold
-      if (e.translationX < CANCEL_X + 40 && !hasHapticNearCancel.value) {
+      // Magnetic snap toward the lock target: when the finger is within
+      // LOCK_ATTRACT_RANGE px of the lock threshold, add an upward pull so
+      // the lock track reads as a discoverable target.
+      const dy = e.translationY;
+      if (dy < LOCK_Y + LOCK_ATTRACT_RANGE && dy > LOCK_Y) {
+        const proximity = (LOCK_Y + LOCK_ATTRACT_RANGE - dy) / LOCK_ATTRACT_RANGE;
+        visualY -= proximity * 25;
+      }
+      micY.value = visualY;
+
+      // Haptic tick once when approaching "Cancel" threshold.
+      if (e.translationX < CANCEL_X + 30 && !hasHapticNearCancel.value) {
         hasHapticNearCancel.value = true;
         runOnJS(Haptics.selectionAsync)();
-      } else if (e.translationX >= CANCEL_X + 40) {
+      } else if (e.translationX >= CANCEL_X + 30) {
         hasHapticNearCancel.value = false;
       }
 
-      // Haptic feedback when approaching "Lock" threshold
-      if (e.translationY < LOCK_Y + 40 && !hasHapticNearLock.value) {
+      // Haptic tick once when entering lock attract range.
+      if (e.translationY < LOCK_Y + LOCK_ATTRACT_RANGE && !hasHapticNearLock.value) {
         hasHapticNearLock.value = true;
         runOnJS(Haptics.selectionAsync)();
-      } else if (e.translationY >= LOCK_Y + 40) {
+      } else if (e.translationY >= LOCK_Y + LOCK_ATTRACT_RANGE) {
         hasHapticNearLock.value = false;
       }
 
@@ -605,7 +647,7 @@ export default function ChatInput({
       // Trigger Lock
       else if (e.translationY < LOCK_Y && !isLockedSV.value) {
         isLockedSV.value = true;
-        // Visual snap-up
+        // Visual snap-up into the lock track.
         micY.value = withSpring(LOCK_Y - 40, { damping: 12, stiffness: 200 });
         runOnJS(lockRecording)();
       }

@@ -11,12 +11,13 @@ class NotificationSerializer(serializers.ModelSerializer):
     recipient = UserSummarySerializer(read_only=True, allow_null=True)
     related_ad = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
     related_user = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
-    
+    related_chat = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
+
     # Additional fields for convenience
     related_ad_title = serializers.CharField(source='related_ad.title', read_only=True, allow_null=True)
     related_ad_slug = serializers.CharField(source='related_ad.slug', read_only=True, allow_null=True)
     related_user_name = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Notification
         fields = [
@@ -31,6 +32,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             'related_ad_slug',
             'related_user',
             'related_user_name',
+            'related_chat',
             'created_at',
             'read_at',
         ]
@@ -47,6 +49,8 @@ class NotificationSerializer(serializers.ModelSerializer):
             data['related_ad'] = str(data['related_ad'])
         if data.get('related_user'):
             data['related_user'] = str(data['related_user']) if isinstance(data['related_user'], (int, str)) else data['related_user']
+        if data.get('related_chat'):
+            data['related_chat'] = str(data['related_chat'])
         # recipient is now a nested object, so we don't need to convert it
         
         # Ensure datetime fields are ISO format strings

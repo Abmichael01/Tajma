@@ -45,6 +45,15 @@ class Notification(models.Model):
         blank=True,
         related_name='sent_notifications',
     )
+    # Set for chat-related notifications so the client can deep-link straight
+    # to the conversation instead of falling back to the related ad.
+    related_chat = models.ForeignKey(
+        'api.Chat',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notifications',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     read_at = models.DateTimeField(null=True, blank=True)
     

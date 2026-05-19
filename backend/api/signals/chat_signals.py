@@ -12,8 +12,9 @@ from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from api.models import Message, Chat, UserOnlineStatus, Notification
+from api.models import Message, Chat, UserOnlineStatus
 from api.serializers import MessageSerializer, ChatSerializer
+from api.services.push_service import push_service
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db import models
@@ -129,27 +130,60 @@ def broadcast_message_on_create(sender, instance, created, **kwargs):
             # Also broadcast chat event to update chat list
             broadcast_chat_event_for_message(instance, message_data)
 
-            # 🚀 Create System Notification (which triggers FCM push)
+            # 🚀 Transient notification + push (NOT saved as Notification row).
+            # Policy: chat messages don't clutter the notifications feed — the
+            # chat inbox is the record. We still fire a banner via WS and an OS
+            # push so the recipient knows immediately. Email digest catches
+            # anything still unread after 10 min (see notification_tasks.py).
             try:
                 if instance.sender_id != recipient.id:
-                    # Check if we should send notification (rate limiting/duplicates)
-                    if Notification.should_send_notification(
-                        recipient=recipient,
-                        notification_type='message',
-                        related_user=instance.sender,
-                        related_ad=chat.ad
-                    ):
-                        Notification.objects.create(
-                            recipient=recipient,
-                            type='message',
-                            title=f'New message from {instance.sender.get_full_name()}',
-                            message=instance.content[:100] + ('...' if len(instance.content) > 100 else ''),
-                            related_user=instance.sender,
-                            related_ad=chat.ad
-                        )
-                        logger.info(f"✅ Created notification for message {instance.id} for user {recipient.id}")
+                    sender_name = instance.sender.get_full_name() or instance.sender.username
+                    title = f'New message from {sender_name}'
+                    preview = instance.content[:100] + ('...' if len(instance.content) > 100 else '')
+                    deep_link = f'/messages/{chat_id}'
+
+                    # Transient WS event — banner only, no DB row, no badge bump.
+                    # Clients special-case `transient: True` to skip persistence.
+                    transient_payload = {
+                        'id': f'msg-{instance.id}',
+                        'type': 'message',
+                        'title': title,
+                        'message': preview,
+                        'is_read': False,
+                        'created_at': instance.created_at.isoformat() if instance.created_at else None,
+                        'related_chat': chat_id,
+                        'related_ad': str(chat.ad_id) if chat.ad_id else None,
+                        'related_ad_slug': getattr(chat.ad, 'slug', None) if chat.ad_id else None,
+                        'deep_link': deep_link,
+                        'transient': True,
+                    }
+                    async_to_sync(channel_layer.group_send)(
+                        f'notifications_{recipient.id}',
+                        {
+                            'type': 'notification_message',
+                            'notification': transient_payload,
+                        }
+                    )
+
+                    # Direct OS push fan-out (Expo + Web). Mobile/web clients
+                    # suppress foreground display via their own handlers.
+                    push_service.send_to_user(
+                        user_id=recipient.id,
+                        title=title,
+                        body=preview,
+                        data={
+                            'type': 'message',
+                            'chat_id': chat_id,
+                            'ad_id': str(chat.ad_id) if chat.ad_id else '',
+                            'deep_link': deep_link,
+                            'transient': True,
+                        },
+                    )
+                    logger.info(
+                        f"✅ Banner+push dispatched (no DB row) for message {instance.id} → user {recipient.id}"
+                    )
             except Exception as e:
-                logger.error(f"❌ Failed to create notification for message {instance.id}: {e}")
+                logger.error(f"❌ Failed transient notify for message {instance.id}: {e}", exc_info=True)
         else:
             # Message updated (e.g., marked as read) - broadcast status update
             # Only broadcast if read status changed

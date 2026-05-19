@@ -18,7 +18,6 @@ export const useNotificationWebSocket = () => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const reconnectAttempts = useRef(0)
   const maxReconnectAttempts = 5
-  const shownToastIds = useRef<Set<string>>(new Set())
 
   const connect = useCallback(() => {
     if (!isAuthenticated || !user) {
@@ -89,14 +88,24 @@ export const useNotificationWebSocket = () => {
           console.log('📦 Parsed WebSocket data:', data)
 
           if (data.type === 'notification' && data.notification) {
-            // Add notification to store
-            const { useNotificationsStore } = await import('@/store/notificationsStore')
-            const { toast } = await import('sonner')
-            const store = useNotificationsStore.getState()
-
-            // Map backend notification to store format
             const notification = data.notification
             console.log('📨 WebSocket: Received notification:', notification)
+            // Transient notifications (currently: chat messages) only surface a
+            // banner — they don't persist to the bell feed or bump the unread
+            // count. Their record lives in the chat inbox instead.
+            const isTransient = notification.transient === true
+
+            const { useInAppNotificationStore } = await import('@/store/inAppNotificationStore')
+
+            // Chat-type notifications deep-link to the conversation, not the ad.
+            const chatId: string | undefined = notification.related_chat
+              ? String(notification.related_chat)
+              : undefined
+            const deepLink: string | undefined = chatId
+              ? `/messages/${chatId}`
+              : notification.related_ad_slug
+                ? `/ads/${notification.related_ad_slug}`
+                : undefined
 
             const mappedNotification = {
               id: String(notification.id || ''),
@@ -104,51 +113,38 @@ export const useNotificationWebSocket = () => {
               title: notification.title || '',
               message: notification.message || '',
               isRead: Boolean(notification.is_read),
-              link: notification.related_ad_slug ? `/ads/${notification.related_ad_slug}` : undefined,
+              link: deepLink,
               adId: notification.related_ad ? String(notification.related_ad) : undefined,
               timestamp: notification.created_at || new Date().toISOString(),
             }
 
-            // Add notification to store
-            const wasAdded = store.getNotifications().some(n => n.id === mappedNotification.id)
-            if (!wasAdded) {
-              store.addNotification(mappedNotification)
+            if (!isTransient) {
+              const { useNotificationsStore } = await import('@/store/notificationsStore')
+              const store = useNotificationsStore.getState()
+              const wasAdded = store.getNotifications().some(n => n.id === mappedNotification.id)
+              if (!wasAdded) {
+                store.addNotification(mappedNotification)
+              }
+              const updatedNotifications = store.getNotifications()
+              const newUnreadCount = updatedNotifications.filter(n => !n.isRead).length
+              queryClient.invalidateQueries({ queryKey: ['notifications'] })
+              queryClient.setQueryData(['notifications', 'unread_count'], { count: newUnreadCount })
+              console.log(`✅ WebSocket: Notification added. Store now has ${updatedNotifications.length} notifications, ${newUnreadCount} unread`)
+            } else {
+              console.log('🔔 WebSocket: Transient notification (banner only, no persist)')
             }
 
-            // Get updated unread count
-            const updatedNotifications = store.getNotifications()
-            const newUnreadCount = updatedNotifications.filter(n => !n.isRead).length
-
-            // Show toast notification only once per notification ID
-            const notificationId = String(notification.id || '')
-            if (!shownToastIds.current.has(notificationId)) {
-              shownToastIds.current.add(notificationId)
-
-              // Show toast with just the message (no description)
-              // Use unique ID to prevent duplicate toasts
-              toast(notification.message || notification.title || 'New notification', {
-                id: `notification-${notificationId}`, // Unique ID to prevent duplicates
-                duration: 5000,
-                description: undefined, // Explicitly no description
-                action: notification.link ? {
-                  label: 'View',
-                  onClick: () => {
-                    window.location.href = notification.link!
-                  }
-                } : undefined,
-              })
-
-              // Clean up old toast IDs after 1 minute to prevent memory leak
-              setTimeout(() => {
-                shownToastIds.current.delete(notificationId)
-              }, 60000)
-            }
-
-            // Invalidate notifications query to refetch
-            queryClient.invalidateQueries({ queryKey: ['notifications'] })
-            queryClient.setQueryData(['notifications', 'unread_count'], { count: newUnreadCount })
-
-            console.log(`✅ WebSocket: Notification added. Store now has ${updatedNotifications.length} notifications, ${newUnreadCount} unread`)
+            // Surface the WhatsApp-style top banner. The in-app store dedupes
+            // on notification id, so the parallel service-worker push path
+            // (which postMessages on visible tabs) can't double-show.
+            useInAppNotificationStore.getState().show({
+              id: mappedNotification.id,
+              title: mappedNotification.title || 'Tajma',
+              body: mappedNotification.message || '',
+              type: notification.type || 'other',
+              deepLink: mappedNotification.link,
+              avatarUrl: notification.actor_avatar || notification.related_user_avatar,
+            })
           } else if (data.type === 'notification_count' && typeof data.count === 'number') {
             console.log('📊 Updating notification count:', data.count)
             // Update unread count

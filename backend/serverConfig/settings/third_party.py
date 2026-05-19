@@ -87,27 +87,21 @@ FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 # Site URL for absolute URL generation (webhooks, callbacks, etc.)
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 
-# Django Channels Configuration
-if ENVIRONMENT == 'production':
-    redis_url = os.getenv('REDIS_URL')
-    if redis_url:
-        CHANNEL_LAYERS = {
-            'default': {
-                'BACKEND': 'channels_redis.core.RedisChannelLayer',
-                'CONFIG': {
-                    "hosts": [redis_url],
-                },
+# Django Channels Configuration.
+# Channel layer selection is driven by infrastructure availability, not the
+# environment label: if REDIS_URL is set we use Redis (required for cross-
+# process group_send — signals fired from manage.py shell or Celery must reach
+# the WS process). Only fall back to in-memory when there's literally no Redis.
+_redis_url = os.getenv('REDIS_URL')
+if _redis_url:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [_redis_url],
             },
-        }
-    else:
-        CHANNEL_LAYERS = {
-            'default': {
-                'BACKEND': 'channels_redis.core.RedisChannelLayer',
-                'CONFIG': {
-                    "hosts": [(os.getenv('REDIS_HOST', '127.0.0.1'), int(os.getenv('REDIS_PORT', 6379)))],
-                },
-            },
-        }
+        },
+    }
 else:
     CHANNEL_LAYERS = {
         'default': {
@@ -146,7 +140,23 @@ CELERY_BEAT_SCHEDULE = {
         # actually missing — keep an eye on OpenAI rate limits / spend.
         'schedule': crontab(minute='*/5'),
     },
+    'unread-message-digest': {
+        'task': 'api.tasks.notification_tasks.send_unread_message_digest',
+        # Every 5 minutes. The DIGEST_DELAY_MINUTES threshold (10 min) is what
+        # gates emails — this cadence just controls how quickly a freshly-aged
+        # message gets included. Cheap when there's nothing unread (one filtered
+        # SELECT). Email cost only happens when users actually have stale unread
+        # threads.
+        'schedule': crontab(minute='*/5'),
+    },
 }
 
 # OpenAI Configuration
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+
+# Push Notifications — Web Push (VAPID).
+# Generate keys via `python manage.py generate_vapid_keys` and paste into env.
+# Expo Push needs no server-side keys: tokens are sent straight to Expo's API.
+VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', '')
+VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')
+VAPID_CLAIM_EMAIL = os.getenv('VAPID_CLAIM_EMAIL', '')

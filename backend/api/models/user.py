@@ -71,7 +71,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     email_notifications = models.BooleanField(default=True)
     sms_notifications = models.BooleanField(default=False)
     marketing_notifications = models.BooleanField(default=True)
-    fcm_device_token = models.CharField(max_length=255, blank=True, null=True)
     preferred_language = models.CharField(
         max_length=5, 
         default='en', 

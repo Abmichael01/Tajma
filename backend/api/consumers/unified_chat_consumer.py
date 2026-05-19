@@ -715,35 +715,36 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
             logger.error(f"Error creating message: {e}", exc_info=True)
             return None
     
+    @staticmethod
+    def _make_msgpack_safe(obj):
+        """Recursively convert UUIDs / datetimes / other custom objects into
+        primitives that msgpack can serialise. The Redis channel layer uses
+        msgpack and silently rejects anything else with a generic TypeError —
+        so every payload going into group_send must pass through here first."""
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        if isinstance(obj, dict):
+            return {key: UnifiedChatConsumer._make_msgpack_safe(value) for key, value in obj.items()}
+        if isinstance(obj, list):
+            return [UnifiedChatConsumer._make_msgpack_safe(item) for item in obj]
+        if hasattr(obj, 'isoformat'):  # datetime / date objects
+            return obj.isoformat()
+        return obj
+
     @database_sync_to_async
     def serialize_message(self, message):
         """Serialize message for WebSocket"""
         from api.serializers import MessageSerializer
-        
+
         # Refresh message from DB to get latest delivered_at
         if hasattr(message, 'pk'):
             try:
                 message = Message.objects.get(pk=message.pk)
             except Message.DoesNotExist:
                 pass
-        
+
         serializer = MessageSerializer(message, context={'request': self._get_mock_request(self.user)})
-        data = serializer.data
-        
-        # Convert UUIDs and other non-serializable types to strings
-        def make_serializable(obj):
-            """Recursively convert UUIDs, datetimes, etc. to strings"""
-            if isinstance(obj, uuid.UUID):
-                return str(obj)
-            elif isinstance(obj, dict):
-                return {key: make_serializable(value) for key, value in obj.items()}
-            elif isinstance(obj, list):
-                return [make_serializable(item) for item in obj]
-            elif hasattr(obj, 'isoformat'):  # datetime objects
-                return obj.isoformat()
-            return obj
-        
-        return make_serializable(data)
+        return self._make_msgpack_safe(serializer.data)
     
     @database_sync_to_async
     def set_user_online(self, user_id):
@@ -798,17 +799,19 @@ class UnifiedChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def serialize_chat_for_user(self, chat_id, user_id):
         from api.serializers import ChatSerializer
-        
+
         try:
             # Ensure ad relationship is loaded to prevent N+1 queries and ensure ad data is available
             chat = Chat.objects.select_related('participant1', 'participant2', 'ad').get(id=chat_id)
             user = User.objects.get(id=user_id)
         except (Chat.DoesNotExist, User.DoesNotExist):
             return {}
-        
+
         fake_request = self._get_mock_request(user)
         serializer = ChatSerializer(chat, context={'request': fake_request})
-        return serializer.data
+        # MUST pass through msgpack-safe conversion — ChatSerializer.data
+        # contains UUID + datetime objects that Redis can't serialise.
+        return self._make_msgpack_safe(serializer.data)
 
     def _get_mock_request(self, user):
         """Create a mock request object for serialization"""

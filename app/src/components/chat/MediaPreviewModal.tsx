@@ -274,7 +274,10 @@ export default function MediaPreviewModal({
 
             {isImage && (
               <View className="flex-row gap-4">
-                {renderEditButton("crop", "crop-outline")}
+                {/* Crop button intentionally removed: the previous implementation
+                    forced an auto-centered square crop with no interactive
+                    region selection. A proper interactive crop UI (e.g. via
+                    react-native-image-crop-picker) is a future improvement. */}
                 {renderEditButton("rotate", "refresh-outline")}
                 {renderEditButton("flip", "swap-horizontal-outline")}
               </View>
@@ -320,7 +323,7 @@ export default function MediaPreviewModal({
 
           {/* Bottom Caption Bar */}
           <View className="p-4 bg-black/50">
-            <View className="flex-row items-end bg-gray-900 rounded-3xl px-4 py-2 border border-gray-800">
+            <View className="flex-row items-end bg-gray-900 rounded-full px-4 py-2 border border-gray-800">
               <TouchableOpacity
                 className="p-2"
                 onPress={replaceCurrentMedia}

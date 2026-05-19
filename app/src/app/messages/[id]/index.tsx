@@ -38,6 +38,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { ChatMessage } from "@/api/types";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { useInAppNotificationStore } from "@/store/inAppNotificationStore";
 
 // Approximates the iOS keyboard's native bezier; works on Android too.
 const KB_EASING = Easing.bezier(0.17, 0.59, 0.4, 0.77);
@@ -50,6 +51,17 @@ export default function ChatRoomScreen() {
     search?: string;
   }>();
   const insets = useSafeAreaInsets();
+
+  // While this chat is open, suppress message-banner notifications for it —
+  // the user is already watching messages arrive on screen, a banner would
+  // just be noise. Cleanup clears it when navigating away.
+  useEffect(() => {
+    if (!id) return;
+    useInAppNotificationStore.getState().setActiveChatId(id);
+    return () => {
+      useInAppNotificationStore.getState().setActiveChatId(null);
+    };
+  }, [id]);
   const {
     messages: allMessages,
     isChatLoading,
