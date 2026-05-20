@@ -9,6 +9,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as NavigationBar from "expo-navigation-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import "@/i18n";
 import QueryProvider from "@/providers/QueryProvider";
 import AppSplashScreenComponent from "@/components/ui/SplashScreen";
@@ -59,31 +60,33 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <QueryProvider>
-        <ProviderScopedHooks />
-        <BottomSheetModalProvider>
-          <SafeAreaProvider>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false, animation: "fade" }} />
-            {!isSplashComplete && (
-              <View
-                style={StyleSheet.absoluteFill}
-                pointerEvents={isSplashComplete ? "none" : "auto"}
-              >
-                {isAppReady ? (
-                  <AppSplashScreenComponent
-                    onAnimationComplete={() => setIsSplashComplete(true)}
-                  />
-                ) : (
-                  <View style={{ flex: 1, backgroundColor: "#FFFFFF" }} />
-                )}
-              </View>
-            )}
-            {isSplashComplete && <LanguageSelectionGate />}
-            <InAppNotificationBanner />
-          </SafeAreaProvider>
-        </BottomSheetModalProvider>
-      </QueryProvider>
+      <KeyboardProvider>
+        <QueryProvider>
+          <ProviderScopedHooks />
+          <BottomSheetModalProvider>
+            <SafeAreaProvider>
+              <StatusBar style="dark" />
+              <Stack screenOptions={{ headerShown: false, animation: "fade" }} />
+              {!isSplashComplete && (
+                <View
+                  style={StyleSheet.absoluteFill}
+                  pointerEvents={isSplashComplete ? "none" : "auto"}
+                >
+                  {isAppReady ? (
+                    <AppSplashScreenComponent
+                      onAnimationComplete={() => setIsSplashComplete(true)}
+                    />
+                  ) : (
+                    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }} />
+                  )}
+                </View>
+              )}
+              {isSplashComplete && <LanguageSelectionGate />}
+              <InAppNotificationBanner />
+            </SafeAreaProvider>
+          </BottomSheetModalProvider>
+        </QueryProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

@@ -9,14 +9,20 @@ import {
   Keyboard,
   Clipboard,
   Alert,
-  Dimensions,
 } from "react-native";
 import Reanimated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedReaction,
+  useDerivedValue,
   withTiming,
   Easing,
+  runOnJS,
 } from "react-native-reanimated";
+import {
+  useReanimatedKeyboardAnimation,
+  useKeyboardHandler,
+} from "react-native-keyboard-controller";
 import * as Haptics from "expo-haptics";
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -140,107 +146,88 @@ export default function ChatRoomScreen() {
   // OVER them; dismissing the keyboard REVEALS whichever panel is currently
   // active. Only one panel can be active at a time (mutual exclusion).
   //
-  // The chat content has a marginBottom = bottomInset which stays at
-  // keyboardHeight whenever any panel is active OR keyboard is up. That keeps
-  // the input row at a constant Y across all transitions.
+  // Keyboard frame comes from react-native-keyboard-controller — a per-frame,
+  // natively-driven shared value that works correctly under edge-to-edge.
+  // `kb.height` is negative while up (it's a translateY-style offset); we use
+  // its absolute value as the live keyboard height.
   type ActivePanel = "sticker" | "attachment" | null;
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
-  const [keyboardHeight, setKeyboardHeight] = useState(320);
+  const [lastKeyboardHeight, setLastKeyboardHeight] = useState(320);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const bottomInset = useSharedValue(0);
-  const isOpeningPanelRef = useRef(false);
+  const kb = useReanimatedKeyboardAnimation();
+  const panelHeight = useSharedValue(0);
 
-  useEffect(() => {
-    const showEvent =
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent =
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-
-    const showSub = Keyboard.addListener(showEvent, (e) => {
-      const h = e.endCoordinates?.height ?? 320;
-      setKeyboardHeight(h);
-      setIsKeyboardVisible(true);
-      // Keyboard takes over from any open panel.
-      setActivePanel(null);
-      const dur =
-        (e as { duration?: number }).duration &&
-        (e as { duration?: number }).duration! > 0
-          ? (e as { duration: number }).duration
-          : KB_FALLBACK_DURATION;
-      bottomInset.value = withTiming(h, {
-        duration: dur,
-        easing: KB_EASING,
-      });
-    });
-
-    const hideSub = Keyboard.addListener(hideEvent, (e) => {
-      setIsKeyboardVisible(false);
-      if (isOpeningPanelRef.current) {
-        // Keyboard dismissing TO reveal a panel — keep inset, no animation.
-        isOpeningPanelRef.current = false;
-        return;
+  // Mirror keyboard-up state to JS via animated reaction (avoids reading
+  // .value during component render).
+  useAnimatedReaction(
+    () => kb.progress.value > 0.01,
+    (current, previous) => {
+      if (current !== previous) {
+        runOnJS(setIsKeyboardVisible)(current);
       }
-      const dur =
-        (e as { duration?: number } | undefined)?.duration &&
-        (e as { duration?: number }).duration! > 0
-          ? (e as { duration: number }).duration
-          : KB_FALLBACK_DURATION;
-      bottomInset.value = withTiming(0, {
-        duration: dur,
-        easing: KB_EASING,
-      });
-    });
+    },
+  );
+  // Shared value (not ref!) so worklets in useKeyboardHandler can read it
+  // reliably. True when we programmatically dismiss keyboard from openPanel —
+  // tells onEnd not to auto-close the panel (it's intentional reveal).
+  const programmaticDismissSV = useSharedValue(false);
+  const closeAllPanels = useCallback(() => {
+    setActivePanel(null);
+  }, []);
 
-    // iOS only: catch mid-session keyboard frame changes (text ↔ emoji mode,
-    // language switch, hardware keyboard attach). Filtered to skip the
-    // dismiss case — keyboardWillChangeFrame ALSO fires when the keyboard
-    // moves off-screen, with endCoordinates.screenY === screen.height. We
-    // only want to react when the keyboard will remain visible.
-    const changeFrameSub =
-      Platform.OS === "ios"
-        ? Keyboard.addListener("keyboardWillChangeFrame", (e) => {
-            const newHeight = e.endCoordinates?.height;
-            const screenY = e.endCoordinates?.screenY;
-            const screenHeight = Dimensions.get("screen").height;
-            // Skip dismiss-flavored frame changes (keyboard going off-screen).
-            if (
-              screenY !== undefined &&
-              screenY >= screenHeight - 1
-            ) {
-              return;
-            }
-            if (!newHeight || newHeight <= 0) return;
-            setKeyboardHeight(newHeight);
-            const dur =
-              (e as { duration?: number }).duration &&
-              (e as { duration?: number }).duration! > 0
-                ? (e as { duration: number }).duration
-                : KB_FALLBACK_DURATION;
-            bottomInset.value = withTiming(newHeight, {
-              duration: dur,
+  useKeyboardHandler(
+    {
+      onStart: (e) => {
+        "worklet";
+        if (e.height > 0) {
+          // Keyboard rising — it takes over from any panel. Clearing
+          // activePanel lets the icons return to their "open panel" state.
+          // panelHeight stays put; max(rising kb, panel) holds input steady
+          // until kb takes over, then useAnimatedReaction zeros panelHeight.
+          runOnJS(closeAllPanels)();
+        }
+      },
+      onEnd: (e) => {
+        "worklet";
+        if (e.height === 0) {
+          if (programmaticDismissSV.value) {
+            // We dismissed keyboard to reveal a panel — keep everything.
+            programmaticDismissSV.value = false;
+          } else {
+            // Real dismissal — animate panel down too so input drops smoothly.
+            panelHeight.value = withTiming(0, {
+              duration: KB_FALLBACK_DURATION,
               easing: KB_EASING,
             });
-          })
-        : null;
+            runOnJS(closeAllPanels)();
+          }
+        }
+      },
+    },
+    [],
+  );
 
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-      changeFrameSub?.remove();
-    };
-  }, [bottomInset]);
+  // When keyboard reaches fully up, reset panelHeight to 0 so the next
+  // panel-open starts from a clean state. Also capture lastKeyboardHeight.
+  useAnimatedReaction(
+    () => kb.progress.value > 0.95,
+    (isFullyUp, wasFullyUp) => {
+      if (isFullyUp && !wasFullyUp) {
+        const h = Math.abs(kb.height.value);
+        if (h > 100) {
+          runOnJS(setLastKeyboardHeight)(h);
+        }
+        panelHeight.value = 0;
+      }
+    },
+  );
 
-  // Invariant: bottomInset must be 0 whenever neither keyboard nor any panel
-  // is active. Catches paths where setActivePanel(null) is called outside the
-  // keyboard listener (e.g., after picking a camera/gallery/document).
-  useEffect(() => {
-    if (activePanel === null && !isKeyboardVisible && bottomInset.value > 0) {
-      bottomInset.value = withTiming(0, {
-        duration: KB_FALLBACK_DURATION,
-        easing: KB_EASING,
-      });
-    }
-  }, [activePanel, isKeyboardVisible, bottomInset]);
+  const bottomInset = useDerivedValue(() => {
+    "worklet";
+    const keyboardOffset = Math.abs(kb.height.value);
+    const panelOffset = panelHeight.value;
+    return Math.max(keyboardOffset, panelOffset);
+  });
 
   const animatedContentStyle = useAnimatedStyle(() => ({
     marginBottom: bottomInset.value,
@@ -256,20 +243,16 @@ export default function ChatRoomScreen() {
       }
       // Switching panels or opening from nothing.
       setActivePanel(target);
+      panelHeight.value = lastKeyboardHeight;
       if (isKeyboardVisible) {
-        // Coming from keyboard: dismiss, keep bottomInset at kbHeight.
-        isOpeningPanelRef.current = true;
+        // Coming from keyboard: dismiss; the library animates kb.height down,
+        // panelHeight stays at lastKeyboardHeight → reveal pattern. The flag
+        // tells useKeyboardHandler not to auto-clear the panel.
+        programmaticDismissSV.value = true;
         Keyboard.dismiss();
-      } else if (bottomInset.value === 0) {
-        // No keyboard, no other panel: animate bottomInset up.
-        bottomInset.value = withTiming(keyboardHeight, {
-          duration: KB_FALLBACK_DURATION,
-          easing: KB_EASING,
-        });
       }
-      // else: switching from one panel to another — bottomInset already at kbHeight.
     },
-    [activePanel, isKeyboardVisible, keyboardHeight, bottomInset],
+    [activePanel, isKeyboardVisible, lastKeyboardHeight, panelHeight],
   );
 
   const handleToggleSticker = useCallback(
@@ -280,6 +263,13 @@ export default function ChatRoomScreen() {
     () => openPanel("attachment"),
     [openPanel],
   );
+
+  // No effect needed: panelHeight is now managed entirely by openPanel and
+  // the useKeyboardHandler callbacks. When keyboard rises, panelHeight stays
+  // at lastKeyboardHeight — max(rising kb, lastKeyboardHeight) holds the
+  // input bar steady until kb takes over. Then useAnimatedReaction on
+  // "keyboard fully up" zeros panelHeight. When keyboard fully dismisses
+  // (real, not programmatic), onEnd animates panelHeight to 0 smoothly.
 
   // Bumping this triggers ChatInput to focus its TextInput.
   const [shouldRefocusInput, setShouldRefocusInput] = useState(0);
@@ -866,7 +856,7 @@ export default function ChatRoomScreen() {
             bottom: 0,
             left: 0,
             right: 0,
-            height: keyboardHeight,
+            height: lastKeyboardHeight,
             backgroundColor: "#F5F5F5",
             borderTopWidth: 1,
             borderTopColor: "#E5E7EB",
