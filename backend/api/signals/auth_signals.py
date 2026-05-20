@@ -19,17 +19,17 @@ def notify_user_on_signin(sender, request, user, **kwargs):
     else:
         ip = request.META.get('REMOTE_ADDR')
 
-    subject = "New Sign-in Detected on Tajma"
     context = {
         'user_name': user.first_name or user.email.split('@')[0],
         'user_email': user.email,
         'login_time': timezone.now(),
         'ip_address': ip,
     }
-    
+
     send_professional_email(
-        subject=subject,
+        subject_key='new_signin',
         template_name='emails/new_signin.html',
         context=context,
-        recipient_list=[user.email]
+        recipient_list=[user.email],
+        language=getattr(user, 'preferred_language', None),
     )

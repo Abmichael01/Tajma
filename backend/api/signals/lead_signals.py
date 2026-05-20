@@ -14,19 +14,19 @@ def notify_seller_on_new_lead(sender, instance, created, **kwargs):  # noqa: ARG
     if not getattr(seller, 'email_notifications', True):
         return
 
-    subject = "New Lead Received on Tajma"
     context = {
         'user_name': seller.first_name or seller.email.split('@')[0],
         'lead_source': instance.get_first_source_display(),
-        'ad_title': instance.ad.title if instance.ad else "Your Listing",
+        'ad_title': instance.ad.title if instance.ad else None,
         'lead_time': instance.created_at,
     }
 
     send_professional_email(
-        subject=subject,
+        subject_key='new_lead',
         template_name='emails/new_lead.html',
         context=context,
-        recipient_list=[seller.email]
+        recipient_list=[seller.email],
+        language=getattr(seller, 'preferred_language', None),
     )
 
 
@@ -44,18 +44,18 @@ def notify_seller_lead_renewal(lead):
         or lead.client.email
     )
 
-    subject = "A Lead Came Back — Time to Follow Up!"
     context = {
         'user_name': seller.first_name or seller.email.split('@')[0],
         'client_name': client_name,
         'lead_source': lead.get_last_source_display(),
-        'ad_title': lead.ad.title if lead.ad else "Your Listing",
+        'ad_title': lead.ad.title if lead.ad else None,
         'interaction_count': lead.interaction_count,
     }
 
     send_professional_email(
-        subject=subject,
+        subject_key='lead_renewal',
         template_name='emails/lead_renewal.html',
         context=context,
-        recipient_list=[seller.email]
+        recipient_list=[seller.email],
+        language=getattr(seller, 'preferred_language', None),
     )

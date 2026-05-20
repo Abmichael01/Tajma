@@ -154,7 +154,9 @@
     "buyer_promo_title": "Vous cherchez à acheter ?",
     "buyer_promo_h3": "Découvrez des <deals>offres</deals>",
     "buyer_promo_p": "Trouvez exactement ce dont vous avez besoin près de chez vous.",
-    "buy_items": "Acheter"
+    "buy_items": "Acheter",
+    "no_connection": "Pas de connexion",
+    "no_connection_desc": "Impossible de se connecter au serveur. Affichage des résultats en cache."
   },
   "nav": {
     "home": "Accueil",

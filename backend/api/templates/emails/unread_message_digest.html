@@ -1,13 +1,16 @@
 {% extends "emails/base.html" %}
 
 {% block content %}
-    <h2>You have unread messages</h2>
-    <p>Hi {{ recipient_name }},</p>
+    <h2>{{ s.title }}</h2>
+    <p>{{ s.greeting }} {{ recipient_name }},</p>
     <p>
-        You have <strong>{{ total_unread }}</strong> unread
-        message{{ total_unread|pluralize }} across
-        <strong>{{ total_chats }}</strong> conversation{{ total_chats|pluralize }}
-        on Tajma. Tap a chat below to reply.
+        {{ s.body_prefix }}
+        <strong>{{ total_unread }}</strong>
+        {% if total_unread == 1 %}{{ s.body_unread_singular }}{% else %}{{ s.body_unread_plural }}{% endif %}
+        {{ s.body_middle }}
+        <strong>{{ total_chats }}</strong>
+        {% if total_chats == 1 %}{{ s.body_chat_singular }}{% else %}{{ s.body_chat_plural }}{% endif %}
+        {{ s.body_suffix }}
     </p>
 
     <div class="details-table">
@@ -20,7 +23,7 @@
                     </a>
                     {% if row.ad_title %}
                         <div style="color: #6b7280; font-size: 13px; margin-top: 2px;">
-                            About: {{ row.ad_title }}
+                            {{ s.about }} {{ row.ad_title }}
                         </div>
                     {% endif %}
                     <div style="color: #374151; font-size: 14px; margin-top: 6px;">
@@ -29,7 +32,7 @@
                 </td>
                 <td style="width: 80px; text-align: right; vertical-align: top;">
                     <span style="display: inline-block; background-color: #FF4F18; color: #ffffff; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600;">
-                        {{ row.unread_count }} new
+                        {{ row.unread_count }} {{ s.new_label }}
                     </span>
                 </td>
             </tr>
@@ -38,14 +41,12 @@
     </div>
 
     {% if truncated %}
-        <p style="color: #6b7280; font-size: 13px;">
-            Showing your most recent conversations. Open the app to see the full list.
-        </p>
+        <p style="color: #6b7280; font-size: 13px;">{{ s.truncated_notice }}</p>
     {% endif %}
 {% endblock %}
 
 {% block cta %}
     <div class="button-wrapper">
-        <a href="{{ site_url }}/messages" class="button">Open Messages</a>
+        <a href="{{ site_url }}/messages" class="button">{{ s.cta_button }}</a>
     </div>
 {% endblock %}
