@@ -48,7 +48,8 @@
     "finish": "Finish",
     "retry": "Retry",
     "categories_not_available": "Categories not available",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "user": "User"
   },
   "auth": {
     "login": "Login",

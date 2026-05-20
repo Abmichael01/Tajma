@@ -22,6 +22,7 @@ from django.utils import timezone
 
 from api.models import Message
 from api.utils.email import send_professional_email
+from api.utils.email_strings import build_strings
 
 logger = logging.getLogger(__name__)
 
@@ -100,10 +101,12 @@ def send_unread_message_digest() -> dict[str, int]:
             chat_rows = chat_rows[:MAX_CHATS_PER_EMAIL]
 
         total_unread = sum(row['unread_count'] for row in chat_rows)
-        subject = _build_subject(total_unread, len(chat_rows))
+        lang = getattr(recipient, 'preferred_language', None)
+        subject = _build_subject(total_unread, len(chat_rows), lang)
 
         delivered = send_professional_email(
             subject=subject,
+            subject_key='unread_message_digest',
             template_name='emails/unread_message_digest.html',
             context={
                 'recipient_name': recipient.get_full_name() or recipient.username,
@@ -113,6 +116,7 @@ def send_unread_message_digest() -> dict[str, int]:
                 'truncated': truncated,
             },
             recipient_list=[recipient.email],
+            language=lang,
         )
 
         if not delivered:
@@ -185,10 +189,12 @@ def _preview(message: Message) -> str:
     return label_by_type.get(message.message_type, 'New message')
 
 
-def _build_subject(total_unread: int, chat_count: int) -> str:
+def _build_subject(total_unread: int, chat_count: int, language: str | None = None) -> str:
+    s = build_strings('unread_message_digest', language or 'en')
     if chat_count == 1:
-        return f'You have {total_unread} unread message{"" if total_unread == 1 else "s"} on Tajma'
-    return f'You have {total_unread} unread messages from {chat_count} chats on Tajma'
+        plural = '' if total_unread == 1 else 's'
+        return s['subject_one_chat'].format(unread=total_unread, plural=plural)
+    return s['subject_multi_chat'].format(unread=total_unread, chats=chat_count)
 
 
 def _stamp_digested(messages: list[Message]) -> int:

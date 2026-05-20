@@ -8,6 +8,8 @@
   },
   "common": {
     "ok": "OK",
+    "reset": "Réinitialiser",
+    "preview": "Aperçu",
     "cancel": "Annuler",
     "error": "Erreur",
     "success": "Succès",
@@ -46,7 +48,8 @@
     "finish": "Terminer",
     "retry": "Réessayer",
     "categories_not_available": "Catégories non disponibles",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "user": "Utilisateur"
   },
   "auth": {
     "login": "Connexion",
@@ -379,6 +382,9 @@
       "title": "Titre A-Z"
     },
     "createError": "Échec de la création de l'annonce. Veuillez réessayer.",
+    "publishNow": "Publier maintenant",
+    "publishedSuccess": "Votre annonce a été publiée avec succès !",
+    "publishError": "Échec de la publication de l'annonce. Veuillez réessayer.",
     "negotiable": "Négociable"
   },
   "chat_info": {

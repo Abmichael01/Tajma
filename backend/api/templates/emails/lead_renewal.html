@@ -1,33 +1,32 @@
 {% extends "emails/base.html" %}
 
 {% block content %}
-    <h2>A Lead Came Back!</h2>
-    <p>Hello {{ user_name }},</p>
-    <p><strong>{{ client_name }}</strong> just interacted with your listing again on <strong>Tajma</strong>.
-    This is a great time to reach out!</p>
+    <h2>{{ s.title }}</h2>
+    <p>{{ s.greeting }} {{ user_name }},</p>
+    <p>{{ s.body_before_name }}<strong>{{ client_name }}</strong>{{ s.body_after_name|safe }}</p>
 
     <div class="details-table">
         <table>
             <tr>
-                <td>Action</td>
+                <td>{{ s.label_action }}</td>
                 <td>{{ lead_source }}</td>
             </tr>
             <tr>
-                <td>Item</td>
-                <td>{{ ad_title|default:"Your Listings" }}</td>
+                <td>{{ s.label_item }}</td>
+                <td>{{ ad_title|default:s.default_item }}</td>
             </tr>
             <tr>
-                <td>Total Interactions</td>
+                <td>{{ s.label_interactions }}</td>
                 <td>{{ interaction_count }}</td>
             </tr>
         </table>
     </div>
 
-    <p>Buyers who keep coming back are serious. Don't let this one slip away!</p>
+    <p>{{ s.closing }}</p>
 {% endblock %}
 
 {% block cta %}
     <div class="button-wrapper">
-        <a href="{{ site_url }}/profile/leads" class="button">View Leads Dashboard</a>
+        <a href="{{ site_url }}/profile/leads" class="button">{{ s.cta_button }}</a>
     </div>
 {% endblock %}
