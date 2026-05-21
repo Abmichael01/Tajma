@@ -10,9 +10,11 @@ class DeviceToken(models.Model):
 
     PLATFORM_EXPO = "expo"
     PLATFORM_WEB = "web"
+    PLATFORM_FCM = "fcm"
     PLATFORM_CHOICES = [
         (PLATFORM_EXPO, "Expo (iOS/Android)"),
         (PLATFORM_WEB, "Web Push"),
+        (PLATFORM_FCM, "Firebase Cloud Messaging (native iOS/Android)"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

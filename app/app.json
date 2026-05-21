@@ -70,6 +70,7 @@
     "plugins": [
       "expo-router",
       "expo-web-browser",
+      "@react-native-firebase/app",
       [
         "expo-location",
         {

@@ -18,6 +18,12 @@ import { usePresence } from "@/hooks/usePresence";
 import { usePushNotifications } from "@/hooks/useNotifications";
 import { useNotificationWebSocket } from "@/hooks/useWebSocket";
 import InAppNotificationBanner from "@/components/InAppNotificationBanner";
+import { installFcmBackgroundHandler } from "@/lib/fcmBackgroundHandler";
+
+// Side-effect: register the data-only FCM handler at module load so it's
+// alive before any push arrives, including the "app launched from quit by a
+// background push" case. Must run before the React tree mounts.
+installFcmBackgroundHandler();
 
 // Hooks that depend on React-Query's QueryClient must live UNDER QueryProvider.
 // This tiny component renders nothing — its only job is to call those hooks

@@ -7,16 +7,16 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
         table { border-collapse: collapse; width: 100%; }
-        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
-        .header { background: linear-gradient(135deg, #2d2d2d 0%, #FF4F18 100%); padding: 30px 20px; text-align: center; }
-        .header h1 { color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase; }
+        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+        .header { background-color: #ffffff; padding: 30px 20px; text-align: center; border-bottom: 1px solid #f3f4f6; }
+        .header h1 { color: #2d2d2d; margin: 0; font-size: 24px; letter-spacing: 1px; text-transform: uppercase; }
         .content { padding: 30px 40px; color: #374151; line-height: 1.6; }
         .content h2 { color: #111827; font-size: 20px; margin-bottom: 15px; }
         .details-table { margin: 20px 0; background-color: #f9fafb; border-radius: 6px; }
         .details-table td { padding: 12px 15px; border-bottom: 1px solid #e5e7eb; }
         .details-table td:first-child { font-weight: 600; color: #6b7280; width: 120px; }
         .button-wrapper { text-align: center; padding: 30px 0; }
-        .button { background-color: #FF4F18; color: #ffffff !important; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block; }
+        .button { background-color: #FF4F18; color: #ffffff !important; padding: 12px 30px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 16px; display: inline-block; }
         .footer { padding: 20px 40px; background-color: #f9fafb; text-align: center; color: #9ca3af; font-size: 12px; border-top: 1px solid #f3f4f6; }
         .footer a { color: #FF4F18; text-decoration: none; }
         @media only screen and (max-width: 600px) { .container { margin: 0; border-radius: 0; } .content { padding: 20px; } }
@@ -26,7 +26,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>TAJMA</h1>
+            <img src="{{ site_url }}/logo_new.png" alt="Tajma" width="140" style="display: block; margin: 0 auto; max-width: 140px; height: auto; border: 0; outline: none; text-decoration: none;">
         </div>
 
         <!-- Main Content -->
@@ -35,11 +35,13 @@
         </div>
 
         <!-- Sub-content / CTA -->
-        {% block cta %}{% endblock %}
+        <div style="text-align: center; padding-bottom: 30px;">
+            {% block cta %}{% endblock %}
+        </div>
 
         <!-- Footer -->
         <div class="footer">
-            <p>&copy; 2026 Tajma Marketplace. {{ s.footer_rights }}</p>
+            <p>&copy; {% now "Y" %} Tajma Marketplace. {{ s.footer_rights }}</p>
             <p>{{ s.footer_received_because }} <a href="https://tajma.net">tajma.net</a>.</p>
             <p><a href="{{ site_url }}/profile/settings">{{ s.footer_notification_settings }}</a> | <a href="{{ site_url }}/help">{{ s.footer_help_center }}</a></p>
         </div>

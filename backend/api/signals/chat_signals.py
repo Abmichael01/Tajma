@@ -179,13 +179,12 @@ def broadcast_message_on_create(sender, instance, created, **kwargs):
                             f"⏭️  Skipping push for message {instance.id} → user {recipient.id} (chat muted)"
                         )
                     else:
-                        # `channel_id="messages"` (Android) + `category_id` (iOS)
-                        # are hints for OS-level grouping. NOTE: Expo Push API
-                        # does NOT forward iOS thread-identifier — full per-chat
-                        # collapse needs a Notification Service Extension in a
-                        # custom dev client. The data payload carries `thread_id`
-                        # so a future client-side handler can re-present with
-                        # proper grouping if/when that's added.
+                        # Chat notifications go through FCM (preferred) when the
+                        # recipient has a registered FCM token — push_service
+                        # detects `type=message` in the payload, aggregates the
+                        # user's last N unread messages, and sends ONE collapsed
+                        # notification card (collapse_key + thread-id). Falls
+                        # back to per-message Expo Push when no FCM token.
                         push_service.send_to_user(
                             user_id=recipient.id,
                             title=title,

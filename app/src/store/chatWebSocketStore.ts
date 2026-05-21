@@ -87,12 +87,23 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
   }
 
   const applyTypingStatus = (payload: { userId: number; typing: boolean; chatId: string }) => {
-    const currentTyping = { ...get().typingStatus }
-    if (!currentTyping[payload.chatId]) {
-      currentTyping[payload.chatId] = {}
+    // Filter out our own typing events — the backend broadcasts to every
+    // participant's user_<id> group (so the chat list can show typing even
+    // when the conversation isn't open), which includes the sender. Without
+    // this filter, your own typing can leak into your own typingStatus and,
+    // when combined with timer/background-tab edge cases, cause a stuck
+    // "is typing" indicator on the other user's chat row.
+    const { useAuthStore } = require('@/store/authStore')
+    const selfId = useAuthStore.getState().user?.id
+    if (selfId !== undefined && selfId === payload.userId) {
+      return
     }
-    currentTyping[payload.chatId][payload.userId] = payload.typing
-    set({ typingStatus: currentTyping })
+
+    const existingChat = get().typingStatus[payload.chatId] ?? {}
+    const nextChat = { ...existingChat, [payload.userId]: payload.typing }
+    set({
+      typingStatus: { ...get().typingStatus, [payload.chatId]: nextChat },
+    })
 
     get().onTyping?.(payload)
 
@@ -101,6 +112,10 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
       return
     }
 
+    // Auto-clear after 2s of no further typing=true updates. The sender
+    // sends typing=true at ~1s intervals while actively typing, so 2s is a
+    // safe upper bound — if no refresh arrives in that window, the user
+    // either stopped typing or their typing=false was lost in transit.
     const key = `${payload.chatId}:${payload.userId}`
     const timer = setTimeout(() => {
       typingAutoClearTimers.delete(key)
@@ -109,7 +124,7 @@ export const useChatWebSocketStore = create<ChatWebSocketState>((set, get) => {
         typing: false,
         chatId: payload.chatId,
       })
-    }, 3000)
+    }, 2000)
 
     typingAutoClearTimers.set(key, timer)
   }

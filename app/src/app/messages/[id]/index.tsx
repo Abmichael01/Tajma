@@ -401,6 +401,10 @@ export default function ChatRoomScreen() {
   const { playSentSound, playReceivedSound } = useChatSounds();
   const lastPlayedSentId = useRef<string | null>(null);
   const lastPlayedReceivedId = useRef<string | null>(null);
+  // Timestamp of when the user entered this chat. Messages that already
+  // existed at mount aren't "new arrivals" — they're history. Without this
+  // gate, opening a chat within 15s of a stale message replays the chime.
+  const chatOpenedAt = useRef<number>(Date.now());
 
   useEffect(() => {
     if (!newestMessage) return;
@@ -408,9 +412,14 @@ export default function ChatRoomScreen() {
     const messageId = String(newestMessage.id);
     const isMe = String(newestMessage.sender?.id) === String(currentUser?.id);
     const msgTime = new Date(newestMessage.created_at).getTime();
-    const isRecent = Number.isFinite(msgTime) && Date.now() - msgTime < 15000;
+    // Only play if the message was created AFTER the user opened the chat.
+    // Tighter than the old 15s "isRecent" check — that was a heuristic for
+    // freshness, but it fires on history when you open a chat right after a
+    // notification.
+    const arrivedAfterOpen =
+      Number.isFinite(msgTime) && msgTime >= chatOpenedAt.current;
 
-    if (isRecent) {
+    if (arrivedAfterOpen) {
       if (isMe) {
         if (
           !messageId.startsWith("temp-") &&

@@ -27,9 +27,13 @@ class DeviceTokenView(APIView):
 
         if not token:
             return Response({"detail": "token is required."}, status=status.HTTP_400_BAD_REQUEST)
-        if platform not in {DeviceToken.PLATFORM_EXPO, DeviceToken.PLATFORM_WEB}:
+        if platform not in {
+            DeviceToken.PLATFORM_EXPO,
+            DeviceToken.PLATFORM_WEB,
+            DeviceToken.PLATFORM_FCM,
+        }:
             return Response(
-                {"detail": "platform must be 'expo' or 'web'."},
+                {"detail": "platform must be 'expo', 'web', or 'fcm'."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 import apiClient from "./apiClient";
 
-export type DevicePlatform = "expo" | "web";
+export type DevicePlatform = "expo" | "web" | "fcm";
 
 interface RegisterResponse {
   id: string;

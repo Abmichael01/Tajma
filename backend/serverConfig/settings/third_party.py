@@ -160,3 +160,8 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
 VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', '')
 VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')
 VAPID_CLAIM_EMAIL = os.getenv('VAPID_CLAIM_EMAIL', '')
+
+# Firebase Cloud Messaging (chat notifications only — needs per-chat collapse +
+# thread-id that Expo Push doesn't expose). Service-account JSON path. If unset,
+# FCM dispatch is skipped silently and chat falls back to Expo path.
+FIREBASE_CREDENTIALS_PATH = os.getenv('FIREBASE_CREDENTIALS_PATH', '')

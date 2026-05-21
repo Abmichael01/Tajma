@@ -86,3 +86,9 @@ coverage.xml
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Firebase Admin service account JSON — contains a private key, NEVER commit.
+# Path is set via FIREBASE_CREDENTIALS_PATH env var (see push_service.py).
+*firebase-adminsdk*.json
+tajma-*-firebase-adminsdk-*.json
+firebase-credentials.json
