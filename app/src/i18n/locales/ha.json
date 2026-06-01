@@ -49,7 +49,8 @@
     "retry": "Sake gwadawa",
     "categories_not_available": "Rukunoni ba sa samuwa",
     "whatsapp": "WhatsApp",
-    "user": "Mai amfani"
+    "user": "Mai amfani",
+    "secondAgo": "daƙiƙa {{count}} da ya wuce"
   },
   "auth": {
     "login": "Shiga",
@@ -160,7 +161,58 @@
     "filters": {
       "all": "Duk Hira",
       "unread": "Wadanda ba a karanta ba"
-    }
+    },
+    "searchPlaceholder": "Nemo saƙonni...",
+    "addCaption": "Sa bayani...",
+    "userFallback": "Mai amfani",
+    "loadingFallback": "Ana loɗa...",
+    "online": "Yana kan layi",
+    "offline": "Ba ya kan layi",
+    "noMessagesYet": "Babu saƙonni tukuna",
+    "youPrefix": "Kai: ",
+    "replyingTo": "Amsa wa",
+    "replyFallback": "Amsa",
+    "messageFallback": "Saƙo",
+    "preview": {
+      "photo": "📷 Hoto",
+      "voice": "🎤 Saƙon murya",
+      "document": "📄 Takarda"
+    },
+    "sharedContentTitle": "Abubuwan da aka raba",
+    "uploadErrorTitle": "Kuskuren ɗorawa",
+    "uploadErrorBody": "Ba a iya buɗe fayilolinka ba. Da fatan a sake gwadawa.",
+    "editImageFailedTitle": "Gyara ya gaza",
+    "editImageFailedBody": "Ba a iya gyara wannan hoton ba. Da fatan a gwada wani hoton.",
+    "deleteMessage": {
+      "titleOne": "Share saƙo",
+      "titleMany": "Share saƙonni",
+      "bodyCanEveryone": "Share ga kowa yana cire saƙon a gare ku biyu. Share a gare ni kawai yana ƙoye shi daga gare ka.",
+      "bodyCannotEveryone": "Wannan zai ƙoye saƙon daga gare ka kawai. Ba za ka iya share saƙonnin sauran mutane ba.",
+      "forEveryone": "Share ga kowa",
+      "forMe": "Share a gare ni",
+      "cannotEveryoneTitle": "Ba za a iya share ga kowa ba",
+      "cannotEveryoneBody": "Wasu saƙonni sun daɗe ko ba naka ba ne. Yi amfani da \"Share a gare ni\".",
+      "genericErrorTitle": "Wani abu ya ɓaci",
+      "genericErrorBody": "Ba a iya share saƙonni ba. Da fatan a sake gwadawa."
+    },
+    "bulkAction": {
+      "errorTitle": "Wani abu ya ɓaci",
+      "errorBody": "Wasu ayyuka ba su kammala ba. Da fatan a sake gwadawa."
+    },
+    "clearChat": {
+      "title": "Share zance",
+      "body": "Ɓoye dukan saƙonnin wannan zance daga gare ka. Ɗayan mutumin zai ci gaba da gan su.",
+      "confirm": "Share"
+    },
+    "deleteChats": {
+      "titleOne": "Share zance",
+      "titleMany": "Share zantukka",
+      "bodyOne": "Ɓoye wannan zancen daga jerinka? Ɗayan mutumin yana iya ci gaba da aiko maka saƙo — zancen zai dawo idan ya yi haka.",
+      "bodyMany": "Ɓoye zantuka {{count}} daga jerinka? Sauran mutane suna iya ci gaba da aiko maka saƙonni — zantukan za su dawo idan suka yi haka.",
+      "confirm": "Share"
+    },
+    "lastSeen": "An gani na ƙarshe {{relative}}",
+    "mediaViewerTitle": "Hotuna"
   },
   "profile": {
     "title": "Bayanai",

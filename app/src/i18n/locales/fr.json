@@ -49,7 +49,8 @@
     "retry": "Réessayer",
     "categories_not_available": "Catégories non disponibles",
     "whatsapp": "WhatsApp",
-    "user": "Utilisateur"
+    "user": "Utilisateur",
+    "secondAgo": "Il y a {{count}}s"
   },
   "auth": {
     "login": "Connexion",
@@ -160,7 +161,58 @@
     "filters": {
       "all": "Tous les chats",
       "unread": "Non lus"
-    }
+    },
+    "searchPlaceholder": "Rechercher des messages...",
+    "addCaption": "Ajouter une légende...",
+    "userFallback": "Utilisateur",
+    "loadingFallback": "Chargement...",
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "noMessagesYet": "Aucun message pour l'instant",
+    "youPrefix": "Vous : ",
+    "replyingTo": "Réponse à",
+    "replyFallback": "Répondre",
+    "messageFallback": "Message",
+    "preview": {
+      "photo": "📷 Photo",
+      "voice": "🎤 Message vocal",
+      "document": "📄 Document"
+    },
+    "sharedContentTitle": "Contenu partagé",
+    "uploadErrorTitle": "Erreur de téléversement",
+    "uploadErrorBody": "Impossible d'ouvrir vos fichiers. Veuillez réessayer.",
+    "editImageFailedTitle": "Échec de la modification",
+    "editImageFailedBody": "Impossible de modifier cette image. Veuillez essayer une autre photo.",
+    "deleteMessage": {
+      "titleOne": "Supprimer le message",
+      "titleMany": "Supprimer les messages",
+      "bodyCanEveryone": "Supprimer pour tout le monde retire le message pour vous deux. Supprimer pour moi le masque uniquement de votre vue.",
+      "bodyCannotEveryone": "Ceci masquera uniquement le message de votre vue. Vous ne pouvez pas supprimer les messages des autres pour eux.",
+      "forEveryone": "Supprimer pour tout le monde",
+      "forMe": "Supprimer pour moi",
+      "cannotEveryoneTitle": "Suppression pour tous impossible",
+      "cannotEveryoneBody": "Certains messages sont trop anciens ou ne vous appartiennent pas. Utilisez « Supprimer pour moi ».",
+      "genericErrorTitle": "Une erreur s'est produite",
+      "genericErrorBody": "Impossible de supprimer les messages. Veuillez réessayer."
+    },
+    "bulkAction": {
+      "errorTitle": "Une erreur s'est produite",
+      "errorBody": "Certaines actions n'ont pas abouti. Veuillez réessayer."
+    },
+    "clearChat": {
+      "title": "Vider la conversation",
+      "body": "Masquer tous les messages de cette conversation depuis votre vue. L'autre personne pourra toujours les voir.",
+      "confirm": "Vider"
+    },
+    "deleteChats": {
+      "titleOne": "Supprimer la conversation",
+      "titleMany": "Supprimer les conversations",
+      "bodyOne": "Masquer cette conversation de votre liste ? L'autre personne pourra toujours vous écrire — la conversation réapparaîtra si elle le fait.",
+      "bodyMany": "Masquer {{count}} conversations de votre liste ? Les autres personnes pourront toujours vous écrire — les conversations réapparaîtront si elles le font.",
+      "confirm": "Supprimer"
+    },
+    "lastSeen": "Vu pour la dernière fois {{relative}}",
+    "mediaViewerTitle": "Médias"
   },
   "profile": {
     "title": "Compte",

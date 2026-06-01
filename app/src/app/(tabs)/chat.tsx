@@ -156,11 +156,11 @@ export default function ChatScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         invalidateChats();
         alert({
-          title: "Something went wrong",
-          message: "Some actions did not complete. Please try again.",
+          title: t('chat.bulkAction.errorTitle'),
+          message: t('chat.bulkAction.errorBody'),
           icon: "alert-circle-outline",
           iconColor: "#DC2626",
-          buttons: [{ text: "OK", style: "default" }],
+          buttons: [{ text: t('common.ok'), style: "default" }],
         });
       } finally {
         if (!opts?.dontExit) exitSelection();
@@ -185,15 +185,14 @@ export default function ChatScreen() {
     if (!singleChat) return;
     const chatId = String(singleChat.id);
     alert({
-      title: "Clear chat",
-      message:
-        "Hide all messages in this chat from your view. The other person will still see them.",
+      title: t('chat.clearChat.title'),
+      message: t('chat.clearChat.body'),
       icon: "trash-bin-outline",
       iconColor: "#DC2626",
       buttons: [
-        { text: "Cancel", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Clear",
+          text: t('chat.clearChat.confirm'),
           style: "destructive",
           onPress: () =>
             runBulk(async () => {
@@ -209,17 +208,18 @@ export default function ChatScreen() {
   const onDelete = () => {
     const count = selectedChatIds.size;
     alert({
-      title: count > 1 ? "Delete chats" : "Delete chat",
-      message:
-        count > 1
-          ? `Hide ${count} chats from your list? The other people can still message you — chats will reappear if they do.`
-          : "Hide this chat from your list? The other person can still message you — the chat will reappear if they do.",
+      title: count > 1
+        ? t('chat.deleteChats.titleMany')
+        : t('chat.deleteChats.titleOne'),
+      message: count > 1
+        ? t('chat.deleteChats.bodyMany', { count })
+        : t('chat.deleteChats.bodyOne'),
       icon: "trash-outline",
       iconColor: "#DC2626",
       buttons: [
-        { text: "Cancel", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Delete",
+          text: t('chat.deleteChats.confirm'),
           style: "destructive",
           onPress: () => runBulk((id) => chatApi.hideChat(id)),
         },

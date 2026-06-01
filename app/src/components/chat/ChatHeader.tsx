@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 import AppText from "@/components/ui/AppText";
 import Avatar from "@/components/ui/Avatar";
 import * as Haptics from "expo-haptics";
@@ -30,26 +31,27 @@ export default function ChatHeader({
   onAvatarPress,
 }: ChatHeaderProps) {
   const insets = useSafeAreaInsets();
-  
+  const { t } = useTranslation();
+
   const formatRelativeTime = (timestamp: string) => {
     const now = Date.now();
     const date = new Date(timestamp).getTime();
     const diffSeconds = Math.max(0, Math.floor((now - date) / 1000));
-    if (diffSeconds < 60) return `${diffSeconds || 1}s ago`;
+    if (diffSeconds < 60) return t('common.secondAgo', { count: diffSeconds || 1 });
     const diffMinutes = Math.floor(diffSeconds / 60);
-    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    if (diffMinutes < 60) return t('common.minAgo', { count: diffMinutes });
     const diffHours = Math.floor(diffMinutes / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffHours < 24) return t('common.hourAgo', { count: diffHours });
     const diffDays = Math.floor(diffHours / 24);
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffDays < 7) return t('common.dayAgo', { count: diffDays });
     return new Date(timestamp).toLocaleDateString();
   };
 
   const getStatusText = () => {
     if (isTyping) return null;
-    if (isOnline) return "Online";
-    if (lastSeen) return `Last seen ${formatRelativeTime(lastSeen)}`;
-    return "Offline";
+    if (isOnline) return t('chat.online');
+    if (lastSeen) return t('chat.lastSeen', { relative: formatRelativeTime(lastSeen) });
+    return t('chat.offline');
   };
 
   const statusOpacity = useRef(new Animated.Value(1)).current;

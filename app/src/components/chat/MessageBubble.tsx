@@ -19,6 +19,7 @@ import { runOnJS } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Svg, Path } from "react-native-svg";
+import { useTranslation } from "react-i18next";
 import AppText from "@/components/ui/AppText";
 import { useImageDimensions } from "@/hooks/useImageDimensions";
 import { ChatMessage } from "@/api/types";
@@ -148,6 +149,7 @@ const MessageBubble = React.memo(
     onLongPress,
   }: MessageBubbleProps) => {
     const { user } = useAuthStore();
+    const { t } = useTranslation();
     const { width: windowWidth } = useWindowDimensions();
 
     const flashAnim = useRef(new Animated.Value(0)).current;
@@ -446,7 +448,7 @@ const MessageBubble = React.memo(
                     >
                       {message.parent_message.sender?.full_name ||
                         message.parent_message.sender?.username ||
-                        "Reply"}
+                        t('chat.replyFallback')}
                     </AppText>
                     <AppText
                       style={[

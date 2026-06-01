@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import AppText from "@/components/ui/AppText";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -64,6 +65,7 @@ export default function MediaPreviewModal({
   onClose,
   onSend,
 }: MediaPreviewModalProps) {
+  const { t } = useTranslation();
   const [caption, setCaption] = useState("");
   const [previewAsset, setPreviewAsset] = useState<
     ImagePicker.ImagePickerAsset | DocumentPicker.DocumentPickerAsset | null
@@ -200,8 +202,8 @@ export default function MediaPreviewModal({
     } catch (error) {
       console.warn("Image edit failed:", error);
       Alert.alert(
-        "Edit failed",
-        "Could not edit this image. Please try another photo.",
+        t('chat.editImageFailedTitle'),
+        t('chat.editImageFailedBody'),
       );
     } finally {
       setActiveEditAction(null);
@@ -335,7 +337,7 @@ export default function MediaPreviewModal({
               <TextInput
                 value={caption}
                 onChangeText={setCaption}
-                placeholder="Add a caption..."
+                placeholder={t('chat.addCaption')}
                 placeholderTextColor="#9ca3af"
                 multiline
                 className="flex-1 text-white text-[16px] px-2 min-h-[40px] max-h-[120px]"

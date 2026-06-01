@@ -49,7 +49,8 @@
     "retry": "Retry",
     "categories_not_available": "Categories not available",
     "whatsapp": "WhatsApp",
-    "user": "User"
+    "user": "User",
+    "secondAgo": "{{count}}s ago"
   },
   "auth": {
     "login": "Login",
@@ -160,7 +161,58 @@
     "filters": {
       "all": "All Chats",
       "unread": "Unread"
-    }
+    },
+    "searchPlaceholder": "Search messages...",
+    "addCaption": "Add a caption...",
+    "userFallback": "User",
+    "loadingFallback": "Loading...",
+    "online": "Online",
+    "offline": "Offline",
+    "noMessagesYet": "No messages yet",
+    "youPrefix": "You: ",
+    "replyingTo": "Replying to",
+    "replyFallback": "Reply",
+    "messageFallback": "Message",
+    "preview": {
+      "photo": "📷 Photo",
+      "voice": "🎤 Voice Message",
+      "document": "📄 Document"
+    },
+    "sharedContentTitle": "Shared Content",
+    "uploadErrorTitle": "Upload Error",
+    "uploadErrorBody": "Could not open your files. Please try again.",
+    "editImageFailedTitle": "Edit failed",
+    "editImageFailedBody": "Could not edit this image. Please try another photo.",
+    "deleteMessage": {
+      "titleOne": "Delete message",
+      "titleMany": "Delete messages",
+      "bodyCanEveryone": "Delete for everyone removes the message for both of you. Delete for me only hides it from your view.",
+      "bodyCannotEveryone": "This will only hide the message from your view. You can't delete other people's messages for them.",
+      "forEveryone": "Delete for everyone",
+      "forMe": "Delete for me",
+      "cannotEveryoneTitle": "Cannot delete for everyone",
+      "cannotEveryoneBody": "Some messages are too old or not yours. Use 'Delete for me' instead.",
+      "genericErrorTitle": "Something went wrong",
+      "genericErrorBody": "Could not delete messages. Please try again."
+    },
+    "bulkAction": {
+      "errorTitle": "Something went wrong",
+      "errorBody": "Some actions did not complete. Please try again."
+    },
+    "clearChat": {
+      "title": "Clear chat",
+      "body": "Hide all messages in this chat from your view. The other person will still see them.",
+      "confirm": "Clear"
+    },
+    "deleteChats": {
+      "titleOne": "Delete chat",
+      "titleMany": "Delete chats",
+      "bodyOne": "Hide this chat from your list? The other person can still message you — the chat will reappear if they do.",
+      "bodyMany": "Hide {{count}} chats from your list? The other people can still message you — chats will reappear if they do.",
+      "confirm": "Delete"
+    },
+    "lastSeen": "Last seen {{relative}}",
+    "mediaViewerTitle": "Media"
   },
   "profile": {
     "title": "Profile",

@@ -2,6 +2,7 @@ import { View, FlatList, TouchableOpacity, Image, Linking, ActivityIndicator, us
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import AppText from "@/components/ui/AppText";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import { useChatMessages } from "@/hooks/useChat";
@@ -12,6 +13,7 @@ type TabType = 'media' | 'links' | 'docs';
 export default function MediaLinksDocsScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
+    const { t } = useTranslation();
     const { width } = useWindowDimensions();
     const [activeTab, setActiveTab] = useState<TabType>('media');
 
@@ -151,7 +153,7 @@ export default function MediaLinksDocsScreen() {
             <Stack.Screen options={{ headerShown: false }} />
 
             <ScreenHeader
-                title="Shared Content"
+                title={t('chat.sharedContentTitle')}
                 onBackPress={() => router.back()}
                 variant="white"
             />

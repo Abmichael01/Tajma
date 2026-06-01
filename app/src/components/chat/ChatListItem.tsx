@@ -4,6 +4,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { memo, useEffect } from "react";
 import * as Haptics from "expo-haptics";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import AppText from "@/components/ui/AppText";
 import Avatar from "@/components/ui/Avatar";
 import { ChatSummary } from "@/api/types";
@@ -36,6 +37,7 @@ function ChatListItem({
   const router = useRouter();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   // Prefetch first page of messages and chat detail for the first few chats.
   useEffect(() => {
@@ -240,11 +242,11 @@ function ChatListItem({
                 >
                   {(() => {
                     const msg = chat.last_message;
-                    if (!msg) return "No messages yet";
-                    const prefix = isOwnMessage ? "You: " : "";
-                    if (msg.message_type === "image") return `${prefix}📷 Photo`;
-                    if (msg.message_type === "audio") return `${prefix}🎤 Voice message`;
-                    if (msg.message_type === "document") return `${prefix}📄 Document`;
+                    if (!msg) return t('chat.noMessagesYet');
+                    const prefix = isOwnMessage ? t('chat.youPrefix') : "";
+                    if (msg.message_type === "image") return `${prefix}${t('chat.preview.photo')}`;
+                    if (msg.message_type === "audio") return `${prefix}${t('chat.preview.voice')}`;
+                    if (msg.message_type === "document") return `${prefix}${t('chat.preview.document')}`;
                     return `${prefix}${msg.content || ""}`;
                   })()}
                 </AppText>

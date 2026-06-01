@@ -2,7 +2,8 @@ import {
   View,
   Platform,
   Pressable,
-  ImageBackground,
+  Image,
+  StyleSheet,
   TextInput,
   Animated,
   Easing as RNEasing,
@@ -341,9 +342,9 @@ export default function ChatRoomScreen() {
       }
     } catch (err) {
       console.warn("[ChatRoom] document failed:", err);
-      Alert.alert("Upload Error", "Could not open your files. Please try again.");
+      Alert.alert(t('chat.uploadErrorTitle'), t('chat.uploadErrorBody'));
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     Animated.timing(searchBarHeight, {
@@ -524,21 +525,23 @@ export default function ChatRoomScreen() {
   //     AND was sent within the last 60 min.
   const onBulkDelete = () => {
     const count = selectedMessageIds.size;
-    const title = count > 1 ? "Delete messages" : "Delete message";
+    const title = count > 1
+      ? t('chat.deleteMessage.titleMany')
+      : t('chat.deleteMessage.titleOne');
     // Different body copy so the user understands WHY "for everyone" might
     // be missing — e.g. someone else's message can only be hidden from your
     // view, never removed for them.
     const message = canBulkDeleteForEveryone
-      ? "Delete for everyone removes the message for both of you. Delete for me only hides it from your view."
-      : "This will only hide the message from your view. You can't delete other people's messages for them.";
+      ? t('chat.deleteMessage.bodyCanEveryone')
+      : t('chat.deleteMessage.bodyCannotEveryone');
 
     const buttons: { text: string; style?: "default" | "cancel" | "destructive"; onPress?: () => void }[] = [
-      { text: "Cancel", style: "cancel" },
+      { text: t('common.cancel'), style: "cancel" },
     ];
 
     if (canBulkDeleteForEveryone) {
       buttons.push({
-        text: "Delete for everyone",
+        text: t('chat.deleteMessage.forEveryone'),
         style: "destructive",
         onPress: async () => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -548,19 +551,19 @@ export default function ChatRoomScreen() {
             const statusCode = err?.response?.status;
             if (statusCode === 403) {
               alert({
-                title: "Cannot delete for everyone",
-                message: "Some messages are too old or not yours. Use 'Delete for me' instead.",
+                title: t('chat.deleteMessage.cannotEveryoneTitle'),
+                message: t('chat.deleteMessage.cannotEveryoneBody'),
                 icon: "alert-circle-outline",
                 iconColor: "#DC2626",
-                buttons: [{ text: "OK", style: "default" }],
+                buttons: [{ text: t('common.ok'), style: "default" }],
               });
             } else {
               alert({
-                title: "Something went wrong",
-                message: "Could not delete messages. Please try again.",
+                title: t('chat.deleteMessage.genericErrorTitle'),
+                message: t('chat.deleteMessage.genericErrorBody'),
                 icon: "alert-circle-outline",
                 iconColor: "#DC2626",
-                buttons: [{ text: "OK", style: "default" }],
+                buttons: [{ text: t('common.ok'), style: "default" }],
               });
             }
           }
@@ -569,7 +572,7 @@ export default function ChatRoomScreen() {
     }
 
     buttons.push({
-      text: "Delete for me",
+      text: t('chat.deleteMessage.forMe'),
       style: "destructive",
       onPress: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -584,6 +587,19 @@ export default function ChatRoomScreen() {
     <View className="flex-1 bg-white">
       <Stack.Screen options={{ headerShown: false }} />
 
+      {/* Static chat background — sits at the screen root so it never resizes
+          when the keyboard animates or the message list grows. Previously this
+          was an ImageBackground inside the keyboard-animated container, which
+          made Android rebuild the tiled bitmap on every layout change (visible
+          as a flicker while typing/scrolling). */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: "#ECE5DD" }]} pointerEvents="none">
+        <Image
+          source={require("@/assets/images/chat_bg.jpg")}
+          style={[StyleSheet.absoluteFill, { opacity: 0.12, width: "100%", height: "100%" }]}
+          resizeMode="repeat"
+        />
+      </View>
+
       <View style={{ position: "relative" }}>
         {/* Normal chat header — always rendered; selection overlay covers it
             with an opacity + translateY fade for a smooth transition. */}
@@ -593,7 +609,7 @@ export default function ChatRoomScreen() {
             userName={
               otherParticipant?.full_name ||
               otherParticipant?.username ||
-              (isChatLoading ? "Loading..." : "User")
+              (isChatLoading ? t('chat.loadingFallback') : t('chat.userFallback'))
             }
             isOnline={participantStatus?.is_online}
             lastSeen={participantStatus?.last_seen}
@@ -686,7 +702,7 @@ export default function ChatRoomScreen() {
             <Ionicons name="search-outline" size={18} color="#64748B" />
             <TextInput
               className="flex-1 ml-2 text-[15px] text-gray-900 h-9"
-              placeholder="Search messages..."
+              placeholder={t('chat.searchPlaceholder')}
               placeholderTextColor="#94A3B8"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -740,7 +756,7 @@ export default function ChatRoomScreen() {
             className="px-2"
           >
             <AppText weight="bold" className="text-primary text-sm">
-              Cancel
+              {t('common.cancel')}
             </AppText>
           </Pressable>
         </View>
@@ -748,17 +764,11 @@ export default function ChatRoomScreen() {
 
       <Reanimated.View
         style={[
-          { flex: 1, backgroundColor: "#ECE5DD" },
+          { flex: 1, backgroundColor: "transparent" },
           animatedContentStyle,
         ]}
       >
         <View className="flex-1 relative">
-          <ImageBackground
-            source={require("@/assets/images/chat_bg.jpg")}
-            style={{ flex: 1 }}
-            resizeMode="repeat"
-            imageStyle={{ opacity: 0.12 }}
-          >
             {isChatLoading || !isReady ? (
               <MessageSkeleton />
             ) : (
@@ -791,7 +801,7 @@ export default function ChatRoomScreen() {
               visible={viewerVisible}
               initialIndex={initialImageIndex}
               onClose={() => setViewerVisible(false)}
-              title="Media"
+              title={t('chat.mediaViewerTitle')}
             />
 
             <MediaPreviewModal
@@ -827,7 +837,6 @@ export default function ChatRoomScreen() {
                 </Pressable>
               </View>
             )}
-          </ImageBackground>
         </View>
 
         {!isSearchVisible && isReady && (

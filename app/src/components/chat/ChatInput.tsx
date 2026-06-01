@@ -767,16 +767,16 @@ export default function ChatInput({
             <AppText weight="bold" style={styles.replyName} numberOfLines={1}>
               {replyTo?.sender?.full_name ??
                 replyTo?.sender?.username ??
-                "Replying to"}
+                t('chat.replyingTo')}
             </AppText>
             <AppText style={styles.replyText} numberOfLines={1}>
               {replyTo?.message_type === "image"
-                ? "📷 Photo"
+                ? t('chat.preview.photo')
                 : replyTo?.message_type === "audio"
-                  ? "🎤 Voice Message"
+                  ? t('chat.preview.voice')
                   : replyTo?.message_type === "document"
-                    ? "📄 Document"
-                    : (replyTo?.content ?? "Message")}
+                    ? t('chat.preview.document')
+                    : (replyTo?.content ?? t('chat.messageFallback'))}
             </AppText>
           </View>
           <Pressable
