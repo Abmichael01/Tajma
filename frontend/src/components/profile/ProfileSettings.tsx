@@ -481,7 +481,7 @@ export default function ProfileSettings({ user, onUpdateUser }: ProfileSettingsP
                   <FormItem>
                     <FormLabel className="text-xs font-semibold text-gray-500">{t('phone')}</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="+227 92 64 99 99" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 w-full" />
+                      <Input type="tel" placeholder="+227 -- -- -- --" {...field} className="rounded-full border-gray-100 bg-gray-50/30 focus:bg-white transition-all h-12 w-full" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

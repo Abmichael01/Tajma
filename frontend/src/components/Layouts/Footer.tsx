@@ -61,9 +61,9 @@ export default function Footer({ className = '' }: FooterProps) {
                 <Mail className="w-4 h-4 flex-shrink-0" />
                 <span>support@tajma.net</span>
               </a>
-              <a href="tel:+22792649999" className="flex items-center gap-2 hover:text-white transition-colors">
+              <a href="tel:+22792190303" className="flex items-center gap-2 hover:text-white transition-colors">
                 <Phone className="w-4 h-4 flex-shrink-0" />
-                <span>+227 92 64 99 99</span>
+                <span>+227 92 19 03 03</span>
               </a>
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />

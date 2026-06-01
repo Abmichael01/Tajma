@@ -234,7 +234,7 @@ export default function PrivacyClient() {
                 <strong>Email:</strong> privacy@tajma.com
               </p>
               <p className="text-gray-600 mb-2">
-                <strong>Phone:</strong> +227 92 64 99 99
+                <strong>Phone:</strong> +227 92 19 03 03
               </p>
               <p className="text-gray-600">
                 <strong>Address:</strong> Niamey, Niger

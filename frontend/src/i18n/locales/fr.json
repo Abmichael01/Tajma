@@ -315,7 +315,7 @@
     "profile_image_desc": "Complétez ces détails pour commencer à publier des annonces",
     "contact_info": "Informations de contact",
     "phone_label": "Numéro de téléphone",
-    "phone_placeholder": "+227 92 64 99 99",
+    "phone_placeholder": "+227 -- -- -- --",
     "location_label": "Lieu",
     "address_label": "Quartier / Adresse",
     "address_placeholder": "ex: Plateau, Rue 123",
