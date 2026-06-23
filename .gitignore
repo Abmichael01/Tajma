@@ -38,3 +38,5 @@ lerna-debug.log*
 *.tmp
 *.temp
 .cache/
+app/.env.production
+backend/.env.prod

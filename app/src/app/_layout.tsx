@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { View, StyleSheet, Platform } from "react-native";
+import { Platform } from "react-native";
 import "../../global.css";
 import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
@@ -12,7 +12,6 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import "@/i18n";
 import QueryProvider from "@/providers/QueryProvider";
-import AppSplashScreenComponent from "@/components/ui/SplashScreen";
 import LanguageSelectionGate from "@/components/onboarding/LanguageSelectionGate";
 import { usePresence } from "@/hooks/usePresence";
 import { usePushNotifications } from "@/hooks/useNotifications";
@@ -37,7 +36,6 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const [isAppReady, setIsAppReady] = useState(false);
-  const [isSplashComplete, setIsSplashComplete] = useState(false);
   usePresence();
   usePushNotifications();
 
@@ -73,21 +71,7 @@ export default function RootLayout() {
             <SafeAreaProvider>
               <StatusBar style="dark" />
               <Stack screenOptions={{ headerShown: false, animation: "fade" }} />
-              {!isSplashComplete && (
-                <View
-                  style={StyleSheet.absoluteFill}
-                  pointerEvents={isSplashComplete ? "none" : "auto"}
-                >
-                  {isAppReady ? (
-                    <AppSplashScreenComponent
-                      onAnimationComplete={() => setIsSplashComplete(true)}
-                    />
-                  ) : (
-                    <View style={{ flex: 1, backgroundColor: "#FFFFFF" }} />
-                  )}
-                </View>
-              )}
-              {isSplashComplete && <LanguageSelectionGate />}
+              {isAppReady && <LanguageSelectionGate />}
               <InAppNotificationBanner />
             </SafeAreaProvider>
           </BottomSheetModalProvider>
